@@ -1,0 +1,199 @@
+---
+title: "Numerical Approximation of an Integrated Multinomial Likelihood"
+author: "Tim Ruel"
+date: "Feb 9, 2023"
+format: 
+  revealjs:
+    theme: [default, custom.scss]
+    slide-number: true
+    incremental: true
+    logo: nulogo.png
+---
+
+## Setup
+
+> <font size="5">"All models are wrong but some are useful."</font>
+
+<font size="5">--- George Box</font>
+
+- In its most general framework, a statistical model can be thought of as a pair $(\mathcal{S}, \mathcal{P})$ where
+  - $\mathcal{S}$ is the set of all possible observations,
+  - $\mathcal{P}$ is a set of probability distributions on $\mathcal{S}$.
+- We assume that there exists a "true" probability distribution inducing the process that generates the data we observe from $\mathcal{S}$. $\mathcal{P}$ does not necessarily have to contain this distribution and in practice it rarely does.
+
+:::{.notes}
+When selecting the distributions that $\mathcal{P}$ does contain, our hope is that one of them provides an adequate approximation to the real distribution. Much of statistical inference simply comes down to determining which distribution this is.
+:::
+
+## Model Assumptions
+
+- We will restrict our attention to a "nice" subset of these models by making the following assumptions: 
+  - $\mathcal{P}$ is **parameterized**. That is, $\mathcal{P} = \{\mathcal{P}_{\theta} | \> \theta \in \Theta\}$, where $\Theta$ is the set of all possible values of the parameter $\theta$.
+  - $\Theta \subseteq \mathbb{R}^k$ where $k \in \mathbb{Z}^+$. Models that satisfy this assumption are said to be **parametric**.
+  - $\mathcal{P}$ is **identifiable**. That is, 
+$$\mathcal{P}_{\theta_1} = \mathcal{P}_{\theta_2} \implies \theta_1 = \theta_2 \> \> \forall \> \> \theta_1, \theta_2 \in \Theta.$$
+
+:::{.notes}
+Each $\mathcal{P}_{\theta}$ is a cumulative distribution function.
+
+Put succinctly, a parametric model is a family of probability distributions that has a finite number of parameters.
+
+A model is identifiable if it is theoretically possible to learn the true values of this model's underlying parameters after obtaining an infinite number of observations from it. This is a crucial assumption when performing statistical inference as it ensures we can always distinguish between two probability distributions on the basis of the observable data they generate.
+:::
+
+## The Goal of Statistical Inference
+
+\
+
+- Once we have chosen a model $(\mathcal{S}, \mathcal{P})$, the goal of statistical inference is to identify the distribution in $\mathcal{P}$ that best approximates the truth. 
+
+- Since we have assumed our model is identifiable, this is equivalent to estimating the value of the $k$-dimensional parameter $\theta$ on the basis of some data we observe.
+
+- We can accomplish task by analyzing the model's likelihood function.
+
+## The Likelihood Function
+
+- The **likelihood function** for our model is defined as the joint probability of $n$ observations $x_1, ..., x_n$ taken from our sample space $\mathcal{S}$ considered as a function of the model parameter $\theta$:
+$$L(\theta;x_1, ..., x_n) \equiv p(x_1, ..., x_n ; \theta).$$
+- The form this function takes will depend on the exact specification of $\mathcal{S}$ and $\mathcal{P}$ as well as the sampling process, but once it has been obtained we can use it to estimate $\theta$. 
+
+- But what do we do if we are interested in estimating something besides the full model parameter?
+
+## Decomposing the Model Parameter
+
+- Consider the case in which our actual **parameter of interest** is not $\theta$ but rather a sub-parameter $\psi$ taking values in a set $\Psi$.
+
+- Whatever remains in $\theta$ that is not a part of $\psi$ is called the **nuisance parameter** and is denoted by $\lambda$. 
+
+- $\theta$ can therefore be decomposed as $\theta = (\psi, \lambda).$
+
+- The set in which $\lambda$ takes its values may depend on $\psi$ so we will define its parameter space as $$\Lambda(\psi) \equiv \{\lambda \> | \> (\psi, \lambda) \in \Theta\}.$$
+
+:::{.notes}
+$\lambda$ will often obfuscate our inference regarding the true value of $\psi$, hence its name.
+
+Note that both $\psi$ and $\lambda$ are explicitly defined here as being a subset of the full model parameter's components. 
+:::
+
+## The Generalized Parameter of Interest
+
+- Previously we defined $\psi$ (and by extension $\lambda$) explicitly as a subset of the components of $\theta$ but this need not always be the case.
+
+- In its most general form, the parameter of interest for a model is a function $\varphi: \Theta \to \Psi$ such that $\psi = \varphi(\theta)$.
+
+- When $\varphi(\theta)$ happens to be equal to $\theta$, we can base our inference directly on $L(\theta)$.
+
+- However, as its name suggests, when a nuisance parameter exists, estimating the parameter of interest can be quite difficult. 
+
+## Pseudolikelihood Functions {.smaller}
+  
+- If we let $$\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $$\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$$
+
+ - Statisticians will often attempt to find a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. This summary is called a **pseudolikelihood function** and can take several different forms:
+    - Maximizing
+    - Conditioning
+    - **Integrating**
+
+## The Integrated Likelihood Function
+
+- The **integrated likelihood function** is defined as $$\bar{L}(\psi) = \int_{\Lambda(\psi)} L(\psi, \lambda)\pi(\lambda | \psi)d\lambda.$$
+
+- The idea is to summarize $\mathcal{L}_{\psi}$ by its average value with respect to some weight function $\pi(\lambda | \psi)$ over $\Theta(\psi)$.
+
+- $\pi(\lambda | \psi)$ is often referred to as a conditional prior density for $\lambda$ given $\psi$ though in reality it doesn't have to be a genuine density function.
+
+
+:::{.notes}
+Note that $\psi$ and $\lambda$ will often be related in some sense.  
+:::
+
+## A New Choice of Nuisance Parameter
+
+- Severini (2007) proposed a method for reparameterizing the nuisance parameter $\lambda$ in such a way that it is "unrelated" to the parameter of interest $\psi$.
+
+- This parameter would be constructed to have a maximum likelihood estimate that would not actually depend on $\psi$.
+
+- Integrating the likelihood function with respect to this new nuisance parameter would grant the result some nice properties that would hold for essentially any choice of $\pi(\lambda | \psi)$ as long as it does not depend on $\psi$.
+
+:::{.notes}
+In this context, "unrelated" means the derivative of the new nuisance parameter with respect to $\psi$ is constant.
+These nice properties include approximate score- and information-unbiasedness.
+:::
+
+## The Zero-Score Expectation Parameter {.smaller}
+
+- It can be shown that for a given parameterization $\theta = (\psi, \lambda)$, a nuisance parameter $\phi$ that is unrelated to $\psi$ is given by the solution to the equation $$\mathbb{E}\big(\ell_{\lambda}(\psi, \lambda); \hat{\psi}, \phi\big) \equiv \mathbb{E}\big(\ell_{\lambda}(\psi, \lambda); \psi_0, \lambda_0\big) \Bigg| _{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = 0,$$
+where
+  - $\ell_{\lambda}(\psi, \lambda)$ is the score function; that is, the derivative of the log-likelihood with respect to $\lambda$,
+  - $\hat{\psi}$ is the maximum likelihood estimate for $\psi$,
+  - and $\psi_0$ and $\lambda_0$ are the "true" values of the parameters.
+
+- The parameter $\phi$ is called the **zero-score expectation parameter** (ZSE). 
+
+:::{.notes}
+Note that while $\phi$ does not depend on $\psi$, it does depend on the data through $\hat{\psi}$.
+:::
+
+## Rewriting the Integrated Likelihood
+
+- We can rewrite our expression for the integrated likelihood function in terms of the ZSE as follows: $$\bar{L}(\psi) = \int_{\Phi} L(\psi, \lambda(\psi, \phi))\pi(\phi)d\phi.$$
+
+- $\lambda(\psi, \phi) =\underset{\lambda}{\operatorname{argmax}} \mathbb{E}\big(\ell(\psi, \lambda); \hat{\psi}, \phi\big)$ 
+- $\Phi$ is the space of possible $\phi$
+
+## Application to a Multinomial Model {.smaller}
+
+- Suppose that $(N_1, ..., N_m) \sim \text{Multinom}(\theta_1, ..., \theta_m)$.
+
+- The full parameter is $\theta = (\theta_1, ..., \theta_m)$ and the parameter space $\Theta$ is the probability simplex in $\mathbb{R}^m$.
+
+- We will take our parameter of interest $\psi$ to be the entropy of the distribution. That is, $$\psi \equiv g(\theta) =  -\sum_{j=1}^m \theta_j \log(\theta_j).$$
+ - If $(n_1, ..., n_m)$ are the observed values of $(N_1, ..., N_m)$, then the likelihood and log-likelihood are, respectively, $$L(\theta) = \prod_{j=1}^m \theta_j^{n_j} \text{ and } \ell(\theta) = \log L(\theta).$$
+
+:::{.notes}
+0log(0) is taken to be 0. 
+
+The minimum value of $\psi$ is 0 and the maximum value is log(m).
+:::
+
+## Application to a Multinomial Model
+
+- We will denote the parameter space for $\Psi$ by $$\Psi = \{t \in \mathbb{R} \> | \> g(\theta) = t \text{ for some } \theta \in \Theta\}.$$
+- The integrated likelihood then becomes $$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(\theta(\omega; \psi))\pi(\omega)d\omega, \> \psi \in \Psi,$$
+where $\Omega_{\hat{\psi}} = \{\omega \in \Theta \> | \> g(\omega) = \hat{\psi}\}$ and $\hat{\psi} = g(\hat{\theta})$ is the MLE for $\psi$.
+
+## Application to a Multinomial Model {.smaller}
+
+- Severini (2022) describes a method for approximating the integrated likelihood function for the entropy of this distribution based on the ZSE using basic Monte Carlo integration.
+
+- The idea is to draw random variates $\tilde{\omega}$ from $\Omega_{\hat{\psi}}$ according to a distribution that does NOT depend on $\psi$ and then use these variates to generate values of $\theta = \theta(\tilde{\omega}, \psi)$ by solving the maximization problem $$\max \> \mathbb{E} \big(\ell(\theta); \tilde{\omega} \big) \text{ subject to } g(\theta) = \psi$$
+
+- If $\theta(\omega_j, \psi_1)$ is the solution to the above maximization problem for $\tilde{\omega} = \omega_j$ and $\psi = \psi_1$, then the value of the integrated likelihood for $\psi$ at $\psi_1$ can be approximated by $$\bar{L}(\psi_1) = \sum_{j=1}^R L(\theta(\omega_j, \psi_1)),$$ for sufficiently large $R$.
+
+## Result of Algorithm  {.smaller}
+
+![](pseudolikelihood.png)
+
+The above graph shows the result of an implementation of this algorithm for the observed data $(n_1, ..., n_6) = (1, 1, 2, 4, 7, 10)$.
+
+## Bayes' Theorem {.smaller}
+
+- Instead of using simple Monte Carlo approximation, my idea has been to take advantage of the similarity between an integrated likelihood and the normalizing constant for a posterior distribution.
+
+- Bayes' Theorem tells us that the posterior distribution for a parameter $\theta$ and data $X$ is $$p(\theta | X) = \frac{p(X|\theta)p(\theta)}{p(X)}.$$
+
+- Since $p(X)$ is constant with respect to $\theta$ and we must have $\int p(\theta | X) d\theta = 1$, it follows that $$p(X) = \int p(X|\theta)p(\theta) d\theta$$ and therefore 
+$$\int p(X|\theta)p(\theta) d\theta = \frac{p(X|\theta)p(\theta)}{p(\theta | X)}.$$
+
+## Bayes' Theorem (contd.)
+
+- Note the similarity in form between these two expressions $$\int_{\Phi} L(\psi, \lambda(\psi, \phi))\pi(\phi)d\phi$$ $$\int p(X|\theta)p(\theta) d\theta$$
+
+- The problem I have been working on has been to simulate the posterior distribution $p(\theta | X)$ using a Markov Chain Monte Carlo algorithm. This will then allow me to approximate the denominator in $\frac{p(X|\theta)p(\theta)}{p(\theta | X)}$.
+
+## References {.smaller}
+
+Severini, Thomas A. "Integrated Likelihood Inference in Multinomial Distributions." METRON (2022).
+
+Severini, Thomas A. “Integrated Likelihood Functions for Non-Bayesian Inference.” Biometrika 94, no. 3 (2007): 529–42.
+
