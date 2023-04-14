@@ -1,0 +1,49 @@
+---
+documentclass: nuthesis
+format: pdf
+bibliography: ./files/lit_review.bib
+csl: ./files/apa.csl 
+link-citations: true  
+indent: true
+header-includes: 
+    - \usepackage{amsmath}
+    - \numberwithin{equation}{section}
+---
+
+<!-- Front matter: title page, abstract, acknowledgements, table of contents,... -->
+```{r child = './files/front_matter.Rmd'} 
+``` 
+
+<!-- Beginning body of the dissertation -->
+```{r child = './files/Introduction.Rmd'}
+```
+
+\clearpage
+
+```{r child = './files/Chapter2.Rmd'}
+```
+\clearpage
+
+```{r child = './files/Chapter3.Rmd'}
+```
+\clearpage
+
+```{r child = './files/Chapter4.Rmd'}
+```
+\clearpage
+
+<!-- Inserting references before appendix -->
+\chapter*{References} 
+<div id="refs"></div> 
+
+<!-- Beginning appendix if needed -->
+\appendix
+
+```{r child = './files/Appendix_A.Rmd'}
+```
+
+```{r child = './files/Appendix_B.Rmd'}
+```
+
+
+
