@@ -1,6 +1,7 @@
 library(tidyverse)
 library(nloptr)
 library(LaplacesDemon)
+library(DescTools)
 
 n <- c(1, 1, 2, 4, 7, 10)
 
