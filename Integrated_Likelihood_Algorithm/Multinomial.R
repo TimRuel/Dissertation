@@ -97,7 +97,7 @@ for (i in 1:length(psi1)) {
     # Define third objective function to be minimized
     entropy3 <- function(theta) -sum(theta.hat*log(theta))
     
-    # Define second constraint function
+    # Define third constraint function
     constraint3 <- function(theta) c(sum(theta) - 1, g(theta) - psi1[i])
     
     # Find value of theta that minimizes objective function subject to constraints
