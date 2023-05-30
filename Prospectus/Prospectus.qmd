@@ -3,29 +3,69 @@ title: "An Algorithm for Approximating Integrated Likelihood Functions with Appl
 subtitle: "A Ph.D. Dissertation Prospectus"
 author: Timothy Ruel
 header-includes:
-    - \usepackage{setspace}\doublespacing
+    - \usepackage{setspace}
+    - \usepackage{indentfirst}
 date: "May 23, 2023"
 format: pdf
+indent: true
 ---
+
+\setlength{\parindent}{30pt}
+
+\vspace{-15truemm}
 
 # Introduction
 
-The research for my dissertation involves developing a novel algorithm for numerically integrating the likelihood function of a statistical model with respect to a nuisance parameter. This prospectus aims to demonstrate how the algorithm works and explain the appeal of using an integrated likelihood over other pseudolikelihoods to make inferences about parameters of interest in various models. 
+\doublespacing
+The research for my dissertation involves developing a novel algorithm for numerically integrating the likelihood function of a statistical model with respect to a nuisance parameter. This prospectus aims to demonstrate how the algorithm works and explain the appeal of using an integrated likelihood function over other types of pseudolikelihood functions to make inferences about the parameter of interest in a model. 
 
-# Motivation
+The motivation behind my algorithm developed out of the observation that the expression for the integral of a likelihood function follows a form similar to that of the calculation of the marginalizing constant of a posterior distribution. More formally, if $L$ denotes the 
+
+This similarity can be leveraged to our advantage by emplo
+
+\onehalfspacing
+
+
+# Background
+
+\doublespacing
+
+Consider a sample $\mathbf{x} = (x_1, ..., x_n)$ drawn from a population. What can we say about the population based on $\mathbf{x}$?  To start, we typically assume that there is some 
 
 Much of statistical inference is concerned with the estimation of parameters in a probability distribution.
 
 ## What is a Likelihood Function?
 
+Consider a model 
+
 ## What is a Pseudolikelihood Function?
 
-## The Appeal of the Integrated Likelihood
+Nuisance parameters in a statistical model represent a serious hindrance to making inferences about a parameter of interest. Consequently, statisticians have dedicated much time to developing techniques that will eliminate them from their models.
 
-# Methodology
+### Profile likelihood
 
-# Feasibility
+### Conditional Likelihood
 
-# Applications and Preliminary Results
+### Marginal Likelihood
+
+### Integrated Likelihood
+
+## Why Use an Integrated Likelihood?
+
+The appeal of the integrated likelihood function as a means of eliminating nuisance parameters from the model is that it incorporates
+
+# Approximating the Integrated Likelihood
+
+## The Zero-Score Expectation Parameter
+
+## Markov Chain Monte Carlo
+
+## The IL Algorithm
+
+# Applications
+
+## Multinomial Distribution
+
+## Standardized Mean Difference
 
 # References
