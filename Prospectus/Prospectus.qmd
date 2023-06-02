@@ -19,9 +19,7 @@ indent: true
 \doublespacing
 The research for my dissertation involves developing a novel algorithm for numerically integrating the likelihood function of a statistical model with respect to a nuisance parameter. This prospectus aims to demonstrate how the algorithm works and explain the appeal of using an integrated likelihood function over other types of pseudolikelihood functions to make inferences about the parameter of interest in a model. 
 
-The motivation behind my algorithm developed out of the observation that the expression for the integral of a likelihood function follows a form similar to that of the calculation of the marginalizing constant of a posterior distribution. More formally, if $L$ denotes the 
-
-This similarity can be leveraged to our advantage by emplo
+The motivation behind my research developed out of the observation that the expression for the integral of a likelihood function follows a form similar to that of the calculation of the marginalizing constant of a posterior distribution. 
 
 \onehalfspacing
 
@@ -30,9 +28,12 @@ This similarity can be leveraged to our advantage by emplo
 
 \doublespacing
 
-Consider a sample $\mathbf{x} = (x_1, ..., x_n)$ drawn from a population. What can we say about the population based on $\mathbf{x}$?  To start, we typically assume that there is some 
 
-Much of statistical inference is concerned with the estimation of parameters in a probability distribution.
+
+Consider a sample $\mathbf{x} = (x_1, ..., x_n)$ drawn from a population. What can we say about the population based on $\mathbf{x}$? Does it have a central point around which its values are dispersed? Are they clustered tightly around it or are they more diffuse? Questions like these are the motivation behind much of statistical inference. It becomes necessary to sacrifice a small amount of accuracy for (hopefully) a large reduction in complexity by imposing additional assumptions on the problem. In the aggregate, these assumptions form the basis of what is known as a statistical model. The exact assumptions vary but
+
+
+
 
 ## What is a Likelihood Function?
 
@@ -40,7 +41,15 @@ Consider a model
 
 ## What is a Pseudolikelihood Function?
 
-Nuisance parameters in a statistical model represent a serious hindrance to making inferences about a parameter of interest. Consequently, statisticians have dedicated much time to developing techniques that will eliminate them from their models.
+Nuisance parameters in a statistical model are a serious hindrance to making inferences about the parameter of interest. Consequently, statisticians have dedicated much time to developing techniques that will eliminate them from their models.
+
+If we let $$\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $$\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$$
+
+Statisticians will often attempt to find a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. This summary is called a **pseudolikelihood function** and can take several different forms:
+    - Maximizing
+    - Conditioning
+    - Marginalizing*
+    - **Integrating**
 
 ### Profile likelihood
 
