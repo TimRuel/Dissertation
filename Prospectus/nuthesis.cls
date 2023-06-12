@@ -239,7 +239,7 @@
 \def\field#1{\def\fi@ld{#1}}
 \def\fi@ld{Mathematics}
 \def\campus#1{\def\c@mpus{#1}}
-\def\c@mpus{EVANSTON, ILLINOIS}
+\def\c@mpus{Evanston, Illinois}
 
 \def\graduation@month{\ifcase\month\or
     June\or June\or June\or June\or June\or June\or December\or
@@ -247,9 +247,10 @@
 \def\graduation@year{\number\year}
 
 \def\graduationmonth#1{\def\graduation@month{#1}}
+\def\graduationday#1{\def\graduation@day{#1}}
 \def\graduationyear#1{\def\graduation@year{#1}}
 
-\def\@date{\graduation@month \graduation@year}
+\def\@date{\graduation@month \graduation@day \graduation@year}
 
 
 \def\frontmatter{%
@@ -279,17 +280,47 @@ All Rights Reserved
 \def\endcopyrightpage{\newpage}
 
 
+
+\def\maketitle{\par
+  \@topnum\z@ % this prevents figures from falling at the top of page 1
+\begin{titlepage}
+\begin{center}
+\vspace*{\fill}
+\singlespacing
+{\large \@title}\par
+\vspace{0.5cm}
+By\par
+\vspace{0.5cm}
+\ifx\@empty\authors
+Author's name required\par
+  \else
+  \authors\par
+  \fi
+\vspace{0.5cm}
+\singlespacing
+Faculty Committee:\par
+Dr. Thomas Severini, Department of Statistics and Data Science\par
+Dr. Elizabeth Tipton, Department of Statistics and Data Science\par
+Dr. Wenxin Jiang, Department of Statistics and Data Science\par
+\vspace{0.5cm}
+\singlespacing
+A Doctoral Dissertation Prospectus Submitted to the Department of Statistics \par
+and Data Science
+\vspace{0.5cm}
+\singlespacing
+Northwestern University \par
+\c@mpus\par
+\graduation@month{} \graduation@day{}, \graduation@year{}
+\vspace*{\fill}
+\end{center}
+\end{titlepage}
+}
+
+
 \renewcommand{\abstract}{%
 \chapter*{\abstractname}
-\bigskip
-\begin{center}
-\@title{}\par
-\bigskip
-\authors{}\par
-\end{center}
-\bigskip
 }
-\def\abstractname{ABSTRACT} % capitalized - MAL 5/3/2002
+\def\abstractname{Abstract}
 
 
 % \clearpage\phantomsection added to get bookmarks at the right places
@@ -316,24 +347,6 @@ All Rights Reserved
 \end{center}
 }
 \def\dedicationname{Dedication}
-
-
-
-% table of contents using new name and
-% appearing in the left PDF sidebar - MAL 4/18/2017
-\def\tableofcontents{%
-  \@starttoc{toc}\nucontentsname
-}
-\def\nucontentsname{Table of Contents}
-% comment out the lines above and uncomment the following line:
-%\renewcommand\contentsname{Table of Contents}
-% if you want traditional behavior
-% (table of contents not appearing in left PDF sidebar)
-
-% New name for the table of contents MAL 5/9/2006
-%\renewcommand\contentsname{Table of Contents}
-
-
 
 % The introduction must be a chapter - MAL 5/9/2006
 %\newcommand{\introduction}{\chapter*{\introductionname}}
