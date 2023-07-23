@@ -44,17 +44,12 @@ Now consider the case in which the parameter of interest is the output of a func
 
 \subsection{Pseudolikelihood Functions}
 
-Nuisance parameters in a statistical model are a serious hindrance to making inferences about the parameter of interest. Consequently, statisticians have dedicated much time to developing techniques that will eliminate them from their models.
-
-If we let $$\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $$\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$$
-
-Statisticians will often attempt to find a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. This summary is called a **pseudolikelihood function** and can take several different forms:
-    - Maximizing
-    - Conditioning
-    - Marginalizing*
-    - **Integrating**
+The construction of what is known as a *pseudolikelihood function* has long been the statistician's method of choice for eliminating nuisance parameters from a model. Suppose our parameter of interest is $\psi = \varphi(\theta)$ for some function $\phi$ and full model parameter $\theta \in \Theta$. If we let $\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$ Simply put, a pseudolikelihood function is a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. There exist a variety of methods to obtain this summary but among the most popular are maximization, conditioning, and integration, each with respect to the nuisance parameter. We will explore each of these methods in more detail in the sections to come.
     
 \subsubsection{The Profile Likelihood}
+
+The profile likelihood is the most straightforward method for eliminating a nuisance parameter.  
+
 
 \subsubsection{The Conditional Likelihood}
 
