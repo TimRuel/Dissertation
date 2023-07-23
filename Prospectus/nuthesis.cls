@@ -146,7 +146,7 @@
 
 % MAL - 11/13/2009 (adding extra indentations to subsections in TOC)
 \def\l@subsection{\@tocline{2}{0pt}{24pt}{5pc}{}}
-\def\l@subsubsection{\@tocline{3}{0pt}{36pt}{5pc}{}}
+\def\l@subsubsection{\@tocline{3}{0pt}{48pt}{5pc}{}}
 
 
 %\setlength{\textheight}{7.5in}
@@ -177,7 +177,7 @@
 
 \def\section{\@startsection{section}{1}%
   \z@{.7\linespacing\@plus\linespacing}{.5\linespacing}%
-  {\normalfont\bfseries\centering}}
+  {\normalfont\bfseries}}
 \def\subsection{\@startsection{subsection}{2}%
   \z@{-3.25ex\@plus -1ex \@minus -.2ex}{1.5ex \@plus .2ex}%
   {\normalfont\bfseries}}
