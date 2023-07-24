@@ -146,7 +146,7 @@
 
 % MAL - 11/13/2009 (adding extra indentations to subsections in TOC)
 \def\l@subsection{\@tocline{2}{0pt}{24pt}{5pc}{}}
-\def\l@subsubsection{\@tocline{3}{0pt}{36pt}{5pc}{}}
+\def\l@subsubsection{\@tocline{3}{0pt}{48pt}{5pc}{}}
 
 
 %\setlength{\textheight}{7.5in}
@@ -177,7 +177,7 @@
 
 \def\section{\@startsection{section}{1}%
   \z@{.7\linespacing\@plus\linespacing}{.5\linespacing}%
-  {\normalfont\bfseries\centering}}
+  {\normalfont\bfseries}}
 \def\subsection{\@startsection{subsection}{2}%
   \z@{-3.25ex\@plus -1ex \@minus -.2ex}{1.5ex \@plus .2ex}%
   {\normalfont\bfseries}}
@@ -239,7 +239,7 @@
 \def\field#1{\def\fi@ld{#1}}
 \def\fi@ld{Mathematics}
 \def\campus#1{\def\c@mpus{#1}}
-\def\c@mpus{EVANSTON, ILLINOIS}
+\def\c@mpus{Evanston, Illinois}
 
 \def\graduation@month{\ifcase\month\or
     June\or June\or June\or June\or June\or June\or December\or
@@ -247,9 +247,10 @@
 \def\graduation@year{\number\year}
 
 \def\graduationmonth#1{\def\graduation@month{#1}}
+\def\graduationday#1{\def\graduation@day{#1}}
 \def\graduationyear#1{\def\graduation@year{#1}}
 
-\def\@date{\graduation@month \graduation@year}
+\def\@date{\graduation@month \graduation@day \graduation@year}
 
 
 \def\frontmatter{%
@@ -284,21 +285,10 @@ All Rights Reserved
   \@topnum\z@ % this prevents figures from falling at the top of page 1
 \begin{titlepage}
 \begin{center}
-NORTHWESTERN UNIVERSITY\par
-\vfill
+\vspace*{\fill}
+\singlespacing
 {\large \@title}\par
-\vfill
-A DISSERTATION PROSPECTUS\par
 \vspace{0.5cm}
-SUBMITTED TO THE GRADUATE SCHOOL\par
-IN PARTIAL FULFILLMENT OF THE REQUIREMENTS\par
-\vspace{0.5cm}
-for the degree\par
-\vspace{0.5cm}
-\d@gree{}\par
-\vfill
-Field of \fi@ld\par
-\vfill
 By\par
 \vspace{0.5cm}
 \ifx\@empty\authors
@@ -306,10 +296,22 @@ Author's name required\par
   \else
   \authors\par
   \fi
-\vfill
-\c@mpus\par
 \vspace{0.5cm}
-\graduation@month{} \graduation@year{}
+\singlespacing
+Faculty Committee:\par
+Dr. Thomas Severini, Department of Statistics and Data Science\par
+Dr. Elizabeth Tipton, Department of Statistics and Data Science\par
+Dr. Wenxin Jiang, Department of Statistics and Data Science\par
+\vspace{0.5cm}
+\singlespacing
+A Doctoral Dissertation Prospectus Submitted to the Department of Statistics \par
+and Data Science
+\vspace{0.5cm}
+\singlespacing
+Northwestern University \par
+\c@mpus\par
+\graduation@month{} \graduation@day{}, \graduation@year{}
+\vspace*{\fill}
 \end{center}
 \end{titlepage}
 }
@@ -318,7 +320,7 @@ Author's name required\par
 \renewcommand{\abstract}{%
 \chapter*{\abstractname}
 }
-\def\abstractname{ABSTRACT} % capitalized - MAL 5/3/2002
+\def\abstractname{Abstract}
 
 
 % \clearpage\phantomsection added to get bookmarks at the right places
@@ -345,24 +347,6 @@ Author's name required\par
 \end{center}
 }
 \def\dedicationname{Dedication}
-
-
-
-% table of contents using new name and
-% appearing in the left PDF sidebar - MAL 4/18/2017
-\def\tableofcontents{%
-  \@starttoc{toc}\nucontentsname
-}
-\def\nucontentsname{Table of Contents}
-% comment out the lines above and uncomment the following line:
-%\renewcommand\contentsname{Table of Contents}
-% if you want traditional behavior
-% (table of contents not appearing in left PDF sidebar)
-
-% New name for the table of contents MAL 5/9/2006
-%\renewcommand\contentsname{Table of Contents}
-
-
 
 % The introduction must be a chapter - MAL 5/9/2006
 %\newcommand{\introduction}{\chapter*{\introductionname}}
