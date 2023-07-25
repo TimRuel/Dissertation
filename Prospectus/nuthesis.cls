@@ -177,13 +177,13 @@
 
 \def\section{\@startsection{section}{1}%
   \z@{.7\linespacing\@plus\linespacing}{.5\linespacing}%
-  {\normalfont\bfseries\centering}}
+  {\normalfont\bfseries}}
 \def\subsection{\@startsection{subsection}{2}%
   \z@{-3.25ex\@plus -1ex \@minus -.2ex}{1.5ex \@plus .2ex}%
-  {\normalfont\bfseries}}
+  {\small\normalfont\bfseries}}
 \def\subsubsection{\@startsection{subsubsection}{3}%
   \z@\z@{-.5em}%
-  {\normalfont\bfseries}}
+  {\small\normalfont\bfseries}}
 
 
 \def\th@plain{%

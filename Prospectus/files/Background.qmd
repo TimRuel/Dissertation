@@ -41,22 +41,22 @@ Nuisance parameters are so named for their ability to complicate inference regar
 
 Now consider the case in which the parameter of interest is the output of a function $\varphi: \Theta \to \Psi$. That is, $\psi = \varphi(\theta)$.^[Note that the first case is really just a special case of this second one in which $\varphi(\theta) = \varphi(\theta_1, ..., \theta_k) = (\theta_{I_1}, ..., \theta_{I_m})$, where $\{I_1, ..., I_m\}$ is the subset of the indices of the components of $\theta$ that also belong to $\psi$.] Note that $\Psi$ is still assumed to be a subset of $\mathbb{R}^m$ where $m$ is less than $k$, the dimension of the full parameter space $\Theta$. This reduction in dimension implies the existence of a nuisance parameter $\lambda \in \Lambda$, where $\text{dim}(\Lambda) = k - m$. However, there is no guarantee that a closed form expression exists for $\lambda$ in terms of the original components of theta. We will refer to $\psi$ and $\lambda$ as being *implicit* parameters in this case.
 
-\subsection{Pseudolikelihood Functions}
+\section{The Pseudolikelihood Function}
 
 The construction of what is known as a *pseudolikelihood function* has long been the statistician's method of choice for eliminating nuisance parameters from a model. Suppose our parameter of interest is $\psi = \varphi(\theta)$ for some function $\phi$ and full model parameter $\theta \in \Theta$. If we let $\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$ Simply put, a pseudolikelihood function is a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. There exist a variety of methods to obtain this summary but among the most popular are maximization, conditioning, and integration, each with respect to the nuisance parameter. We will explore each of these methods in more detail in the sections to come.
     
-\subsubsection{The Profile Likelihood}
+\subsection{The Profile Likelihood}
 
 The profile likelihood is the most straightforward method for eliminating a nuisance parameter.  
 
 
-\subsubsection{The Conditional Likelihood}
+\subsection{The Conditional Likelihood}
 
-\subsubsection{The Marginal Likelihood}
+\subsection{The Marginal Likelihood}
 
-\subsubsection{The Integrated Likelihood}
+\subsection{The Integrated Likelihood}
 
-\subsection{The Appeal of the Integrated Likelihood}
+\section{The Appeal of the Integrated Likelihood Function}
 
 The appeal of the integrated likelihood function as a means of eliminating nuisance parameters from the model is that it incorporates
 
