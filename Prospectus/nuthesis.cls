@@ -318,7 +318,7 @@ Author's name required\par
 \renewcommand{\abstract}{%
 \chapter*{\abstractname}
 }
-\def\abstractname{ABSTRACT} % capitalized - MAL 5/3/2002
+\def\abstractname{Abstract} % capitalized - MAL 5/3/2002
 
 
 % \clearpage\phantomsection added to get bookmarks at the right places

@@ -1,6 +1,12 @@
-\chapter{Approximating the Integrated Likelihood}
+\chapter{Calculating the Integrated Likelihood}
 
 \section{The Zero-Score Expectation Parameter}
+
+Let $\psi = \varphi(\theta)$ and $\lambda$ denote the parameter of interest and nuisance parameter, respectively, for some statistical model $(\mathcal{S}, \mathcal{P_{\theta}})$. Then the general expression to obtain an integrated likelihood for $\psi$ may be written as $$\bar{L}(\psi) = \int_{\Lambda}L(\psi, \lambda)\pi(\lambda|\psi)d\lambda,$${#eq-IL}
+where $\pi(\lambda|\psi)$ is a conditional prior density for $\lambda$ given $\psi$. @severini2007 considered the problem of selecting $\pi(\lambda|\psi)$ such that when the likelihood function is integrated with respect to this density, the result is useful for non-Bayesian inference. To do this, he outlined four properties (see Appendix \ref{appendix:A}) that an integrated likelihood function must satisfy if it is to be of any use. From these, he proved that an integrated likelihood satisfying these properties could be obtained by first constructing a nuisance parameter $\phi$ that is "unrelated" in some sense to the parameter of interest and then choosing a prior density for $\phi$ that is independent of $\psi$ are independent. Once such a density has been found, then the desired integrated likelihood function for $\psi$ may be obtained as follows:
+
+$$\bar{L}(\psi) = \int \tilde{L}(\psi, \phi) \pi(\phi) d\phi,$${#eq-ZSE_IL}
+where $\tilde{L}(\psi, \phi)$ is the likelihood function for the model after it has been reparameterized in terms of $\phi$, $\pi(\phi)$ is the prior density for $\phi$, and the integral is over the space of all possible $\phi$.
 
 \section{Markov Chain Monte Carlo}
 
