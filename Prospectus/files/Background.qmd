@@ -17,7 +17,6 @@ In contrast, a *nonparametric model* is one in which $\Theta \subseteq V$, where
 
 Finally, *semiparametric* models are those whose parameter spaces have components of both finite and infinite dimensionality. That is, $\Theta \subseteq \mathbb{R}^k \times V$, where again $V$ is an infinite-dimensional space. Usually it is only the finite-dimensional component of the parameter in which we are interested while the infinite-dimensional component is considered a nuisance parameter. \textcolor{red}{[INSERT EXAMPLE(S) OF SEMIPARAMETRIC MODELS]}
 
-
 In summary, the reader may safely assume that all models to which my research applies consist of a pair $(\mathcal{S}, \mathcal{P})$ such that the probability distributions in $\mathcal{P}$ are parameterized and identifiable and there exists a "true" probability distribution inducing the data-generating process from $\mathcal{S}$, though this distribution is not necessarily contained in $\mathcal{P}$. In addition, while estimation of the parameters in nonparametric and semiparametric models is also a major topic of interest in statistical inference, I will restrict my attention in my dissertation solely to parametric models. 
 
 \section{The Likelihood Function}
@@ -28,10 +27,11 @@ Let $p(x; \theta)$ denote either the probability density function or the probabi
 $$L(\theta) \equiv L(\theta; x) = p(x; \theta), \> \> \theta \in \Theta.$${#eq-likelihood} 
 That is, when our sample consists only of a single observation, the likelihood function for $\theta$ is simply equal to the p.d.f. (or p.m.f.) of X. 
 
-When $X$ is discrete, this means the likelihood function evaluated at $\theta$ may be interpreted as the probability that $X = x$ given that $\theta$ is the true parameter value. We forfeit this interpretation when $X$ is continuous as $p(x; \theta)$ no longer represents the probability of an individual point. However, 
-
+When $X$ is discrete, this means the likelihood function evaluated at $\theta$ may be interpreted as the probability that $X = x$ given that $\theta$ is the true parameter value. We forfeit this interpretation when $X$ is continuous as $p(x; \theta)$ no longer represents the probability of an individual point. 
 
 Note the subtle but crucial distinction in our interpretations of the two quantities, however. While $p(x; \theta)$ is a function of $x$ for fixed $\theta$, the reverse is actually true for $L(\theta; x)$; we view it as a function of $\theta$ for fixed $x$.^[The positioning of the arguments $\theta$ and $x$ is a reflection of this difference in perspectives.] It is crucial to remember that despite our use of probability in its definition a likelihood does not itself represent a probability. For instance, there is no requirement that $\int_{\Theta} L(\theta; x) d\theta = 1$ as would be expected of a probability density function.
+
+
 
 \subsection{Model Parameter Decomposition}
 

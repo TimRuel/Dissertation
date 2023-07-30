@@ -5,7 +5,9 @@ format:
     number-sections: true
     number-depth: 3
 bibliography: ./files/lit_review.bib
-link-citations: true  
+link-citations: true
+nocite: |
+  @*
 indent: true
 header-includes: 
     - \usepackage{amsmath}
@@ -28,15 +30,17 @@ header-includes:
 ```
 
 ```{r} 
-#| child = './files/Approximation.qmd'
+#| child = './files/Algorithm.qmd'
+```
+
+```{r} 
+#| child = './files/Applications.qmd'
 ```
 
 \chapter*{References}
 
 ::: {#refs}
 :::
-
-
 
 ```{r} 
 #| child = './files/Appendix.qmd'

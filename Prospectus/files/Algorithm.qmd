@@ -1,0 +1,25 @@
+\chapter{Calculating the Integrated Likelihood}
+
+\section{The Zero-Score Expectation Parameter}
+
+Let $\psi = \varphi(\theta)$ and $\lambda$ denote the parameter of interest and nuisance parameter, respectively, for some statistical model $(\mathcal{S}, \mathcal{P_{\theta}})$. Then the general expression to obtain an integrated likelihood for $\psi$ may be written as $$\bar{L}(\psi) = \int_{\Lambda}L(\psi, \lambda)\pi(\lambda|\psi)d\lambda,$${#eq-IL}
+where $\pi(\lambda|\psi)$ is a conditional prior density for $\lambda$ given $\psi$. 
+
+@severini2007 considered the problem of selecting $\pi(\lambda|\psi)$ such that when the likelihood function is integrated with respect to this density, the result is useful for non-Bayesian inference. To do this, he outlined four properties (see Appendix \ref{appendix:A}) that an integrated likelihood function must satisfy if it is to be of any use. He went on to prove that an integrated likelihood satisfying these properties could be obtained by first constructing a new nuisance parameter $\phi \in \Phi$ that is unrelated to the parameter of interest (in the sense that its maximum likelihood estimator remains roughly unchanged for all values of $\psi$)  and then choosing a prior density $\pi(\phi)$ that is independent of $\psi$. Once chosen, the desired integrated likelihood function for $\psi$ is given by $$\bar{L}(\psi) = \int_{\Phi} \tilde{L}(\psi, \phi) \pi(\phi) d\phi,$${#eq-ZSE_IL} where $\tilde{L}(\psi, \phi)$ is the likelihood function for the model after it has been reparameterized in terms of $\phi$. It is important to note that the exact choice of prior density for $\phi$ is largely irrelevant; the only restriction we place upon it is that it must not depend on $\psi$. This is 
+
+The construction of 
+
+The nuisance parameter $\phi$ is defined such that the expectation of the score function when evaluated at 
+
+called the *zero-score expectation* (ZSE) parameter 
+
+@severini2018 proved that reparameterizing the nuisance parameter in terms of the ZSE yields the same desirable properties in the subsequent integrated likelihood when the original nuisance parameter is implicit.
+
+
+\section{Markov Chain Monte Carlo}
+
+\section{The IL Algorithm}
+
+
+
+
