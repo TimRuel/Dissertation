@@ -9,7 +9,7 @@ It is important to remember, however, that the real world is messy and no mathem
 
 \subsection{Data-Generating Mechanism}
 
-And indeed, in the aggregate these assumptions create what is known as a statistical model. In its most general framework, a statistical model can be formulated as a tuple $(\mathcal{S}, \mathcal{P})$ where $\mathcal{S}$ is the set of all possible observations (i.e. the population), and $\mathcal{P}$ is a set of probability distributions on $\mathcal{S}$. The first and (in this author's opinion) the most fundamental assumption we make when defining our models is that there exists some unknown mechanism in the population that generates the data we observe from $\mathcal{S}$. This mechanism is what induces the "true" probability distribution on $\mathcal{S}$ though $\mathcal{P}$ need not contain this distribution, and in practice it seldom does. 
+And indeed, in the aggregate these assumptions create what is known as a statistical model. In its most general framework, a statistical model can be formulated as a tuple $(\mathcal{S}, \mathcal{P})$ where $\mathcal{S}$ is the set of all possible observations (i.e. the population), and $\mathcal{P}$ is a set of probability distributions on $\mathcal{S}$. The first and most fundamental assumption we make when defining our models is that there exists some unknown mechanism in the population that generates the data we observe from $\mathcal{S}$. This mechanism is what induces the "true" probability distribution on $\mathcal{S}$ though $\mathcal{P}$ need not contain this distribution, and in practice it seldom does. 
 
 \subsection{Parameter Existence}
 
@@ -19,16 +19,21 @@ Statisticians also like to assume the parameters in their models can be uniquely
 
 \subsection{Parameter Space Dimension}
 
-The dimension of the parameter space $\Theta$ is another critical decision statisticians must make when choosing the best model for their research. The most frequent choice is for $\Theta$ to be of finite dimension. That is, $\Theta \subseteq \mathbb{R}^k$, where $k \in \mathbb{Z}^+$. Models that satisfy this assumption are said to be *parametric*. Common examples of parametric models include the normal family of distributions as well as the Poisson family.
+The dimension of the parameter space $\Theta$ is another critical decision statisticians must make when choosing the best model for their research. When $\Theta \subseteq V$, where $V$ is an infinite-dimensional space, the model is said to be a *nonparametric*. The name is a bit of a misnomer in the sense that nonparametric models do not actually lack parameters, but rather they are flexible regarding the exact number and properties of the parameters they do have. 
 
-In contrast, a *nonparametric model* is one in which $\Theta \subseteq V$, where $V$ is an infinite-dimensional space. The name is a bit of a misnomer in the sense that nonparametric models do not actually lack parameters, but rather they are flexible regarding the exact number and properties of the parameters they do have. 
+*Semiparametric* models are those whose parameter spaces have components of both finite and infinite dimensionality. That is, $\Theta \subseteq \mathbb{R}^k \times V$, where again $V$ is an infinite-dimensional space. Usually it is only the finite-dimensional component of the parameter in which we are interested while the infinite-dimensional component is considered a nuisance parameter. 
+Finally, models for which $\Theta$ is of finite dimension are called *parametric*. That is, $\Theta \subseteq \mathbb{R}^k$, where $k \in \mathbb{Z}^+$. This is the most common type of model used by statisticians, with examples including the normal family of distributions as well as the Poisson family. For the purposes of this paper, we will assume all statistical models under discussion are parametric in form.
 
-Finally, *semiparametric* models are those whose parameter spaces have components of both finite and infinite dimensionality. That is, $\Theta \subseteq \mathbb{R}^k \times V$, where again $V$ is an infinite-dimensional space. Usually it is only the finite-dimensional component of the parameter in which we are interested while the infinite-dimensional component is considered a nuisance parameter. 
+\subsection{Regularity}
 
-For the purposes of this paper, we will consider only models that consist of a pair $(\mathcal{S}, \mathcal{P})$ such that the probability distributions in $\mathcal{P}$ are parameterized and identifiable, and there exists a "true" probability distribution inducing the data-generating process from $\mathcal{S}$, though this distribution is not necessarily contained in $\mathcal{P}$. In addition, while estimation of the parameters in nonparametric and semiparametric models is also a major topic of interest in statistical inference, we will restrict our attention here solely to parametric models. 
+Finally, we will assume that all probability distributions in $\mathcal{P}$ obey a certain regularity condition. A parametric model $(\mathcal{S}, \mathcal{P}$ is called *regular* if it satisfies one of the following:
+
+1) All of the distributions in $\mathcal{P}$ are continuous with densities $p(x; \theta)$;
+2) All of the distributions in $\mathcal{P}$ are discrete with frequency functions $p(x; \theta)$ and the set $\{x: p(x; \theta) > 0\}$ is the same set for all $\theta$.
+
+In other words, a regular model is one in which its distributions all have a common support that does not depend on the unknown parameter $\theta$.
 
 \section{The Likelihood Function}
-
 
 Once we have chosen a model $(\mathcal{S}, \mathcal{P})$, our goal becomes to identify the "true" distribution in $\mathcal{P}$ or, failing that, the one that best approximates the truth. Since we have assumed our model is parametric and identifiable, this is equivalent to making inferences about the value of the $k$-dimensional parameter $\theta$ indexing the distributions in $\mathcal{P}$ on the basis of some data we observe. Classically, these inferences come in the form of point estimates, interval estimates, or hypothesis tests though other techniques exist as well. A sensible choice to use as an estimate for the value of $\theta$ is one which causes the data actually observed to have the highest possible *post-hoc* probability of occurrence out of all possible values in $\Theta$. To formalize this notion, we need some way of analyzing the joint probability of our sample as a function of our parameter $\theta$. 
 
@@ -73,11 +78,18 @@ Now consider the case in which the parameter of interest is the output of a func
 \section{The Pseudolikelihood Function}
 
 The construction of what is known as a *pseudolikelihood function* has long been the statistician's method of choice for eliminating nuisance parameters from a model. Suppose our parameter of interest is $\psi = \varphi(\theta)$ for some function $\phi$ and full model parameter $\theta \in \Theta$. If we let $\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$ Simply put, a pseudolikelihood function is a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. There exist a variety of methods to obtain this summary but among the most popular are maximization, conditioning, and integration, each with respect to the nuisance parameter. We will explore each of these methods in more detail in the sections to come.
+
+\subsection{The Bartlett Identities}
+
+The Bartlett Identities are a set of equations relating to the expectations of functions of derivatives of a log-likelihood function. A well-specified genuine likelihood function will automatically satisfy each of the Bartlett Identites; however, an arbitrary function of $\theta$ and $X$ will not. For this reason, the identities act as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the genuine likelihood from which it originated.
+
+Consider the case in which a random variable $X$ has a probability density $f$ that depends on a scalar parameter $\theta$. By definition, 
+
+$$\int_{\mathbb{R}} f(x; \theta) = 1.$$
     
 \subsection{The Profile Likelihood}
 
 The profile likelihood is the most straightforward method for eliminating a nuisance parameter.  
-
 
 \subsection{The Conditional Likelihood}
 
