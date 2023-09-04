@@ -13,7 +13,7 @@ And indeed, in the aggregate these assumptions create what is known as a statist
 
 \subsection{Parameter Existence}
 
-Another assumption found in almost every model is that the set $\mathcal{P}$ is considered to be *parameterized*. That is, we assume the probability distributions contained in $\mathcal{P}$ are indexed by a *parameter* that controls their features.^[We will consider the phrases "parameter", "population parameter", and "model parameter" all to have the same meaning in this paper and use them interchangeably.] This parameter acts like a tuning dial for the population - rotate the dial and certain behaviors of the population (e.g. its location, scale, or shape) will change. Much of statistical inference can be boiled down to figuring out the particular value to which a population's dial has been set. We will denote this assumption as $\mathcal{P} = \{\mathcal{P}_{\theta} | \> \theta \in \Theta\}$, where $\theta$ denotes the parameter, and $\Theta$, the parameter space, represents the set of all possible values $\theta$ can take on.^[Note that $\theta$ can be and in fact usually is a multi-dimensional vector whose components represent various sub-parameters of the population.] 
+Another assumption found in almost every model is that the set $\mathcal{P}$ is considered to be *parameterized*. That is, we assume the probability distributions contained in $\mathcal{P}$ are indexed by a *parameter* that controls their features.^[We will consider the phrases "parameter", "population parameter", and "model parameter" all to have the same meaning in this paper and use them interchangeably.] This parameter acts like a tuning dial for the population - rotate the dial and certain behaviors of the population (e.g. its location, scale, or shape) will change. Much of statistical inference can be boiled down to figuring out the particular value to which a population's dial has been set. We will denote this assumption as $\mathcal{P} = \{\mathcal{P}_{\theta} | \> \theta \in \Theta\}$, where $\theta$ denotes the parameter, and $\Theta$, the parameter space, represents the set of all possible values $\theta$ can take on.^[$\theta$ can be and in fact usually is a multi-dimensional vector whose components represent various sub-parameters of the population.] 
 
 Statisticians also like to assume the parameters in their models can be uniquely identified based on the data they observe. A model is considered *identifiable* if having perfect knowledge of the population enables us to determine the true value of its parameter with absolute certainty.^[This is of course almost always impossible in practice, but in theory it could be accomplished by obtaining an infinite number of observations from $\mathcal{S}$ or simply all of its observations if $|\mathcal{S}|$ is finite.] More formally, for any two parameters $\theta_1$ and $\theta_2$ in $\Theta$, if $\mathcal{P}_{\theta_1} = \mathcal{P}_{\theta_2}$, then it must follow that $\theta_1 = \theta_2$. A model that is not identifiable could potentially have two or more distinct parameter values that give rise to the same probability distribution. Since we have already assumed $\mathcal{P}$ is the mechanism generating the data we have observed in the first place, this would make it impossible to determine which value is the "correct" one on the basis of the data alone. Statisticians impose the identifiability criterion on their models as a means of avoiding this undesirable situation.
 
@@ -21,12 +21,13 @@ Statisticians also like to assume the parameters in their models can be uniquely
 
 The dimension of the parameter space $\Theta$ is another critical decision statisticians must make when choosing the best model for their research. When $\Theta \subseteq V$, where $V$ is an infinite-dimensional space, the model is said to be a *nonparametric*. The name is a bit of a misnomer in the sense that nonparametric models do not actually lack parameters, but rather they are flexible regarding the exact number and properties of the parameters they do have. 
 
-*Semiparametric* models are those whose parameter spaces have components of both finite and infinite dimensionality. That is, $\Theta \subseteq \mathbb{R}^k \times V$, where again $V$ is an infinite-dimensional space. Usually it is only the finite-dimensional component of the parameter in which we are interested while the infinite-dimensional component is considered a nuisance parameter. 
-Finally, models for which $\Theta$ is of finite dimension are called *parametric*. That is, $\Theta \subseteq \mathbb{R}^k$, where $k \in \mathbb{Z}^+$. This is the most common type of model used by statisticians, with examples including the normal family of distributions as well as the Poisson family. For the purposes of this paper, we will assume all statistical models under discussion are parametric in form.
+*Semiparametric* models are those whose parameter spaces have components of both finite and infinite dimensionality. That is, $\Theta \subseteq \mathbb{R}^k \times V$, where again $V$ is an infinite-dimensional space. Usually it is only the finite-dimensional component of the parameter in which we are interested while the infinite-dimensional component is considered a nuisance parameter.
+
+Models for which $\Theta$ is of finite dimension are called *parametric*. That is, $\Theta \subseteq \mathbb{R}^k$, where $k \in \mathbb{Z}^+$. This is the most common type of model used by statisticians, with examples including the normal family of distributions as well as the Poisson family. For the purposes of this paper, we will assume all statistical models under discussion are parametric in form.
 
 \subsection{Regularity}
 
-Finally, we will assume that all probability distributions in $\mathcal{P}$ obey a certain regularity condition. A parametric model $(\mathcal{S}, \mathcal{P}$ is called *regular* if it satisfies one of the following:
+Finally, we will assume that all probability distributions in $\mathcal{P}$ obey a certain regularity condition. A parametric model $(\mathcal{S}, \mathcal{P})$ is called *regular* if it satisfies one of the following:
 
 1) All of the distributions in $\mathcal{P}$ are continuous with densities $p(x; \theta)$;
 2) All of the distributions in $\mathcal{P}$ are discrete with frequency functions $p(x; \theta)$ and the set $\{x: p(x; \theta) > 0\}$ is the same set for all $\theta$.
@@ -43,13 +44,13 @@ Suppose X is a discrete random variable with probability mass function $p(x; \th
 $$L(\theta) \equiv L(\theta; x) = p(x; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_single} 
 That is, when our sample consists only of a single observation, the likelihood function for $\theta$ is simply equal to $p(x;\theta)$ itself. However, while $p(x; \theta)$ is viewed as a function of $x$ for fixed $\theta$, the reverse is actually true for $L(\theta; x)$; we view it as a function of $\theta$ for fixed $x$. The positioning of the arguments $\theta$ and $x$ is a reflection of this difference in perspectives.
 
-In this case, we may interpret $L(\theta)$ as the probability that $X = x$ given that $\theta$ is the true parameter value. It is crucial to note that this is *not* equivalent to the inverse probability that $\theta$ is the true parameter value given $X = x$. Though intuitively appealing, this interpretation constitutes a fundamental misunderstanding of what a likelihood function is, and great care must be taken to avoid it. 
+In this case, we may interpret $L(\theta)$ as the probability that $X = x$ given that $\theta$ is the true parameter value. Crucially, this is *not* equivalent to the inverse probability that $\theta$ is the true parameter value given $X = x$. Though intuitively appealing, this interpretation constitutes a fundamental misunderstanding of what a likelihood function is, and great care must be taken to avoid it. 
 
 This definition be extended to include the more common scenario in which the sample consists of multiple observations. For a sample of size $n$ taken from our sample space $\mathcal{S}$, the likelihood is defined as $$L(\theta;x_1, ..., x_n) = p(x_1, ..., x_n; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_multi} That is, it is equal to the joint probability of the observations $x_1, ..., x_n$, considered as a function of $\theta$. When the observations are independent and identically distributed, we can further express the likelihood as $$L(\theta;x_1, ..., x_n) = \prod_{i=1}^n p(x_i; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_multi_prod}
 
 \subsection{The Continuous Case}
 
-When $X$ is instead a continuous random variable, the likelihood for $\theta$ may still be defined as it is in @eq-likelihood_single and @eq-likelihood_multi. Note that $p(x; \theta)$ has switched from being a probability *mass* function to a probability *density* function over the support of $X$. We must therefore forfeit our previous direct interpretation of $L(\theta)$ as a probability since $p(x; \theta)$ no longer represents $\mathbb{P}(X = x | \theta)$. We may still think of the likelihood as being proportional to the probability that $X$ is "close" to the value $x$ though.^[Here, "close" means that that $X$ is within a tiny neighborhood of $x$.] Specifically, for two different samples $x_1$ and $x_2$, if $L(\theta; x_1) = c \cdot L(\theta; x_2)$, where $c > 1$, then under this model we may conclude $X$ is $c$ times more likely to assume a value closer to $x_1$ than $x_2$ given that $\theta$ is the true value of the parameter. 
+When $X$ is instead a continuous random variable, the likelihood for $\theta$ may still be defined as it is in @eq-likelihood_single and @eq-likelihood_multi. However, $p(x; \theta)$ has switched from being a probability *mass* function to a probability *density* function over the support of $X$. We must therefore forfeit our previous direct interpretation of $L(\theta)$ as a probability since $p(x; \theta)$ no longer represents $\mathbb{P}(X = x | \theta)$. We may however still think of the likelihood as being proportional to the probability that $X$ is "close" to the value $x$.^[Here, "close" means that that $X$ is within a tiny neighborhood of $x$.] Specifically, for two different samples $x_1$ and $x_2$, if $L(\theta; x_1) = c \cdot L(\theta; x_2)$, where $c > 1$, then under this model we may conclude $X$ is $c$ times more likely to assume a value closer to $x_1$ than $x_2$ given that $\theta$ is the true value of the parameter. 
 
 As in the discrete case, we must also be careful here to avoid using $L(\theta)$ to make direct statements of probability about $\theta$. Indeed, despite our use of one in its definition, the likelihood function is *not* itself a probability density over the parameter $\theta$ and need not obey the same laws as one. 
 
@@ -63,33 +64,97 @@ There is no singular method for finding the maximum likelihood estimate of a par
 
 \subsection{Model Parameter Decomposition}
 
-It is often the case that we are not interested in estimating the full parameter $\theta \in \Theta \subseteq \mathbb{R}^k$, but rather a sub-parameter $\psi$ taking values in a set $\Psi \subseteq \mathbb{R}^m$, where $m < k$. In such an event, we refer to $\psi$ as the *parameter of interest*. 
+It is often the case that we are not interested in estimating the full parameter $\theta \in \Theta \subseteq \mathbb{R}^k$, but rather a different parameter $\psi$ taking values in a set $\Psi \subseteq \mathbb{R}^m$, where $m < k$. In such an event, we refer to $\psi$ as the *parameter of interest*. Since $\psi$ is of lower dimension than $\theta$, it necessarily follows that there is another parameter $\lambda$, taking values in a set $\Lambda\subseteq{\mathbb{R}^{k-m}}$, that is made up of whatever is "left over" from the full parameter $\theta$. 
+
+We refer to $\lambda$ as the *nuisance parameter* due to its ability to complicate inference regarding the parameter of interest. Despite not being the object of study themselves, nuisance parameters are nevertheless capable of modifying the distributions of our observations and therefore must be accounted for when conducting inference regarding the parameter of interest. The process by which this is accomplished is often nontrivial and can constitute a significant barrier that must be overcome. 
+
+Parameters of interest and nuisance parameters can be broadly classified into two categories, explicit or implicit. For a given statistical model, both types of parameter must occupy the same category - it is not possible for $\psi$ to be explicit and $\lambda$ to be implicit, or vice versa. In the following two sections, we will explore each of these cases in more detail.
 
 \subsection{Explicit Parameters}
 
-Consider first the case in which $\psi$ is a sub-vector of $\theta$, so that all the components of $\psi$ are also components of $\theta$. Then there exists a set $I = \{I_1, ..., I_m\} \subsetneq \{1, ..., k\}$ such that $\psi = (\psi_1, ..., \psi_m) = (\theta_{I_1}, ..., \theta_{I_m})$. We may further group the components of $\theta$ that are not a part of $\psi$ into their own sub-vector, which we will refer to as the *nuisance parameter* and denote by $\lambda \in \Lambda \subseteq \mathbb{R}^{k-m}$. Specifically, let $N = \{N_1, ..., N_{k-m}\} \subsetneq \{1, ..., k\}$ such that $I \cup N = \{1, ..., k\}$ and $I \cap N = \emptyset$. Then $\lambda = (\lambda_1, ..., \lambda_{m-k}) = (\theta_{N_1}, ..., \theta_{N_{k-m}})$. $\theta$ can therefore be decomposed as $\theta = (\psi, \lambda)$, provided we shuffle the indices appropriately. In this case, $\psi$ and $\lambda$ are referred to as an *explicit* parameter of interest and nuisance parameter, respectively.
-
-Nuisance parameters are so named for their ability to complicate inference regarding the parameter of interest. Despite not being the object of study themselves, they nevertheless are capable of modifying the distributions of our observations and therefore must be accounted for. The process by which this is accomplished is often nontrivial and indeed can constitute a significant barrier that must be overcome. For example, suppose we are interested in estimating the mean of a random variable $Y$, where $Y \sim N(\mu, \sigma^2)$. The full model parameter is $\theta = (\mu, \sigma^2)$ but since we are only interested in estimating the mean, the parameter of interest is $\psi =\mu$ and the nuisance parameter is $\lambda = \sigma^2$. 
+Let us first consider the case in which $\psi$ and $\lambda$ are *explicit* parameters. This means that $\psi$ is a sub-vector of $\theta$, so that all the components of $\psi$ are also components of $\theta$. Then there exists a set $I = \{I_1, ..., I_m\} \subsetneq \{1, ..., k\}$ such that $$\psi = (\theta_{I_1}, ..., \theta_{I_m}).$${#eq-expl_param1} It immediately follows that $\lambda$ is the sub-vector of all components of $\theta$ that are not part of $\psi$. More precisely, if we let $J = \{J_1, ..., J_{k-m}\} \subsetneq \{1, ..., k\}$ such that $I \cup J = \{1, ..., k\}$ and $I \cap J = \emptyset$, then $$\lambda = (\theta_{J_1}, ..., \theta_{J_{k-m}}).$${#eq-expl_param2} $\theta$ can therefore be decomposed as $\theta = (\psi, \lambda)$ when $\psi$ and $\lambda$ are explicit, provided we shuffle the indices appropriately.
 
 \subsection{Implicit Parameters}
 
-Now consider the case in which the parameter of interest is the output of a function $\varphi: \Theta \to \Psi$. That is, $\psi = \varphi(\theta)$.^[Note that the first case is really just a special case of this second one in which $\varphi(\theta) = \varphi(\theta_1, ..., \theta_k) = (\theta_{I_1}, ..., \theta_{I_m})$, where $\{I_1, ..., I_m\}$ is the subset of the indices of the components of $\theta$ that also belong to $\psi$.] Note that $\Psi$ is still assumed to be a subset of $\mathbb{R}^m$ where $m$ is less than $k$, the dimension of the full parameter space $\Theta$. This reduction in dimension implies the existence of a nuisance parameter $\lambda \in \Lambda$, where $\text{dim}(\Lambda) = k - m$. However, there is no guarantee that a closed form expression exists for $\lambda$ in terms of the original components of theta. We will refer to $\psi$ and $\lambda$ as being *implicit* parameters in this case.
+Now let us consider the case in which $\psi$ and $\lambda$ are *implicit* parameters. This means there exists some function $\varphi: \Theta \to \Psi$ for which the parameter of interest can be written as $$\psi = \varphi(\theta).$${#eq-impl_param} As before, $\Psi$ is still assumed to be a subset of $\mathbb{R}^m$ where $m$ is less than $k$, the dimension of the full parameter space $\Theta$. This reduction in dimension again implies the existence of a nuisance parameter $\lambda \in \Lambda \subseteq{\mathbb{R}}^{k-m}$. However, unlike in the explicit case, a closed form expression for $\lambda$ in terms of the original components of $\theta$ need not exist. For this reason, implicit nuisance parameters are in general more difficult to eliminate compared to their explicit counterparts.
 
-\section{The Pseudolikelihood Function}
+Note that when the parameter of interest and nuisance parameter are explicit, it is always possible to define a function $\varphi$ such that $$\varphi(\theta) = (\theta_{I_1}, ..., \theta_{I_m}) \equiv \psi ,$${#eq-expl_param3} where $\{I_1, ..., I_m\}$ is defined as above. Hence, the first case is really just a special example of this broader one in which $\psi = \varphi(\theta)$. To avoid blurring the lines between explicit and implicit parameters, we will refer to $\psi$ and $\lambda$ as being implicit if and only if there does not exist a function $\varphi$ satisfying @eq-expl_param3. When such a function does exist, we will simply write $\theta = (\psi, \lambda)$ and refer to $\psi$ and $\lambda$ as explicit parameters.
 
-The construction of what is known as a *pseudolikelihood function* has long been the statistician's method of choice for eliminating nuisance parameters from a model. Suppose our parameter of interest is $\psi = \varphi(\theta)$ for some function $\phi$ and full model parameter $\theta \in \Theta$. If we let $\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$ Simply put, a pseudolikelihood function is a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. There exist a variety of methods to obtain this summary but among the most popular are maximization, conditioning, and integration, each with respect to the nuisance parameter. We will explore each of these methods in more detail in the sections to come.
+\section{Pseudolikelihood Functions}
+
+As mentioned previously, nuisance parameters hinder inference regarding the parameter of interest in a statistical model. The natural solution to this problem is to find a method for eliminating the nuisance parameter from the model altogether. Since one way of uniquely specifying a model is through its likelihood function, this is equivalent to eliminating the nuisance parameters from the likelihood function itself. The result of this elimination is what is known as a pseudolikelihood function.
+
+In general, a *pseudolikelihood function* for $\psi$ is defined as being a function of $\psi$ and the data alone, having properties resembling that of a genuine likelihood function. Suppose $\psi$ and $\lambda$ are implicit, so that $\psi = \varphi(\theta)$ for some function $\phi$ and parameter $\theta \in \Theta$. If we let $\Theta(\psi) = \{\theta \in \Theta \> : \> \varphi(\theta) = \psi \},$ then associated with each $\psi \in \Psi$ is the set of likelihoods $\mathcal{L}_{\psi} = \{L(\theta) \> : \> \theta \in \Theta(\psi)\}.$ When $\psi$ and $\lambda$ are instead explicit, a one-to-one mapping  exists between $\psi$ and $\theta$, so $\Theta(\psi) = \Theta$ and therefore $\mathcal{L}_{\psi}$ simply reduces to $L(\theta)$. 
+
+Any summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$ theoretically constitutes a pseudolikehood function for $\psi$. There exist a variety of methods to obtain this summary but among the most popular are maximization, conditioning, and integration, each with respect to the nuisance parameter. We will explore each of these methods in more detail in the sections to come.
 
 \subsection{The Bartlett Identities}
 
-The Bartlett Identities are a set of equations relating to the expectations of functions of derivatives of a log-likelihood function. A well-specified genuine likelihood function will automatically satisfy each of the Bartlett Identites; however, an arbitrary function of $\theta$ and $X$ will not. For this reason, the identities act as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the genuine likelihood from which it originated.
+The Bartlett identities are a set of equations relating to the expectations of functions of derivatives of a log-likelihood function. A well-specified genuine likelihood function will automatically satisfy each of the Bartlett identites; however, an arbitrary function of $\theta$ and $X$ will not. For this reason, the identities act as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the genuine likelihood from which it originated.^[The Bartlett identities offer an alternative way of characterizing the difference between likelihood and pseudolikelihood functions. A genuine likelihood function of $\theta$ is any nonnegative random function of $\theta$ for which all of the Bartlett identities hold. A pseudolikelihood of $\theta$ is any nonnegative random function of $\theta$ for which at least one of the Bartlett identities does not hold.]
 
-Consider the case in which a random variable $X$ has a probability density $f$ that depends on a scalar parameter $\theta$. By definition, 
+Consider the case in which a random variable $X$ has a probability density $f$ that depends on a scalar parameter $\theta$. Denote the log-likelihood function for $\theta$ by $\ell(\theta; x) = \log f(x; \theta)$ and its first derivative with respect to $\theta$ by $\ell_{\theta}(\theta;x ) = \frac{\partial}{\partial \theta} \ell(\theta; x)$. We previously assumed in Section 2.1.4. that all probability distributions for which the results in this paper apply are regular. One consequence of this assumption is that derivatives and integrals of the density functions for these distributions may be interchanged. Now, taking the expectation of $\ell_{\theta}(\theta; x)$ gives
 
-$$\int_{\mathbb{R}} f(x; \theta) = 1.$$
-    
+$$
+\begin{aligned}
+\mathbb{E}\big[\ell_{\theta}(\theta; x) \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x) \bigg] &&(\text{by definition of } \ell_{\theta})\\
+                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \ell(\theta; x)\bigg] f(x; \theta) dx &&(\text{by definition of expectation})\\
+                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg] f(x; \theta) dx &&(\text{by definition of } \ell)\\
+                                                 &=  \int_{\mathbb{R}} \frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} f(x; \theta) dx &&(\text{by the chain rule})\\
+                                                 &=  \int_{\mathbb{R}} \frac{\partial}{\partial \theta} f(x; \theta) dx &&(\text{by cancellation})\\
+                                                 &= \frac{d}{d \theta} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
+                                                 &= \frac{d}{d \theta} 1 &&(\text{by definition of } f)\\
+                                                 &= 0. &&(\text{by simple differentiation})
+\end{aligned}
+$$
+Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; x) \big] = 0 \text{ for all } \theta.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the model parameter will always be 0. Another name for $\ell_{\theta}$ is the *score function*, and any pseudolikelihood that also satisfies the first Bartlett identity is said to be *score-unbiased*.
+
+If we now consider the second derivative of $\ell(\theta; x)$, we have
+
+$$\begin{aligned}
+\ell_{\theta \theta}(\theta; x) &= \frac{\partial^2}{\partial \theta^2} \ell(\theta; x) &&(\text{by definition of } \ell_{\theta \theta})\\
+                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x) \bigg] &&(\text{by properties of the derivative})\\
+                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \log f(x;\theta) \bigg] &&(\text{by definition of } \ell_{\theta})\\
+                                &= \frac{\partial}{\partial \theta}\Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} \Bigg] &&(\text{by the chain rule})\\
+                                &= \frac{\Big[\frac{\partial^2}{\partial \theta^2} f(x; \theta)\Big] f(x;\theta) - \Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]\Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]}{\big[f(x; \theta) \big]^2} &&(\text{by the quotient rule})\\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{ f(x; \theta)}\Bigg]^2 &&(\text{by simple algebra})\\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \big[\ell_{\theta}(\theta; x) \big]^2. &&(\text{by definition of } \ell_{\theta})
+\end{aligned} 
+$$
+Rearranging terms and taking expectations yields 
+$$
+\begin{aligned}
+\mathbb{E}[\ell_{\theta \theta}(\theta; x)] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2\Big] &= \mathbb{E}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] &&(\text{by above result})\\
+             &= \int_{\mathbb{R}} \Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] f(x; \theta) dx &&(\text{by definition of expectation})\\
+             &= \int_{\mathbb{R}} \Bigg[\frac{\partial^2}{\partial \theta^2} f(x; \theta)\Bigg] dx &&(\text{by cancellation})\\
+             &= \frac{d^2}{d \theta^2} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
+             &= \frac{d^2}{d \theta^2} 1 &&(\text{by definition of } f)\\
+             &= 0. &&(\text{by simple differentiation})
+\end{aligned}
+$$
+Therefore, $$\mathbb{E}[\ell_{\theta \theta}(\theta; x)] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2\Big] = 0 \text{ for all } \theta.$${#eq-BI2}
+
+@eq-BI2 is called the second Bartlett identity. The second term on the left-hand side can be further rewritten as 
+
+$$
+\begin{aligned}
+\mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2\Big] &= \mathbb{V}[\ell_{\theta}(\theta; x)] +\Big(\mathbb{E}\big[\ell_{\theta}(\theta; x) \big]\Big)^2 &&(\text{by definition of variance})\\
+                                                          &= \mathbb{V}[\ell_{\theta}(\theta; x)]. &&(\text{by the first Bartlett identity})
+\end{aligned}
+$$
+Another name for this quantity is the *expected information*. It follows from the second Bartlett identity that $$\mathbb{E}[-\ell_{\theta \theta}(\theta; x)] = \mathbb{V}[\ell_{\theta}(\theta; x)].$${#eq-BI3} The quantity $-\ell_{\theta \theta}(\theta; x)$ is called the *observed information*. Any pseudolikelihood that satisfies the second Bartlett identity is said to be *information-unbiased*.
+
+It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further. Note that while the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
+
+\subsection{Asymptotic Analysis of Pseudolikelihoods}
+
+
+
+
 \subsection{The Profile Likelihood}
 
-The profile likelihood is the most straightforward method for eliminating a nuisance parameter.  
+The profile likelihood is the most straightforward method for eliminating a nuisance parameter from a likelihood function.  
+
+For example, suppose we are interested in estimating the mean of a random variable $Y$, where $Y \sim N(\mu, \sigma^2)$. The full model parameter is $\theta = (\mu, \sigma^2)$ but since we are only interested in estimating the mean, the parameter of interest is $\psi =\mu$ and the nuisance parameter is $\lambda = \sigma^2$.  
 
 \subsection{The Conditional Likelihood}
 
