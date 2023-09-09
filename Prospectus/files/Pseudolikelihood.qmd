@@ -18,7 +18,7 @@ Let us first consider the case in which $\psi$ and $\lambda$ are *explicit* para
 
 Now let us consider the case in which $\psi$ and $\lambda$ are *implicit* parameters. This means there exists some function $\varphi: \Theta \to \Psi$ for which the parameter of interest can be written as $$\psi = \varphi(\theta).$${#eq-impl_param} As before, $\Psi$ is still assumed to be a subset of $\mathbb{R}^m$ where $m$ is less than $k$, the dimension of the full parameter space $\Theta$. This reduction in dimension again implies the existence of a nuisance parameter $\lambda \in \Lambda \subseteq{\mathbb{R}}^{k-m}$. However, unlike in the explicit case, a closed form expression for $\lambda$ in terms of the original components of $\theta$ need not exist. For this reason, implicit nuisance parameters are in general more difficult to eliminate compared to their explicit counterparts.
 
-Note that when the parameter of interest and nuisance parameter are explicit, it is always possible to define a function $\varphi$ such that $$\varphi(\theta) = (\theta_{I_1}, ..., \theta_{I_m}) \equiv \psi ,$${#eq-expl_param3} where $\{I_1, ..., I_m\}$ is defined as above. Hence, the first case is really just a special example of this broader one in which $\psi = \varphi(\theta)$. With this understanding in mind, we will use the notation $\psi = \varphi(\theta)$ to refer to the parameter of interest in general, only making the distinction between implicitness and explicitness when the difference is relevant to the topic at hand.
+Note that when the parameter of interest and nuisance parameter are explicit, it is always possible to define a function $\varphi$ such that $$\varphi(\theta) = (\theta_{I_1}, ..., \theta_{I_m}) \equiv \psi ,$${#eq-expl_param3} where $\{I_1, ..., I_m\}$ is defined as above. Hence, the first case is really just a special example of this broader one in which $\psi = \varphi(\theta)$. With this understanding in mind, we will use the notation $\psi = \varphi(\theta)$ to refer to the parameter of interest in general, only making the distinction between implicitness and explicitness when the difference is relevant to the situation.
 
 \section{Pseudolikelihood Functions}
 
@@ -54,7 +54,7 @@ Consider the case in which a random variable $X$ has a probability density $f$ t
 
 $$
 \begin{aligned}
-\mathbb{E}\big[\ell_{\theta}(\theta; x) \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x) \bigg] \\
+\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x); \theta\bigg] \\
                                                  &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \ell(\theta; x)\bigg] f(x; \theta) dx \\
                                                  &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg] f(x; \theta) dx \\
                                                  &=  \int_{\mathbb{R}} \frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} f(x; \theta) dx \\
@@ -64,7 +64,7 @@ $$
                                                  &= 0. 
 \end{aligned}
 $$
-Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; x) \big] = 0 \text{ for all } \theta.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the model parameter will always be 0. Another name for $\ell_{\theta}$ is the *score function*, and any pseudolikelihood that also satisfies the first Bartlett identity is said to be *score-unbiased*.
+Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big] = 0 \text{ for all } \theta.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the model parameter will always be 0. Another name for $\ell_{\theta}$ is the *score function*, and any pseudolikelihood that also satisfies the first Bartlett identity is said to be *score-unbiased*.
 
 If we now consider the second derivative of $\ell(\theta; x)$, we have
 
@@ -82,7 +82,7 @@ $$
 Rearranging terms and taking expectations yields 
 $$
 \begin{aligned}
-\mathbb{E}[\ell_{\theta \theta}(\theta; x)] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2\Big] &= \mathbb{E}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] \\
+\mathbb{E}_{\theta}[\ell_{\theta \theta}(\theta; x)] + \mathbb{E}_{\theta}\Big[\big(\ell_{\theta}(\theta; x) \big)^2\Big] &= \mathbb{E}_{\theta}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] \\
              &= \int_{\mathbb{R}} \Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] f(x; \theta) dx \\
              &= \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2} f(x; \theta) dx \\
              &= \frac{d^2}{d \theta^2} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
@@ -108,15 +108,13 @@ It is possible to derive further Bartlett identities by continuing in this manne
 
 Single-index asymptotic theory describes the behavior of pseudolikelihood functions as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. 
 
-Suppse $X_1, ..., X_n$ are independent draws from some distribution $P_{\theta}$ with parameter $\theta$ and density function $f(x; \theta)$. Let $\theta_0$ denote the true value of $\theta$ and $\hat{\theta}$ its maximum likelihood estimate.^[The existence of $\hat{\theta}$ is guaranteed assuming the regularity of the model (see Section 2.1.4.).] We may expand the score function $\ell_{\theta}$ evaluated at $\theta = \hat{\theta}$ as follows:
+Suppse $X_1, ..., X_n$ are independent draws from some distribution $P_{\theta}$ with parameter $\theta$ and density function $f(x; \theta)$. Let $\hat{\theta}_n$ denote the maximum likelihood estimate for $\theta$.^[The existence of $\hat{\theta}$ is guaranteed assuming the regularity of the model (see Section 2.1.4.).] A second-order Taylor expansion of the score function $\ell_{\theta}(\theta)$ around the point $\theta = \hat{\theta}_n$ is given as follows:
 
-$$\ell_{\theta}(\hat{\theta}) - \ell_{\theta}(\theta_0) = $$
-
-the score function $\ell_\theta(\theta)$ evaluated at $\hat{\theta}$, the maximum likelihood estimate for $\theta$, may be expanded as $$$$
+$$\ell_{\theta}(\theta) = \ell_{\theta}(\hat{\theta}_n) + \ell_{\theta\theta}(\hat{\theta}_n)(\theta - \hat{\theta}_n) + \frac{1}{2}\ell_{\theta\theta\theta}(\hat{\theta}_n)(\theta - \hat{\theta}_n)^2 + R_n(\theta),$$ where $R_n(\theta) = \frac{1}{6}\ell_{\theta\theta\theta\theta}(\theta^*)(\theta - \hat{\theta}_n)^3$, for some $\theta^* \in \Theta$.
 
 \subsection{Two-Index Asymptotic Theory}
 
-Two-index asymptotic theory describes the behavior of pseudolikelihood functions as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed.
+Two-index asymptotic theory describes the behavior of pseudolikelihood functions as $n$ and $m$ both tend to infinity, with $m$ growing at least as fast as $n$. 
 
 
 
