@@ -44,9 +44,22 @@ For example, suppose we are interested in estimating the mean of a random variab
 
 \subsection{The Integrated Likelihood}
 
-\section{Asymptotic Properties of Pseudolikelihoods}
+\section{Asymptotic Analysis of Likelihoods and Pseudolikelihoods}
 
-\subsection{Introduction}
+\subsection{Regularity Conditions}
+
+Knowledge of how likelihood functions behave as the sample size increases is a useful tool for understanding the properties of the estimates they produce. We will base our analysis of this asymptotic behavior on second-order Taylor expansions of the log-likelihood function and its derivatives. In order to guarantee that these expansions exist, we will consider only a particular class of statistical models that obey certain *regularity conditions*. The exact specifications of these conditions can vary depending on the requirements of the researcher, but they are usually made with the goal of ensuring that the log-likelihood function obeys various "nice" properties. Typical examples of these properties include asymptotic normality of the log-likelihood and its first derivative as well as guaranteed existence and consistency of the MLE. 
+
+Suppose we have a model with a family of distributions $\mathcal{P}$ indexed by a parameter $\theta \in \Theta$. Let $\theta_0$ denote the true value of $\theta$. For our purposes, a parametric model is called *regular* if it satisfies the following conditions:
+
+1) All of the distributions in $\mathcal{P}$ are absolutely continuous with respect to a $\sigma$-finite measure $\mu$ and therefore admit a density function $p(x; \theta)$;
+2) Any observations $X_1, ..., X_n$ that we draw from $\mathcal{S}$ are independent and identically distributed according to $p(x; \theta)$;
+3) The densities
+3) The parameter space $\Theta$ contains an open subset $\Theta_0$ of which the true parameter value $\theta_0$ is an interior point.
+
+All of the distributions in $\mathcal{P}$ have common support;
+2) All of the distributions in $\mathcal{P}$ are absolutely continuous with respect to a sigma-finite measure $\mu$;
+3) Any observations $X_1, ..., X_n$ taken from $\mathcal{S}$ are independent and identically distributed with probability density function $f(x; \theta)$ with respect to $\mu$.
 
 \subsection{The Bartlett Identities}
 
@@ -110,7 +123,9 @@ It is possible to derive further Bartlett identities by continuing in this manne
 
 Single-index asymptotic theory describes the behavior of pseudolikelihood functions as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. 
 
-Let $X_1, ..., X_n$ be independent observations taken from some random variable $X$ with distribution $P_{\theta}$ and parameter $\theta \in \Theta$. Suppose $\Theta \subseteq \mathbb{R}^d$
+
+
+Let $X_1, ..., X_n$ be independent and identically distributed observations taken from some random variable $X$ with distribution $P_{\theta}$ and parameter $\theta \in \Theta \subseteq \mathbb{R}^d$. Since we have assumed $\mathcal{P}_{\theta}$ is absolutely 
 
 Let $\hat{\theta}_n$ denote the maximum likelihood estimate for $\theta$.
 
