@@ -110,7 +110,21 @@ It is possible to derive further Bartlett identities by continuing in this manne
 
 Single-index asymptotic theory describes the behavior of pseudolikelihood functions as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. 
 
-Suppse $X_1, ..., X_n$ are independent draws from some distribution $P_{\theta}$ with parameter $\theta$ and density function $f(x; \theta)$. Let $\hat{\theta}_n$ denote the maximum likelihood estimate for $\theta$.^[The existence of $\hat{\theta}$ is guaranteed assuming the regularity of the model (see Section 2.1.4.).] A second-order Taylor expansion of the score function $\ell_{\theta}(\theta)$ around the point $\theta = \hat{\theta}_n$ is given as follows:
+Let $X_1, ..., X_n$ be independent observations taken from some random variable $X$ with distribution $P_{\theta}$ and parameter $\theta \in \Theta$. Suppose $\Theta \subseteq \mathbb{R}^d$
+
+Let $\hat{\theta}_n$ denote the maximum likelihood estimate for $\theta$.
+
+
+
+A second-order Taylor expansion of the log-likelihood $\ell(\theta;x) = \log f(x; \theta)$ around the point $\theta = \hat{\theta}_n$ is given as follows:
+
+$$\ell(\theta) = \ell(\hat{\theta}_n) + \ell_{\theta}(\hat{\theta}_n)(\theta - \hat{\theta}_n) + \frac{1}{2}\ell_{\theta\theta}(\hat{\theta}_n)(\theta - \hat{\theta}_n)^2 + R_n(\theta),$$ where $R_n(\theta) = \frac{1}{6}\ell_{\theta\theta\theta}(\theta^*)(\theta - \hat{\theta}_n)^3$, for some $\theta^* \in \Theta$.
+
+
+
+
+
+A second-order Taylor expansion of the score function $\ell_{\theta}(\theta)$ around the point $\theta = \hat{\theta}_n$ is given as follows:
 
 $$\ell_{\theta}(\theta) = \ell_{\theta}(\hat{\theta}_n) + \ell_{\theta\theta}(\hat{\theta}_n)(\theta - \hat{\theta}_n) + \frac{1}{2}\ell_{\theta\theta\theta}(\hat{\theta}_n)(\theta - \hat{\theta}_n)^2 + R_n(\theta),$$ where $R_n(\theta) = \frac{1}{6}\ell_{\theta\theta\theta\theta}(\theta^*)(\theta - \hat{\theta}_n)^3$, for some $\theta^* \in \Theta$.
 

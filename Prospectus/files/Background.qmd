@@ -13,9 +13,11 @@ And indeed, in the aggregate these assumptions create what is known as a statist
 
 \subsection{Parameter Existence}
 
-Another assumption found in almost every model is that the set $\mathcal{P}$ is considered to be *parameterized*. That is, we assume the probability distributions contained in $\mathcal{P}$ are indexed by a *parameter* that controls their features.^[We will consider the phrases "parameter", "population parameter", and "model parameter" all to have the same meaning in this paper and use them interchangeably.] This parameter acts like a tuning dial for the population - rotate the dial and certain behaviors of the population (e.g. its location, scale, or shape) will change. Much of statistical inference can be boiled down to figuring out the particular value to which a population's dial has been set. We will denote this assumption as $\mathcal{P} = \{\mathcal{P}_{\theta} | \> \theta \in \Theta\}$, where $\theta$ denotes the parameter, and $\Theta$, the parameter space, represents the set of all possible values $\theta$ can take on.^[$\theta$ can be and in fact usually is a multi-dimensional vector whose components represent various sub-parameters of the population.] 
+Another assumption found in almost every model is that the set $\mathcal{P}$ is considered to be *parameterized*. That is, we assume the family $\mathcal{P}$ is indexed by a *parameter* that indicates to which of the probability distributions contained in $\mathcal{P}$ we are referring. ^[We will consider the phrases "parameter", "population parameter", and "model parameter" all to have the same meaning in this paper and use them interchangeably.] Think of the parameter as acting like a tuning dial for the population - rotate the dial and certain behaviors of the population (e.g. its location, scale, or shape) will change. Much of statistical inference can be boiled down to figuring out the particular value to which a population's dial has been set. We will denote this assumption as $\mathcal{P} = \{\mathcal{P}_{\theta} | \> \theta \in \Theta\}$, where $\theta$ denotes the parameter, and $\Theta$, the parameter space, represents the set of all possible values $\theta$ can take on.^[$\theta$ can be and in fact usually is a multi-dimensional vector whose components represent various sub-parameters of the population.] 
 
-Statisticians also like to assume the parameters in their models can be uniquely identified based on the data they observe. A model is considered *identifiable* if having perfect knowledge of the population enables us to determine the true value of its parameter with absolute certainty.^[This is of course almost always impossible in practice, but in theory it could be accomplished by obtaining an infinite number of observations from $\mathcal{S}$ or simply all of its observations if $|\mathcal{S}|$ is finite.] More formally, for any two parameters $\theta_1$ and $\theta_2$ in $\Theta$, if $\mathcal{P}_{\theta_1} = \mathcal{P}_{\theta_2}$, then it must follow that $\theta_1 = \theta_2$. A model that is not identifiable could potentially have two or more distinct parameter values that give rise to the same probability distribution. Since we have already assumed $\mathcal{P}$ is the mechanism generating the data we have observed in the first place, this would make it impossible to determine which value is the "correct" one on the basis of the data alone. Statisticians impose the identifiability criterion on their models as a means of avoiding this undesirable situation.
+\subsection{Identifiability}
+
+Statisticians also like to assume the parameters in their models can be uniquely identified based on the data they observe. A model is considered *identifiable* if having perfect knowledge of the population enables us to determine the true value of its parameter with absolute certainty.^[This is of course almost always impossible in practice, but in theory it could be accomplished by obtaining an infinite number of observations from $\mathcal{S}$ or simply all of its observations if $|\mathcal{S}|$ is finite.] More formally, for any two parameters $\theta_1$ and $\theta_2$ in $\Theta$, if $\mathcal{P}_{\theta_1} = \mathcal{P}_{\theta_2}$, then it must follow that $\theta_1 = \theta_2$. A model that is not identifiable could potentially have two or more distinct parameter values that give rise to the same probability distribution. For example, suppose $X$ is distributed uniformly on the interval $(0, \alpha + \beta)$, for two numbers $\alpha, \beta > 0$. If we use $\theta = (\alpha, \beta)$ as a parameter for the distribution of $X$, then $\theta$ is unidentifiable since, for instance, if $\theta_1 = (0, 1)$ and $\theta_1 = (1, 0)$ then $\mathcal{P}_{\theta_1} = \mathcal{P}_{\theta_2}$ despite the fact that $\theta_1 \neq \theta_2$. This is obviously an undesirable property for a model to possess, and so we will restrict our attention solely to identifiable models in this paper as a means of avoiding it.
 
 \subsection{Parameter Space Dimension}
 
@@ -27,12 +29,11 @@ Models for which $\Theta$ is of finite dimension are called *parametric*. That i
 
 \subsection{Regularity}
 
-Finally, we will assume that all probability distributions in $\mathcal{P}$ obey certain regularity conditions. A parametric model $(\mathcal{S}, \mathcal{P})$ is called *regular* if it satisfies one of the following:
+Finally, we will assume that all probability distributions in $\mathcal{P}$ obey certain regularity conditions. A parametric model $(\mathcal{S}, \mathcal{P})$ is called *regular* if it satisfies the following conditions:
 
-1) All of the distributions in $\mathcal{P}$ are continuous with densities $p(x; \theta)$;
-2) All of the distributions in $\mathcal{P}$ are discrete with frequency functions $p(x; \theta)$ and the set $\{x: p(x; \theta) > 0\}$ is the same set for all $\theta$.
-
-
+1) All of the distributions in $\mathcal{P}$ have common support;
+2) All of the distributions in $\mathcal{P}$ are absolutely continuous with respect to a sigma-finite measure $\mu$;
+3) Any observations $X_1, ..., X_n$ taken from $\mathcal{S}$ are independent and identically distributed with probability density function $f(x; \theta)$ with respect to $\mu$.
 
 \section{The Likelihood Function}
 
@@ -40,13 +41,11 @@ Once we have chosen a model $(\mathcal{S}, \mathcal{P})$, our goal becomes to id
 
 \subsection{The Discrete Case}
 
-Suppose X is a discrete random variable with probability mass function $p(x; \theta)$. For a single observation $X = x$, the *likelihood function* for $\theta$ is defined as
+Suppose X is a discrete random variable with frequency function $p(x; \theta)$. For a given sample $X = x$, the *likelihood function* for $\theta$ is defined as
 $$L(\theta) \equiv L(\theta; x) = p(x; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_single} 
 That is, when our sample consists only of a single observation, the likelihood function for $\theta$ is simply equal to $p(x;\theta)$ itself. However, while $p(x; \theta)$ is viewed as a function of $x$ for fixed $\theta$, the reverse is actually true for $L(\theta; x)$; we view it as a function of $\theta$ for fixed $x$. The positioning of the arguments $\theta$ and $x$ is a reflection of this difference in perspectives.
 
 In this case, we may interpret $L(\theta)$ as the probability that $X = x$ given that $\theta$ is the true parameter value. Crucially, this is *not* equivalent to the inverse probability that $\theta$ is the true parameter value given $X = x$. Though intuitively appealing, this interpretation constitutes a fundamental misunderstanding of what a likelihood function is, and great care must be taken to avoid it. 
-
-This definition be extended to include the more common scenario in which the sample consists of multiple observations. For a sample of size $n$ taken from our sample space $\mathcal{S}$, the likelihood is defined as $$L(\theta;x_1, ..., x_n) = p(x_1, ..., x_n; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_multi} That is, it is equal to the joint probability of the observations $x_1, ..., x_n$, considered as a function of $\theta$. When the observations are independent and identically distributed, we can further express the likelihood as $$L(\theta;x_1, ..., x_n) = \prod_{i=1}^n p(x_i; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_multi_prod}
 
 \subsection{The Continuous Case}
 
