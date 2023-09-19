@@ -110,7 +110,7 @@ It is possible to derive further Bartlett identities by continuing in this manne
 
 Single-index asymptotic theory describes the behavior of pseudolikelihood functions as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. 
 
-Let $X_1, ..., X_n$ be independent and identically distributed random variables with density function $p(x; \theta)$ and let $\hat{\theta}_n$ denote the maximum likelihood estimate for $\theta_0$. The likelihood function for $\theta$ based on the data $\mathbf{x} = (x_1, ..., x_n)$ is $$L(\theta;x) \equiv p(\mathbf{x}; \theta) = \prod_{i=1}^n p(x_i; \theta).$$ If we let $\ell_i(\theta) \equiv \ell(\theta; x_i)$, then we may write the log-likelihood function as 
+Let $X_1, ..., X_n$ be independent and identically distributed random variables with density function $p(\mathbf{x}; \theta)$ and let $\hat{\theta}$ denote the maximum likelihood estimate for $\theta_0$. The likelihood function for $\theta$ based on the data $\mathbf{x} = (x_1, ..., x_n)$ is $$L(\theta; \mathbf{x}) \equiv p(\mathbf{x}; \theta) = \prod_{i=1}^n p(x_i; \theta).$$ If we let $\ell_i(\theta) \equiv \ell(\theta; x_i)$, then we may write the log-likelihood function as 
 $$
 \begin{aligned}
 \ell(\theta; \mathbf{x}) &= \log L(\theta; \mathbf{x}) \\
@@ -124,18 +124,15 @@ $$
 It follows that the score function can be written as
 $$
 \begin{aligned}
-u(\theta; x) &= \frac{\partial}{\partial \theta} \ell(\theta; x) \\
+\mathcal{S}(\theta; \mathbf{x}) &= \frac{\partial}{\partial \theta} \ell(\theta; \mathbf{x}) \\
              &= \frac{\partial}{\partial \theta} \sum_{i=1}^n \ell_i(\theta) \\
              &= \sum_{i=1}^n \frac{\partial}{\partial \theta} \ell_i(\theta) \\
-             &= \sum_{i=1}^n u_i(\theta),
+             &= \sum_{i=1}^n \mathcal{S}_i(\theta),
 \end{aligned}
 $$
+where $\mathcal{S}_i(\theta) \equiv \mathcal{S}(\theta; x_i)$. In other words, the score function for the parameter $\theta$ based on data $x_1, ..., x_n$ can be written as the sum of individual contributions $\mathcal{S}_i(\theta)$, $i = 1,..., n$, where each $\mathcal{S}_i(\theta)$ is the score function for $\theta$ based only on data point $x_i$. 
 
-where $u_i(\theta) \equiv u(\theta; x_i)$. In other words, the score function for the parameter $\theta$ based on data $x_1, ..., x_n$ can be written as the sum of individual contributions $u_i(\theta)$, $i = 1,..., n$, where each $u_i(\theta)$ is the score function for $\theta$ based only on data point $x_i$. 
-
-Let's focus our attention on a single contribution, $u_i(\theta)$.A second-order Taylor expansion of $u_i(\theta)$ around the point $\theta = \theta_0$ is given as follows:
-
-$$u_i(\theta) = u_i(\theta_0) + \nabla u_i(\theta_0)^T(\theta - \theta_0) + \frac{1}{2} (\theta - \theta_0)^T\nabla^2 u_i(\theta_0)(\theta - \theta_0) + R(\theta),$$ where $R(\theta) = \frac{1}{6}\nabla^3u_i(\theta^*)[\theta - \theta_0, \theta - \theta_0, \theta - \theta_0]$, for some $\theta^* \in \Theta_0$.
+Let's focus our attention on a single contribution, $\mathcal{S}_i(\theta)$. A second-order Taylor expansion of $\mathcal{S}_i(\theta)$ around the point $\theta = \theta_0$ is given as follows: $$\mathcal{S}_i(\theta) = \mathcal{S}_i(\theta_0) + \nabla \mathcal{S}_i(\theta_0)^T(\theta - \theta_0) + \frac{1}{2} (\theta - \theta_0)^T\nabla^2 \mathcal{S}_i(\theta_0)(\theta - \theta_0) + R(\theta),$$ where $R(\theta) = \frac{1}{6}\nabla^3\mathcal{S}_i(\theta^*)[\theta - \theta_0, \theta - \theta_0, \theta - \theta_0]$, for some $\theta^* \in \Theta^*$.
 
 \subsection{Two-Index Asymptotic Theory}
 
