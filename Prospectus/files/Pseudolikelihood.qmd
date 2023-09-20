@@ -132,7 +132,7 @@ $$
 $$
 where $\mathcal{S}_i(\theta) \equiv \mathcal{S}(\theta; x_i)$. In other words, the score function for the parameter $\theta$ based on data $x_1, ..., x_n$ can be written as the sum of individual contributions $\mathcal{S}_i(\theta)$, $i = 1,..., n$, where each $\mathcal{S}_i(\theta)$ is the score function for $\theta$ based only on data point $x_i$. 
 
-Let's focus our attention on a single contribution, $\mathcal{S}_i(\theta)$. A second-order Taylor expansion of $\mathcal{S}_i(\theta)$ around the point $\theta = \theta_0$ is given as follows: $$\mathcal{S}_i(\theta) = \mathcal{S}_i(\theta_0) + \nabla \mathcal{S}_i(\theta_0)^T(\theta - \theta_0) + \frac{1}{2} (\theta - \theta_0)^T\nabla^2 \mathcal{S}_i(\theta_0)(\theta - \theta_0) + R(\theta),$$ where $R(\theta) = \frac{1}{6}\nabla^3\mathcal{S}_i(\theta^*)[\theta - \theta_0, \theta - \theta_0, \theta - \theta_0]$, for some $\theta^* \in \Theta^*$.
+By the fifth regularity condition in Section 1.2.2, we may assume the components of $\nabla^3\ell_i(\theta)$ are bounded by a random function $M(x_i)$ for all $\theta$ in a neighborhood of $\theta_0$. Note that $\nabla^3\ell_i(\theta) = \nabla^2\mathcal{S}_i(\theta)$. Therefore, a first-order Taylor expansion of $\mathcal{S}_i(\theta)$ around the point $\theta = \theta_0$ is given as follows: $$\mathcal{S}_i(\theta) = \mathcal{S}_i(\theta_0) + \nabla \mathcal{S}_i(\theta_0)(\theta - \theta_0) + R(\theta),$$ where $R(\theta) = \frac{1}{2} \nabla^2 \mathcal{S}_i(\theta^*)\otimes(\theta - \theta_0)^{\otimes 2}$, for some $\theta^* \in \Theta^*$.
 
 \subsection{Two-Index Asymptotic Theory}
 
