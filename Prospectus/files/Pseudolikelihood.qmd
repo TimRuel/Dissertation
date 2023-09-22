@@ -104,13 +104,15 @@ $$
 $$
 Another name for this quantity is the *expected information*. It follows from the second Bartlett identity that $$\mathbb{E}[-\ell_{\theta \theta}(\theta; x); \theta] = \mathbb{V}[\ell_{\theta}(\theta; x); \theta].$${#eq-BI3} The quantity $-\ell_{\theta \theta}(\theta; x)$ is called the *observed information*. Any pseudolikelihood that satisfies the second Bartlett identity is said to be *information-unbiased*.
 
-It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further here. Note that while the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
+It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
 
 \subsection{Single-Index Asymptotic Theory}
 
-Single-index asymptotic theory describes the behavior of pseudolikelihood functions as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. 
+Single-index asymptotic theory describes the behavior of likelihood functions as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. The aim of this section is to present a basic overview of the theory's results so that the reader will have a readily available baseline against which to compare the results of the following section discussing two-index asymptotic theory.
 
-Let $X_1, ..., X_n$ be independent and identically distributed random variables with density function $p(\mathbf{x}; \theta)$ and let $\hat{\theta}$ denote the maximum likelihood estimate for $\theta_0$. The likelihood function for $\theta$ based on the data $\mathbf{x} = (x_1, ..., x_n)$ is $$L(\theta; \mathbf{x}) \equiv p(\mathbf{x}; \theta) = \prod_{i=1}^n p(x_i; \theta).$$ If we let $\ell_i(\theta) \equiv \ell(\theta; x_i)$, then we may write the log-likelihood function as 
+We will couch our analysis in the framework of independent and identically distributed (IID) observations in order to demonstrate a standard scenario in which likelihood theory holds. This framework is by no means the only one to which the later results of this paper apply, and in fact there are plenty of models without IID observations that produce likelihood-based estimates with similar properties to those from the IID case (e.g. asymptotic normality). However, understanding how the theory works in the IID case makes it relatively straightforward to extend the methods to these other cases.
+
+Let $X_1, ..., X_n$ be IID random variables with density function $p(\mathbf{x}; \theta)$ and let $\hat{\theta}$ denote the maximum likelihood estimate for $\theta_0$. The likelihood function for $\theta$ based on the data $\mathbf{x} = (x_1, ..., x_n)$ is $$L(\theta; \mathbf{x}) \equiv p(\mathbf{x}; \theta) = \prod_{i=1}^n p(x_i; \theta).$$ If we let $\ell_i(\theta) \equiv \ell(\theta; x_i)$, then we may write the log-likelihood function as 
 $$
 \begin{aligned}
 \ell(\theta; \mathbf{x}) &= \log L(\theta; \mathbf{x}) \\
@@ -130,13 +132,15 @@ $$
              &= \sum_{i=1}^n \mathcal{S}_i(\theta),
 \end{aligned}
 $$
-where $\mathcal{S}_i(\theta) \equiv \mathcal{S}(\theta; x_i)$. In other words, the score function for the parameter $\theta$ based on data $x_1, ..., x_n$ can be written as the sum of individual contributions $\mathcal{S}_i(\theta)$, $i = 1,..., n$, where each $\mathcal{S}_i(\theta)$ is the score function for $\theta$ based only on data point $x_i$. 
+where $\mathcal{S}_i(\theta) \equiv \mathcal{S}(\theta; x_i)$. In other words, the score function for the parameter $\theta$ based on data $x_1, ..., x_n$ can be written as the sum of individual contributions $\mathcal{S}_i(\theta)$, $i = 1,..., n$, where each $\mathcal{S}_i(\theta)$ is the score function for $\theta$ based only on observation $x_i$. Note that these individual contributions are all independent from one another, a consequence of our earlier assumption that the observations themselves are independent.
 
-By the fifth regularity condition in Section 1.2.2, we may assume the components of $\nabla^3\ell_i(\theta)$ are bounded by a random function $M(x_i)$ for all $\theta$ in a neighborhood of $\theta_0$. Note that $\nabla^3\ell_i(\theta) = \nabla^2\mathcal{S}_i(\theta)$. Therefore, a first-order Taylor expansion of $\mathcal{S}_i(\theta)$ around the point $\theta = \theta_0$ is given as follows: $$\mathcal{S}_i(\theta) = \mathcal{S}_i(\theta_0) + \nabla \mathcal{S}_i(\theta_0)(\theta - \theta_0) + R(\theta),$$ where $R(\theta) = \frac{1}{2} \nabla^2 \mathcal{S}_i(\theta^*)\otimes(\theta - \theta_0)^{\otimes 2}$, for some $\theta^* \in \Theta^*$.
+We will now consider a first-order Taylor series expansion of an arbitrary contribution, $\mathcal{S_i}(\theta)$. Because $\theta$ is a multi-dimensional parameter, the first and second derivatives of $\mathcal{S_i}(\theta)$ with respect to it will be a matrix and a three-dimensional array, respectively (remember that the score function is itself a vector when $\theta$ is multi-dimensional). We will use tensor product notation to express a multiplication involving this three-dimensional array in the expansion. See \ref{appendix:A} for a review of tensor product notation as well as Taylor series in general.
+
+By the fifth regularity condition in Section 1.2.2, we may assume the components of $\nabla^3\ell_i(\theta)$ are bounded by a random function $M(x_i)$ for all $\theta$ in a neighborhood $N_{\theta_0}$ of $\theta_0$. Therefore, for all $\theta \in N_{\theta_0}$, a first-order Taylor expansion of $\mathcal{S}_i(\theta)$ around the point $\theta = \theta_0$ is given as follows: $$\mathcal{S}_i(\theta) = \mathcal{S}_i(\theta_0) + \nabla \mathcal{S}_i(\theta_0)\cdot(\theta - \theta_0) + R(\theta),$$ where $R(\theta) = \frac{1}{2} \nabla^2 \mathcal{S}_i(\theta^*)\cdot(\theta - \theta_0)^{\otimes 2}$, for some $\theta^* \in \Theta^*$.
 
 \subsection{Two-Index Asymptotic Theory}
 
-Two-index asymptotic theory describes the behavior of pseudolikelihood functions as $n$ and $m$ both tend to infinity, with $m$ growing at least as fast as $n$. 
+Two-index asymptotic theory describes the behavior of likelihood functions as $n$ and $m$ both tend to infinity, with $m$ growing at least as fast as $n$. 
 
 
 
