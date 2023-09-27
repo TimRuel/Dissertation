@@ -7,7 +7,7 @@
 
 \subsection{Neighborhoods}
 
-The *neighborhood* of radius $r$ at a point $\mathbf{p} \in \mathbb{R}^d$ is the set of all points $\mathbf{x} \in \mathbb{R}^d$ such that the distance between $\mathbf{p}$ and $\mathbf{x}$ is less than $r$. We use the following notation to refer to such neighborhoods: $$N_r(\mathbf{p}) = \{\mathbf{x}: ||\mathbf{x} - \mathbf{p}|| < r \}.$$
+A *neighborhood* of a point $\mathbf{p} \in \mathbb{R}^d$ is the set of all points $\mathbf{x} \in \mathbb{R}^d$ such that the Euclidean distance between $\mathbf{p}$ and $\mathbf{x}$ is less than some radius $r > 0$. We use the following notation to refer to such neighborhoods: $$N_r(\mathbf{p}) = \{\mathbf{x} \in \mathbb{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \}.$$
 
 \subsection{Line Segments}
 
@@ -17,14 +17,11 @@ For two points $\mathbf{x}_1, \mathbf{x}_2 \in \mathbb{R}^d$, a third point $\ba
 
 For $\symbf{\alpha} \in \mathbb{N}^d$ and $\mathbf{x} \in \mathbb{R}^d$, we define the following multi-index notation: $$|\symbf{\alpha}| = \alpha_1 + ... + \alpha_d, \> \> \symbf{\alpha}! = \alpha_1! \cdots \alpha_d!, \> \> \mathbf{x}^{\symbf{\alpha}} = x_1^{\alpha_1} \cdots x_d^{\alpha_d}.$$
 
-For a function $f: \mathbb{R}^d \to \mathbb{R}$ that is $k$ times differentiable at the point $\mathbf{a} \in \mathbb{R}^d$, define the following notation to indicate the mixed derivatives of $f$ at $\mathbf{a}$ up to and including order $k$: $$D^{\symbf{\alpha}} f = \frac{\partial^{|\symbf{\alpha}|}f}{\partial x_1^{\alpha_1} \cdots \partial x_d^{\alpha_d}}, \> \> |\symbf{\alpha}| \leq k.$$
+For a function $f: \mathbb{R}^d \to \mathbb{R}$ that is $k$ times differentiable at the point $\mathbf{a} \in \mathbb{R}^d$, define the following notation to indicate the mixed partial derivatives of $f$ at $\mathbf{a}$ up to and including order $k$: $$D^{\symbf{\alpha}} f = \frac{\partial^{|\symbf{\alpha}|}f}{\partial x_1^{\alpha_1} \cdots \partial x_d^{\alpha_d}}, \> \> |\symbf{\alpha}| \leq k.$$
 
+\section{Taylor's Theorem}
 
-
-\section{Taylor Series}
-
-
-\section{Tensor Product Notation}
+Let $f: \mathbb{R}^d \to \mathbb{R}$ be a function that is $(k+1)$-times differentiable at all points in a neighborhood $N_r(\mathbf{x}_0)$ of some point $\mathbf{x}_0 \in \mathbb{R}^d$. Then for any $\mathbf{x} \in N_r(\mathbf{x}_0)$, there exists $\bar{\mathbf{x}} \in LS(\mathbf{x}, \mathbf{x}_0)$ such that $$f(\mathbf{x}) = \sum_{0 \leq |\symbf{\alpha}| \leq k} \frac{D^{\symbf{\alpha}} f(\mathbf{x}_0)}{\symbf{\alpha}!}(\mathbf{x} - \mathbf{x}_0)^{\symbf{\alpha}} + \sum_{|\symbf{\beta}| = k + 1} R_{\symbf{\beta}}(\mathbf{x}),$$ where each remainder term $R_{\symbf{\beta}}(\mathbf{x})$ satisfies $$R_{\symbf{\beta}}(\mathbf{x}) = \frac{D^{\symbf{\beta}} f(\bar{\mathbf{x}})}{\symbf{\beta}!}(\mathbf{x} - \mathbf{x}_0)^{\symbf{\beta}}.$$
 
 \chapter{Chapter 3}\label{appendix:B}
 \index{Appendix@\emph{Appendix B}}
