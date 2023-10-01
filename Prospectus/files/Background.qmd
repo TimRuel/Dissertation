@@ -49,14 +49,14 @@ Note that $\ell(\theta; \mathbf{x})$, $\mathcal{S}(\theta; \mathbf{x})$, and $\m
 
 \subsection{Regularity Conditions}
 
-It will be useful to establish some *regularity conditions* for the models under consideration in this paper. For our purposes, a parametric model is called *regular* if it satisfies the following conditions:
+It will be useful to establish some *regularity conditions* for the models under consideration in this paper. The motivations behind the specific choice of conditions can vary, but the primary goal is usually to allow the log-likelihood function and its derivatives to be approximated by a Taylor polynomial of some degree (typically one or two) in $\theta$. For our purposes, we will call a parametric model *regular* if it satisfies the following conditions:
 
 \begin{enumerate}[label = C\arabic*)]
   \item All of the densities in $\mathcal{P}$ have common support which does not depend on $\theta$.
-  \item There exists an open set $\Theta^* \subseteq \Theta$ of which the true parameter value $\theta_0$ is an interior point.
+  \item There exists an open subset $\Theta^* \subseteq \Theta$ of which the true parameter value $\theta_0$ is an interior point.
   \item All of the densities in $\mathcal{P}$ are continuously differentiable with respect to $\theta$ up to third order for all $\theta^* \in \Theta^*$. 
   \item $\mathscr{I}(\theta)$ is positive definite for all $\theta \in \Theta$, and $\Theta$ is a convex set.
-  \item For each $\theta^* \in \Theta^*$, there exists a neighborhood $N_r(\theta^*) \subseteq \Theta^*$ such that for all $\theta \in N_r(\theta^*)$, the components of the third derivative of the log-likelihood, $\ell_{\theta \theta \theta}(\theta; \mathbf{x})$, are all bounded by a random function $M(\mathbf{x})$ with finite expectation. That is, $\underset{\theta \in N_r(\theta^*)}{\sup} |\ell_{\theta \theta \theta}(\theta; \mathbf{x})_{ijk}| \leq M(\mathbf{x})$ for all $i, j, k \in \{1, 2, ..., d \}$ with $\mathbb{E}[M(X); \theta_0] < \infty$.
+  \item For each $\theta^* \in \Theta^*$, there exists a neighborhood $N_r(\theta^*) \subseteq \Theta^*$ such that for all $\theta \in N_r(\theta^*)$, the components of the third derivative of the log-likelihood, $\ell_{\theta \theta \theta}(\theta; \mathbf{x})$, are all bounded by a random function $M(\mathbf{x})$ with finite expectation. That is, $$\underset{\underset{|\symbf{\alpha}| = 3}{\theta \in N_r(\theta^*)}}{\sup} \Big|D^{\symbf{\alpha}} \ell(\theta; \mathbf{x})\Big| \leq M(\mathbf{x})$$ where $\symbf{\alpha} \in \mathbb{N}_0^d$ and $\mathbb{E}[M(X); \theta_0] < \infty$.
 \end{enumerate}
 
 Any model satisfying these conditions will obey the following properties:
