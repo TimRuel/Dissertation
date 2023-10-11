@@ -141,9 +141,15 @@ Since $\theta$ is a vector, the $k$-th derivative of the log-likelihood with res
 
 Assume that the regularity conditions established in Section 1.2.2 apply to our model. Conditions C2) and C3) stipulate that there exists an open subset $\Theta^* \subseteq \Theta$ containing $\theta_0$ for which $p(\mathbf{x}; \theta)$ is three times continuously differentiable with respect to $\theta$ for all $\theta \in \Theta^*$. It immediately follows that $S_j(\theta; x_i)$ is twice continuously differentiable with respect to $\theta$ on $\Theta^*$. Since $\theta_0$ is an interior point of $\Theta^*$, there must exist a neighborhood $N_r(\theta_0) \subseteq \Theta^*$ for which $S_j(\theta; x_i)$ is twice continuously differentiable with respect to $\theta$ for all $\theta \in N_r(\theta_0)$ as well. Then for all $\theta \in N_r(\theta_0)$, the first order Taylor series polynomial of $S_j(\theta; x_i)$ around $\theta_0$ is given by $$T_j(\theta; x_i) = S_j(\theta_0; x_i) + \nabla S_j(\theta_0; x_i)^T(\theta - \theta_0).$$
 
-Let $R(\theta)$ denote the difference between $S_j(\theta; x_i)$ and $T_j(\theta; x_i)$ so that $$S_j(\theta; x_i) = T_j(\theta; x_i) + R(\theta).$$ By condition C5), there exists a random function $M(\mathbf{x})$ that depends (or at least is allowed to depend) on the data but not on $\theta$ such that $$\Big|D^{\symbf\alpha}S_j(\theta; x_i)\Big| \leq M(\mathbf{x})$$
+Let $R(\theta)$ denote the difference between $S_j(\theta; x_i)$ and $T_j(\theta; x_i)$ so that $$S_j(\theta; x_i) = T_j(\theta; x_i) + R(\theta).$$ By condition C5), there exists a random function $M(\mathbf{x})$ with finite expectation that depends (or at least is allowed to depend) on the data but not on $\theta$ for which $$\underset{\theta \in N_r(\theta_0)}{\sup}\Big|D^{\symbf\alpha}S_j(\theta; x_i)\Big| \leq M(\mathbf{x})$$ for all $\symbf\alpha$ such that $|\symbf \alpha| = 2$.
 
 Taylor's theorem then states that for any $\theta \in N_r(\theta_0)$ there exists a point $\bar{\theta}$ on the line segment $LS(\theta, \theta_0)$ such that 
+
+
+
+
+
+
 $$\begin{aligned}
 S_j(\theta; x_i) &= S_j(\theta_0; x_i) + \sum_{|\symbf{\alpha}| = 1}\frac{D^{\symbf{\alpha}} S_j(\theta_0; x_i)}{\symbf{\alpha}!}(\theta - \theta_0)^{\symbf{\alpha}} + \sum_{|\symbf{\alpha}| = 2} \frac{D^{\symbf{\alpha}} S_j(\bar{\theta}; x_i)}{\symbf{\alpha}!}(\theta - \theta_0)^{\symbf{\alpha}} \\
                  &= S_j(\theta_0; x_i) + \sum_{|\symbf{\alpha}| = 1}D^{\symbf{\alpha}} S_j(\theta_0; x_i)(\theta - \theta_0)^{\symbf{\alpha}} + \frac{1}{2}\sum_{|\symbf{\alpha}| = 2} D^{\symbf{\alpha}} S_j(\bar{\theta}; x_i)(\theta - \theta_0)^{\symbf{\alpha}} \\
