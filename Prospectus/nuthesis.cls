@@ -317,6 +317,13 @@ Author's name required\par
 
 \renewcommand{\abstract}{%
 \chapter*{\abstractname}
+\bigskip
+\begin{center}
+\@title{}\par
+\bigskip
+\authors{}\par
+\end{center}
+\bigskip
 }
 \def\abstractname{Abstract} % capitalized - MAL 5/3/2002
 
