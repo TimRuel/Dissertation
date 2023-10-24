@@ -1,4 +1,4 @@
-\chapter{Background}
+\chapter{Introduction}
 
 \section{Introduction}
 
@@ -47,35 +47,3 @@ Similarly, the negative second derivative of the log-likelihood function with re
 
 Note that $\ell(\theta; \mathbf{x})$, $\mathcal{S}(\theta; \mathbf{x})$, and $\mathcal{I}(\theta; \mathbf{x})$ are all functions of the data $\mathbf{x}$ and therefore can be interpreted as random variables themselves with respect to $p(\mathbf{x}; \theta)$. Consequently, quantities such as their expectations and variances are well-defined. In particular, the variance of the score function, known as the *expected information* or the *Fisher information*, is another useful transformation that we will consider in more detail in Chapter 2. Formally, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta\big], \> \> \theta \in \Theta.$${#eq-exp_information}
 
-\subsection{Regularity Conditions}
-
-It will be useful to establish some *regularity conditions* for the models under consideration in this paper. The motivations behind the specific choice of conditions can vary, but the primary goal is usually to allow the log-likelihood function and its derivatives to be approximated by a Taylor polynomial of some degree (typically one or two) in $\theta$. For our purposes, we will call a parametric model *regular* if it satisfies the following conditions:
-
-\begin{enumerate}[label = C\arabic*)]
-  \item All of the densities in $\mathcal{P}$ have common support which does not depend on $\theta$.
-  \item There exists an open subset $\Theta^* \subseteq \Theta$ of which the true parameter value $\theta_0$ is an interior point.
-  \item All of the densities in $\mathcal{P}$ are continuously differentiable with respect to $\theta$ up to third order for all $\theta^* \in \Theta^*$. 
-  \item $\mathscr{I}(\theta)$ is positive definite for all $\theta \in \Theta$, and $\Theta$ is a convex set.
-  \item For each $\theta^* \in \Theta^*$, there exists a neighborhood $N_r(\theta^*) \subseteq \Theta^*$ such that for all $\theta \in N_r(\theta^*)$, the components of the third derivative of the log-likelihood, $\ell_{\theta \theta \theta}(\theta; \mathbf{x})$, are all bounded by a random function $M(\mathbf{x})$ with finite expectation. That is, $$\underset{\underset{\symbf{\alpha} \in \mathbb{N}_0^d}{|\symbf{\alpha}| = 3}}{\sup} \> \underset{\theta \in N_r(\theta^*)}{\sup} \Big|D^{\symbf{\alpha}} \ell(\theta; \mathbf{x})\Big| \leq M(\mathbf{x}) \> \text{ w.p. } 1$$ where $\mathbb{E}[M(X); \theta_0] < \infty$.
-\end{enumerate}
-
-Any model satisfying these conditions will obey the following properties:
-
-\begin{enumerate}[label = P\arabic*)]
-  \item Derivatives up to the second order with respect to $\theta$ can be passed under the integral sign in $\int dP(\mathbf{x}; \theta)$.
-  \item Guaranteed existence, uniqueness, and consistency of the maximum likelihood estimate of $\theta_0$, $\hat{\theta}$.
-  \item Convergence of the score function evaluated at $\theta_0$ and $\hat{\theta}$ to multivariate normal distributions as the sample size increases. More precisely, 
-  $$\begin{aligned}
-  &\sqrt n (\hat{\theta} - \theta_0) \overset{d}{\to} \text{MVN}(\mathbf{0}, \mathscr{I}(\theta_0)^{-1}), \\
-  &\frac{1}{\sqrt n}\mathcal{S}(\theta_0) \overset{d}{\to} \text{MVN}(\mathbf{0}, \mathscr{I}(\theta_0)).
-  \end{aligned}
-  $$
-\end{enumerate}
-
-\subsection{Maximum Likelihood Estimation}
-
-Maximum likelihood estimation is one of the most powerful and widespread techniques for obtaining point estimates of model parameters based on some observed data $\mathbf{x}$. The original intuition behind the method derives from the observation that when faced with a choice between two possible values of a parameter, say $\theta_1$ and $\theta_2$, the sensible choice is the one that makes the data we did observe more probable to have been observed. We have already defined the likelihood function as a means of capturing this probability, which makes expressing this decision rule in terms of it very easy - we simply choose for our estimate the option that produces the higher value of the likelihood function. That is, if $L(\theta_1; \mathbf{x}) > L(\theta_2; \mathbf{x})$, then $\theta_1$ is the better estimate of the true parameter value and vice versa.
-
-This can be extended to include as many candidate parameter values as we would like. For $n$ potential estimates of $\theta_0$, the best is the one that corresponds to the highest value of the likelihood function based on the observed data $x$. Taking this logic to its natural conclusion, the *maximum likelihood estimate* (MLE) of the parameter $\theta$, which we will denote by $\hat{\theta}$ (pronounced "theta hat"), is the one that maximizes the value of the likelihood function among all possible choices of $\theta$ in $\Theta$. Formally, $$\hat{\theta} = \underset{\theta \in \Theta}{\mathrm{argmax}}\, \> L(\theta; \mathbf{x}).$${#eq-mle1}
-
-The existence and uniqueness of $\hat{\theta}$ is guaranteed for any model satisfying the regularity conditions we have assumed and can be found as the unique solution to the system of equations $$\mathcal{S}(\theta) = \mathbf{0}$${#eq-mle2} Furthermore, the MLE will be consistent for $\theta_0$ and converge to a normal distribution as the sample size increases.
