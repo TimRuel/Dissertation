@@ -12,9 +12,21 @@ When $X$ is continuous, the likelihood for $\theta$ may still be defined as it i
 
 As in the discrete case, we must also be careful when $X$ is continuous to avoid using $L(\theta; \mathbf{x})$ to make probability statements about $\theta$. Despite our use of one in its definition, the likelihood is *not* itself a probability density function for the parameter $\theta$ and need not obey the same laws as one. 
 
+\subsection{Maximum Likelihood Estimation}
+
+Maximum likelihood estimation is one of the most powerful and widespread techniques for obtaining point estimates of model parameters. The original intuition behind the method derives from the observation that when faced with a choice between two possible values of a parameter,  the sensible choice is the one which makes the data we actually did observe more probable to have been observed. We have already defined the likelihood function as a means of capturing this probability, which makes expressing this decision rule in terms of it very easy - we simply choose for our estimate the option that produces the higher value of the likelihood function. That is, if $L(\theta_1; \mathbf{x}) > L(\theta_2; \mathbf{x})$, then under the preceding logic, $\theta_1$ is the better estimate of the true parameter value.
+
+This can be extended to include as many candidate parameter values as we would like. For $n$ potential estimates of $\theta_0$, the best is the one that corresponds to the highest value of the likelihood function. If we follow this line of reasoning to its natural conclusion, we arrive at the notion of a *maximum likelihood estimate* of the parameter $\theta$, which is defined as any value of $\theta$ that maximizes the output of the likelihood function among all possible choices of $\theta$ in $\Theta$ for fixed data $\mathbf{x}$. We will denote this using the notation $\hat{\theta}$ (pronounced "theta hat"). Formally, a maximum likelihood estimate of $\theta$ is defined as any value $\hat{\theta} \in \Theta$ for which $$L(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> L(\theta; \mathbf{x}).$${#eq-mle1} In general, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
+
+Note that additional assumptions are required to guarantee the existence and uniqueness of the maximum likelihood estimate for the parameter of an arbitrary statistical model.
+
+The existence and uniqueness of $\hat{\theta}$ is guaranteed for any model satisfying the regularity conditions we have assumed and can be found as the unique solution to the system of equations $$\mathcal{S}(\theta) = \mathbf{0}$${#eq-mle2} Furthermore, the MLE will be consistent for $\theta_0$ and converge to a normal distribution as the sample size increases.
+
 \subsection{Regularity Conditions}
 
-The likelihood function and its transformations may be interpreted as random variables as a result of their dependency on the data $\mathbf{x}$, itself a random quantity. In light of this, it makes sense to examine how the behavior of these random variables is related to the number of observations in $\mathbf{x}$. In particular, we would like to know the distribution to which they converge as the sample size $n$ tends toward infinity. To that end, it will be useful to establish some *regularity conditions* that guarantee the score function may be approximated by a second degree Taylor polynomial in $\theta$ with an error term that is of order $O_p(n)$. As we will see, this Taylor series expansion will allow us to derive the asymptotic distribution of the score function as the sample size tends to infinity. The regularity conditions are as follows:
+Because of their dependency on the data $\mathbf{x}$, which we may interpret as being a realization of a random variable $X$, there is a sense in which the likelihood function and its transformations may be interpreted as being random variables themselves. In light of this, it makes sense to investigate how the behavior of these random variables is related to the number of observations in $\mathbf{x}$. Of particular interest is the distribution to which the score function converges as the sample size $n$ tends toward infinity. To that end, it will be useful to establish some *regularity conditions* that enable the score function to be approximated by a second degree Taylor polynomial in $\theta$ with an error term that is of order $O_p(n)$. As we will see, the existence of such an approximation guarantees that the score function will converge in distribution to a normal random variable as the sample size tends toward infinity. Note that these conditions are merely sufficient but not necessary - there is more than one set of constraints that guarantees this convergence.
+
+For our purposes, we will call a model *regular* if it satisfies the following conditions:
 
 \begin{enumerate}[label = C\arabic*)]
   \item All of the densities in $\mathcal{P}$ have common support which does not depend on $\theta$.
@@ -23,6 +35,8 @@ The likelihood function and its transformations may be interpreted as random var
   \item $\mathscr{I}(\theta)$ is positive definite for all $\theta \in \Theta$, and $\Theta$ is a convex set.
   \item For each $\theta^* \in \Theta^*$, there exists a neighborhood $N_r(\theta^*) \subseteq \Theta^*$ such that for all $\theta \in N_r(\theta^*)$, the components of the third derivative of the log-likelihood, $\ell_{\theta \theta \theta}(\theta; \mathbf{x})$, are all bounded by a random function $M(\mathbf{x})$ with finite expectation. That is, $$\underset{\underset{\symbf{\alpha} \in \mathbb{N}_0^d}{|\symbf{\alpha}| = 3}}{\sup} \> \underset{\theta \in N_r(\theta^*)}{\sup} \Big|D^{\symbf{\alpha}} \ell(\theta; \mathbf{x})\Big| \leq M(\mathbf{x}) \> \text{ w.p. } 1$$ where $\mathbb{E}[M(X); \theta_0] < \infty$.
 \end{enumerate}
+
+
 
 Any model satisfying these conditions will obey the following properties:
 
@@ -37,15 +51,6 @@ Any model satisfying these conditions will obey the following properties:
   $$
 \end{enumerate}
 
-\subsection{Maximum Likelihood Estimation}
-
-Maximum likelihood estimation is one of the most powerful and widespread techniques for obtaining point estimates of model parameters. The original intuition behind the method derives from the observation that when faced with a choice between two possible values of a parameter,  the sensible choice is the one which makes the data we actually did observe more probable to have been observed. We have already defined the likelihood function as a means of capturing this probability, which makes expressing this decision rule in terms of it very easy - we simply choose for our estimate the option that produces the higher value of the likelihood function. That is, if $L(\theta_1; \mathbf{x}) > L(\theta_2; \mathbf{x})$, then under the preceding logic, $\theta_1$ is the better estimate of the true parameter value.
-
-This can be extended to include as many candidate parameter values as we would like. For $n$ potential estimates of $\theta_0$, the best is the one that corresponds to the highest value of the likelihood function. If we follow this line of reasoning to its natural conclusion, we arrive at the notion of a *maximum likelihood estimate* of the parameter $\theta$, which is defined as any value of $\theta$ that maximizes the output of the likelihood function among all possible choices of $\theta$ in $\Theta$ for fixed data $\mathbf{x}$. We will denote this using the notation $\hat{\theta}$ (pronounced "theta hat"). Formally, a maximum likelihood estimate of $\theta$ is defined as any value $\hat{\theta} \in \Theta$ for which $$L(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> L(\theta; \mathbf{x}).$${#eq-mle1} In general, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
-
-Note that additional assumptions are required to guarantee the existence and uniqueness of the maximum likelihood estimate for the parameter of an arbitrary statistical model.
-
-The existence and uniqueness of $\hat{\theta}$ is guaranteed for any model satisfying the regularity conditions we have assumed and can be found as the unique solution to the system of equations $$\mathcal{S}(\theta) = \mathbf{0}$${#eq-mle2} Furthermore, the MLE will be consistent for $\theta_0$ and converge to a normal distribution as the sample size increases.
 
 
 
