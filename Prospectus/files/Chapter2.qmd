@@ -24,35 +24,17 @@ The existence and uniqueness of $\hat{\theta}$ is guaranteed for any model satis
 
 \subsection{Regularity Conditions}
 
-Because of their dependency on the data $\mathbf{x}$, which we may interpret as being a realization of a random variable $X$, there is a sense in which the likelihood function and its transformations may be interpreted as being random variables themselves. In light of this, it makes sense to investigate how the behavior of these random variables is related to the number of observations in $\mathbf{x}$. Of particular interest is the distribution to which the score function converges as the sample size $n$ tends toward infinity. To that end, it will be useful to establish some *regularity conditions* that enable the score function to be approximated by a second degree Taylor polynomial in $\theta$ with an error term that is of order $O_p(n)$. As we will see, the existence of such an approximation guarantees that the score function will converge in distribution to a normal random variable as the sample size tends toward infinity. Note that these conditions are merely sufficient but not necessary - there is more than one set of constraints that guarantees this convergence.
+Because of their dependency on the data $\mathbf{x}$, which we may interpret as being a realization of a random variable $X$, there is a sense in which the likelihood function and its transformations may be interpreted as being random variables themselves. In light of this, it makes sense to investigate how the behavior of these random variables is related to the number of observations in $\mathbf{x}$. Of particular interest is the distribution to which the score function converges as the sample size $n$ tends toward infinity. To that end, it will be useful to establish some *regularity conditions* that enable the score function to be approximated by a second degree Taylor polynomial in $\theta$ with an error term that is of order $O_p(n)$. As we will see, the existence of such an approximation guarantees the score function will converge in distribution to a normal random variable as the sample size tends toward infinity. 
 
 For our purposes, we will call a model *regular* if it satisfies the following conditions:
 
-\begin{enumerate}[label = C\arabic*)]
-  \item All of the densities in $\mathcal{P}$ have common support which does not depend on $\theta$.
-  \item There exists an open subset $\Theta^* \subseteq \Theta$ of which the true parameter value $\theta_0$ is an interior point.
-  \item All of the densities in $\mathcal{P}$ are continuously differentiable with respect to $\theta$ up to third order for all $\theta^* \in \Theta^*$. 
-  \item $\mathscr{I}(\theta)$ is positive definite for all $\theta \in \Theta$, and $\Theta$ is a convex set.
-  \item For each $\theta^* \in \Theta^*$, there exists a neighborhood $N_r(\theta^*) \subseteq \Theta^*$ such that for all $\theta \in N_r(\theta^*)$, the components of the third derivative of the log-likelihood, $\ell_{\theta \theta \theta}(\theta; \mathbf{x})$, are all bounded by a random function $M(\mathbf{x})$ with finite expectation. That is, $$\underset{\underset{\symbf{\alpha} \in \mathbb{N}_0^d}{|\symbf{\alpha}| = 3}}{\sup} \> \underset{\theta \in N_r(\theta^*)}{\sup} \Big|D^{\symbf{\alpha}} \ell(\theta; \mathbf{x})\Big| \leq M(\mathbf{x}) \> \text{ w.p. } 1$$ where $\mathbb{E}[M(X); \theta_0] < \infty$.
+\begin{enumerate}[label = R\arabic*)]
+  \item The observations $x_1, ..., x_n$ are realizations of i.i.d. random variables $X_1, ..., X_n$ each with density function $p(x; \theta)$.
+  \item The support of $p(x;\theta)$, defined as the set $\{x \in \mathbb{R}: p(x; \theta) > 0\}$, does not depend on $\theta$.
+    \item Second partial derivatives of $p(x; \theta)$ with respect to $\theta$ exist, are continuous for all $x$, and may be passed under the integral sign in $\int p(x; \theta) dx$.
+  \item There exists an open set $\Theta^* \subseteq \Theta \subseteq \mathbb{R}^d$ of which $\theta_0$ is an interior point.
+  \item There exists a function $M(x)$ such that $\mathbb{E}[M(X); \theta_0] < \infty$, and each component of $\frac{\partial}{\partial \theta}\mathcal{S}(\theta;x)$ is bounded in absolute value by $M(x)$ uniformly for all $\theta$ in a neighborhood $N_r(\theta_0) \subseteq \Theta^*$.
 \end{enumerate}
-
-
-
-Any model satisfying these conditions will obey the following properties:
-
-\begin{enumerate}[label = P\arabic*)]
-  \item Derivatives up to the second order with respect to $\theta$ can be passed under the integral sign in $\int dP(\mathbf{x}; \theta)$.
-  \item Guaranteed existence, uniqueness, and consistency of the maximum likelihood estimate of $\theta_0$, $\hat{\theta}$.
-  \item Convergence of the score function evaluated at $\theta_0$ and $\hat{\theta}$ to multivariate normal distributions as the sample size increases. More precisely, 
-  $$\begin{aligned}
-  &\sqrt n (\hat{\theta} - \theta_0) \overset{d}{\to} \text{MVN}(\mathbf{0}, \mathscr{I}(\theta_0)^{-1}), \\
-  &\frac{1}{\sqrt n}\mathcal{S}(\theta_0) \overset{d}{\to} \text{MVN}(\mathbf{0}, \mathscr{I}(\theta_0)).
-  \end{aligned}
-  $$
-\end{enumerate}
-
-
-
 
 \subsection{The Bartlett Identities}
 
