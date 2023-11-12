@@ -29,17 +29,16 @@ In general, there is no guarantee that a maximum likelihood estimate for the par
 Because of its dependency on the data $x_1,..., x_n$, which we interpret as being realizations of random variables $X_1, ..., X_n$, there is a sense in which the maximum likelihood estimate may be interpreted as being a random variable itself. In light of this, it makes sense to investigate how its behavior is related to the number of observations $n$. In particular, we would like to know the distribution to which it converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being additional assumptions, similar to those we discussed in the introduction to this paper, that guarantee various nice properties we would like our models to enjoy. It is worth noting that while these conditions are sufficient, they are by no means necessary - it is possible to make various alterations to them without affecting the underlying properties of the models satisfying them. Nevertheless, the conditions we have chosen are the conventional ones, and in most situations that we encounter in practice, it is relatively straightforward to construct a statistical model that fulfills them.   
 
 For our purposes, we will call a model *regular* if it satisfies the following conditions:
-
 \begin{enumerate}[label = RC\arabic*)]
   \item The observations $x_1, ..., x_n$ are realizations of i.i.d. random variables $X_1, ..., X_n$ each with density function $p(x; \theta)$.
   \item There exists an open set $\Theta^* \subseteq \Theta \subseteq \mathbb{R}^d$ of which $\theta_0$ is an interior point.
   \item The support of $p(x;\theta)$, defined as the set $\{x \in \mathbb{R}: p(x; \theta) > 0\}$, does not depend on $\theta$.
-  \item $p(x; \theta)$ is twice continuous with respect to $\theta$ for all $\mathbf{x}$.
+  \item $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\mathbf{x}$.
   \item There exists a function $M(x)$ such that $\mathbb{E}[M(X); \theta_0] < \infty$, and each component of $\frac{\partial}{\partial \theta}\mathcal{S}(\theta;x)$ is bounded in absolute value by $M(x)$ uniformly for all $\theta$ in a neighborhood $N_r(\theta_0) \subseteq \Theta^*$.
   \item The integral $\int_{-\infty}^{\infty} \Big(\frac{\partial \log p(x; \theta)}{\partial \theta}\Big)^2 p(x;\theta) \> dx$ is finite and positive for all $\theta \in \Theta$.
 \end{enumerate}
 
-RC1) is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-4) exist to ensure that there is no issue with defining derivatives of the log-likelihood function. RC5) implies that first and second partial derivatives with respect to $\theta$ may be passed under the integral sign in $\int p(x; \theta) dx$, and that the remainder in term in the Taylor series expansion of the score function centered at $\theta_0$ is negligible. Finally, RC6) is necessary to guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$.
+RC1) is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-4) exist to ensure that there is no issue with defining derivatives of the log-likelihood function. RC5) implies that first and second partial derivatives with respect to $\theta$ may be passed under the integral sign in $\int p(x; \theta) dx$, and that the remainder term in the Taylor series expansion of the score function centered at $\theta_0$ is negligible. Finally, RC6) is necessary to guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$.
 
 \subsection{The Bartlett Identities}
 
