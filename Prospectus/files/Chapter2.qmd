@@ -1,6 +1,6 @@
-\chapter{Likelihood Analysis}
+\chapter{The Likelihood Function}
 
-\section{The Likelihood Function}
+\section{Definition}
 
 Upon choosing a statistical model that we think best characterizes our population of interest, the obvious next step is to identify the true distribution in $\mathcal{P}$ or at the very least, the one that best approximates the truth. This is equivalent to making inferences about $\theta_0$ in the case where the model is parametric and identifiable. That is, given the particular form(s) we have chosen for the distributions in $\mathcal{P}$, the only unknown remaining is the value of $\theta_0$ itself. Since this value is ultimately what controls the mechanism generating any sample of data $\mathbf{x} = (x_1, ..., x_n)$ that we might observe from the population, it stands to reason that information regarding $\theta_0$ can be inferred from the specific values of $x_1, ..., x_n$ that we obtain. To make this notion more rigorous, we require some method of analyzing the joint probability of our sample as a function of our parameter $\theta$.
 
@@ -12,92 +12,13 @@ When $X$ is continuous, the likelihood for $\theta$ may still be defined as it i
 
 As in the discrete case, we must also be careful when $X$ is continuous to avoid using $L(\theta; \mathbf{x})$ to make probability statements about $\theta$. Despite our use of one in its definition, the likelihood is *not* itself a probability density function for the parameter $\theta$ and need not obey the same laws as one. 
 
-\subsection{Maximum Likelihood Estimation}
+\section{Maximum Likelihood Estimation}
 
 Maximum likelihood estimation is one of the most powerful and widespread techniques for obtaining point estimates of model parameters. The original intuition behind the method derives from the observation that when faced with a choice between two possible values of a parameter, the sensible choice is the one which makes the data we actually did observe more probable to have been observed. We have already defined the likelihood function as a means of capturing this probability, which makes expressing this decision rule in terms of it very easy - we simply choose for our estimate the option that produces the higher value of the likelihood function. That is, if $L(\theta_1; \mathbf{x}) > L(\theta_2; \mathbf{x})$, then under the preceding logic, $\theta_1$ is the better estimate of the true parameter value.
 
 This can be extended to include as many candidate parameter values as we would like. For $n$ potential estimates of $\theta_0$, the best is the one that corresponds to the highest value of the likelihood function. If we follow this line of reasoning to its natural conclusion, we arrive at the notion of a *maximum likelihood estimate* of the parameter $\theta$, which is defined as any value of $\theta$ that maximizes the output of the likelihood function among all possible choices of $\theta$ in $\Theta$ for fixed data $\mathbf{x}$. We will denote this using the notation $\hat{\theta}$ (pronounced "theta hat"). Formally, a maximum likelihood estimate of $\theta$ is defined as a function $\hat{\theta} = \hat{\theta}(\mathbf{x}) \in \Theta$ for which $$L(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> L(\theta; \mathbf{x}),$${#eq-mle1} or equivalently $$\ell(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> \ell(\theta; \mathbf{x}).$${#eq-mle2}
 
-
-
-
-
 In general, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
-
-\subsection{Regularity Conditions}
-
-Because of their dependency on the data $x_1,..., x_n$, which we interpret as being realizations of random variables $X_1, ..., X_n$, there is a sense in which the maximum likelihood estimate may be interpreted as being a random variable itself. In light of this, it makes sense to investigate how their behavior is related to $n$, the number of observations in the sample. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties. 
-
-For our purposes, we will call a model *regular* if it satisfies the following conditions:
-\begin{enumerate}[label = RC\arabic*)]
-  \item The observations $x_1, ..., x_n$ are realizations of i.i.d. random variables $X_1, ..., X_n$ each with density function $p(x; \theta)$.
-  \item The parameter space $\Theta$ is a convex set.
-  \item $\mathbb{E}\Big(\big[\mathcal{S}(\theta;x)\big]\big[\mathcal{S}(\theta;x)\big]^T; \theta\Big)$ is positive definite for all $\theta \in \Theta$.
-  \item There exists an open set $\Theta^* \subseteq \Theta$ of which $\theta_0$ is an interior point.
-  \item $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\theta \in \Theta^*$.
-  \item The set $\{x \in \mathbb{R}: p(x; \theta) > 0\}$, otherwise known as the support of $p(x; \theta)$, does not depend on $\theta$.
-  \item There exists a function $M(x)$ such that $\mathbb{E}[M(X); \theta_0] < \infty$, and each component of $\frac{\partial}{\partial \theta}\mathcal{S}(\theta;x)$ is bounded in absolute value by $M(x)$ uniformly for all $\theta$ in a neighborhood $N_r(\theta_0) \subseteq \Theta^*$.
-\end{enumerate}
-
-RC1) is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-3) guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$. RC4-6) ensure that there is no issue with defining derivatives of the log-likelihood function. Finally, RC7) implies that first and second partial derivatives with respect to $\theta$ may be passed under the integral sign in $\int p(x; \theta) dx$, and that the remainder term in the Taylor series expansion of the score function centered at $\theta_0$ is negligible. 
-
-\subsection{The Bartlett Identities}
-
-The Bartlett identities are a set of equations relating to the expectations of functions of derivatives of a log-likelihood function. A well-specified genuine likelihood function will automatically satisfy each of the Bartlett identites; however, an arbitrary function of $\theta$ and $X$ will not. For this reason, the identities act as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the genuine likelihood from which it originated.^[The Bartlett identities offer an alternative way of characterizing the difference between likelihood and pseudolikelihood functions. A genuine likelihood function of $\theta$ is any nonnegative random function of $\theta$ for which all of the Bartlett identities hold. A pseudolikelihood of $\theta$ is any nonnegative random function of $\theta$ for which at least one of the Bartlett identities does not hold.]
-
-Consider the case in which a random variable $X$ has a probability density $f$ that depends on a scalar parameter $\theta$. Denote the log-likelihood function for $\theta$ by $\ell(\theta; x) = \log f(x; \theta)$ and its first derivative with respect to $\theta$ by $\ell_{\theta}(\theta;x ) = \frac{\partial}{\partial \theta} \ell(\theta; x)$. We previously assumed in Section 2.1.4. that all probability distributions for which the results in this paper apply are regular. One consequence of this assumption is that derivatives and integrals of the density functions for these distributions may be interchanged. Now, taking the expectation of $\ell_{\theta}(\theta; x)$ gives
-
-$$
-\begin{aligned}
-\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x); \theta\bigg] \\
-                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \ell(\theta; x)\bigg] f(x; \theta) dx \\
-                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg] f(x; \theta) dx \\
-                                                 &=  \int_{\mathbb{R}} \frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} f(x; \theta) dx \\
-                                                 &=  \int_{\mathbb{R}} \frac{\partial}{\partial \theta} f(x; \theta) dx \\
-                                                 &= \frac{d}{d \theta} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
-                                                 &= \frac{d}{d \theta} 1 \\
-                                                 &= 0. 
-\end{aligned}
-$$
-Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big] = 0 \text{ for all } \theta.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the model parameter will always be 0. Another name for $\ell_{\theta}$ is the *score function*, and any pseudolikelihood that also satisfies the first Bartlett identity is said to be *score-unbiased*.
-
-If we now consider the second derivative of $\ell(\theta; x)$, we have
-
-$$\begin{aligned}
-\ell_{\theta \theta}(\theta; x) &= \frac{\partial^2}{\partial \theta^2} \ell(\theta; x)\\
-                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x) \bigg] \\
-                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \log f(x;\theta) \bigg] \\
-                                &= \frac{\partial}{\partial \theta}\Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} \Bigg] \\
-                                &= \frac{\Big[\frac{\partial^2}{\partial \theta^2} f(x; \theta)\Big] f(x;\theta) - \Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]\Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]}{\big[f(x; \theta) \big]^2} \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{ f(x; \theta)}\Bigg]^2 \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg]^2 \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \big[\ell_{\theta}(\theta; x) \big]^2. 
-\end{aligned} 
-$$
-Rearranging terms and taking expectations yields 
-$$
-\begin{aligned}
-\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{E}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}; \theta\Bigg] \\
-            &= \int_{\mathbb{R}} \Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] f(x; \theta) dx \\
-            &= \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2} f(x; \theta) dx \\
-            &= \frac{d^2}{d \theta^2} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
-            &= \frac{d^2}{d \theta^2} 1 \\
-            &= 0. 
-\end{aligned}
-$$
-Therefore, $$\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] = 0 \text{ for all } \theta.$${#eq-BI2}
-
-@eq-BI2 is called the second Bartlett identity. The second term on the left-hand side can be further rewritten as 
-
-$$
-\begin{aligned}
-\mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta] +\Big(\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]\Big)^2 \\
-                                                          &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta]. &&(\text{by the first Bartlett identity})
-\end{aligned}
-$$
-Another name for this quantity is the *expected information*. It follows from the second Bartlett identity that $$\mathbb{E}[-\ell_{\theta \theta}(\theta; x); \theta] = \mathbb{V}[\ell_{\theta}(\theta; x); \theta].$${#eq-BI3} The quantity $-\ell_{\theta \theta}(\theta; x)$ is called the *observed information*. Any pseudolikelihood that satisfies the second Bartlett identity is said to be *information-unbiased*.
-
-It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
 
 \subsection{Transformations}
 
@@ -114,53 +35,28 @@ Similarly, the negative second derivative of the log-likelihood function with re
 
 Note that $\ell(\theta; \mathbf{x})$, $\mathcal{S}(\theta; \mathbf{x})$, and $\mathcal{I}(\theta; \mathbf{x})$ are all functions of the data $\mathbf{x}$ and therefore can be interpreted as random variables themselves with respect to $p(\mathbf{x}; \theta)$. Consequently, quantities such as their expectations and variances are well-defined. In particular, the variance of the score function, known as the *expected information* or the *Fisher information*, is another well-known transformation that will be useful to know. Formally, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big], \> \> \theta \in \Theta.$${#eq-exp_information}
 
-\section{Model Parameter Decomposition}
-
-It is often the case that we are not interested in estimating the full parameter $\theta \in \Theta \subseteq \mathbb{R}^k$, but rather a different parameter $\psi$ taking values in a set $\Psi \subseteq \mathbb{R}^m$, where $m < k$. In such an event, we refer to $\psi$ as the *parameter of interest*. 
-
-Since $\psi$ is of lower dimension than $\theta$, it necessarily follows that there is another parameter $\lambda$, taking values in a set $\Lambda\subseteq{\mathbb{R}^{k-m}}$, that is made up of whatever is "left over" from the full parameter $\theta$. We refer to $\lambda$ as the *nuisance parameter* due to its ability to complicate inference regarding the parameter of interest. Despite not being the object of study themselves, nuisance parameters are nevertheless capable of modifying the distributions of our observations and therefore must be accounted for when conducting inference or estimation regarding the parameter of interest.^[Note that nuisance parameters are not always uniquely defined. Depending on the choice of parameter of interest, there may be multiple or even infinite ways to define a nuisance parameter.] The process by which this is accomplished is often nontrivial and can constitute a significant barrier that must be overcome. 
-
-While not strictly required, we will assume the parameter of interest $\psi$ is always one-dimensional for the purposes of this paper. That is, $\Psi \subseteq \mathbb{R}$ and consequently $\Lambda \subseteq \mathbb{R}^{k-1}$. This restriction reflects the common habit of researchers to focus on scalar-valued summaries of vector quantities. For example, suppose we observe data $Y = (y_1, ..., y_n)$, where each $y_i$ is the outcome of some random variable $Y_i \sim N(\mu_i, \sigma^2_i)$, and we are interested in estimating the average of the population means, $\frac{1}{n}\sum_{i = 1}^n \mu_i$. Rather than defining $\psi = (\mu_1, ..., \mu_n)$, we can instead define $\psi = \frac{1}{n}\sum_{i = 1}^n \mu_i$ directly, bypassing the need to estimate each $\mu_i$ individually before taking their average. This does carry the trade-off of increasing the dimension of the nuisance parameter, which must be dealt with before conducting inference or estimation on $\psi$. However, as we will discuss in Chapter 3, having a high-dimensional nuisance parameter is not necessarily an issue, especially for the integrated likelihood methods under discussion in this paper which have been shown to work particularly well in situations where the dimension of $\lambda$ is large relative to the sample size; see, for example, De Bin et al. (2015) and Schumann et al. (2021).
-
-\subsection{Explicit Parameters}
-
-Parameters of interest and nuisance parameters can be broadly classified into two categories, explicit or implicit. For a given statistical model, both types of parameter must occupy the same category - it is not possible for $\psi$ to be explicit and $\lambda$ to be implicit, or vice versa. 
-
-Let us first consider the case in which $\psi$ and $\lambda$ are *explicit* parameters. This means that $\psi$ is a sub-vector of $\theta$, so that all the components of $\psi$ are also components of $\theta$. Then there exists a set $I = \{I_1, ..., I_m\} \subsetneq \{1, ..., k\}$ such that $$\psi = (\theta_{I_1}, ..., \theta_{I_m}).$${#eq-expl_param1} It immediately follows that $\lambda$ is the sub-vector of all components of $\theta$ that are not part of $\psi$. More precisely, if we let $J = \{J_1, ..., J_{k-m}\} \subsetneq \{1, ..., k\}$ such that $I \cup J = \{1, ..., k\}$ and $I \cap J = \emptyset$, then $$\lambda = (\theta_{J_1}, ..., \theta_{J_{k-m}}).$${#eq-expl_param2} $\theta$ can therefore be decomposed as $\theta = (\psi, \lambda)$ when $\psi$ and $\lambda$ are explicit, provided we shuffle the indices appropriately.
-
-\subsection{Implicit Parameters}
-
-Now let us consider the case in which $\psi$ and $\lambda$ are *implicit* parameters. This means there exists some function $\varphi: \Theta \to \Psi$ for which the parameter of interest can be written as $$\psi = \varphi(\theta).$${#eq-impl_param} As before, $\Psi$ is still assumed to be a subset of $\mathbb{R}^m$ where $m$ is less than $k$, the dimension of the full parameter space $\Theta$. This reduction in dimension again implies the existence of a nuisance parameter $\lambda \in \Lambda \subseteq{\mathbb{R}}^{k-m}$. However, unlike in the explicit case, a closed form expression for $\lambda$ in terms of the original components of $\theta$ need not exist. For this reason, implicit nuisance parameters are in general more difficult to eliminate compared to their explicit counterparts.
-
-Note that when the parameter of interest and nuisance parameter are explicit, it is always possible to define a function $\varphi$ such that $$\varphi(\theta) = (\theta_{I_1}, ..., \theta_{I_m}) \equiv \psi ,$${#eq-expl_param3} where $\{I_1, ..., I_m\}$ is defined as above. Hence, the first case is really just a special example of this more general one in which $\psi = \varphi(\theta)$. With this understanding in mind, we will use the notation $\psi = \varphi(\theta)$ to refer to the parameter of interest in general, only making the distinction between implicitness and explicitness when the difference is relevant to the situation.
-
-\section{Pseudolikelihood Functions}
-
-The natural solution to the hindrance nuisance parameters pose to making inferences on the parameter of interest is to find a method for eliminating them from the model altogether. Since one way of uniquely specifying a model is through its likelihood function, this is equivalent to eliminating the nuisance parameters from the likelihood function itself. The result of this elimination is what is known as a pseudolikelihood function.
-
-In general, a *pseudolikelihood function* for $\psi$ is defined as being a function of $\psi$ and the data alone, having properties resembling that of a genuine likelihood function. Suppose $\psi = \varphi(\theta)$ for some function $\phi$ and parameter $\theta \in \Theta$. If we let $\Theta(\psi) = \{\theta \in \Theta \> : \> \varphi(\theta) = \psi \},$ then associated with each $\psi \in \Psi$ is the set of likelihoods $\mathcal{L}_{\psi} = \{L(\theta) \> : \> \theta \in \Theta(\psi)\}.$ 
-
-Any summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$ theoretically constitutes a pseudolikehood function for $\psi$. There exist a variety of methods to obtain this summary but among the most popular are maximization, conditioning, and integration, each with respect to the nuisance parameter. We will explore each of these methods in more detail in the sections to come.
-
-\subsection{The Profile Likelihood}
-
-The profile likelihood is the most straightforward method for eliminating a nuisance parameter from a likelihood function.  
-
-For example, suppose we are interested in estimating the mean of a random variable $Y$, where $Y \sim N(\mu, \sigma^2)$. The full model parameter is $\theta = (\mu, \sigma^2)$ but since we are only interested in estimating the mean, the parameter of interest is $\psi =\mu$ and the nuisance parameter is $\lambda = \sigma^2$.  
-
-\subsection{The Conditional Likelihood}
-
-\subsection{The Marginal Likelihood}
-
-\subsection{The Integrated Likelihood}
-
 \section{Asymptotic Analysis}
+
+\subsection{Regularity Conditions}
+
+Because of their dependency on the data $x_1,..., x_n$, which we interpret as being realizations of random variables $X_1, ..., X_n$, there is a sense in which the maximum likelihood estimate may be interpreted as being a random variable itself. In light of this, it makes sense to investigate how their behavior is related to $n$, the number of observations in the sample. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties. 
+
+For our purposes, we will call a model *regular* if it satisfies the following conditions:
+\begin{enumerate}[label = RC\arabic*)]
+  \item The observations $x_1, ..., x_n$ are realizations of i.i.d. random variables $X_1, ..., X_n$ each with density function $p(x; \theta)$.
+  \item The parameter space $\Theta$ is a convex set.
+  \item $\mathbb{E}\Big(\big[\mathcal{S}(\theta;x)\big]\big[\mathcal{S}(\theta;x)\big]^T; \theta\Big)$ is positive definite for all $\theta \in \Theta$.
+  \item There exists an open set $\Theta^* \subseteq \Theta$ of which $\theta_0$ is an interior point.
+  \item $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\theta \in \Theta^*$.
+  \item The set $\{x \in \mathbb{R}: p(x; \theta) > 0\}$ does not depend on $\theta$.
+  \item There exists a function $M(x)$ such that $\mathbb{E}[M(X); \theta_0] < \infty$, and each component of $\frac{\partial}{\partial \theta}\mathcal{S}(\theta;x)$ is bounded in absolute value by $M(x)$ uniformly for all $\theta$ in a neighborhood $N_r(\theta_0) \subseteq \Theta^*$.
+\end{enumerate}
+
+RC1) is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-3) guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$. RC4-6) ensure that there is no issue with defining derivatives of the log-likelihood function. Finally, RC7) implies that first and second partial derivatives with respect to $\theta$ may be passed under the integral sign in $\int p(x; \theta) dx$, and that the remainder term in the Taylor series expansion of the score function centered at $\theta_0$ is negligible.
 
 \subsection{Single-Index Asymptotic Theory}
 
 Single-index asymptotic theory describes the behavior of likelihood-based statistics as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. The aim of this section is to present a basic overview of the theory's results so that the reader will have a readily available baseline against which to compare the results of the following section discussing two-index asymptotic theory, in which the dimension of the nuisance parameter is allowed to increase with the sample size.
-
-We will couch our analysis in the framework of independent and identically distributed (IID) observations in order to demonstrate a standard scenario in which likelihood theory holds. This framework is by no means the only one to which the later results of this paper apply, and in fact there are plenty of models without IID observations that produce likelihood-based estimates with similar properties to those from the IID case (e.g. asymptotic normality). However, understanding how the theory works in the IID case makes it relatively straightforward to extend the methods to these other cases.
 
 Let $X_1, ..., X_n$ be IID random variables with density function $p(\mathbf{x}; \theta)$ and let $\hat{\theta}$ denote the maximum likelihood estimate for $\theta_0$ based on the observed values $x_1, ..., x_n$. The traditional method for analyzing the asymptotic behavior of $\hat{\theta}$ is to use a first-order Taylor series expansion of the score function.^[See Appendix \ref{appendix:A} for a review of Taylor's theorem and the conditions under which it is satisfied.] 
 
@@ -188,6 +84,8 @@ In other words, the score function for the parameter $\theta$ based on data $x_1
 @eq-score_additive implies that a Taylor series expansion of $\mathcal{S}(\theta; \mathbf{x})$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that grows with $n$. We have assumed each $x_i$ is identically distributed, so it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\theta; x_i)$.
 
 Since $\theta$ is a vector, the $k$-th derivative of the log-likelihood with respect to $\theta$ will be a $k$-dimensional array having $d$ entries along each of its $k$ indices. In particular, the score function (i.e. the first derivative of the log-likelihood) will be a $d \times 1$ vector, $$\mathcal{S}(\theta; x_i) = \begin{pmatrix} \mathcal{S}_1(\theta; x_i) \\ \vdots \\ \mathcal{S}_d(\theta; x_i) \end{pmatrix},$$ where each component is a function $S_j: \Theta \to \mathbb{R}$. Similarly, the first and second derivatives of the score function will be a $d \times d$ matrix and a three-dimensional $d \times d \times d$ array, respectively. To simplify notation, we will perform a componentwise Taylor series expansion of the score function around the point $\theta = \theta_0$ wherein each component $S_j(\theta; x_i)$ of $S(\theta; x_i)$ is expanded separately.
+
+
 
 Assume that the regularity conditions established in Section 1.2.2 apply to our model.^[Since it is the score function that we are expanding, we will phrase our references to the regularity conditions from Section 1.2.2 with respect to it, without making direct mention of the density or log-likelihood functions in terms of which the conditions were originally framed. For example, referring to the third derivative of the log-likelihood is equivalent to referring to the second derivative of the score; we will use only the latter phrasing and not the former in this section.] Conditions C2) and C3) stipulate that there exists an open subset $\Theta^* \subseteq \Theta$ containing $\theta_0$ for which $S_j(\theta; x_i)$ is twice continuously differentiable with respect to $\theta$ for all $\theta \in \Theta^*$. C5) requires that the components of the second derivative of the score function are all bounded (with probability 1) by a random function $M(\mathbf{x})$ with finite expectation for all $N_r(\theta_0)$. Together, these conditions satisfy the necessary requirements to apply Taylor's theorem with the Lagrange form of the remainder term to the score function. Hence, for all $\theta \in N_r(\theta_0)$, the first order Taylor series expansion of $S_j(\theta; x_i)$ around $\theta_0$ is given by $$T_j(\theta; x_i) = S_j(\theta_0; x_i) + \nabla S_j(\theta_0; x_i)^T(\theta - \theta_0) + R(\theta),$$ where the remainder term $R(\theta)$ satisfies $$|R(\theta)| \leq \frac{M(\mathbf{x})}{\symbf\alpha!}|\theta - \theta_0|^{\symbf{\alpha}}$$ for all $\symbf{\alpha}$ such that $|\symbf{\alpha}| = 2.$
 
