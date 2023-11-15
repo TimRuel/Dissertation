@@ -40,60 +40,6 @@ For example, suppose we are interested in estimating the mean of a random variab
 
 \subsection{The Integrated Likelihood}
 
-\section{The Bartlett Identities}
+\section{The Bartlett Identities Revisited}
 
-The Bartlett identities are a set of equations relating to the expectations of functions of derivatives of a log-likelihood function. A well-specified genuine likelihood function will automatically satisfy each of the Bartlett identites; however, an arbitrary function of $\theta$ and $X$ will not. For this reason, the identities act as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the genuine likelihood from which it originated.^[The Bartlett identities offer an alternative way of characterizing the difference between likelihood and pseudolikelihood functions. A genuine likelihood function of $\theta$ is any nonnegative random function of $\theta$ for which all of the Bartlett identities hold. A pseudolikelihood of $\theta$ is any nonnegative random function of $\theta$ for which at least one of the Bartlett identities does not hold.]
-
-Consider the case in which a random variable $X$ has a probability density $f$ that depends on a scalar parameter $\theta$. Denote the log-likelihood function for $\theta$ by $\ell(\theta; x) = \log f(x; \theta)$ and its first derivative with respect to $\theta$ by $\ell_{\theta}(\theta;x ) = \frac{\partial}{\partial \theta} \ell(\theta; x)$. We previously assumed in Section 2.1.4. that all probability distributions for which the results in this paper apply are regular. One consequence of this assumption is that derivatives and integrals of the density functions for these distributions may be interchanged. Now, taking the expectation of $\ell_{\theta}(\theta; x)$ gives
-
-$$
-\begin{aligned}
-\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x); \theta\bigg] \\
-                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \ell(\theta; x)\bigg] f(x; \theta) dx \\
-                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg] f(x; \theta) dx \\
-                                                 &=  \int_{\mathbb{R}} \frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} f(x; \theta) dx \\
-                                                 &=  \int_{\mathbb{R}} \frac{\partial}{\partial \theta} f(x; \theta) dx \\
-                                                 &= \frac{d}{d \theta} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
-                                                 &= \frac{d}{d \theta} 1 \\
-                                                 &= 0. 
-\end{aligned}
-$$
-Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big] = 0 \text{ for all } \theta.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the model parameter will always be 0. Another name for $\ell_{\theta}$ is the *score function*, and any pseudolikelihood that also satisfies the first Bartlett identity is said to be *score-unbiased*.
-
-If we now consider the second derivative of $\ell(\theta; x)$, we have
-
-$$\begin{aligned}
-\ell_{\theta \theta}(\theta; x) &= \frac{\partial^2}{\partial \theta^2} \ell(\theta; x)\\
-                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x) \bigg] \\
-                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \log f(x;\theta) \bigg] \\
-                                &= \frac{\partial}{\partial \theta}\Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} \Bigg] \\
-                                &= \frac{\Big[\frac{\partial^2}{\partial \theta^2} f(x; \theta)\Big] f(x;\theta) - \Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]\Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]}{\big[f(x; \theta) \big]^2} \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{ f(x; \theta)}\Bigg]^2 \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg]^2 \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \big[\ell_{\theta}(\theta; x) \big]^2. 
-\end{aligned} 
-$$
-Rearranging terms and taking expectations yields 
-$$
-\begin{aligned}
-\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{E}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}; \theta\Bigg] \\
-            &= \int_{\mathbb{R}} \Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] f(x; \theta) dx \\
-            &= \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2} f(x; \theta) dx \\
-            &= \frac{d^2}{d \theta^2} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
-            &= \frac{d^2}{d \theta^2} 1 \\
-            &= 0. 
-\end{aligned}
-$$
-Therefore, $$\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] = 0 \text{ for all } \theta.$${#eq-BI2}
-
-@eq-BI2 is called the second Bartlett identity. The second term on the left-hand side can be further rewritten as 
-
-$$
-\begin{aligned}
-\mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta] +\Big(\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]\Big)^2 \\
-                                                          &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta]. &&(\text{by the first Bartlett identity})
-\end{aligned}
-$$
-Another name for this quantity is the *expected information*. It follows from the second Bartlett identity that $$\mathbb{E}[-\ell_{\theta \theta}(\theta; x); \theta] = \mathbb{V}[\ell_{\theta}(\theta; x); \theta].$${#eq-BI3} The quantity $-\ell_{\theta \theta}(\theta; x)$ is called the *observed information*. Any pseudolikelihood that satisfies the second Bartlett identity is said to be *information-unbiased*.
-
-It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
+The Bartlett identities offer an alternative way of characterizing the difference between likelihood and pseudolikelihood functions. A genuine likelihood function of $\theta$ can be characterized as any nonnegative random function of $\theta$ for which all of the Bartlett identities hold. Similarly, we can think of a pseudolikelihood function of $\theta$ as behing any nonnegative random function of $\theta$ for which at least one of the Bartlett identities does not hold. Hence, the identities act as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the genuine likelihood from which it originated - the more identities it does satisfy, the better the approximation.

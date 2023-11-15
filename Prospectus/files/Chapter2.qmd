@@ -20,7 +20,7 @@ This can be extended to include as many candidate parameter values as we would l
 
 In general, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
 
-\subsection{Transformations}
+\section{Transformations}
 
 There are a few useful transformations of the likelihood function that we will define here for use in future sections. The first is the *log-likelihood function*, which is defined as the natural logarithm of the likelihood function: $$\ell(\theta) \equiv \ell(\theta; \mathbf{x}) = \log L(\theta; \mathbf{x}), \> \> \theta \in \Theta.$${#eq-loglike} In practice, we will typically eschew direct analysis of the likelihood in favor of the log-likelihood due to the nice mathematical properties logarithms possess. Chief among these properties is the ability to turn products into sums (i.e. $\log(ab) = \log(a) + \log(b)$ for $a,b > 0$). Sums tend to be easier to differentiate than products, making this is a particularly useful feature for likelihood functions, which are often expressed as the product of marginal density functions when the observations are independent. 
 
@@ -41,7 +41,7 @@ Note that $\ell(\theta; \mathbf{x})$, $\mathcal{S}(\theta; \mathbf{x})$, and $\m
 
 Recall that $L(\theta; x_1, ..., x_n)$ is defined as a function of $\theta$ for a fixed sample of observations $x_1, ..., x_n$, where we think of each $x_i$ as being a realization of a random variable $X_i$. Consequently, $L(\theta; x_1, ..., x_n)$ may be interpreted as a random variable in the following sense: for a given $\theta$, the value of $L(\theta; x_1, ..., x_n)$ depends entirely on the values of $X_1, ..., X_n$ that we happened to observe, and so $L(\theta; x_1, ..., x_n)$ is itself a random variable with respect to the joint probability distribution of $X_1, ..., X_n$. The same is also true for any function or estimate based on the likelihood, as they ultimately will all depend on the data through it as well.
 
-In light of this, a natural question to investigate is how the behavior of these random variables changes as the sample size $n$ increases. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties that enable us to determine the aforementioned distribution. 
+In light of this, a natural line of inquiry to follow is how the behavior of these random variables changes as the sample size $n$ increases. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties that enable us to determine the aforementioned distribution. 
 
 For our purposes, we will call a model *regular* if it satisfies the following conditions:
 \begin{enumerate}[label = RC\arabic*)]
@@ -51,10 +51,68 @@ For our purposes, we will call a model *regular* if it satisfies the following c
   \item There exists an open set $\Theta^* \subseteq \Theta$ of which $\theta_0$ is an interior point.
   \item $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\theta \in \Theta^*$.
   \item The set $\{x \in \mathbb{R}: p(x; \theta) > 0\}$ does not depend on $\theta$.
-  \item There exists a random function $M(x)$ not depending on $\theta$ such that $\mathbb{E}[M(X); \theta_0] < \infty$ and $\underset{\theta \in \Theta^*}{\sup} |\nabla^2\mathcal{S}(\theta;x)_{ijk}| \leq M(x)$ for all integers $1 \leq i, j, k \leq d$. 
+  \item There exists a random function $M(\mathbf{x})$ which is allowed to depend on the data $\mathbf{x}$ but not $\theta$ such that $\mathbb{E}[M(X); \theta_0] < \infty$ and $\underset{\theta \in \Theta^*}{\sup} |\nabla^2\mathcal{S}(\theta;x)_{ijk}| \leq M(\mathbf{x})$ for all integers $1 \leq i, j, k \leq d$. 
 \end{enumerate}
 
 RC1) is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-3) guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$. RC4-6) ensure that there is no issue with defining derivatives of the log-likelihood function. Finally, RC7) implies that first and second partial derivatives with respect to $\theta$ may be passed under the integral sign in $\int p(x; \theta) dx$, and that the remainder term in the Taylor series expansion of the score function centered at $\theta_0$ is negligible.
+
+\section{The Bartlett Identities}
+
+The Bartlett identities are a set of equations relating to the expectations of functions of derivatives of a log-likelihood function. 
+
+Consider the case in which a random variable $X$ has a probability density $f$ that depends on a scalar parameter $\theta$. Denote the log-likelihood function for $\theta$ by $\ell(\theta; x) = \log f(x; \theta)$ and its first derivative with respect to $\theta$ by $\ell_{\theta}(\theta;x ) = \frac{\partial}{\partial \theta} \ell(\theta; x)$. Taking the expectation of $\ell_{\theta}(\theta; x)$ gives
+
+$$
+\begin{aligned}
+\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x); \theta\bigg] \\
+                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \ell(\theta; x)\bigg] f(x; \theta) dx \\
+                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg] f(x; \theta) dx \\
+                                                 &=  \int_{\mathbb{R}} \frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} f(x; \theta) dx \\
+                                                 &=  \int_{\mathbb{R}} \frac{\partial}{\partial \theta} f(x; \theta) dx \\
+                                                 &= \frac{d}{d \theta} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
+                                                 &= \frac{d}{d \theta} 1 \\
+                                                 &= 0. 
+\end{aligned}
+$$
+Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big] = 0 \text{ for all } \theta.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the model parameter will always be 0. Another name for $\ell_{\theta}$ is the *score function*, and any pseudolikelihood that also satisfies the first Bartlett identity is said to be *score-unbiased*.
+
+If we now consider the second derivative of $\ell(\theta; x)$, we have
+
+$$\begin{aligned}
+\ell_{\theta \theta}(\theta; x) &= \frac{\partial^2}{\partial \theta^2} \ell(\theta; x)\\
+                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x) \bigg] \\
+                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \log f(x;\theta) \bigg] \\
+                                &= \frac{\partial}{\partial \theta}\Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} \Bigg] \\
+                                &= \frac{\Big[\frac{\partial^2}{\partial \theta^2} f(x; \theta)\Big] f(x;\theta) - \Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]\Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]}{\big[f(x; \theta) \big]^2} \\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{ f(x; \theta)}\Bigg]^2 \\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg]^2 \\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \big[\ell_{\theta}(\theta; x) \big]^2. 
+\end{aligned} 
+$$
+Rearranging terms and taking expectations yields 
+$$
+\begin{aligned}
+\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{E}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}; \theta\Bigg] \\
+            &= \int_{\mathbb{R}} \Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] f(x; \theta) dx \\
+            &= \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2} f(x; \theta) dx \\
+            &= \frac{d^2}{d \theta^2} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
+            &= \frac{d^2}{d \theta^2} 1 \\
+            &= 0. 
+\end{aligned}
+$$
+Therefore, $$\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] = 0 \text{ for all } \theta.$${#eq-BI2}
+
+@eq-BI2 is called the second Bartlett identity. The second term on the left-hand side can be further rewritten as 
+
+$$
+\begin{aligned}
+\mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta] +\Big(\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]\Big)^2 \\
+                                                          &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta]. &&(\text{by the first Bartlett identity})
+\end{aligned}
+$$
+Another name for this quantity is the *expected information*. It follows from the second Bartlett identity that $$\mathbb{E}[-\ell_{\theta \theta}(\theta; x); \theta] = \mathbb{V}[\ell_{\theta}(\theta; x); \theta].$${#eq-BI3} The quantity $-\ell_{\theta \theta}(\theta; x)$ is called the *observed information*. Any pseudolikelihood that satisfies the second Bartlett identity is said to be *information-unbiased*.
+
+It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
 
 \subsection{Single-Index Asymptotic Theory}
 
@@ -85,22 +143,17 @@ In other words, the score function for the parameter $\theta$ based on data $x_1
 
 @eq-score_additive implies that a Taylor series expansion of $\mathcal{S}(\theta; \mathbf{x})$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that grows with $n$. We have assumed each $x_i$ is identically distributed, so it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\theta; x_i)$.
 
-Since $\theta$ is a $d \times 1$ vector, the $k$-th derivative of the log-likelihood with respect to $\theta$ will be a $k$-dimensional array having $d$ entries along each of its $k$ indices. In particular, the score function (i.e. the first derivative of the log-likelihood) will also be a $d \times 1$ vector, $$\mathcal{S}(\theta; x_i) = \begin{pmatrix} \mathcal{S}_1(\theta; x_i) \\ \vdots \\ \mathcal{S}_d(\theta; x_i) \end{pmatrix},$$ where each component is a function $S_j: \Theta \to \mathbb{R}$. Similarly, the first and second derivatives of the score function will be a $d \times d$ matrix and a three-dimensional $d \times d \times d$ array, respectively. To simplify notation, we will perform a component-wise first-order Taylor series expansion of the score function around the point $\theta = \theta_0$ wherein each component $S_j(\theta; x_i)$ of $S(\theta; x_i)$ is expanded separately.
+Since $\theta$ is a $d \times 1$ vector, the $k$-th derivative of the log-likelihood with respect to $\theta$ will be a $k$-dimensional array having $d$ entries along each of its $k$ indices. In particular, the score function (i.e. the first derivative of the log-likelihood) will also be a $d \times 1$ vector, $$\mathcal{S}(\theta; x_i) = \begin{pmatrix} \mathcal{S}_1(\theta; x_i) \\ \vdots \\ \mathcal{S}_d(\theta; x_i) \end{pmatrix},$$ where each component is a function $S_j: \Theta \to \mathbb{R}$. Similarly, the first and second derivatives of the score function will be a $d \times d$ matrix and a three-dimensional $d \times d \times d$ array, respectively. To simplify notation, we will perform a component-wise first-order Taylor series expansion of the score function around the point $\theta = \theta_0$ wherein each component $\mathcal{S}_j(\theta; x_i)$ of $\mathcal{S}(\theta; x_i)$ is expanded separately.
 
 For any $\theta \in N_r(\theta_0)$, there exists $\bar{\theta}_j$ on the line segment connecting $\theta$ and $\theta_0$ such that 
 $$
 \begin{aligned}
-S_j(\theta; x_i) &= S_j(\theta_0; x_i) + \nabla S_j(\theta_0; x_i)^T(\theta - \theta_0) + \frac{1}{2}(\theta - \theta_0)^T\nabla^2 S_j(\bar{\theta}_j; x_i)(\theta - \theta_0) \\
-                 &= S_j(\theta_0; x_i) + [\nabla S_j(\theta_0; x_i) + \frac{1}{2}\nabla^2 S_j(\bar{\theta}_j; x_i)(\theta - \theta_0)]^T(\theta - \theta_0) \\
-                 &= S_j(\theta_0; x_i) + [\nabla S_j(\theta_0; x_i) + O_p(1)(\theta - \theta_0)]^T(\theta - \theta_0),
+\mathcal{S}_j(\theta; x_i) &= \mathcal{S}_j(\theta_0; x_i) + \nabla \mathcal{S}_j(\theta_0; x_i)^T(\theta - \theta_0) + \frac{1}{2}(\theta - \theta_0)^T\nabla^2 \mathcal{S}_j(\bar{\theta}_j; x_i)(\theta - \theta_0) \\
+                 &= \mathcal{S}_j(\theta_0; x_i) + [\nabla \mathcal{S}_j(\theta_0; x_i) + \frac{1}{2}\nabla^2 \mathcal{S}_j(\bar{\theta}_j; x_i)(\theta - \theta_0)]^T(\theta - \theta_0) \\
+                 &= \mathcal{S}_j(\theta_0; x_i) + [\nabla \mathcal{S}_j(\theta_0; x_i) + M(x_i)O(||\theta - \theta_0||)]^T(\theta - \theta_0),
 \end{aligned}
 $$
-where the last equality follows as a result of our assumption in RC2) that 
-
-
-the first order Taylor series expansion of $S_j(\theta; x_i)$ around $\theta_0$ is given by $$T_j(\theta; x_i) = S_j(\theta_0; x_i) + \nabla S_j(\theta_0; x_i)^T(\theta - \theta_0) + R(\theta),$$ where the remainder term $R(\theta)$ satisfies $$|R(\theta)| \leq \frac{M(\mathbf{x})}{\symbf\alpha!}|\theta - \theta_0|^{\symbf{\alpha}}$$ for all $\symbf{\alpha}$ such that $|\symbf{\alpha}| = 2.$
-
-Assume that the regularity conditions established in Section 1.2.2 apply to our model.^[Since it is the score function that we are expanding, we will phrase our references to the regularity conditions from Section 1.2.2 with respect to it, without making direct mention of the density or log-likelihood functions in terms of which the conditions were originally framed. For example, referring to the third derivative of the log-likelihood is equivalent to referring to the second derivative of the score; we will use only the latter phrasing and not the former in this section.] Conditions C2) and C3) stipulate that there exists an open subset $\Theta^* \subseteq \Theta$ containing $\theta_0$ for which $S_j(\theta; x_i)$ is twice continuously differentiable with respect to $\theta$ for all $\theta \in \Theta^*$. C5) requires that the components of the second derivative of the score function are all bounded (with probability 1) by a random function $M(\mathbf{x})$ with finite expectation for all $N_r(\theta_0)$. Together, these conditions satisfy the necessary requirements to apply Taylor's theorem with the Lagrange form of the remainder term to the score function. 
+where the last equality follows as a result of RC7). Summing over each of the individual contributions to the score function, we arrive at
 
 \subsection{Two-Index Asymptotic Theory}
 
