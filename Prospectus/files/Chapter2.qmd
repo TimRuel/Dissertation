@@ -12,6 +12,29 @@ When $X$ is continuous, the likelihood for $\theta$ may still be defined as it i
 
 As in the discrete case, we must also be careful when $X$ is continuous to avoid using $L(\theta; \mathbf{x})$ to make probability statements about $\theta$. Despite our use of one in its definition, the likelihood is *not* itself a probability density function for the parameter $\theta$ and need not obey the same laws as one. 
 
+\section{Transformations}
+
+There are a few useful transformations of the likelihood function that we will define here for use in future sections. The first is the *log-likelihood function*, which is defined as the natural logarithm of the likelihood function: $$\ell(\theta) \equiv \ell(\theta; \mathbf{x}) = \log L(\theta; \mathbf{x}), \> \> \theta \in \Theta.$${#eq-loglike} In practice, we will typically eschew direct analysis of the likelihood in favor of the log-likelihood due to the nice mathematical properties logarithms possess. Chief among these properties is the ability to turn products into sums (i.e. $\log(ab) = \log(a) + \log(b)$ for $a,b > 0$). Sums tend to be easier to differentiate than products, making this is a particularly useful feature for likelihood functions, which are often expressed as the product of marginal density functions when the observations are independent. 
+
+The other key property of logarithms that makes the log-likelihood so useful is that they are strictly increasing functions of their arguments (i.e. $\log x > \log y$ for $x > y > 0$). This monotonicity ensures that the locations of a function's extrema are preserved when the function is passed to the argument of a logarithm. For example, for a positive function $f$ with a global maximum, $\underset{x}{\mathrm{argmax}} f(x) = \underset{x}{\mathrm{argmax}} \log f(x)$. 
+
+In the general case in which $\theta$ is a $d$-dimensional vector, where $d$ is an integer greater than 1, it follows that the first derivative of the log-likelihood with respect to $\theta$ will also be a $d$-dimensional vector, the second derivative will be a $d \times d$ matrix, the third derivative will be a $d \times d \times d$ array, and so forth. Consequently, we will use gradient notation (i.e. $\nabla$, $\nabla^2$, etc.) to emphasize the vector nature of these results.
+
+The gradient of $\ell$ with respect to $\theta$ appears frequently enough in the analysis of likelihood functions that it has earned its own name - the *score function*. Formally, it is defined as 
+$$\mathcal{S}(\theta) \equiv \mathcal{S}(\theta; \mathbf{x}) = \nabla\ell(\theta; \mathbf{x}) = \begin{pmatrix} \frac{\partial \ell}{\partial\theta_1} \\ \vdots \\ \frac{\partial \ell}{\partial\theta_d}  \end{pmatrix}, \> \> \theta \in \Theta.$${#eq-score} 
+
+Similarly, the negative Hessian matrix of the log-likelihood function with respect to $\theta$ is called the *observed information*. Formally, it is defined as $$\mathcal{I}(\theta) \equiv \mathcal{I}(\theta; \mathbf{x}) = -\nabla^2\ell(\theta; \mathbf{x}) = -
+\begin{pmatrix} 
+\frac{\partial^2 \ell}{\partial\theta_1^2} & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_d} \\ 
+\frac{\partial^2 \ell}{\partial \theta_2 \partial\theta_1} & \frac{\partial^2 \ell}{\partial\theta_2^2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_d} \\ 
+\vdots & \vdots & \ddots & \vdots \\ 
+\frac{\partial^2 \ell}{\partial \theta_d \partial\theta_1} & \frac{\partial^2 \ell}{\partial\theta_d \partial\theta_2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_d^2}
+\end{pmatrix}, \> \> \theta \in \Theta.$${#eq-obs_information} The name derives from the fact that it measures the curvature of the log-likelihood around its maximum - the sharper the curve, the less uncertainty we have about $\theta$. 
+
+Note that $\ell(\theta; \mathbf{x})$, $\mathcal{S}(\theta; \mathbf{x})$, and $\mathcal{I}(\theta; \mathbf{x})$ are all functions of the data $\mathbf{x}$ and therefore can be interpreted as random variables themselves with respect to $p(\mathbf{x}; \theta)$. Consequently, quantities such as their expectations and variances are well-defined. In particular, the variance of the score function, known as the *expected information* or the *Fisher information*, is another well-known transformation that will be useful to know. Formally, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big], \> \> \theta \in \Theta.$${#eq-exp_information}
+
+Recall that $L(\theta; x_1, ..., x_n)$ is defined as a function of $\theta$ for a fixed sample of observations $x_1, ..., x_n$, where we think of each $x_i$ as being a realization of a random variable $X_i$. We may therefore interpret $L(\theta; x_1, ..., x_n)$ as a random variable in the following sense: for a given $\theta$, the value of $L(\theta; x_1, ..., x_n)$ depends entirely on the values of $X_1, ..., X_n$ that we happened to observe, and so $L(\theta; x_1, ..., x_n)$ is itself a random variable with respect to the joint probability distribution of $X_1, ..., X_n$. The same is also true for any function or estimate based on the likelihood, as they ultimately will all depend on the data through it as well.
+
 \section{Maximum Likelihood Estimation}
 
 Maximum likelihood estimation is one of the most powerful and widespread techniques for obtaining point estimates of model parameters. The original intuition behind the method derives from the observation that when faced with a choice between two possible values of a parameter, the sensible choice is the one which makes the data we actually did observe more probable to have been observed. We have already defined the likelihood function as a means of capturing this probability, which makes expressing this decision rule in terms of it very easy - we simply choose for our estimate the option that produces the higher value of the likelihood function. That is, if $L(\theta_1; \mathbf{x}) > L(\theta_2; \mathbf{x})$, then under the preceding logic, $\theta_1$ is the better estimate of the true parameter value.
@@ -20,26 +43,9 @@ This can be extended to include as many candidate parameter values as we would l
 
 In general, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
 
-\section{Transformations}
-
-There are a few useful transformations of the likelihood function that we will define here for use in future sections. The first is the *log-likelihood function*, which is defined as the natural logarithm of the likelihood function: $$\ell(\theta) \equiv \ell(\theta; \mathbf{x}) = \log L(\theta; \mathbf{x}), \> \> \theta \in \Theta.$${#eq-loglike} In practice, we will typically eschew direct analysis of the likelihood in favor of the log-likelihood due to the nice mathematical properties logarithms possess. Chief among these properties is the ability to turn products into sums (i.e. $\log(ab) = \log(a) + \log(b)$ for $a,b > 0$). Sums tend to be easier to differentiate than products, making this is a particularly useful feature for likelihood functions, which are often expressed as the product of marginal density functions when the observations are independent. 
-
-The other key property of logarithms that makes the log-likelihood so useful is that they are strictly increasing functions of their arguments (i.e. $\log x > \log y$ for $x > y > 0$). This monotonicity ensures that the locations of a function's extrema are preserved when the function is passed to the argument of a logarithm. For example, for a positive function $f$ with a global maximum, $\underset{x}{\mathrm{argmax}} f(x) = \underset{x}{\mathrm{argmax}} \log f(x)$. 
-
-We will refer to the derivatives of $\ell(\theta)$ with respect to $\theta$ with the notation $\ell_{\theta}(\theta) = \nabla \ell(\theta)$, $\ell_{\theta \theta}(\theta) = \nabla^2 \ell(\theta)$, et cetera. Since we will consider the general case in which $\theta$ is a multi-dimensional vector, it follows that $\ell_{\theta}(\theta)$ is also a vector, $\ell_{\theta \theta}(\theta)$ is a matrix, $\ell_{\theta \theta \theta}(\theta)$ is a three-dimensional array, and so forth. 
-
-The first derivative of the log-likelihood with respect to $\theta$ appears frequently enough in the analysis of likelihood functions that it has earned its own name - the *score function*. Formally, it is defined as 
-$$\mathcal{S}(\theta) \equiv \mathcal{S}(\theta; \mathbf{x}) = \ell_{\theta}(\theta; \mathbf{x}), \> \> \theta \in \Theta.$${#eq-score} 
-
-Similarly, the negative second derivative of the log-likelihood function with respect to $\theta$ is called the *observed information*. Formally, it is defined as $$\mathcal{I}(\theta) \equiv \mathcal{I}(\theta; \mathbf{x}) = -\ell_{\theta \theta}(\theta; \mathbf{x}), \> \> \theta \in \Theta.$${#eq-obs_information} The name derives from the fact that it measures the curvature of the log-likelihood around its maximum; the sharper the curve, the less uncertainty we have about $\theta$. 
-
-Note that $\ell(\theta; \mathbf{x})$, $\mathcal{S}(\theta; \mathbf{x})$, and $\mathcal{I}(\theta; \mathbf{x})$ are all functions of the data $\mathbf{x}$ and therefore can be interpreted as random variables themselves with respect to $p(\mathbf{x}; \theta)$. Consequently, quantities such as their expectations and variances are well-defined. In particular, the variance of the score function, known as the *expected information* or the *Fisher information*, is another well-known transformation that will be useful to know. Formally, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big], \> \> \theta \in \Theta.$${#eq-exp_information}
-
 \section{Asymptotic Analysis}
 
 \subsection{Regularity Conditions}
-
-Recall that $L(\theta; x_1, ..., x_n)$ is defined as a function of $\theta$ for a fixed sample of observations $x_1, ..., x_n$, where we think of each $x_i$ as being a realization of a random variable $X_i$. Consequently, $L(\theta; x_1, ..., x_n)$ may be interpreted as a random variable in the following sense: for a given $\theta$, the value of $L(\theta; x_1, ..., x_n)$ depends entirely on the values of $X_1, ..., X_n$ that we happened to observe, and so $L(\theta; x_1, ..., x_n)$ is itself a random variable with respect to the joint probability distribution of $X_1, ..., X_n$. The same is also true for any function or estimate based on the likelihood, as they ultimately will all depend on the data through it as well.
 
 In light of this, a natural line of inquiry to follow is how the behavior of these random variables changes as the sample size $n$ increases. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties that enable us to determine the aforementioned distribution. 
 
@@ -153,11 +159,17 @@ $$
                  &= \mathcal{S}_j(\theta_0; x_i) + [\nabla \mathcal{S}_j(\theta_0; x_i) + M(x_i)O(||\theta - \theta_0||)]^T(\theta - \theta_0),
 \end{aligned}
 $$
-where the last equality follows as a result of RC7). Summing over each of the individual contributions to the score function, we arrive at
+where the last equality follows as a result of RC7). Summing over each of the individual contributions to the score function yields
+$$
+\begin{aligned}
+\mathcal{S}_j(\theta; \mathbf{x}) &= \sum_{i=1}^n \mathcal{S}_j(\theta; x_i) \\
+                                  &= \sum_{i=1}^n\big[\mathcal{S}_j(\theta_0; x_i) + [\nabla \mathcal{S}_j(\theta_0; x_i) + M(x_i)O(||\theta - \theta_0||)]^T(\theta - \theta_0)\big] \\
+                                  &= \mathcal{S}_j(\theta_0; \mathbf{x}) + \Bigg[\nabla \mathcal{S}_j(\theta_0; \mathbf{x}) + \Bigg\{\sum_{i=1}^nM(x_i) \Bigg\}O(||\theta - \theta_0||)\Bigg]^T(\theta - \theta_0) \\
+                                  &= \mathcal{S}_j(\theta_0; \mathbf{x}) + \Bigg[\frac{1}{n}\nabla \mathcal{S}_j(\theta_0; \mathbf{x}) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\theta - \theta_0||)\Bigg]^Tn(\theta - \theta_0).
+\end{aligned} 
+$$
+If we divide through by $\sqrt n$, we arrive at $$\frac{1}{\sqrt n}\mathcal{S}_j(\theta; \mathbf{x}) = \frac{1}{\sqrt n}\mathcal{S}_j(\theta_0; \mathbf{x}) + \Bigg[\frac{1}{n}\nabla \mathcal{S}_j(\theta_0; \mathbf{x}) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\theta - \theta_0||)\Bigg]^T\sqrt{n}(\theta - \theta_0).$$
 
-\subsection{Two-Index Asymptotic Theory}
-
-Two-index asymptotic theory describes the behavior of likelihood functions as the sample size and dimension of the nuisance parameter both tend to infinity, with $m$ growing at least as fast as $n$. De Bin (2015) 
 
 
 
