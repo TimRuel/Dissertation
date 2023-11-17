@@ -8,7 +8,7 @@ Given some observed data $X = \mathbf{x}$, the *likelihood function* for $\theta
 
 When $X$ is discrete, we may interpret $L(\theta; x)$ as the probability that $X = \mathbf{x}$ given that $\theta$ is the true parameter value. Crucially, this is *not* equivalent to the inverse probability that $\theta$ is the true parameter value given $X = \mathbf{x}$. The likelihood does not directly tell us anything about the probability that $\theta$ assumes any particular value at all. Though intuitively appealing, this interpretation constitutes a fundamental misunderstanding of what a likelihood function is, and great care must be taken to avoid it. 
 
-When $X$ is continuous, the likelihood for $\theta$ may still be defined as it is in @eq-likelihood_1. However, we must forfeit our previous interpretation of $L(\theta)$ as a probability since the probability that $X$ takes on any particular value is now 0. We may however still think of the likelihood as being proportional to the probability that $X$ takes on a value "close" to $x$, meaning that that $X$ is within a tiny neighborhood of $x$. Specifically, for two different samples $x_1$ and $x_2$, if $L(\theta; \mathbf{x}_1) = c \cdot L(\theta; \mathbf{x}_2)$, where $c > 1$, then under this model we may conclude $X$ is $c$ times more likely to assume a value closer to $\mathbf{x}_1$ than $\mathbf{x}_2$ given that $\theta$ is the true value of the parameter. 
+When $X$ is continuous, the likelihood for $\theta$ may still be defined as it is in @eq-likelihood_1. However, we must forfeit our previous interpretation of $L(\theta)$ as a probability since the probability that $X$ takes on any particular value is now 0. We may however still think of the likelihood as being proportional to the probability that $X$ takes on a value "close" to $x$, meaning that that $X$ is within a tiny neighborhood of $x$. Specifically, for two different samples $x_1$ and $x_2$, if $L(\theta; \mathbf{x}_1) = c \cdot L(\theta; \mathbf{x}_2)$, where $c > 1$, then under this model we may conclude $X$ is $c$ times more likely to assume a value closer to $\mathbf{x}_1$ than $\mathbf{x}_2$ given that $\theta$ is the true value of the parameter.
 
 As in the discrete case, we must also be careful when $X$ is continuous to avoid using $L(\theta; \mathbf{x})$ to make probability statements about $\theta$. Despite our use of one in its definition, the likelihood is *not* itself a probability density function for the parameter $\theta$ and need not obey the same laws as one. 
 
@@ -23,17 +23,31 @@ In the general case in which $\theta$ is a $d$-dimensional vector, where $d$ is 
 The gradient of $\ell$ with respect to $\theta$ appears frequently enough in the analysis of likelihood functions that it has earned its own name - the *score function*. Formally, it is defined as 
 $$\mathcal{S}(\theta) \equiv \mathcal{S}(\theta; \mathbf{x}) = \nabla\ell(\theta; \mathbf{x}) = \begin{pmatrix} \frac{\partial \ell}{\partial\theta_1} \\ \vdots \\ \frac{\partial \ell}{\partial\theta_d}  \end{pmatrix}, \> \> \theta \in \Theta.$${#eq-score} 
 
-Similarly, the negative Hessian matrix of the log-likelihood function with respect to $\theta$ is called the *observed information*. Formally, it is defined as $$\mathcal{I}(\theta) \equiv \mathcal{I}(\theta; \mathbf{x}) = -\nabla^2\ell(\theta; \mathbf{x}) = -
+Similarly, the negative Hessian matrix of the log-likelihood function with respect to $\theta$ is called the *observed information* or just the *information* and is denoted by
+$$\mathcal{I}(\theta) \equiv \mathcal{I}(\theta; \mathbf{x}) = -\nabla^2\ell(\theta; \mathbf{x}) = -
 \begin{pmatrix} 
 \frac{\partial^2 \ell}{\partial\theta_1^2} & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_d} \\ 
 \frac{\partial^2 \ell}{\partial \theta_2 \partial\theta_1} & \frac{\partial^2 \ell}{\partial\theta_2^2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_d} \\ 
 \vdots & \vdots & \ddots & \vdots \\ 
 \frac{\partial^2 \ell}{\partial \theta_d \partial\theta_1} & \frac{\partial^2 \ell}{\partial\theta_d \partial\theta_2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_d^2}
-\end{pmatrix}, \> \> \theta \in \Theta.$${#eq-obs_information} The name derives from the fact that it measures the curvature of the log-likelihood around its maximum - the sharper the curve, the less uncertainty we have about $\theta$. 
-
-Note that $\ell(\theta; \mathbf{x})$, $\mathcal{S}(\theta; \mathbf{x})$, and $\mathcal{I}(\theta; \mathbf{x})$ are all functions of the data $\mathbf{x}$ and therefore can be interpreted as random variables themselves with respect to $p(\mathbf{x}; \theta)$. Consequently, quantities such as their expectations and variances are well-defined. In particular, the variance of the score function, known as the *expected information* or the *Fisher information*, is another well-known transformation that will be useful to know. Formally, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big], \> \> \theta \in \Theta.$${#eq-exp_information}
+\end{pmatrix}, \> \> \theta \in \Theta.$${#eq-obs_information} Note that this is also equal to the negative gradient of the score function. The use of the term "information" here derives from the fact that the second partial derivatives of $\ell$ with respect to the components of $\theta$ are all related to the curvature of $\ell$ near its maximum - the sharper the curve, the less uncertainty and therefore more information we have about $\theta$. 
 
 Recall that $L(\theta; x_1, ..., x_n)$ is defined as a function of $\theta$ for a fixed sample of observations $x_1, ..., x_n$, where we think of each $x_i$ as being a realization of a random variable $X_i$. We may therefore interpret $L(\theta; x_1, ..., x_n)$ as a random variable in the following sense: for a given $\theta$, the value of $L(\theta; x_1, ..., x_n)$ depends entirely on the values of $X_1, ..., X_n$ that we happened to observe, and so $L(\theta; x_1, ..., x_n)$ is itself a random variable with respect to the joint probability distribution of $X_1, ..., X_n$. The same is also true for any function or estimate based on the likelihood, as they ultimately will all depend on the data through it as well.
+
+The random nature of these likelihood-based quantities further implies that finding their expectations and variances respect to $p(x_1, ..., x_n; \theta_0)$ is a well-defined, nontrivial task. The variance of the score function in particular will be useful to know, as it also relates to the amount of information pertaining to $\theta_0$ that is contained within the log-likelihood function of our model. Properly known as the *Fisher information* or the*expected information*, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big], \> \> \theta \in \Theta.$${#eq-exp_information} However, since we are working in the more general framework in which $\mathcal{S}(\theta)$ is a $d \times 1$ random vector, it would be more accurate to speak of the *Fisher information matrix*, which is equal to the variance-covariance matrix of $\mathcal{S}(\theta)$. Hence, we have 
+$$
+\begin{aligned}
+\mathscr{I}(\theta) &= \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big] &&(\text{by Eq. 2.2.4})\\
+                    &= \text{Cov}\bigg[\begin{pmatrix} \frac{\partial \ell}{\partial\theta_1} \cdots  \frac{\partial \ell}{\partial\theta_d}  \end{pmatrix}^T; \theta_0\bigg] &&(\text{by Eq. 2.2.2})\\
+                    &= \begin{pmatrix} 
+\mathbb{V}\Big(\frac{\partial \ell}{\partial\theta_1}\Big) & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_1}, \frac{\partial \ell}{\partial\theta_2}\Big) & \cdots & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_1}, \frac{\partial \ell}{\partial\theta_d}\Big) \\ 
+\text{Cov}\Big(\frac{\partial \ell}{\partial\theta_2}, \frac{\partial \ell}{\partial\theta_1}\Big) & \mathbb{V}\Big(\frac{\partial \ell}{\partial\theta_2}\Big) & \cdots & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_1}, \frac{\partial \ell}{\partial\theta_d}\Big) \\ 
+\vdots & \vdots & \ddots & \vdots \\ 
+\text{Cov}\Big(\frac{\partial \ell}{\partial\theta_d}, \frac{\partial \ell}{\partial\theta_1}\Big) & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_d}, \frac{\partial \ell}{\partial\theta_2}\Big) & \cdots & \mathbb{V}\Big(\frac{\partial \ell}{\partial\theta_d}\Big)
+\end{pmatrix}. &&(\text{by definition of covariance of a random vector})
+\end{aligned}
+$$
+We have omitted the $\theta_0$ arguments inside each of the variance and covariance operators in the final line above for the sake of avoiding overly cluttered notation, but it should be understood that all of these quantities are really integrals of the form 
 
 \section{Maximum Likelihood Estimation}
 
