@@ -34,14 +34,14 @@ $$\mathcal{I}(\theta) \equiv \mathcal{I}(\theta; \mathbf{x}) = -\nabla^2\ell(\th
 
 Recall that $L(\theta; x_1, ..., x_n)$ is defined as a function of $\theta$ for a fixed sample of observations $x_1, ..., x_n$, where we think of each $x_i$ as being a realization of a random variable $X_i$. We may therefore interpret $L(\theta; x_1, ..., x_n)$ as a random variable in the following sense: for a given $\theta$, the value of $L(\theta; x_1, ..., x_n)$ depends entirely on the values of $X_1, ..., X_n$ that we happened to observe, and so $L(\theta; x_1, ..., x_n)$ is itself a random variable with respect to the joint probability distribution of $X_1, ..., X_n$. The same is also true for any function or estimate based on the likelihood, as they ultimately will all depend on the data through it as well.
 
-The random nature of these likelihood-based quantities further implies that finding their expectations and variances respect to $p(x_1, ..., x_n; \theta_0)$ is a well-defined, nontrivial task. The variance of the score function in particular will be useful to know, as it also relates to the amount of information pertaining to $\theta_0$ that is contained within the log-likelihood function of our model. Properly known as the *Fisher information* or the*expected information*, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big], \> \> \theta \in \Theta.$${#eq-exp_information} However, since we are working in the more general framework in which $\mathcal{S}(\theta)$ is a $d \times 1$ random vector, it would be more accurate to speak of the *Fisher information matrix*, which is equal to the variance-covariance matrix of $\mathcal{S}(\theta)$. Hence, we have 
+The random nature of these likelihood-based quantities further implies that finding their expectations and variances respect to $p(x_1, ..., x_n; \theta_0)$ is a well-defined, nontrivial task. The variance of the score function in particular will be useful to know, as it also relates to the amount of information pertaining to $\theta_0$ that is contained within the log-likelihood function of our model. Properly known as the *Fisher information* or the *expected information*, it is defined as $$\mathscr{I}(\theta) = \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big], \> \> \theta \in \Theta.$${#eq-exp_information} However, since we are working in the more general framework in which $\mathcal{S}(\theta)$ is a $d \times 1$ random vector, it would be more accurate to speak of the *Fisher information matrix*, which is equal to the variance-covariance matrix of $\mathcal{S}(\theta)$. Hence, we have 
 $$
 \begin{aligned}
 \mathscr{I}(\theta) &= \mathbb{V}\big[\mathcal{S}(\theta; \mathbf{x}); \theta_0\big] &&(\text{by Eq. 2.2.4})\\
                     &= \text{Cov}\bigg[\begin{pmatrix} \frac{\partial \ell}{\partial\theta_1} \cdots  \frac{\partial \ell}{\partial\theta_d}  \end{pmatrix}^T; \theta_0\bigg] &&(\text{by Eq. 2.2.2})\\
                     &= \begin{pmatrix} 
 \mathbb{V}\Big(\frac{\partial \ell}{\partial\theta_1}\Big) & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_1}, \frac{\partial \ell}{\partial\theta_2}\Big) & \cdots & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_1}, \frac{\partial \ell}{\partial\theta_d}\Big) \\ 
-\text{Cov}\Big(\frac{\partial \ell}{\partial\theta_2}, \frac{\partial \ell}{\partial\theta_1}\Big) & \mathbb{V}\Big(\frac{\partial \ell}{\partial\theta_2}\Big) & \cdots & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_1}, \frac{\partial \ell}{\partial\theta_d}\Big) \\ 
+\text{Cov}\Big(\frac{\partial \ell}{\partial\theta_2}, \frac{\partial \ell}{\partial\theta_1}\Big) & \mathbb{V}\Big(\frac{\partial \ell}{\partial\theta_2}\Big) & \cdots & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_2}, \frac{\partial \ell}{\partial\theta_d}\Big) \\ 
 \vdots & \vdots & \ddots & \vdots \\ 
 \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_d}, \frac{\partial \ell}{\partial\theta_1}\Big) & \text{Cov}\Big(\frac{\partial \ell}{\partial\theta_d}, \frac{\partial \ell}{\partial\theta_2}\Big) & \cdots & \mathbb{V}\Big(\frac{\partial \ell}{\partial\theta_d}\Big)
 \end{pmatrix}. &&(\text{by definition of covariance of a random vector})
@@ -65,16 +65,18 @@ In light of this, a natural line of inquiry to follow is how the behavior of the
 
 For our purposes, we will call a model *regular* if it satisfies the following conditions:
 \begin{enumerate}[label = RC\arabic*)]
-  \item Any observations $x_1, ..., x_n$ belonging to a sample that has been drawn from the model's sample space are realizations of i.i.d. random variables $X_1, ..., X_n$ each with density function $p(x; \theta)$.
+  \item Any observations $x_1, ..., x_n$ belonging to a sample that has been drawn from the model's sample space are independent and identically distributed (i.i.d.) realizations of a random variable $X$ with density function $p(x; \theta)$.
+  \item For any two parameters $\theta_1, \theta_2 \in \Theta$, $\theta_1 \neq \Theta_2 \implies p(x; \theta_1) \neq p(x; \theta_2)$.
   \item The parameter space $\Theta$ is a convex subset of $\mathbb{R}^d$.
   \item $\mathbb{E}\Big(\big[\mathcal{S}(\theta;x)\big]\big[\mathcal{S}(\theta;x)\big]^T; \theta\Big)$ is positive definite for all $\theta \in \Theta$.
   \item There exists an open set $\Theta^* \subseteq \Theta$ of which $\theta_0$ is an interior point.
   \item $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\theta \in \Theta^*$.
   \item The set $\{x \in \mathbb{R}: p(x; \theta) > 0\}$ does not depend on $\theta$.
-  \item There exists a random function $M(\mathbf{x})$ which is allowed to depend on the data $\mathbf{x}$ but not $\theta$ such that $\mathbb{E}[M(X); \theta_0] < \infty$ and $\underset{\theta \in \Theta^*}{\sup} |\nabla^2\mathcal{S}(\theta;x)_{ijk}| \leq M(\mathbf{x})$ for all integers $1 \leq i, j, k \leq d$. 
+  \item The integral $\int_{-\infty}^{\infty} p(x; \theta) dx$ can be differentiated twice under the integral sign with respect to $\theta$.
+  \item For all $\theta \in \Theta^*$, there exists a radius $r > 0$ and a random function $M(\mathbf{x})$ which is allowed to depend on the data $\mathbf{x}$ but not $\theta$ such that $\mathbb{E}[M(X); \theta_0] < \infty$ and $\underset{\theta \in \Theta^*}{\sup} |\nabla^2\mathcal{S}(\theta;x)_{ijk}| \leq M(\mathbf{x})$ for all integers $1 \leq i, j, k \leq d$. 
 \end{enumerate}
 
-RC1) is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-3) guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$. RC4-6) ensure that there is no issue with defining derivatives of the log-likelihood function. Finally, RC7) implies that first and second partial derivatives with respect to $\theta$ may be passed under the integral sign in $\int p(x; \theta) dx$, and that the remainder term in the Taylor series expansion of the score function centered at $\theta_0$ is negligible.
+RC1) is the identifiability assumption of our model that we discussed in Section 1.1. We repeat it here  is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-3) guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$. RC4-6) ensure that there is no issue with defining derivatives of the log-likelihood function. Finally, by Leibniz's integral rule RC7) implies that , and that the remainder term in the first-order Taylor series expansion of the score function centered at $\theta_0$ is negligible.
 
 \section{The Bartlett Identities}
 
