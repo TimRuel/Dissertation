@@ -10,7 +10,7 @@ When $X$ is discrete, we may interpret $L(\theta; x)$ as the probability that $X
 
 When $X$ is continuous, the likelihood for $\theta$ may still be defined as it is in @eq-likelihood_1. However, we must forfeit our previous interpretation of $L(\theta)$ as a probability since the probability that $X$ takes on any particular value is now 0. We may however still think of the likelihood as being proportional to the probability that $X$ takes on a value "close" to $x$, meaning that that $X$ is within a tiny neighborhood of $x$. Specifically, for two different samples $x_1$ and $x_2$, if $L(\theta; \mathbf{x}_1) = c \cdot L(\theta; \mathbf{x}_2)$, where $c > 1$, then under this model we may conclude $X$ is $c$ times more likely to assume a value closer to $\mathbf{x}_1$ than $\mathbf{x}_2$ given that $\theta$ is the true value of the parameter.
 
-As in the discrete case, we must also be careful when $X$ is continuous to avoid using $L(\theta; \mathbf{x})$ to make probability statements about $\theta$. Despite our use of one in its definition, the likelihood is *not* itself a probability density function for the parameter $\theta$ and need not obey the same laws as one. 
+As in the discrete case, we must also be careful when $X$ is continuous to avoid using $L(\theta; \mathbf{x})$ to make probabilistic assertions regarding $\theta$. Despite our use of probability in its definition, the likelihood itself is *not* a probability density function for the parameter $\theta$ and is subject to neither the same rules nor interpretations as one. 
 
 \section{Transformations}
 
@@ -57,11 +57,9 @@ This can be extended to include as many candidate parameter values as we would l
 
 In general, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
 
-\section{Asymptotic Analysis}
+\section{Regularity Conditions}
 
-\subsection{Regularity Conditions}
-
-In light of this, a natural line of inquiry to follow is how the behavior of these random variables changes as the sample size $n$ increases. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties that enable us to determine the aforementioned distribution. 
+As a consequence of the random variable interpretation of likelihood-based quantities such as the score function and the MLE for $\theta_0$, a natural line of inquiry to investigate is how the behavior of these random variables changes as the sample size $n$ increases. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties that enable us to determine the aforementioned distribution. 
 
 For our purposes, we will call a model *regular* if it satisfies the following conditions:
 \begin{enumerate}[label = RC\arabic*)]
@@ -136,9 +134,9 @@ Another name for this quantity is the *expected information*. It follows from th
 
 It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
 
-\subsection{Single-Index Asymptotic Theory}
+\section{One-Index Asymptotics}
 
-Single-index asymptotic theory describes the behavior of likelihood-based statistics as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($m$) remains fixed. The aim of this section is to present a basic overview of the theory's results so that we will have a readily available baseline against which to compare the results of the following section discussing two-index asymptotic theory, in which the $m$ is allowed to increase with $n$.
+The one-index asymptotics framework describes the behavior of likelihood-based statistics as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($q$) remains fixed. The aim of this section is to present a basic overview of the theory's results so that we will have a readily available baseline against which to compare the results of the following section discussing the two-index asymptotics framework, in which $q$ is allowed to increase with $n$.
 
 Assume the regularity conditions of the previous section apply to our model and let $\hat{\theta}$ denote the MLE for $\theta_0$. The traditional method for analyzing the asymptotic behavior of $\hat{\theta}$ is to use a first-order Taylor series expansion of the score function.^[See Appendix \ref{appendix:A} for a review of Taylor's theorem and the conditions under which it is satisfied.] 
 
