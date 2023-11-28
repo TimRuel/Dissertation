@@ -48,7 +48,7 @@ $$
 \end{aligned}
 $${#eq-Laplace2}
 
-where $L_P^{(i)}(\psi) = L^{(i)}(\psi, \hat{\lambda}_{i\psi})$ is the profile likelihood for $\psi$. The error in this approximation is $$\bar{L}^{(i)}(\psi) = \hat{\bar{L}}^{(i)}(\psi)\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\}.$${#eq-Laplace3}
+where $L_P^{(i)}(\psi) = L^{(i)}(\psi, \hat{\lambda}_{i\psi})$ is the profile likelihood for $\psi$. The error in this approximation is $$\bar{L}^{(i)}(\psi) = \hat{\bar{L}}^{(i)}(\psi)\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\} \> \>\text{ as } \>  \> m \to \infty.$${#eq-Laplace3}
 
 Let $$\bar{\ell}^{(i)}(\psi) = \log \bar{L}^{(i)}(\psi)$${#eq-2idx_lbar_i} denote the integrated log-likelihood for $\psi$. Putting the results in @eq-Laplace2, @eq-Laplace3, and @eq-2idx_lbar_i together, we have
 $$
@@ -56,12 +56,12 @@ $$
 \bar{\ell}^{(i)}(\psi) &= \log \bar{L}^{(i)}(\psi) &&(\text{by Equation 5.2.8})\\
                        &= \log\Bigg(\hat{\bar{L}}^{(i)}(\psi)\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\}\Bigg) &&(\text{by Equation 5.2.7})\\
                        &= \log \hat{\bar{L}}^{(i)}(\psi) + \log\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\} &&(\text{by Equation 5.2.6})\\
-                       &= \log\Bigg\{\frac{\sqrt{2 \pi}}{m} L_P^{(i)}(\psi)g(\hat{\lambda}_{i\psi}; \psi)\big[\mathcal{I}(\hat{\lambda}_{i\psi})\big]^{-1/2} \Bigg\} \color{red}{+ O\bigg(\frac{1}{m}\bigg)} \\
-                       &= \log L_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + \frac{1}{2}\log(2\pi) \color{red}{- \log(m) + O\bigg(\frac{1}{m}\bigg)} \\
-                       &= \ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + \frac{1}{2}\log(2\pi) \color{red}{- \log(m) + O\bigg(\frac{1}{m}\bigg)},
+                       &= \log\Bigg\{\frac{\sqrt{2 \pi}}{m} L_P^{(i)}(\psi)g(\hat{\lambda}_{i\psi}; \psi)\big[\mathcal{I}(\hat{\lambda}_{i\psi})\big]^{-1/2} \Bigg\} + O\bigg(\frac{1}{m}\bigg) \\
+                       &= \frac{1}{2}\log(2\pi) - \log(m) + \log L_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{1}{m}\bigg) \\
+                       &= \ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + \frac{1}{2}\log(2\pi) - \log(m) + O\bigg(\frac{1}{m}\bigg) \> \>\text{ as } \>  \> m \to \infty,
 \end{aligned}
 $$
-where $\ell_P^{(i)}(\psi) = \ell^{(i)}(\psi, \hat{\lambda}_{i\psi})$ is the profile log-likelihood for $\psi$. Since log-likelihoods are equivalent up to additive constants, we can discard the $\frac{1}{2} \log(2\pi)$ term in the final line above to arrive at our final approximation for the integrated log-likelihood in stratum $i$: $$\hat{\bar{\ell}}^{(i)}(\psi) = \ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}).$${#eq-Laplace4} The error in this approximation is given by $$\bar{\ell}^{(i)}(\psi) = \hat{\bar{\ell}}^{(i)}(\psi) \color{red}{-\log(m) + O\bigg(\frac{1}{m}\bigg)}.$${#eq-Laplace5}
+where $\ell_P^{(i)}(\psi) = \ell^{(i)}(\psi, \hat{\lambda}_{i\psi})$ is the profile log-likelihood for $\psi$. Since log-likelihoods are equivalent up to additive constants, we can discard the $\frac{1}{2} \log(2\pi)$ and $\log(m)$ terms in the final line above to arrive at our final approximation for the integrated log-likelihood in stratum $i$: $$\hat{\bar{\ell}}^{(i)}(\psi) = \ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}).$${#eq-Laplace4} The error in this approximation is given by $$\bar{\ell}^{(i)}(\psi) = \hat{\bar{\ell}}^{(i)}(\psi) + O\bigg(\frac{1}{m}\bigg).$${#eq-Laplace5}
 
 Since the observations between the strata are independent, we may write the likelihood and log-likelihood functions for the entire model as $$L(\psi, \lambda) = \prod_{i=1}^q L^{(i)}(\psi, \lambda_i)$${#eq-2idx_L} and $$\ell(\psi, \lambda) = \sum_{i=1}^q \ell^{(i)}(\psi, \lambda_i),$${#eq-2idx_l} respectively. If we define the weight function $$G(\lambda; \psi) \equiv \prod_{i=1}^qg(\lambda_i; \psi)$${#eq-2idx_weight} then the integrated likelihood function for $\psi$ becomes separable. That is,
 $$
@@ -76,8 +76,8 @@ $${#eq-2idx_Lbar}
 Let $\bar{\ell}(\psi) = \log \bar{L}(\psi)$ denote the integrated log-likelihood function for $\psi$. Taking the logarithm of both sides in @eq-2idx_Lbar, we have $$\bar{\ell}(\psi) = \sum_{i=1}^q \bar{\ell}^{(i)}(\psi).$${#eq-2idx_lbar} Plugging in our approximation to $\bar{\ell}^{(i)}(\psi)$ and its error term in @eq-Laplace4 and @eq-Laplace5, respectively, yields 
 $$
 \begin{aligned}
-\bar{\ell}(\psi) &= \sum_{i=1}^q\Bigg[\ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \log \mathcal{I}(\hat{\lambda}_{i\psi})  \color{red}{- \log(m) + O\bigg(\frac{1}{m}\bigg)}\Bigg] \\
-                 &= \ell_P(\psi) + \sum_{i=1}^q \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\sum_{i=1}^q\log \mathcal{I}(\hat{\lambda}_{i\psi}) \color{red}{- q\log(m) + O\bigg(\frac{q}{m}\bigg)}.
+\bar{\ell}(\psi) &= \sum_{i=1}^q\Bigg[\ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{1}{m}\bigg) \Bigg] \\
+                 &= \ell_P(\psi) + \sum_{i=1}^q \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\sum_{i=1}^q\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{q}{m}\bigg) \> \>\text{ as } \>  \> m \to \infty.
 \end{aligned}
 $${#eq-Laplace6}
 
