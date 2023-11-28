@@ -4,7 +4,7 @@
 
 Upon choosing a statistical model that we think best characterizes our population of interest, the obvious next step is to identify the true distribution in $\mathcal{P}$ or at the very least, the one that best approximates the truth. This is equivalent to making inferences about $\theta_0$ in the case where the model is parametric and identifiable. That is, given the particular form(s) we have chosen for the distributions in $\mathcal{P}$, the only unknown remaining is the value of $\theta_0$ itself. Since this value is ultimately what controls the mechanism generating any sample of data $\mathbf{x} = (x_1, ..., x_n)$ that we might observe from the population, it stands to reason that information regarding $\theta_0$ can be inferred from the specific values of $x_1, ..., x_n$ that we obtain. To make this notion more rigorous, we require some method of analyzing the joint probability of our sample as a function of our parameter $\theta$.
 
-Given some observed data $X = \mathbf{x}$, the *likelihood function* for $\theta$ is defined as $$L(\theta) \equiv L(\theta; \mathbf{x}) = p(\mathbf{x}; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_1} In other words, the value of the likelihood function evaluated at a particular $\theta \in \Theta$ is simply equal to the output of the model's density function evaluated at the same inputs. However, while $p(\mathbf{x}; \theta)$ is viewed primarily as a function of $\mathbf{x}$ for fixed $\theta$, the reverse is actually true for $L(\theta; \mathbf{x})$. Indeed, we regard the likelihood as being a function of the parameter $\theta$ for fixed $\mathbf{x}$. The positioning of the arguments $\theta$ and $x$ is a reflection of this difference in perspectives.
+Given some observed data $X = \mathbf{x}$, the *likelihood function* for $\theta$ is defined as $$L(\theta) = L(\theta; \mathbf{x}) = p(\mathbf{x}; \theta), \> \> \theta \in \Theta.$${#eq-likelihood_1} In other words, the value of the likelihood function evaluated at a particular $\theta \in \Theta$ is simply equal to the output of the model's density function evaluated at the same inputs. However, while $p(\mathbf{x}; \theta)$ is viewed primarily as a function of $\mathbf{x}$ for fixed $\theta$, the reverse is actually true for $L(\theta; \mathbf{x})$. Indeed, we regard the likelihood as being a function of the parameter $\theta$ for fixed $\mathbf{x}$. The positioning of the arguments $\theta$ and $x$ is a reflection of this difference in perspectives.
 
 When $X$ is discrete, we may interpret $L(\theta; x)$ as the probability that $X = \mathbf{x}$ given that $\theta$ is the true parameter value. Crucially, this is *not* equivalent to the inverse probability that $\theta$ is the true parameter value given $X = \mathbf{x}$. The likelihood does not directly tell us anything about the probability that $\theta$ assumes any particular value at all. Though intuitively appealing, this interpretation constitutes a fundamental misunderstanding of what a likelihood function is, and great care must be taken to avoid it. 
 
@@ -14,17 +14,17 @@ As in the discrete case, we must also be careful when $X$ is continuous to avoid
 
 \section{Transformations}
 
-There are a few useful transformations of the likelihood function that we will define here for use in future sections. The first is the *log-likelihood function*, which is defined as the natural logarithm of the likelihood function: $$\ell(\theta) \equiv \ell(\theta; \mathbf{x}) = \log L(\theta; \mathbf{x}), \> \> \theta \in \Theta.$${#eq-loglike} In practice, we will typically eschew direct analysis of the likelihood in favor of the log-likelihood due to the nice mathematical properties logarithms possess. Chief among these properties is the ability to turn products into sums (i.e. $\log(ab) = \log(a) + \log(b)$ for $a,b > 0$). Sums tend to be easier to differentiate than products, making this is a particularly useful feature for likelihood functions, which are often expressed as the product of marginal density functions when the observations are independent. 
+There are a few useful transformations of the likelihood function that we will define here for use in future sections. The first is the *log-likelihood function*, which is defined as the natural logarithm of the likelihood function: $$\ell(\theta) = \ell(\theta; \mathbf{x}) = \log L(\theta; \mathbf{x}), \> \> \theta \in \Theta.$${#eq-loglike} In practice, we will typically eschew direct analysis of the likelihood in favor of the log-likelihood due to the nice mathematical properties logarithms possess. Chief among these properties is the ability to turn products into sums (i.e. $\log(ab) = \log(a) + \log(b)$ for $a,b > 0$). Sums tend to be easier to differentiate than products, making this is a particularly useful feature for likelihood functions, which are often expressed as the product of marginal density functions when the observations are independent. 
 
 The other key property of logarithms that makes the log-likelihood so useful is that they are strictly increasing functions of their arguments (i.e. $\log x > \log y$ for $x > y > 0$). This monotonicity ensures that the locations of a function's extrema are preserved when the function is passed to the argument of a logarithm. For example, for a positive function $f$ with a global maximum, $\underset{x}{\mathrm{argmax}} f(x) = \underset{x}{\mathrm{argmax}} \log f(x)$. 
 
 In the general case in which $\theta$ is a $d$-dimensional vector, where $d$ is an integer greater than 1, it follows that the first derivative of the log-likelihood with respect to $\theta$ will also be a $d$-dimensional vector, the second derivative will be a $d \times d$ matrix, the third derivative will be a $d \times d \times d$ array, and so forth. Consequently, we will use gradient notation (i.e. $\nabla$, $\nabla^2$, etc.) to emphasize the vector nature of these results.
 
-The gradient of $\ell$ with respect to $\theta$ appears frequently enough in the analysis of likelihood functions that it has earned its own name - the *score function*. Formally, it is defined as 
-$$\mathcal{S}(\theta) \equiv \mathcal{S}(\theta; \mathbf{x}) = \nabla\ell(\theta; \mathbf{x}) = \begin{pmatrix} \frac{\partial \ell}{\partial\theta_1} \\ \vdots \\ \frac{\partial \ell}{\partial\theta_d}  \end{pmatrix}, \> \> \theta \in \Theta.$${#eq-score} 
+The gradient of $\ell$ with respect to $\theta$ appears frequently enough in the analysis of likelihood functions that it has earned its own name - the *score function*, or just the *score*. Formally, it is defined as 
+$$\mathcal{S}(\theta) = \mathcal{S}(\theta; \mathbf{x}) = \nabla\ell(\theta; \mathbf{x}) = \begin{pmatrix} \frac{\partial \ell}{\partial\theta_1} \\ \vdots \\ \frac{\partial \ell}{\partial\theta_d}  \end{pmatrix}, \> \> \theta \in \Theta.$${#eq-score} 
 
-Similarly, the negative Hessian matrix of the log-likelihood function with respect to $\theta$ is called the *observed information* or just the *information* and is denoted by
-$$\mathcal{I}(\theta) \equiv \mathcal{I}(\theta; \mathbf{x}) = -\nabla^2\ell(\theta; \mathbf{x}) = -
+Similarly, the negative Hessian matrix of the log-likelihood function with respect to $\theta$ is called the *observed information*, or just the *information*, and is denoted by
+$$\mathcal{I}(\theta) = \mathcal{I}(\theta; \mathbf{x}) = -\nabla^2\ell(\theta; \mathbf{x}) = -
 \begin{pmatrix} 
 \frac{\partial^2 \ell}{\partial\theta_1^2} & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_d} \\ 
 \frac{\partial^2 \ell}{\partial \theta_2 \partial\theta_1} & \frac{\partial^2 \ell}{\partial\theta_2^2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_d} \\ 
@@ -53,14 +53,6 @@ We have omitted the "conditional on $\theta$" arguments inside each of the varia
 
 Note that $X$ can represent an scalar observation drawn from a single distribution or it can represent a vector of observations drawn from a group of distributions. In the latter case, if the observations are independent, the Fisher information of the whole sample is equal to the sum of the Fisher information values for each of the observations individually. That is, for independent random variables $X_1, ..., X_n$, $$\mathscr{I}_X(\theta) = \sum_{i=1}^n \mathscr{I}_{X_i}(\theta).$${#eq-exp_information3} If the random variables are also identically distributed, then the Fisher information of the entire sample is simply equal to the Fisher information for a single observation drawn from the common distribution multiplied by a factor of $n$: $$\mathscr{I}_X(\theta) = n\mathscr{I}_{X_1}(\theta).$${#eq-exp_information4}
 
-\section{Maximum Likelihood Estimation}
-
-Maximum likelihood estimation is one of the most powerful and widespread techniques for obtaining point estimates of model parameters. The original intuition behind the method derives from the observation that when faced with a choice between two possible values of a parameter, the sensible choice is the one which makes the data we actually did observe more probable to have been observed. We have already defined the likelihood function as a means of capturing this probability, which makes expressing this decision rule in terms of it very easy - we simply choose for our estimate the option that produces the higher value of the likelihood function. That is, if $L(\theta_1; \mathbf{x}) > L(\theta_2; \mathbf{x})$, then under the preceding logic, $\theta_1$ is the better estimate of the true parameter value.
-
-This can be extended to include as many candidate parameter values as we would like. For $n$ potential estimates of $\theta_0$, the best is the one that corresponds to the highest value of the likelihood function. If we follow this line of reasoning to its natural conclusion, we arrive at the notion of a *maximum likelihood estimate* of the parameter $\theta$, which is defined as any value of $\theta$ that maximizes the output of the likelihood function among all possible choices of $\theta$ in $\Theta$ for fixed data $\mathbf{x}$. We will denote this using the notation $\hat{\theta}$ (pronounced "theta hat"). Formally, a maximum likelihood estimate of $\theta$ is defined as a function $\hat{\theta} = \hat{\theta}(\mathbf{x}) \in \Theta$ for which $$L(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> L(\theta; \mathbf{x}),$${#eq-mle1} or equivalently $$\ell(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> \ell(\theta; \mathbf{x}).$${#eq-mle2}
-
-In general, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
-
 \section{Regularity Conditions}
 
 As a consequence of the random variable interpretation of likelihood-based quantities such as the score function and the MLE for $\theta_0$, a natural line of inquiry to investigate is how the behavior of these random variables changes as the sample size $n$ increases. Of particular interest is the distribution to which the maximum likelihood estimate converges as $n$ tends toward infinity, if indeed one exists. To that end, it will be useful to establish some *regularity conditions* for our models. We can think of these conditions as being assumptions similar to those we discussed in the introduction to this paper that, when satisfied, endow our models with certain properties that enable us to determine the aforementioned distribution. 
@@ -77,64 +69,78 @@ For our purposes, we will call a model *regular* if it satisfies the following c
   \item The integral $\int_{-\infty}^{\infty} p(x; \theta) dx$ can be differentiated twice under the integral sign with respect to $\theta$.
   \item For all $\theta \in \Theta^*$, there exists a radius $r > 0$ and a random function $M(\mathbf{x})$ which is allowed to depend on the data $\mathbf{x}$ but not $\theta$ such that $\mathbb{E}[M(X); \theta_0] < \infty$ and $\underset{\theta \in \Theta^*}{\sup} |\nabla^2\mathcal{S}(\theta;x)_{ijk}| \leq M(\mathbf{x})$ for all integers $1 \leq i, j, k \leq d$. 
 \end{enumerate}
-
 RC1) is the identifiability assumption of our model that we discussed in Section 1.1. We repeat it here  is included merely to simplify calculations and frame our discussion in the context of a standard case in which likelihood theory holds. RC2-3) guarantee that it is always possible to solve the likelihood equation for $\hat{\theta}$. RC4-6) ensure that there is no issue with defining derivatives of the log-likelihood function. Finally, by Leibniz's integral rule RC7) implies that , and that the remainder term in the first-order Taylor series expansion of the score function centered at $\theta_0$ is negligible.
+
+\section{Maximum Likelihood Estimation}
+
+Maximum likelihood estimation is one of the most powerful and widespread techniques for obtaining point estimates of model parameters. The original intuition behind the method derives from the observation that when faced with a choice between two possible values of a parameter, the sensible choice is the one which makes the data we actually did observe more probable to have been observed. We have already defined the likelihood function as a means of capturing this probability, which makes expressing this decision rule in terms of it very easy - we simply choose for our estimate the option that produces the higher value of the likelihood function. That is, if $L(\theta_1; \mathbf{x}) > L(\theta_2; \mathbf{x})$, then under the preceding logic, $\theta_1$ is the better estimate of the true parameter value.
+
+This can be extended to include as many candidate parameter values as we would like. For $n$ potential estimates of $\theta_0$, the best is the one that corresponds to the highest value of the likelihood function. If we follow this line of reasoning to its natural conclusion, we arrive at the notion of the *maximum likelihood estimate* (MLE) of $\theta_0$, which is defined as any value of $\theta$ that maximizes the output of the likelihood function among all possible choices of $\theta$ in $\Theta$ for fixed data $\mathbf{x}$. We will denote this using the notation $\hat{\theta}$ (pronounced "theta hat"). Formally, a maximum likelihood estimate of $\theta$ is defined as a function $\hat{\theta} = \hat{\theta}(\mathbf{x}) \in \Theta$ for which $$L(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> L(\theta; \mathbf{x}),$${#eq-mle1} or equivalently $$\ell(\hat{\theta}; \mathbf{x}) = \underset{\theta \in \Theta}{\mathrm{sup}}\, \> \ell(\theta; \mathbf{x}).$${#eq-mle2}
+
+For an arbitrarily chosen model, there is no guarantee that a maximum likelihood estimate for the parameter of a statistical model will exist, and if it does, it will not necessarily be unique.
 
 \section{The Bartlett Identities}
 
-The Bartlett identities are a set of equations relating to the expectations of functions of derivatives of a log-likelihood function. 
+The Bartlett identities are a set of equations relating to the expectations of the derivatives of a log-likelihood function to one another. In general, there is no guarantee that an arbitrary function of a random variable $X$ and its parameter $\theta$ will satisfy the Bartlett identities. It is guaranteed, however, that the log-likelihood function associated with $X$ and $\theta$ will satisfy them, provided that the model is regular. Thus, we can think of any function that does satisfy the Bartlett identities (or at least some of them) as resembling that of a genuine log-likelihood.
 
-Consider the case in which a random variable $X$ has a probability density $f$ that depends on a scalar parameter $\theta$. Denote the log-likelihood function for $\theta$ by $\ell(\theta; x) = \log f(x; \theta)$ and its first derivative with respect to $\theta$ by $\ell_{\theta}(\theta;x ) = \frac{\partial}{\partial \theta} \ell(\theta; x)$. Taking the expectation of $\ell_{\theta}(\theta; x)$ gives
+Consider the case in which $\theta$ is a scalar parameter for a regular model. Using the symbol $\nabla$ to denote gradients is not necessary here since $\theta$ is no longer a vector; instead, we will use subscripts to denote partial derivatives with respect to $\theta$. For example, we will write the first derivative of the log-likelihood with respect to $\theta$ as $\ell_{\theta}(\theta;x ) = \frac{\partial}{\partial \theta} \ell(\theta; x)$. Taking the expectation of $\ell_{\theta}(\theta; x)$ gives
 
 $$
 \begin{aligned}
-\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x); \theta\bigg] \\
-                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \ell(\theta; x)\bigg] f(x; \theta) dx \\
-                                                 &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg] f(x; \theta) dx \\
-                                                 &=  \int_{\mathbb{R}} \frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} f(x; \theta) dx \\
-                                                 &=  \int_{\mathbb{R}} \frac{\partial}{\partial \theta} f(x; \theta) dx \\
-                                                 &= \frac{d}{d \theta} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
-                                                 &= \frac{d}{d \theta} 1 \\
-                                                 &= 0. 
+\mathbb{E}\big[\ell_{\theta}(\theta; X) | \> \theta \big]  &= \mathbb{E}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)| \> \theta\bigg] \\
+                                                           &= \int_{\mathbb{R}} \bigg[\frac{\partial}{\partial \theta} \log p(x; \theta)\bigg] p(x; \theta) dx \\
+                                                           &=  \int_{\mathbb{R}} \frac{\frac{\partial}{\partial \theta} p(x; \theta)}{p(x; \theta)} p(x; \theta) dx \\
+                                                           &=  \int_{\mathbb{R}} \frac{\partial}{\partial \theta} p(x; \theta) dx \\
+                                                           &= \frac{d}{d \theta} \int_{\mathbb{R}} p(x; \theta) dx \\
+                                                           &= \frac{d}{d \theta} 1 \\
+                                                           &= 0. 
 \end{aligned}
 $$
-Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big] = 0 \text{ for all } \theta.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the model parameter will always be 0. Another name for $\ell_{\theta}$ is the *score function*, and any pseudolikelihood that also satisfies the first Bartlett identity is said to be *score-unbiased*.
+Therefore, $$\mathbb{E}\big[\ell_{\theta}(\theta; X)| \> \theta \big] = 0.$${#eq-BI1} @eq-BI1 is called the first Bartlett identity. In words, it states that the expectation of the first derivative of the log-likelihood function of a statistical model with respect to the full model parameter will always be 0. Since $\ell_{\theta}$ is also defined as the score, any function that satisfies the first Bartlett identity is said to be *score-unbiased*.
+
+Recall from Section 3.2 our definition of the expected information of the parameter $\theta$ as the variance of the score. For any modelNote that the second term on the left-hand side can be further rewritten as 
+$$
+\begin{aligned}
+\mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2\Big| \> \theta\Big] &= \mathbb{V}[\ell_{\theta}(\theta; x)| \> \theta] +\Big(\mathbb{E}\big[\ell_{\theta}(\theta; x)| \> \theta \big]\Big)^2 \\
+                                                                     &= \mathbb{V}[\ell_{\theta}(\theta; x)| \> \theta]. &&(\text{by the first Bartlett identity}) \\
+                                                                     &= \mathbb{V}[\mathcal{S}(\theta; x)| \> \theta] \\
+                                                                     &= \mathscr{I}(\theta).
+\end{aligned}
+$$
 
 If we now consider the second derivative of $\ell(\theta; x)$, we have
 
 $$\begin{aligned}
 \ell_{\theta \theta}(\theta; x) &= \frac{\partial^2}{\partial \theta^2} \ell(\theta; x)\\
                                 &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; x) \bigg] \\
-                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \log f(x;\theta) \bigg] \\
-                                &= \frac{\partial}{\partial \theta}\Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{f(x; \theta)} \Bigg] \\
-                                &= \frac{\Big[\frac{\partial^2}{\partial \theta^2} f(x; \theta)\Big] f(x;\theta) - \Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]\Big[\frac{\partial}{\partial \theta} f(x; \theta)\Big]}{\big[f(x; \theta) \big]^2} \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \Bigg[\frac{\frac{\partial}{\partial \theta} f(x; \theta)}{ f(x; \theta)}\Bigg]^2 \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \bigg[\frac{\partial}{\partial \theta} \log f(x; \theta)\bigg]^2 \\
-                                &= \frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)} - \big[\ell_{\theta}(\theta; x) \big]^2. 
+                                &= \frac{\partial}{\partial \theta}\bigg[\frac{\partial}{\partial \theta} \log p(x;\theta) \bigg] \\
+                                &= \frac{\partial}{\partial \theta}\Bigg[\frac{\frac{\partial}{\partial \theta} p(x; \theta)}{p(x; \theta)} \Bigg] \\
+                                &= \frac{\Big[\frac{\partial^2}{\partial \theta^2} p(x; \theta)\Big] p(x;\theta) - \Big[\frac{\partial}{\partial \theta} p(x; \theta)\Big]\Big[\frac{\partial}{\partial \theta} p(x; \theta)\Big]}{\big[p(x; \theta) \big]^2} \\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} p(x; \theta)}{p(x; \theta)} - \Bigg[\frac{\frac{\partial}{\partial \theta} p(x; \theta)}{ p(x; \theta)}\Bigg]^2 \\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} p(x; \theta)}{p(x; \theta)} - \bigg[\frac{\partial}{\partial \theta} \log p(x; \theta)\bigg]^2 \\
+                                &= \frac{\frac{\partial^2}{\partial \theta^2} p(x; \theta)}{p(x; \theta)} - \big[\ell_{\theta}(\theta; x) \big]^2. 
 \end{aligned} 
 $$
 Rearranging terms and taking expectations yields 
 $$
 \begin{aligned}
-\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{E}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}; \theta\Bigg] \\
-            &= \int_{\mathbb{R}} \Bigg[\frac{\frac{\partial^2}{\partial \theta^2} f(x; \theta)}{f(x; \theta)}\Bigg] f(x; \theta) dx \\
-            &= \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2} f(x; \theta) dx \\
-            &= \frac{d^2}{d \theta^2} \int_{\mathbb{R}} f(x; \theta) dx &&(\text{by regularity of } f)\\
+\mathbb{E}[\ell_{\theta \theta}(\theta; x)| \> \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2\Big| \> \theta\Big] &= \mathbb{E}\Bigg[\frac{\frac{\partial^2}{\partial \theta^2} p(x; \theta)}{p(x; \theta)}\Bigg| \> \theta\Bigg] \\
+            &= \int_{\mathbb{R}} \Bigg[\frac{\frac{\partial^2}{\partial \theta^2} p(x; \theta)}{p(x; \theta)}\Bigg] p(x; \theta) dx \\
+            &= \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2} p(x; \theta) dx \\
+            &= \frac{d^2}{d \theta^2} \int_{\mathbb{R}} p(x; \theta) dx \\
             &= \frac{d^2}{d \theta^2} 1 \\
             &= 0. 
 \end{aligned}
 $$
-Therefore, $$\mathbb{E}[\ell_{\theta \theta}(\theta; x); \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] = 0 \text{ for all } \theta.$${#eq-BI2}
+Therefore, $$\mathbb{E}[\ell_{\theta \theta}(\theta; x)| \> \theta] + \mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2| \> \theta\Big] = 0.$${#eq-BI2}
 
-@eq-BI2 is called the second Bartlett identity. The second term on the left-hand side can be further rewritten as 
+@eq-BI2 is called the second Bartlett identity. 
+Another name for this quantity is the *expected information*. 
 
-$$
-\begin{aligned}
-\mathbb{E}\Big[\big(\ell_{\theta}(\theta; x) \big)^2; \theta\Big] &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta] +\Big(\mathbb{E}\big[\ell_{\theta}(\theta; x); \theta \big]\Big)^2 \\
-                                                          &= \mathbb{V}[\ell_{\theta}(\theta; x); \theta]. &&(\text{by the first Bartlett identity})
-\end{aligned}
-$$
-Another name for this quantity is the *expected information*. It follows from the second Bartlett identity that $$\mathbb{E}[-\ell_{\theta \theta}(\theta; x); \theta] = \mathbb{V}[\ell_{\theta}(\theta; x); \theta].$${#eq-BI3} The quantity $-\ell_{\theta \theta}(\theta; x)$ is called the *observed information*. Any pseudolikelihood that satisfies the second Bartlett identity is said to be *information-unbiased*.
+It follows from the second Bartlett identity that $$\mathbb{E}[-\ell_{\theta \theta}(\theta; x)| \> \theta] = \mathbb{V}[\ell_{\theta}(\theta; x); \theta].$${#eq-BI3} 
+
+
+Any function that satisfies the second Bartlett identity is said to be *information-unbiased*.
 
 It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of pseudolikelihoods as approximations to a genuine likelihood so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
 
@@ -144,7 +150,7 @@ The one-index asymptotics framework describes the behavior of likelihood-based s
 
 Assume the regularity conditions of the previous section apply to our model and let $\hat{\theta}$ denote the MLE for $\theta_0$. The traditional method for analyzing the asymptotic behavior of $\hat{\theta}$ is to use a first-order Taylor series expansion of the score function.^[See Appendix \ref{appendix:A} for a review of Taylor's theorem and the conditions under which it is satisfied.] 
 
-To do this, first note that the likelihood function for $\theta$ based on $\mathbf{x} = (x_1, ..., x_n)$ as $$L(\theta; \mathbf{x}) \equiv p(\mathbf{x}; \theta) = \prod_{i=1}^n p(x_i; \theta).$$ We may therefore write the log-likelihood function as 
+To do this, first note that the likelihood function for $\theta$ based on $\mathbf{x} = (x_1, ..., x_n)$ as $$L(\theta; \mathbf{x}) = p(\mathbf{x}; \theta) = \prod_{i=1}^n p(x_i; \theta).$$ We may therefore write the log-likelihood function as 
 $$
 \begin{aligned}
 \ell(\theta; \mathbf{x}) &= \log L(\theta; \mathbf{x}) \\
