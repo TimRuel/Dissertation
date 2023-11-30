@@ -225,7 +225,6 @@
 % - suggested by Ezra Getzler 5/4/2005
 \renewcommand{\proofname}{\bfseries{Proof}}
 
-
 \numberwithin{equation}{chapter}
 
 
