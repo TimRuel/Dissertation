@@ -8,7 +8,7 @@ Given some observed data $\mathbf{x}_n$, the *likelihood function* for $\theta$ 
 
 When $X$ is discrete, we may interpret $L(\theta; x)$ as the probability that $X = x$ given that $\theta$ is the true parameter value. Crucially, this is *not* equivalent to the inverse probability that $\theta$ is the true parameter value given $X = x$. The likelihood does not directly tell us anything about the probability that $\theta$ assumes any particular value at all. Though intuitively appealing, this interpretation constitutes a fundamental misunderstanding of what a likelihood function is, and great care must be taken to avoid it. 
 
-When $X$ is continuous, the likelihood for $\theta$ may still be defined as it is in @eq-likelihood_1. However, we must forfeit our previous interpretation of $L(\theta)$ as a probability since the probability that $X$ takes on any particular value is now 0. We may however still think of the likelihood as being proportional to the probability that $X$ takes on a value "close" to $x$, meaning that that $X$ is within a tiny neighborhood of $x$. Specifically, for two different observations $x_1$ and $x_2$, if $L(\theta; x_1) = c \cdot L(\theta; x_2)$, where $c > 1$, then under this model we may conclude $X$ is $c$ times more likely to assume a value closer to $x_1$ than $x_2$ given that $\theta$ is the true value of the parameter.
+When $X$ is continuous, the likelihood for $\theta$ may still be defined as it is in @eq-likelihood_1. However, we must forfeit our previous interpretation of $L(\theta)$ as a probability since the probability that $X$ takes on any particular value is now 0. We may however still think of the likelihood as being proportional to the probability that $X$ takes on a value "close" to $x$, meaning that that $X$ is within a tiny ball centered at $x$. Specifically, for two different observations $x_1$ and $x_2$, if $L(\theta; x_1) = c \cdot L(\theta; x_2)$, where $c > 1$, then under this model we may conclude $X$ is $c$ times more likely to assume a value closer to $x_1$ than $x_2$ given that $\theta$ is the true value of the parameter.
 
 As in the discrete case, we must also be careful when $X$ is continuous to avoid using $L(\theta; \mathbf{x}_n)$ to make probabilistic assertions regarding $\theta$. Despite our use of probability in its definition, the likelihood itself is *not* a probability density function for the parameter $\theta$ and is subject to neither the same rules nor interpretations as one. 
 
@@ -18,23 +18,32 @@ There are a few useful transformations of the likelihood function that we will d
 
 The other key property of logarithms that makes the log-likelihood so useful is that they are strictly increasing functions of their arguments (i.e. $\log x > \log y$ for $x > y > 0$). This monotonicity ensures that the locations of a function's extrema are preserved when the function is passed to the argument of a logarithm. For example, for a positive function $f$ with a global maximum, $\underset{x}{\mathrm{argmax}} f(x) = \underset{x}{\mathrm{argmax}} \log f(x)$. 
 
-In the general case in which $\theta$ is a $d$-dimensional vector, where $d$ is an integer greater than 1, it follows that the first partial derivative of the log-likelihood with respect to $\theta$ will also be a $d$-dimensional vector, the second partial derivative will be a $d \times d$ matrix, the third derivative will be a $d \times d \times d$ array, and so forth. Consequently, we will use gradient notation (e.g. $\nabla$, $\nabla^2$, etc.) to emphasize the vector nature of these results along with a subscript that indicates the variable with respect to which the partial derivatives are being taken. 
+In the general case in which $\theta$ is a $d$-dimensional vector, where $d$ is an integer greater than 1, it follows that the first derivative of the log-likelihood with respect to $\theta$ will also be a $d$-dimensional vector, the second derivative will be a $d \times d$ matrix, the third derivative will be a $d \times d \times d$ array, and so forth. To emphasize the multidimensional nature of these results, we will use notation typically associated with partial derivatives involving functions of more than one variable (e.g. $\nabla, \mathbf{J}, \mathbf{H}$, etc.) along with subscripts that indicate the variable with respect to which the partial derivatives are being taken. See Appendix \ref{appendix:A} for a review of this notation.
 
 The gradient of $\ell$ with respect to $\theta$ appears frequently enough in the analysis of likelihood functions that it has earned its own name - the *score function*, or just the *score*. Formally, it is defined as 
-$$\mathcal{S}(\theta) = \mathcal{S}(\theta; \mathbf{x}_n) = \nabla_{\theta}\ell(\theta; \mathbf{x}_n) = \begin{pmatrix} \frac{\partial \ell}{\partial\theta_1} \\ \vdots \\ \frac{\partial \ell}{\partial\theta_d}  \end{pmatrix}, \> \> \theta \in \Theta.$${#eq-score} 
+$$\mathcal{S}(\theta; \mathbf{x}_n) = \nabla_{\theta}\ell(\theta; \mathbf{x}_n) = \begin{pmatrix} 
+\frac{\partial }{\partial\theta_1}\ell(\theta; \mathbf{x}_n) \\ 
+\vdots \\ 
+\frac{\partial }{\partial\theta_d}  \ell(\theta; \mathbf{x}_n)
+\end{pmatrix} =
+\begin{pmatrix} 
+\mathcal{S}_1(\theta; \mathbf{x}_n) \\ 
+\vdots \\ 
+\mathcal{S}_d(\theta; \mathbf{x}_n) 
+\end{pmatrix},$${#eq-score} where we think of each component as being a function $S_j: \Theta \to \mathbbm{R}$.
 
-Similarly, the negative Hessian matrix of the log-likelihood function with respect to $\theta$ is called the *observed information*, or just the *information*, and is denoted by
-$$\mathcal{I}(\theta) = \mathcal{I}(\theta; \mathbf{x}_n) = -\nabla^2_{\theta}\ell(\theta; \mathbf{x}_n) = -
+Similarly, the Hessian matrix of the log-likelihood function with respect to $\theta$ (i.e. the transpose of the Jacobian matrix of the score) multiplied by $-1$ is called the *observed information*, or just the *information*, and is denoted by
+$$\mathcal{I}(\theta) = -\mathbf{H}_{\theta}\Big(\ell(\theta; \mathbf{x}_n)\Big) = -\mathbf{J}_{\theta}\Big(\mathcal{S}(\theta; \mathbf{x}_n)\Big)^\top = -
 \begin{pmatrix} 
 \frac{\partial^2 \ell}{\partial\theta_1^2} & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_1\partial\theta_d} \\ 
 \frac{\partial^2 \ell}{\partial \theta_2 \partial\theta_1} & \frac{\partial^2 \ell}{\partial\theta_2^2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_2\partial\theta_d} \\ 
 \vdots & \vdots & \ddots & \vdots \\ 
 \frac{\partial^2 \ell}{\partial \theta_d \partial\theta_1} & \frac{\partial^2 \ell}{\partial\theta_d \partial\theta_2} & \cdots & \frac{\partial^2 \ell}{\partial\theta_d^2}
-\end{pmatrix}, \> \> \theta \in \Theta.$${#eq-obs_information} Note that this is also equal to the negative gradient of the score function. The use of the term "information" here derives from the fact that the second partial derivatives of $\ell$ with respect to the components of $\theta$ are all related to the curvature of $\ell$ near its maximum - the sharper the curve, the less uncertainty and therefore more information we have about $\theta$. 
+\end{pmatrix}.$${#eq-obs_information} The use of the term "information" here derives from the fact that the second partial derivatives of $\ell$ with respect to the components of $\theta$ are all related to the curvature of $\ell$ near its maximum - the sharper the curve, the less uncertainty and therefore more information we have about $\theta$. 
 
 Recall that $L(\theta; \mathbf{x}_n)$ is defined as a function of $\theta$ for a fixed sample of observations $\mathbf{x}_n = (x_1, ..., x_n)$, where we think of each $x_i$ as being a realization of a random variable $X_i$. We may therefore interpret $L(\theta; \mathbf{x}_n)$ as a random variable in the following sense: for a given $\theta$, the value of $L(\theta; \mathbf{x}_n)$ depends entirely on the values of $X_1, ..., X_n$ that we happened to observe, and so $L(\theta; \mathbf{X}_n)$ is itself a random variable with respect to the joint probability distribution of $\mathbf{X}_n = (X_1, ..., X_n)$. The same is also true for any function or estimate based on the likelihood, as they ultimately will all depend on the data through it as well. Going forward, we will use capital letters inside these functions when we want to emphasize this interpretation. For example, $\mathcal{S}(\theta; \mathbf{X}_n)$ is a random variable for which we have observed the value $\mathcal{S}(\theta; \mathbf{x}_n)$.
 
-The random nature of these likelihood-based quantities further implies that finding their expectations and variances with respect to $p_{\theta}(\mathbf{x}_n)$ is a well-defined, nontrivial task. The variance of the score function will be of particular importance, as it also relates to the amount of information pertaining to $\theta_0$ that is contained within the log-likelihood function of our model. Properly known as the *Fisher information* or the *expected information*, it is defined as $$\mathscr{I}_{\mathbf{X}_n}(\theta) = \text{Var}_{\theta}\big[\mathcal{S}(\theta; \mathbf{X}_n)\big], \> \> \theta \in \Theta.$${#eq-exp_information1}  
+The random nature of these likelihood-based quantities further implies that finding their expectations and variances with respect to $p_{\theta}(\mathbf{x}_n)$ is a well-defined, nontrivial task. The variance of the score function will be of particular importance, as it also relates to the amount of information pertaining to $\theta_0$ that is contained within the log-likelihood function of our model. Properly known as the *Fisher information* or the *expected information*, it is defined as $$\mathscr{I}_{\mathbf{X}_n}(\theta) = \text{Var}_{\theta}\big[\mathcal{S}(\theta; \mathbf{X}_n)\big].$${#eq-exp_information1}  
 
 Since we are working in the more general framework in which $\mathcal{S}(\theta)$ is a $d \times 1$ random vector, it would be more accurate to speak of the *Fisher information matrix*, which is equal to the variance-covariance matrix of $\mathcal{S}(\theta)$. Hence, we have 
 $$
@@ -60,20 +69,22 @@ For our purposes, we will call a model *regular* if it satisfies the following c
 \begin{enumerate}[label = \textbf{RC\arabic*)}]
   \item Any observations $x_1, ..., x_n$ belonging to a sample that has been drawn from the model's sample space are independent and identically distributed (i.i.d.) realizations of a random variable $X$ with density function $p_{\theta}(x)$.
   \item $P_{\theta_1} = P_{\theta_2} \implies \theta_1 = \theta_2$ for all $\theta_1, \theta_2 \in \Theta$.
-  \item The distributions in $\mathcal{P}$ have a common support $\mathcal{X} = \{x: p_{\theta}(x) > 0 \}\subseteq \mathbb{R}$ not depending on $\theta$.
+  \item The distributions in $\mathcal{P}$ have a common support $\mathcal{X} = \{x: p_{\theta}(x) > 0 \}\subseteq \mathbbm{R}$ not depending on $\theta$.
   \item There exists an open set $\Theta^* \subseteq \Theta$ of which $\theta_0$ is an interior point.
   \item For all $\theta \in \Theta^*$, $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$.
-  \item There exists a random function $M(x)$ (that does not depend on $\theta$) satisfying $E_{\theta_0}[M(X)] < \infty$ and a radius $r > 0$ such that for all $\theta \in N_r(\theta_0)$ and all integers $1 \leq i, j, k \leq d$, $|\nabla^3_{\theta}\ell(\theta;x)_{ijk}| \leq M(x)$.
+  \item There exists a random function $M(x)$ (that does not depend on $\theta$) satisfying $E_{\theta_0}[M(X)] < \infty$ and a closed ball $B_r[\theta_0] \subseteq \Theta^*$ such that for all integers $1 \leq i, j \leq d$, $$\sup_{\theta \in B_r[\theta_0]}\Bigg|\frac{\partial^2 \ell(\theta;x)}{\partial \theta_i \partial \theta_j}\Bigg| \leq M(x).$$
   \item The integral $\int_{\mathcal{X}} p(x; \theta) dx$ can be differentiated twice under the integral sign with respect to $\theta\in \Theta^*$.
   \item The Fisher information matrix $\mathscr{I}_{X}(\theta)$ is positive definite with finite components.
 \end{enumerate}
 While not strictly necessary, **RC1)** is often assumed as a matter of convenience since it tends to simplify calculations greatly. We include it here for that purpose and to frame our discussion in the context of a standard case in which likelihood theory holds. Of course, many of the results discussed in this paper will hold for models with observations not satisfying the i.i.d. criterion as well. 
 
-**RC2)** is the identifiability assumption we mentioned in Chapter 2. It is particularly important for our discussion of maximum likelihood estimation that $p(\mathbf{x}_n; \theta) = p(\mathbf{x}_n; \theta_0)$ implies $\theta = \theta_0$. **RC3)** requires that the distributions in $\mathcal{P}$ be supported on a common subset of the real line, and the definition of this subset cannot depend on $\theta$. This is to prevent situations in which, for example, the event $\{X_i \leq x_i \}$ occurs with positive probability when $\theta = \theta_1$ but not $\theta = \theta_2$. 
+The implication in **RC2)** is simply the identifiability assumption we mentioned in Chapter 2. We have restated it here as it is necessary to guarantee the uniqueness of the maximum likelihood estimator. In particular, we must have that $p(\mathbf{x}_n; \theta) = p(\mathbf{x}_n; \theta_0)$ implies $\theta = \theta_0$. 
 
-**RC4)** guarantees the existence of a neighborhood around $\theta_0$ on which partial derivatives with respect to $\theta$ can be defined. **RC5)** goes on to assert directly the existence and continuity of the first two of those partial derivatives, which is necessary for defining second-order Taylor series expansions of the score function around $\theta_0$. **RC6)** is necessary to ensure the remainder terms in these expansions are negligible.
+**RC3)** requires that the distributions in $\mathcal{P}$ be supported on a common subset of the real line, and the definition of this subset cannot depend on $\theta$. This is to prevent situations in which, for example, the event $\{X_i \leq x_i \}$ occurs with positive probability when $\theta = \theta_1$ but not $\theta = \theta_2$. 
 
-**RC7)** grants us the ability to freely interchange integration and second-order partial differentiation with respect to $\theta$ in an open neighborhood of $\theta_0$ , i.e., $$\nabla^2_{\theta}\int_{\mathcal{X}} p(x; \theta) dx = \int_{\mathcal{X}} \nabla^2_{\theta}p(x; \theta) dx$$ for all $\theta \in \Theta^*$. Note that this implies first-order partial derivatives can be passed under the integral sign as well.
+**RC4)** guarantees the existence of a ball centered at $\theta_0$ on which partial derivatives with respect to $\theta$ can be defined. **RC5)** goes on to assert directly the existence and continuity of the first two of these partial derivatives, which is necessary for defining second-order Taylor series expansions of the score function around $\theta_0$. **RC6)** is included to ensure the remainder terms in these expansions are negligible. 
+
+**RC7)** grants us the ability to freely interchange integration and second-order partial differentiation with respect to $\theta$, i.e., $$\nabla^2_{\theta}\int_{\mathcal{X}} p(x; \theta) dx = \int_{\mathcal{X}} \nabla^2_{\theta}p(x; \theta) dx$$ for all $\theta \in \Theta^*$. Note that this implies first-order partial derivatives can be passed under the integral sign as well.
 
 As we will see in Section 3.6, the variance of the limiting distribution of the score function involves the inverse of the Fisher information. The requirement in **RC8)** that the Fisher information matrix be positive definite, i.e., $\mathbf{z}^\top\mathscr{I}_X(\theta)\mathbf{z} > 0$ for all $d \times 1$ column vectors $\mathbf{z}$, along with all of its components being finite precludes any transformation of this limiting distribution from having infinite variance or degenerating to a single point.
 
@@ -128,7 +139,7 @@ $$
                     &= \text{Var}_{\theta}\bigg[\frac{\partial}{\partial \theta}\ell(\theta; X)\bigg] +\Bigg(\text{E}_{\theta}\bigg[\frac{\partial}{\partial \theta}\ell(\theta; X)\bigg]\Bigg)^2 &&(\text{by the first Bartlett identity}) \\
                     &= \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].
 \end{aligned}
-$$
+$${#eq-BI2}
 
 If we now consider the second partial derivative of $\ell(\theta; x)$ with respect to $\theta$, we have
 $$
@@ -153,9 +164,9 @@ $$
             &= 0. 
 \end{aligned}
 $$
-Therefore, $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2 \Bigg] = 0.$${#eq-BI2}
+Therefore, $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2 \Bigg] = 0.$${#eq-BI3}
 
-@eq-BI2 is called the second Bartlett identity. Regular models as we have defined them will automatically satisfy both the first and second Bartlett identities. Hence, for any regular model, the following definitions for its expected information regarding its parameter $\theta$ are all equivalent: $$\mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg].$${#eq-BI3} Any function that satisfies the second Bartlett identity is said to be *information-unbiased*.
+@eq-BI2 is called the second Bartlett identity. Any function that satisfies it is said to be *information-unbiased*. Regular models as we have defined them will automatically satisfy both the first and second Bartlett identities. Hence, for any regular model, the statements in @eq-exp_information1, @eq-BI2, and @eq-BI3 imply that the following definitions for its expected information regarding its parameter $\theta$ are all equivalent: $$\mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg].$${#eq-BI4} 
 
 It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of partial $\theta$-derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of approximations to genuine likelihoods so we will not go further here. Note that while the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\theta$ is a multi-dimensional vector.
 
@@ -165,30 +176,26 @@ The one-index asymptotics framework describes the behavior of likelihood-based s
 
 Assume the regularity conditions of the previous section apply to our model and let $\hat{\theta}$ denote the MLE for $\theta_0$. The traditional method for analyzing the asymptotic behavior of $\hat{\theta}$ is to use a first-order Taylor series expansion of the score function.^[See Appendix \ref{appendix:A} for a review of Taylor's theorem and the conditions under which it is satisfied.] 
 
-To do this, first note that the likelihood function for $\theta$ based on $\mathbf{x}_n = (x_1, ..., x_n)$ as $$L(\theta; \mathbf{x}_n) = p_{\theta}(\mathbf{x}_n) = \prod_{i=1}^n p_{\theta}(x_i).$$ We may therefore write the log-likelihood function as 
+We start by noting that under our assumption of i.i.d. observations, the score function is equal to
 $$
 \begin{aligned}
-\ell(\theta; \mathbf{x}_n) &= \log L(\theta; \mathbf{x}_n) \\
-                         &= \log p_{\theta}(\mathbf{x}_n) \\
-                         &= \log\Bigg[ \prod_{i=1}^n p_{\theta}(x_i)\Bigg] \\
-                         &= \sum_{i=1}^n \log p_{\theta}(x_i) \\
-                         &= \sum_{i=1}^n \ell(\theta; x_i).
-\end{aligned}
-$$
-It follows that the score function is equal to
-$$
-\begin{aligned}
-\mathcal{S}(\theta; \mathbf{x}_n) &= \frac{\partial}{\partial \theta} \ell(\theta; \mathbf{x}_n) \\
-             &= \frac{\partial}{\partial \theta} \sum_{i=1}^n \ell(\theta; x_i) \\
-             &= \sum_{i=1}^n \frac{\partial}{\partial \theta} \ell(\theta; x_i) \\
-             &= \sum_{i=1}^n \mathcal{S}(\theta; x_i).
+\mathcal{S}(\theta; \mathbf{x}_n) &= \nabla_{\theta} \ell(\theta; \mathbf{x}_n) \\
+                                  &= \nabla_{\theta} \sum_{i=1}^n \ell(\theta; x_i) \\
+                                  &= \sum_{i=1}^n \nabla_{\theta} \ell(\theta; x_i) \\
+                                  &= \sum_{i=1}^n \mathcal{S}(\theta; x_i).
 \end{aligned}
 $${#eq-score_additive}
-In other words, the score function for the parameter $\theta$ based on data $x_1, ..., x_n$ can be written as the sum of individual contributions $\mathcal{S}(\theta; x_i)$, $i = 1,..., n$, where each $\mathcal{S}(\theta; x_i)$ can be thought of as the score function for $\theta$ had we drawn only one observation, $x_i$. Note that these individual contributions are all independent from one another, a consequence of the independence assumption in **RC1)**.
+In other words, the score function for the parameter $\theta$ based on data $x_1, ..., x_n$ can be written as the sum of independent contributions $\mathcal{S}(\theta; x_i)$ ($i = 1,..., n$) where each $\mathcal{S}(\theta; x_i)$ can be thought of as the score function for $\theta$ based only on observation $x_i$. 
 
-@eq-score_additive implies that a Taylor series expansion of $\mathcal{S}(\theta; \mathbf{x}_n)$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that grows with $n$. We have assumed each $x_i$ is identically distributed, so it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\theta; x_i)$.
+@eq-score_additive implies that a Taylor series expansion of $\mathcal{S}(\theta; \mathbf{x}_n)$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that grows with $n$. Since the observations are identically distributed, it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\theta; x_i)$. Replacing the function $\mathcal{S}(\theta; x_i)$ in @eq-score_additive with its vector form as defined in @eq-score, we get $$\mathcal{S}(\theta; \mathbf{x}_n) = \sum_{i=1}^n \begin{pmatrix} 
+\mathcal{S}_1(\theta; x_i) \\ 
+\vdots \\ 
+\mathcal{S}_d(\theta; x_i) 
+\end{pmatrix}.$${#eq-score_additive_vector}
 
-Since $\theta$ is a $d \times 1$ vector, the $k$-th derivative of the log-likelihood with respect to $\theta$ will be a $k$-dimensional array having $d$ entries along each of its $k$ indices. In particular, the score function (i.e. the first derivative of the log-likelihood) will also be a $d \times 1$ vector, $$\mathcal{S}(\theta; x_i) = \begin{pmatrix} \mathcal{S}_1(\theta; x_i) \\ \vdots \\ \mathcal{S}_d(\theta; x_i) \end{pmatrix},$$ where each component is a function $S_j: \Theta \to \mathbbm{R}$. Similarly, the first and second derivatives of the score function will be a $d \times d$ matrix and a three-dimensional $d \times d \times d$ array, respectively. To simplify notation, we will perform a component-wise first-order Taylor series expansion of the score function around the point $\theta = \theta_0$ wherein each component $\mathcal{S}_j(\theta; x_i)$ of $\mathcal{S}(\theta; x_i)$ is expanded separately.
+Note that **RC5)** guarantees the first partial derivative of $\mathcal{S}(\theta; x_i)$ exists and is continuous for all $x$we can expand $\mathcal{S}(\theta; x_i)$
+
+We can therefore perform a component-wise first-order Taylor series expansion of a given score contribution $\mathcal{S}(\theta; x_i)$ around the point $\theta = \theta_0$, wherein each component $\mathcal{S}_j(\theta; x_i)$ of $\mathcal{S}(\theta; x_i)$ ($j = 1, ..., d$) is expanded separately.
 
 For any $\theta \in N_r(\theta_0)$, there exists $\bar{\theta}_j$ on the line segment connecting $\theta$ and $\theta_0$ such that 
 $$
@@ -198,7 +205,7 @@ $$
                  &= \mathcal{S}_j(\theta_0; x_i) + [\nabla_{\theta} \mathcal{S}_j(\theta_0; x_i) + M(x_i)O(||\theta - \theta_0||)]^T(\theta - \theta_0),
 \end{aligned}
 $$
-where the last equality follows as a result of **RC7)**. Summing over each of the individual contributions to the score function yields
+where the last equality follows as a result of **RC6)**. Summing over each of the individual contributions to the score function yields
 $$
 \begin{aligned}
 \mathcal{S}_j(\theta; \mathbf{x}_n) &= \sum_{i=1}^n \mathcal{S}_j(\theta; x_i) \\

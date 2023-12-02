@@ -5,13 +5,62 @@
 
 \section{Definitions and Notation}
 
-\subsection{Neighborhoods}
+\subsection{Open Balls and Closed Balls}
 
-A *neighborhood* of a point $\mathbf{p} \in \mathbbm{R}^d$ is the set of all points $\mathbf{x} \in \mathbbm{R}^d$ such that the Euclidean distance between $\mathbf{p}$ and $\mathbf{x}$ is less than some radius $r > 0$. We use the following notation to refer to such neighborhoods: $$N_r(\mathbf{p}) = \{\mathbf{x} \in \mathbbm{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \}.$$
+The *open ball of radius* $r > 0$ centered at a point $p \in M$, where $M$ is a set equipped with some distance function $d$, is the set of all points $x \in M$ such that the distance between $p$ and $x$ is less than $r$. Similarly, the *closed ball of radius* $r > 0$ centered at $p$ is the set of all points in $M$ of a distance less than or equal to $r$ away from $p$. We use the following notation to refer to open and closed balls, respectively: $$B_r(p) = \{x \in M: d(x, p) < r \}$$ and $$B_r[p] = \{x \in M: d(x, p) \leq r \}.$$
+
+The methods in this paper generally only make use of open and closed balls in the context where $M$ is the Cartesian coordinate space $\mathbbm{R}^d$ equipped with the Euclidean norm $||\mathbf{x}|| = \Big(\sum_{i=1}^d x_i^2\Big)^{1/2}$ as its distance function. Hence, the open and closed balls of radius $r$ around a point $\mathbf{p} \in \mathbbm{R}^d$ may be written as $$B_r(p) = \{\mathbf{x} \in \mathbbm{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \}$$ and $$B_r[p] = \{\mathbf{x} \in \mathbbm{R}^d: \> ||\mathbf{x} - \mathbf{p}|| \leq r \}.$$ The reader may safely assume this latter definition is the one that is meant when open and closed balls are referenced in this paper.
 
 \subsection{Line Segments}
 
 For two points $\mathbf{x}_1, \mathbf{x}_2 \in \mathbbm{R}^d$, a third point $\bar{\mathbf{x}}$ is said to be on the *line segment* connecting $\mathbf{x}_1$ and $\mathbf{x}_2$ if there exists $\omega \in [0, 1]$ such that $\bar{\mathbf{x}} = \omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2$.  We use the following notation to refer to such line segments: $$LS(\mathbf{x}_1, \mathbf{x}_2) = \{\omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2: \> \omega \in [0, 1]\}.$$
+
+\subsection{Derivatives of Multivariable Functions}
+
+\subsubsection{Gradient}
+
+The *gradient* of a multivariable scalar-valued function $f: \mathbbm{R}^d \to \mathbbm{R}$ is given by its $d\times 1$ vector of partial derivatives:
+$$\nabla f(x_1, x_2, ..., x_d) = 
+\begin{pmatrix}
+\frac{\partial f}{\partial x_1} \\
+\frac{\partial f}{\partial x_2} \\
+\vdots \\
+\frac{\partial f}{\partial x_d}
+\end{pmatrix}.$$
+
+\subsubsection{Jacobian Matrix}
+
+The *Jacobian matrix* of a multivariable vector-valued function $\mathbf{f}: \mathbbm{R}^d \to \mathbbm{R}^k$ given by
+$$\mathbf{f}(x_1, x_2, ..., x_d) = 
+\begin{pmatrix}
+f_1(x_1, x_2, ..., x_d) \\
+f_2(x_1, x_2, ..., x_d) \\
+\vdots \\
+f_k(x_1, x_2, ..., x_d)
+\end{pmatrix}.
+$$ is defined as its $k \times d$ matrix of partial derivatives:
+$$\mathbf{J}(\mathbf{f}) = 
+\begin{pmatrix} 
+\frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \cdots & \frac{\partial f_1}{\partial x_d} \\ 
+\frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} & \cdots & \frac{\partial f_2}{\partial x_d} \\ 
+\vdots & \vdots & \ddots & \vdots \\ 
+\frac{\partial f_k}{\partial x_1} & \frac{\partial f_k}{\partial x_2} & \cdots & \frac{\partial f_k}{\partial x_d}
+\end{pmatrix}.
+$$ In the case where $k = 1$, the Jacobian matrix simply reduces to the transpose of the gradient of $\mathbf{f}$.
+
+\subsubsection{Hessian Matrix} The Hessian matrix of a multivariable scalar-valued function $f: \mathbbm{R}^d \to \mathbbm{R}$ is given by its $d\times d$ matrix of second partial derivatives:
+$$\mathbf{H}(f) = 
+\begin{pmatrix} 
+\frac{\partial^2 f}{\partial x_1^2} & \frac{\partial^2  f}{\partial x_1\partial x_2} & \cdots & \frac{\partial^2  f}{\partial x_1\partial x_d} \\ 
+\frac{\partial^2  f}{\partial  x_2 \partial x_1} & \frac{\partial^2  f}{\partial x_2^2} & \cdots & \frac{\partial^2  f}{\partial x_2\partial x_d} \\ 
+\vdots & \vdots & \ddots & \vdots \\ 
+\frac{\partial^2  f}{\partial  x_d \partial x_1} & \frac{\partial^2  f}{\partial x_d \partial x_2} & \cdots & \frac{\partial^2  f}{\partial x_d^2}
+\end{pmatrix}
+$$ The Hessian matrix of $f$ is also equal to the transpose of the Jacobian matrix of the gradient of $f$, i.e., $\mathbf{H}(f) = \mathbf{J}(\nabla f)^\top$. When the order of differentiation does not matter, which occurs if and only if all of $f$'s second partial derivatives are continuous, both matrices become symmetric and we simply have $\mathbf{H}(f) = \mathbf{J}(\nabla f)$. 
+
+\section{The Mean-Value Theorem for Multivariable Vector-Valued Functions}
+
+Suppose the function $\mathbf{f}: \mathbbm{R}^d \to \mathbbm{R}^k$ is continuously differentiable for all points $\mathbf{x} \in B_r(\mathbf{x}_0)$. Then for $||\mathbf{t}|| < r$, $$f(\mathbf{x_0} + \mathbf{t}) = f(\mathbf{x_0}) + \Bigg[\int_0^1\mathbf{J}\big(f(\mathbf{x} + \lambda \mathbf{t})\Big)d\lambda\Bigg]\mathbf{t}.$$ The term in the square brackets above denotes a $k \times d$ matrix whose $(i, j)$th entry is given by $$\int_{0}^1 \frac{\partial f_i(\mathbf{x} + \lambda \mathbf{t})}{\partial x_j}d\lambda.$$
 
 \section{Taylor's Theorem}
 
@@ -19,7 +68,7 @@ Let $f: \mathbbm{R}^d \to \mathbbm{R}$ be a function that is $(k+1)$-times conti
 
 \section{Jensen's Inequality}
 
-Jensen's inequality states that for a real-valued random variable $X$ with finite expectation and a strictly concave function $\varphi$, $$\text{E}[\varphi(X)] < \varphi(\text{E}[X]).$$
+For a real-valued random variable $X$ with finite expectation and a strictly concave function $\varphi$, $$\text{E}[\varphi(X)] < \varphi(\text{E}[X]).$$
 
 \chapter{Chapter 5}\label{appendix:B}
 \index{Appendix@\emph{Appendix B}}
