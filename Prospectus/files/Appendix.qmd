@@ -9,7 +9,11 @@
 
 The *open ball of radius* $r > 0$ centered at a point $p \in M$, where $M$ is a set equipped with some distance function $d$, is the set of all points $x \in M$ such that the distance between $p$ and $x$ is less than $r$. Similarly, the *closed ball of radius* $r > 0$ centered at $p$ is the set of all points in $M$ of a distance less than or equal to $r$ away from $p$. We use the following notation to refer to open and closed balls, respectively: $$B_r(p) = \{x \in M: d(x, p) < r \}$$ and $$B_r[p] = \{x \in M: d(x, p) \leq r \}.$$
 
-The methods in this paper generally only make use of open and closed balls in the context where $M$ is the Cartesian coordinate space $\mathbbm{R}^d$ equipped with the Euclidean norm $||\mathbf{x}|| = \Big(\sum_{i=1}^d x_i^2\Big)^{1/2}$ as its distance function. Hence, the open and closed balls of radius $r$ around a point $\mathbf{p} \in \mathbbm{R}^d$ may be written as $$B_r(p) = \{\mathbf{x} \in \mathbbm{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \}$$ and $$B_r[p] = \{\mathbf{x} \in \mathbbm{R}^d: \> ||\mathbf{x} - \mathbf{p}|| \leq r \}.$$ The reader may safely assume this latter definition is the one that is meant when open and closed balls are referenced in this paper.
+The methods in this paper generally only make use of open and closed balls in the context where $M$ is the Cartesian coordinate space $\mathbbm{R}^d$ equipped with the Euclidean norm $||\mathbf{x}|| = \Big(\sum_{i=1}^d x_i^2\Big)^{1/2}$ as its distance function. Hence, the open and closed balls of radius $r$ around a point $\mathbf{p} \in \mathbbm{R}^d$ may be written as $$B_r(\mathbf{p}) = \{\mathbf{x} \in \mathbbm{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \}$$ and $$B_r[\mathbf{p}] = \{\mathbf{x} \in \mathbbm{R}^d: \> ||\mathbf{x} - \mathbf{p}|| \leq r \}.$$ The reader may safely assume this latter definition is the one that is meant when open and closed balls are referenced in this paper.
+
+\subsection{Neighborhoods}
+
+A set $N_{\mathbf{p}} \subseteq \mathbbm{R}^d$ is called a *neighborhood* of a point $\mathbf{p} \in \mathbbm{R}^d$ if it contains an open ball centered at $\mathbf{p}$, i.e., for some radius $r > 0$ there exists an open ball $B_r(\mathbf{p})$ such that $B_r(\mathbf{p}) \subseteq N_{\mathbf{p}}$.
 
 \subsection{Line Segments}
 
@@ -56,11 +60,11 @@ $$\mathbf{H}(f) =
 \vdots & \vdots & \ddots & \vdots \\ 
 \frac{\partial^2  f}{\partial  x_d \partial x_1} & \frac{\partial^2  f}{\partial x_d \partial x_2} & \cdots & \frac{\partial^2  f}{\partial x_d^2}
 \end{pmatrix}
-$$ The Hessian matrix of $f$ is also equal to the transpose of the Jacobian matrix of the gradient of $f$, i.e., $\mathbf{H}(f) = \mathbf{J}(\nabla f)^\top$. When the order of differentiation does not matter, which occurs if and only if all of $f$'s second partial derivatives are continuous, both matrices become symmetric and we simply have $\mathbf{H}(f) = \mathbf{J}(\nabla f)$. 
+$$ The *Hessian matrix* of $f$ is also equal to the transpose of the Jacobian matrix of the gradient of $f$, i.e., $\mathbf{H}(f) = \mathbf{J}(\nabla f)^\top$. When the order of differentiation does not matter, which occurs if and only if all of $f$'s second partial derivatives are continuous, both matrices become symmetric and we simply have $\mathbf{H}(f) = \mathbf{J}(\nabla f)$. 
 
 \section{The Mean-Value Theorem for Multivariable Vector-Valued Functions}
 
-Suppose the function $\mathbf{f}: \mathbbm{R}^d \to \mathbbm{R}^k$ is continuously differentiable for all points $\mathbf{x} \in B_r(\mathbf{x}_0)$. Then for $||\mathbf{t}|| < r$, $$f(\mathbf{x_0} + \mathbf{t}) = f(\mathbf{x_0}) + \Bigg[\int_0^1\mathbf{J}\big(f(\mathbf{x} + \lambda \mathbf{t})\Big)d\lambda\Bigg]\mathbf{t}.$$ The term in the square brackets above denotes a $k \times d$ matrix whose $(i, j)$th entry is given by $$\int_{0}^1 \frac{\partial f_i(\mathbf{x} + \lambda \mathbf{t})}{\partial x_j}d\lambda.$$
+Suppose the function $\mathbf{f}: \mathbbm{R}^d \to \mathbbm{R}^k$ is continuously differentiable for all points $\mathbf{x} \in B_r(\mathbf{x}_0)$. Then for $||\mathbf{t}|| < r$, $$f(\mathbf{x_0} + \mathbf{t}) = f(\mathbf{x_0}) + \Bigg[\int_0^1\mathbf{J}\Big(f(\mathbf{x} + u\mathbf{t})\Big)du\Bigg]\mathbf{t}.$$ The term in the square brackets above denotes a $k \times d$ matrix whose $(i, j)$th entry is given by $$\int_{0}^1 \frac{\partial f_i(\mathbf{x} + u \mathbf{t})}{\partial x_j}du.$$
 
 \section{Taylor's Theorem}
 
@@ -77,7 +81,7 @@ For a real-valued random variable $X$ with finite expectation and a strictly con
 
 \subsection{Property 1}
 
-Suppose the likelihood function for a parameter $\theta$ can be decomposed as the product $L(\theta) = L_1(\psi)L_2(\lambda)$. Then the integrated likelihood for $\psi$ should satisfy $$\bar{L}(\psi) = L_1(\psi).$$
+Suppose the likelihood function for a parameter $\symbf{\theta}$ can be decomposed as the product $L( \symbf{\theta}) = L_1(\psi)L_2(\lambda)$. Then the integrated likelihood for $\psi$ should satisfy $$\bar{L}(\psi) = L_1(\psi).$$
 
 \subsection{Property 2}
 
@@ -87,8 +91,8 @@ Suppose the likelihood function for a parameter $\theta$ can be decomposed as th
 
 \section{Laplace's Method}
 
-Let $\theta$ be a scalar parameter taking values in $\mathbbm{R}$ and consider an integral of the form $$I = \int_{-\infty}^{\infty} f(\theta) \exp[-nh(\theta)]d\theta.$$ Suppose the function $-h(\theta)$ is smooth, bounded, and unimodal so that it attains a maximum at a point $\hat{\theta}$. Then Laplace's method states that an approximation for $I$ is given by $$\hat{I} = f(\hat{\theta})\sqrt{\frac{2 \pi}{n}}\sigma \exp[-nh(\hat{\theta})],$$
-where $$\sigma = \Bigg[\frac{\partial^2 h}{\partial \theta^2} \Bigg|_{\theta = \hat{\theta}} \Bigg]^{-1/2}.$$ It can further be shown that $$I = \hat{I}\Bigg\{1 + O\bigg(\frac{1}{n}\bigg)\Bigg\},$$ where the term $n$ may be interpreted as the sample size.
+Let $\symbf{\theta}$ be a scalar parameter taking values in $\mathbbm{R}$ and consider an integral of the form $$I = \int_{-\infty}^{\infty} f(\symbf{\theta}) \exp[-nh(\symbf{\theta})]d\symbf{\theta}.$$ Suppose the function $-h(\symbf{\theta})$ is smooth, bounded, and unimodal so that it attains a maximum at a point $\hat{ \symbf{\theta}}$. Then Laplace's method states that an approximation for $I$ is given by $$\hat{I} = f(\hat{ \symbf{\theta}})\sqrt{\frac{2 \pi}{n}}\sigma \exp[-nh(\hat{\symbf{\theta}})],$$
+where $$\sigma = \Bigg[\frac{\partial^2 h}{\partial \symbf{\theta}^2} \Bigg|_{\symbf{\theta} = \hat{\symbf{\theta}}} \Bigg]^{-1/2}.$$ It can further be shown that $$I = \hat{I}\Bigg\{1 + O\bigg(\frac{1}{n}\bigg)\Bigg\},$$ where the term $n$ may be interpreted as the sample size.
 
 
 
