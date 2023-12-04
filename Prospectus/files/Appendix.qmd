@@ -5,19 +5,59 @@
 
 \section{Definitions and Notation}
 
-\subsection{Open Balls and Closed Balls}
+\subsection{Open and Closed Balls}
 
-The *open ball of radius* $r > 0$ centered at a point $p \in M$, where $M$ is a set equipped with some distance function $d$, is the set of all points $x \in M$ such that the distance between $p$ and $x$ is less than $r$. Similarly, the *closed ball of radius* $r > 0$ centered at $p$ is the set of all points in $M$ of a distance less than or equal to $r$ away from $p$. We use the following notation to refer to open and closed balls, respectively: $$B_r(p) = \{x \in M: d(x, p) < r \}$$ and $$B_r[p] = \{x \in M: d(x, p) \leq r \}.$$
+\subsubsection{Open Ball} The *open ball of radius* $r > 0$ centered at a point $p \in \mathbbm{R}^d$, is the set of all points $x \in \mathbbm{R}^d$ such that the distance between $p$ and $x$ is less than $r$ We denote this set using the notation $$B_r(\mathbf{p}) = \{\mathbf{x} \in \mathbbm{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \},$$ where $||\cdot||$ indicates the Euclidean norm, i.e., $||\mathbf{x}|| = \Big(\sum_{i=1}^d x_i^2\Big)^{1/2}$ for $\mathbf{x} \in \mathbbm{R}^d$.
 
-The methods in this paper generally only make use of open and closed balls in the context where $M$ is the Cartesian coordinate space $\mathbbm{R}^d$ equipped with the Euclidean norm $||\mathbf{x}|| = \Big(\sum_{i=1}^d x_i^2\Big)^{1/2}$ as its distance function. Hence, the open and closed balls of radius $r$ around a point $\mathbf{p} \in \mathbbm{R}^d$ may be written as $$B_r(\mathbf{p}) = \{\mathbf{x} \in \mathbbm{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \}$$ and $$B_r[\mathbf{p}] = \{\mathbf{x} \in \mathbbm{R}^d: \> ||\mathbf{x} - \mathbf{p}|| \leq r \}.$$ The reader may safely assume this latter definition is the one that is meant when open and closed balls are referenced in this paper.
+\subsubsection{Closed Ball} The *closed ball of radius* $r > 0$ centered at a point $p \in \mathbbm{R}^d$, is the set of all points $x \in \mathbbm{R}^d$ such that the distance between $p$ and $x$ is less than or equal to $r$. We denote this set using the notation $$B_r[\mathbf{p}] = \{\mathbf{x} \in \mathbbm{R}^d: \> ||\mathbf{x} - \mathbf{p}||\} \leq r.$$
+
+\subsection{Open and Closed Sets}
+
+\subsubsection{Open Set} A subset $A$ of $\mathbbm{R}^d$ is called an *open set* of $\mathbbm{R}^d$ if every point in $A$ is the center of an open ball entirely contained in $A$. That is, $A$ is open if and only if for any $a \in A$, there exists a radius $r > 0$ such that $B_r(a) \subseteq A$.
+
+\subsubsection{Closed Set} A subset $B$ of $\mathbbm{R}^d$ is called a *closed set* of $\mathbbm{R}^d$ if its complement $B^c = \mathbbm{R}^d \mathbin{\backslash} B$ is open.
 
 \subsection{Neighborhoods}
 
 A set $N_{\mathbf{p}} \subseteq \mathbbm{R}^d$ is called a *neighborhood* of a point $\mathbf{p} \in \mathbbm{R}^d$ if it contains an open ball centered at $\mathbf{p}$, i.e., for some radius $r > 0$ there exists an open ball $B_r(\mathbf{p})$ such that $B_r(\mathbf{p}) \subseteq N_{\mathbf{p}}$.
 
+\subsection{Boundedness}
+
+\subsubsection{Bounded Set} A set $S \subset \mathbb{R}^d$ is called *bounded* if there exists some radius $r > 0$ such that $B_r(\mathbb{\mathbf{0}}) \subset S$.
+
+\subsubsection{Bounded Function} A function $f: X \to \mathbb{R}$ is called *bounded* if there exists a real number $M$ such that $|f(x)| \leq M$ for all $x \in X$.
+
+\subsection{Compact Set}
+
+A subset of $\mathbb{R}^d$ is called *compact* if it is closed and bounded.
+
+\subsection{Interiority}
+
+\subsubsection{Interior Point}
+
+A point $p \in S \subset \mathbbm{R}^d$ is called an *interior point* of $S$ if there exists some radius $r > 0$ such that $\subseteq B_r(\mathbb{p})$.
+
+\subsubsection{Interior of a Set} The *interior of a set* $S \subset \mathbbm{R}^d$, denoted by $\text{int} \> S$, is the set of all interior points of $S$.
+
 \subsection{Line Segments}
 
-For two points $\mathbf{x}_1, \mathbf{x}_2 \in \mathbbm{R}^d$, a third point $\bar{\mathbf{x}}$ is said to be on the *line segment* connecting $\mathbf{x}_1$ and $\mathbf{x}_2$ if there exists $\omega \in [0, 1]$ such that $\bar{\mathbf{x}} = \omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2$.  We use the following notation to refer to such line segments: $$LS(\mathbf{x}_1, \mathbf{x}_2) = \{\omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2: \> \omega \in [0, 1]\}.$$
+For two points $\mathbf{x}_1, \mathbf{x}_2 \in \mathbbm{R}^d$, a third point $\bar{\mathbf{x}}$ is said to be on the *line segment* connecting $\mathbf{x}_1$ and $\mathbf{x}_2$ if there exists $\omega \in [0, 1]$ such that $\bar{\mathbf{x}} = \omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2$.  We use the following notation to refer to such line segments: $$\text{LS}(\mathbf{x}_1, \mathbf{x}_2) = \{\omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2: \> \omega \in [0, 1]\}.$$
+
+\subsection{Convexity and Concavity}
+
+\subsubsection{Convex Set} A set $S \subseteq \mathbbm{R}^d$ is called *convex* if for any two points $\mathbf{x}_1, \mathbf{x}_2 \in S$, the line segment connecting $\mathbf{x}_1$ and $\mathbf{x}_2$ is entirely contained within $S$, i.e., $$\text{LS}(\mathbf{x}_1, \mathbf{x}_2) \subseteq S \text{ for all } \mathbf{x}_1, \mathbf{x}_2 \in S.$$
+
+\subsubsection{Convex Function} Let $f: X \to \mathbb{R}$, where $X$ is a convex set. $f$ is called a *convex function* if for all $t \in [0, 1]$ and all $x_1, x_2 \in X$, $$f(t x_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2).$$ If it is possible to graph the function on the coordinate plane, this is equivalent to saying that the line segment between any two distinct points on the graph of the function lies above the graph.
+
+$f$ is called *strictly convex* if the equality is tightened, i.e., $$f(t x_1 + (1-t)x_2) < tf(x_1) + (1-t)f(x_2).$$ 
+
+\subsubsection{Concave Function} Let $f: X \to \mathbb{R}$, where $X$ is a convex set. $f$ is called a *concave function* if for all $t \in [0, 1]$ and all $x_1, x_2 \in X$, $$f(t x_1 + (1-t)x_2) \geq tf(x_1) + (1-t)f(x_2).$$ If it is possible to graph the function on the coordinate plane, this is equivalent to saying that the line segment between any two distinct points on the graph of the function lies below the graph.
+
+$f$ is called *strictly concave* if the equality is tightened, i.e., $$f(t x_1 + (1-t)x_2) > tf(x_1) + (1-t)f(x_2).$$ 
+
+\subsection{Positive Definiteness}
+
+A $d \times d$ symmetric real matrix $M$ is called *positive definite* if $\mathbf{x}^\top M \mathbf{x} > 0$ for all non-zero $\mathbf{x} \in \mathbbm{R}^d$.
 
 \subsection{Derivatives of Multivariable Functions}
 
@@ -62,15 +102,23 @@ $$\mathbf{H}(f) =
 \end{pmatrix}
 $$ The *Hessian matrix* of $f$ is also equal to the transpose of the Jacobian matrix of the gradient of $f$, i.e., $\mathbf{H}(f) = \mathbf{J}(\nabla f)^\top$. When the order of differentiation does not matter, which occurs if and only if all of $f$'s second partial derivatives are continuous, both matrices become symmetric and we simply have $\mathbf{H}(f) = \mathbf{J}(\nabla f)$. 
 
-\section{The Mean-Value Theorem for Multivariable Vector-Valued Functions}
+A twice differentiable function of several variables is strictly convex (concave) on a convex set if and only if its Hessian matrix is positive (negative) definite on the interior of the convex set.
+
+\section{Theorems}
+
+\subsection{The Extreme Value Theorem}
+
+If $K$ is a compact set and $f: K \to \mathbb{R}$ is a continuous function, then $f$ is bounded and there exists $p, q \in K$ such that $$f(p) = \sup_{x \in K}f(x)$$ and $$f(q) = \inf_{x \in K}f(x).$$
+
+\subsection{The Mean-Value Theorem for Multivariable Vector-Valued Functions}
 
 Suppose the function $\mathbf{f}: \mathbbm{R}^d \to \mathbbm{R}^k$ is continuously differentiable for all points $\mathbf{x} \in B_r(\mathbf{x}_0)$. Then for $||\mathbf{t}|| < r$, $$f(\mathbf{x_0} + \mathbf{t}) = f(\mathbf{x_0}) + \Bigg[\int_0^1\mathbf{J}\Big(f(\mathbf{x} + u\mathbf{t})\Big)du\Bigg]\mathbf{t}.$$ The term in the square brackets above denotes a $k \times d$ matrix whose $(i, j)$th entry is given by $$\int_{0}^1 \frac{\partial f_i(\mathbf{x} + u \mathbf{t})}{\partial x_j}du.$$
 
-\section{Taylor's Theorem}
+\subsection{Taylor's Theorem}
 
 Let $f: \mathbbm{R}^d \to \mathbbm{R}$ be a function that is $(k+1)$-times continuously differentiable in a neighborhood $N_r(\mathbf{x}_0)$ of some point $\mathbf{x}_0 \in \mathbbm{R}^d$ and suppose there exists $M$ satisfying $|D^{\symbf\alpha}f| \leq M$ for all $x \in N_r(x_0)$ and all $\symbf{\alpha}$ such that $|\symbf{\alpha}| = k + 1$. Then $$f(\mathbf{x}) = \sum_{0 \leq |\symbf{\alpha}| \leq k} \frac{D^{\symbf{\alpha}} f(\mathbf{x}_0)}{\symbf{\alpha}!}(\mathbf{x} - \mathbf{x}_0)^{\symbf{\alpha}} + R_k(\mathbf{x}),$$ where the remainder term $R_k(\mathbf{x})$ satisfies $$|R_k(\mathbf{x})| \leq \frac{M}{\symbf{\alpha}!}|\mathbf{x} - \mathbf{x}_0|^{\symbf{\alpha}}$$ for all $\symbf{\alpha}$ such that $|\symbf{\alpha}| = k + 1$
 
-\section{Jensen's Inequality}
+\subsection{Jensen's Inequality}
 
 For a real-valued random variable $X$ with finite expectation and a strictly concave function $\varphi$, $$\text{E}[\varphi(X)] < \varphi(\text{E}[X]).$$
 
