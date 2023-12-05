@@ -89,8 +89,13 @@ $$\mathbf{J}(\mathbf{f}) =
 \frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} & \cdots & \frac{\partial f_2}{\partial x_d} \\ 
 \vdots & \vdots & \ddots & \vdots \\ 
 \frac{\partial f_k}{\partial x_1} & \frac{\partial f_k}{\partial x_2} & \cdots & \frac{\partial f_k}{\partial x_d}
-\end{pmatrix}.
-$$ In the case where $k = 1$, the Jacobian matrix simply reduces to the transpose of the gradient of $\mathbf{f}$.
+\end{pmatrix} =
+\begin{pmatrix}
+\nabla^\top f_1 \\
+\vdots \\
+\nabla^\top f_k
+\end{pmatrix}
+$$ In the case where $k = 1$, the Jacobian matrix simply reduces to $\nabla^\top f$, the transpose of the gradient of $\mathbf{f}$.
 
 \subsubsection{Hessian Matrix} The Hessian matrix of a multivariable scalar-valued function $f: \mathbbm{R}^d \to \mathbbm{R}$ is given by its $d\times d$ matrix of second partial derivatives:
 $$\mathbf{H}(f) = 

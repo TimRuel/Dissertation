@@ -69,6 +69,19 @@ Maximum likelihood estimation is one of the most powerful and widespread techniq
 
 This can be extended to include as many candidate parameter values as we would like. For $n$ potential estimates of $\symbf{\theta}_0$, the best is the one that corresponds to the highest value of the likelihood function. Following this line of reasoning to its natural conclusion, a sensible choice for an estimate of $\symbf{\theta}_0$ is any value that maximizes the likelihood function based on an observed dataset $\mathbf{x}_n$. 
 
+To help make this argument rigorous, we can show that with probability tending to $1$ as the sample size tends toward infinity, the likelihood for a regular model will be strictly larger at $\symbf{\theta}_0$ than for any other $\symbf{\theta} \in \Theta$. We start by observing that **RC1** implies $$L(\symbf{\theta}; \mathbf{x}_n) = p(\mathbf{x}_n; \symbf{\theta}) = \prod_{i=1}^n p(x_i; \symbf{\theta})$${#eq-MLE1} and $$\ell(\symbf{\theta}; \mathbf{x}_n) = \log p(\mathbf{x}_n; \symbf{\theta}) = \sum_{i=1}^n \log p(x_i; \symbf{\theta}).$${#eq-MLE2}  It follows that 
+$$
+\begin{aligned}
+L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n) &\iff \ell(\symbf{\theta}; \mathbf{x}_n) < \ell(\symbf{\theta}_0; \mathbf{x}_n) \\
+                                                    &\iff \sum_{i=1}^n \log p(x_i; \symbf{\theta}) - \sum_{i=1}^n \log p(x_i; \symbf{\theta}_0) < 0 \\
+                                                    &\iff \sum_{i=1}^n \big[\log p(x_i; \symbf{\theta}) - \log p(x_i; \symbf{\theta}_0)\big] < 0 \\
+                                                    &\iff \sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0 \\
+                                                    &\iff \frac{1}{n}\sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0.
+\end{aligned}
+$${#eq-MLE3}
+Note that **RC3** guarantees that the ratio $p(x; \symbf{\theta}) / p(x; \symbf{\theta}_0)$ is well-defined and finite for all $x \in \mathcal{X}$, the region of common support. Then by the Weak Law of Large Numbers, $$\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} \to \text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg]$${#eq-MLE4} in probability as $n \to \infty$. Furthermore, $$\text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \int_{\mathcal{X}}\Bigg[\frac{p(x; \symbf{\theta})}{p(x; \symbf{\theta}_0)} \Bigg] p(x; \symbf{\theta}_0)dx = \int_{\mathcal{X}}p(x; \symbf{\theta})dx = 1.$${#eq-MLE5}
+Since $\log(x)$ is a strictly concave function, it follows from Jensen's inequality (see Appendix \ref{appendix:A}) and @eq-MLE5 $$\text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] < \log \text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \log 1 = 0.$${#eq-MLE6} Hence, the quantity on the left-hand side of @eq-MLE4 is converging in probability to a constant that is less than 0 as $n$ tends to infinity. From this and the equivalence we established in @eq-MLE3, it follows that $$\lim_{n \to \infty} P_{\symbf{\theta}_0} \big[L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n)\big] = \lim_{n \to \infty} P_{\symbf{\theta}_0} \Bigg[\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} < 0\Bigg] = 1,$${#eq-MLE7} which proves the claim.
+
 Let $\hat{\symbf{\theta}}\in \Theta$ be any parameter value that renders the likelihood at the observed $\mathbf{X}_n = \mathbf{x}_n$ as large as possible, i.e., $$L(\hat{\symbf{\theta}}, \mathbf{x}_n) = \sup_{\symbf{\theta} \in \Theta} L(\symbf{\theta}).$${#eq-MLE8} We call such a value a *maximum likelihood estimate* of $\theta_0$. Note that this definition of $\hat{\theta}$ as a maximizer of $L(\hat{\symbf{\theta}}, \mathbf{x}_n)$ necessarily makes it a function of the observed data. When this function is measurable, then we can further define the *maximum likelihood estimator* (MLE) of $\symbf{\theta}_0$ as the statistic $\hat{\symbf{\theta}}(\mathbf{X}_n)$ for which we observe the value $\hat{\symbf{\theta}}(\mathbf{x}_n)$. 
 
 \section{Regularity Conditions}
@@ -82,34 +95,34 @@ For our purposes, we will call a model *regular* if it satisfies the following c
   \item The distributions in $\mathcal{P}$ have a common support $\mathcal{X} = \{x: p_{\symbf{\theta}}(x) > 0 \}\subseteq \mathbbm{R}$ not depending on $\symbf{\theta}$.
   \item There exists an open set $\Theta^* \subseteq \Theta$ of which $\symbf{\theta}_0$ is an interior point.
   \item $p(x; \symbf{\theta})$ is twice continuously differentiable with respect to $\symbf{\theta}$ for all $\symbf{\theta}$ in a neighborhood of $\symbf{\theta}_0$.
-  \item There exists a random function $M(x)$ (that does not depend on $\symbf{\theta}$) satisfying $E_{\symbf{\theta}_0}[M(X)] < \infty$ such that each component of the observed information matrix $\mathcal{I}(\symbf{\theta})$ is bounded in absolute value by $M(x)$ uniformly in some neighborhood of $\symbf{\theta}_0$.
+  \item There exists a random function $M(x)$ (that does not depend on $\symbf{\theta}$) satisfying $\text{E}[M(X)] < \infty$ such that each third partial derivative of $\ell(\symbf{\theta}; x)$ is bounded in absolute value by $M(x)$ uniformly in some neighborhood of $\symbf{\theta}_0$.
   \item The integral $\int_{\mathcal{X}} p(x; \symbf{\theta}) dx$ can be differentiated twice under the integral sign with respect to the components of $\symbf{\theta}\in \Theta^*$.
   \item $\mathscr{I}_{X}(\symbf{\theta})$ is positive definite for all $\symbf{\theta} \in \Theta$.
   \item $\Theta$ is a compact and convex subset of $\mathbbm{R}^d$.
 \end{enumerate}
-While not strictly necessary, **RC1)** is often assumed as a matter of convenience since it tends to simplify calculations greatly. We include it here for that purpose and to frame our discussion in the context of a standard case in which likelihood theory holds. Of course, it is possible to construct models lacking i.i.d. observations yet still possessing real world applications for which the results discussed in this paper hold. 
+While not strictly necessary, **RC1** is often assumed as a matter of convenience since it tends to simplify calculations greatly. We include it here for that purpose and to frame our discussion in the context of a standard case in which likelihood theory holds. Of course, it is possible to construct models lacking i.i.d. observations yet still possessing real world applications for which the results discussed in this paper hold. 
 
-The implication in **RC2)** is simply the identifiability property we mentioned in Chapter 2. We repeat it here as it is necessary to guarantee the consistency of the MLE, i.e., that it converges in probability to $\symbf{\theta}_0$ as $n \to \infty$.
+The implication in **RC2** is simply the identifiability property we mentioned in Chapter 2. We repeat it here as it is necessary to guarantee the consistency of the MLE, i.e., that it converges in probability to $\symbf{\theta}_0$ as $n \to \infty$.
 
-**RC3)** requires that the distributions in $\mathcal{P}$ be supported on a common subset of the real line, and the definition of this subset cannot depend on $\symbf{\theta}$. This is to prevent situations in which, for example, the event $\{X_i \leq x_i \}$ occurs with positive probability when $\symbf{\theta} = \symbf{\theta}_1$ but not $\symbf{\theta} = \symbf{\theta}_2$. 
+**RC3** requires that the distributions in $\mathcal{P}$ be supported on a common subset of the real line, and the definition of this subset cannot depend on $\symbf{\theta}$. This is to prevent situations in which, for example, the event $\{X_i \leq x_i \}$ occurs with positive probability when $\symbf{\theta} = \symbf{\theta}_1$ but not $\symbf{\theta} = \symbf{\theta}_2$. 
 
-**RC4)** guarantees the existence of an open subset $\Theta^*$ of $\Theta$ containing $\symbf{\theta}_0$ as an interior point. The fact that $\symbf{\theta}_0$ is an interior point of $\Theta^*$ further implies that it is possible to find a neighborhood of $\symbf{\theta}_0$ that is contained in $\Theta^*$. **RC5)** then goes on to assert the existence and continuity of the first two partial derivatives with respect to the components of $\symbf{\theta}$ of $p(x; \symbf{\theta})$ in this neighborhood. This is a necessary requirement for defining a first-order Taylor series expansion of the score function around $\symbf{\theta}_0$. 
+**RC4** guarantees the existence of an open subset $\Theta^*$ of $\Theta$ containing $\symbf{\theta}_0$ as an interior point. The fact that $\symbf{\theta}_0$ is an interior point of $\Theta^*$ further implies that it is possible to find a neighborhood of $\symbf{\theta}_0$ that is contained in $\Theta^*$. **RC5** then goes on to assert the existence and continuity of the first two partial derivatives with respect to the components of $\symbf{\theta}$ of $p(x; \symbf{\theta})$ in this neighborhood. This is a necessary requirement for defining a first-order Taylor series expansion of the score function around $\symbf{\theta}_0$. 
 
-Another way of stating **RC6)** is that for all $\symbf{\theta}$ in a neighborhood $N_{\symbf{\theta}_0}$, there exists a random function $M(x)$ with finite expectation such that $$\sup_{\symbf{\theta} \in N_{\symbf{\theta}_0}}\Bigg|\frac{\partial^2 \ell(\symbf{\theta};x)}{\partial \theta_i \partial \theta_j}\Bigg| \leq M(x)$$ for all integers $1 \leq i, j \leq d$. This ensures the remainder terms in the Taylor series expansion of the score function become negligible as the sample size increases to infinity.
+Another way of stating **RC6** is that for all $\symbf{\theta}$ in a neighborhood $N_{\symbf{\theta}_0}$, there exists a random function $M(x)$ with finite expectation such that $$\sup_{\symbf{\theta} \in N_{\symbf{\theta}_0}}\Bigg|\frac{\partial^3 \ell(\symbf{\theta};x)}{\partial \theta_i \partial \theta_j \partial \theta_k}\Bigg| \leq M(x)$$ for all integers $1 \leq i, j, k \leq d$. Equivalently, we could say that the entries of the Hessian matrix for each component of the score function are all bounded by $M(x)$ as well. This ensures the remainder terms in a second-order Taylor series expansion of the score function around $\symbf{\theta_0}$ become negligible as the sample size increases to infinity.
 
-**RC7)** grants us the ability to freely interchange integration and second-order partial differentiation with respect to the components of $\symbf{\theta}$, i.e., $$\frac{\partial^2}{\partial \theta_i \partial \theta_j}\int_{\mathcal{X}} p(x; \symbf{\theta}) dx = \int_{\mathcal{X}} \frac{\partial^2}{\partial \theta_i \partial \theta_j}p(x; \symbf{\theta}) dx$$ for all $\symbf{\theta} \in \Theta^*$ and $i, j = 1, ..., d$. Note that this implies first-order partial derivatives can be passed under the integral sign as well. This will prove useful in our discussion of the Bartlett identities in Section 3.5. 
+**RC7** grants us the ability to freely interchange integration and second-order partial differentiation with respect to the components of $\symbf{\theta}$, i.e., $$\frac{\partial^2}{\partial \theta_i \partial \theta_j}\int_{\mathcal{X}} p(x; \symbf{\theta}) dx = \int_{\mathcal{X}} \frac{\partial^2}{\partial \theta_i \partial \theta_j}p(x; \symbf{\theta}) dx$$ for all $\symbf{\theta} \in \Theta^*$ and $i, j = 1, ..., d$. Note that this implies first-order partial derivatives can be passed under the integral sign as well. This will prove useful in our discussion of the Bartlett identities in Section 3.5. 
 
-Finally, **RC8-9)** play an important role in ensuring the existence and uniqueness of the maximum likelihood estimator of a regular model's parameter.
+Finally, **RC8-9** play an important role in ensuring the existence and uniqueness of the maximum likelihood estimator of $\symbf{\theta}_0$.
 
 \subsection{Properties}
 
 In general, there is no guarantee that an MLE for a model's parameter will exist, and even if it does, it will not necessarily be unique. However, since maximum likelihood estimation plays such an important role in our discussion in Chapters 5 and 6, it would come as a great convenience if we possessed the ability to speak freely of *the* MLE of a model's parameter without having to clarify *which* MLE we mean or whether one even exists at all. Hence, some discussion of the conditions under which the MLE of a model's parameter exists and is unique is warranted.
 
-The extreme value theorem (see Appendix \ref{appendix:A}) implies that sufficient conditions for the existence of a model's MLE are that $\Theta$ is compact, and $\ell(\symbf{\theta}; x)$ is continuous on $\Theta$. The former is satisfied directly by **RC9)** and the latter is implied through our assumption in **RC5)** of the differentiability of $p(x; \symbf{\theta})$ in $\symbf{\theta}$. Therefore, at least one MLE will always exist for the true parameter value of a regular model. These are only sufficient conditions, however, and not necessary; MLEs may exist for parameters of non-regular models as wel.
+The extreme value theorem (see Appendix \ref{appendix:A}) implies that sufficient conditions for the existence of a model's MLE are that $\Theta$ is compact, and $\ell(\symbf{\theta}; x)$ is continuous on $\Theta$. The former is satisfied directly by **RC9** and the latter is implied through our assumption in **RC5** of the differentiability of $p(x; \symbf{\theta})$ in $\symbf{\theta}$. Therefore, at least  one MLE will always exist for the true parameter value of a regular model. These are only sufficient conditions, however, and not necessary; MLEs may exist for parameters of non-regular models as wel.
 
-Similarly, when the MLE does exist, a sufficient condition for its uniqueness is that $\Theta$ is convex, and $\ell(\symbf{\theta}; x)$ is strictly concave on $\Theta$, as this ensures that it has exactly one global maximum, which it attains at the $\hat{\symbf{\theta}}$. **RC9)** directly satisfies the compactness criterion. Our assumption in **RC8)** that the Fisher information matrix is positive definite forces the Hessian matrix of $\ell(\symbf{\theta}; x)$ to be negative definite. This in turn implies that $\ell(\symbf{\theta}; x)$ is strictly concave, so the requirement is met. Hence, a regular model will always have a unique MLE for its parameter.
+Similarly, when the MLE does exist, a sufficient condition for its uniqueness is that $\Theta$ is convex, and $\ell(\symbf{\theta}; x)$ is strictly concave on $\Theta$, as this ensures that it has exactly one global maximum, which it attains at the $\hat{\symbf{\theta}}$. **RC9** directly satisfies the compactness criterion. Our assumption in **RC8** that the Fisher information matrix is positive definite forces the Hessian matrix of $\ell(\symbf{\theta}; x)$ to be negative definite. This in turn implies that $\ell(\symbf{\theta}; x)$ is strictly concave, so the requirement is met. Hence, a regular model will always have a unique MLE for its parameter.
 
-As a global maximizer of the log-likelihood function, the MLE $\hat{\symbf{\theta}}$ must be a root of the log-likelihood function, i.e., it must satisfy the *likelihood equation*, $$\nabla_{\symbf{\theta}}\ell(\hat{\symbf{\theta}}) = \mathbf{0}.$${#eq-MLE9} whenever it exists. It is important to note that for an arbitrary model there may be other roots as well, even when the MLE doesn't exist. Assuming **RC2)** and **RC5-8)**, it can be shown that there will always be at least one sequence of roots $\hat{\symbf{\theta}}_n$ of its log-likelihood such that $\hat{\symbf{\theta}}_n$ tends to $\symbf{\theta}_0$ in probability as $n \to \infty$ (Cf. Cramér 1945). The MLE will not necessarily be a part of this sequence though, even if it exists. Adding **RC9)** is enough to ensure the MLE must be the unique solution to the likelihood equation, however, and therefore this sequence of roots will also be unique and for a given sample $\mathbf{x}_n$, the corresponding root $\hat{\symbf{\theta}}_n = \hat{\symbf{\theta}}(\mathbf{x}_n)$ will be the unique MLE of $\symbf{\theta}_0$. It follows that the MLE is a consistent estimator of $\symbf{\theta}_0$ for regular models. We will explore the asymptotic properties of the MLE in more detail in Section 3.6.
+As a global maximizer of the log-likelihood function, the MLE $\hat{\symbf{\theta}}$ must be a root of the log-likelihood function, i.e., it must satisfy the *likelihood equation*, $$\nabla_{\symbf{\theta}}\ell(\hat{\symbf{\theta}}) = \mathbf{0}.$${#eq-MLE9} whenever it exists. It is important to note that for an arbitrary model there may be other roots as well, even when the MLE doesn't exist. Assuming **RC2** and **RC5-8**, it can be shown that there will always be at least one sequence of roots $\hat{\symbf{\theta}}_n$ of its log-likelihood such that $\hat{\symbf{\theta}}_n$ tends to $\symbf{\theta}_0$ in probability as $n \to \infty$ (Cf. Cramér 1945). The MLE will not necessarily be a part of this sequence though, even if it exists. Adding **RC9** is enough to ensure the MLE must be the unique solution to the likelihood equation, however, and therefore this sequence of roots will also be unique and for a given sample $\mathbf{x}_n$, the corresponding root $\hat{\symbf{\theta}}_n = \hat{\symbf{\theta}}(\mathbf{x}_n)$ will be the unique MLE of $\symbf{\theta}_0$. It follows that the MLE is a consistent estimator of $\symbf{\theta}_0$ for regular models. We will explore the asymptotic properties of the MLE in more detail in Section 3.6.
 
 One last useful property of the maximum likelihood estimator is its functional invariance. If $\hat{\symbf{\theta}}$ is an MLE of $\symbf{\theta}_0$, then any function $h(\symbf{\theta}_0)$ will have $h(\hat{\symbf{\theta}})$ as its MLE. Hence, it is straightforward to find the MLE of a model that has undergone a reparameterization given that we know the MLE of the original parameter. 
 
@@ -166,7 +179,7 @@ $$
 $$
 Therefore, $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2 \Bigg] = 0.$${#eq-BI3}
 
-@eq-BI2 is called the second Bartlett identity. Any function that satisfies it is said to be *information-unbiased*. Regular models as we have defined them will automatically satisfy both the first and second Bartlett identities. Hence, for any regular model, the statements in @eq-exp_information1, @eq-BI2, and @eq-BI3 imply that the following definitions for its expected information regarding its parameter $\theta$ are all equivalent: $$\mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg].$${#eq-BI4} 
+@eq-BI2 is called the second Bartlett identity. Any function that satisfies it is said to be *information-unbiased*. Regular models as we have defined them will automatically satisfy both the first and second Bartlett identities. Hence, for any regular model, the statements in @eq-exp_information1, @eq-BI2, and @eq-BI3 imply that the following definitions for its expected information regarding its parameter $\theta$ are all equivalent: $$\mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\big[\mathcal{I}_X(\theta)\big].$${#eq-BI4} 
 
 It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of partial $\theta$-derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of approximations to genuine likelihoods so we will not go further here. Note that while the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\symbf{\theta}$ is a $d \times 1$ vector.
 
@@ -174,11 +187,7 @@ It is possible to derive further Bartlett identities by continuing in this manne
 
 The one-index asymptotics framework describes the behavior of likelihood-based statistics as the sample size ($n$) grows to infinity while the dimension of the nuisance parameter ($q$) remains fixed. The aim of this section is to present a basic overview of the theory's results so that we will have a readily available baseline against which to compare the results of the following section discussing the two-index asymptotics framework, in which $q$ is allowed to increase with $n$.
 
-Assume the regularity conditions of the previous section apply to our model and let $\hat{\symbf{\theta}}$ denote the MLE for $\symbf{\theta}_0$. 
-
-The traditional method for analyzing the asymptotic behavior of $\hat{\symbf{\theta}}$ is to use a first-order Taylor series expansion of the score function.^[See Appendix \ref{appendix:A} for a review of Taylor's theorem and the conditions under which it is satisfied.] 
-
-We start by noting that under our assumption of i.i.d. observations, the score function is equal to
+Assume the regularity conditions of the previous section apply and let $\hat{\symbf{\theta}}$ denote the MLE for $\symbf{\theta}_0$. **RC1** implies the score function is equal to
 $$
 \begin{aligned}
 \mathcal{S}(\symbf{\theta}; \mathbf{x}_n) &= \nabla_{\symbf{\theta}} \ell(\symbf{\theta}; \mathbf{x}_n) \\
@@ -186,50 +195,74 @@ $$
                                   &= \sum_{i=1}^n \nabla_{\symbf{\theta}} \ell(\symbf{\theta}; x_i) \\
                                   &= \sum_{i=1}^n \mathcal{S}(\symbf{\theta}; x_i).
 \end{aligned}
-$${#eq-score_additive}
-In other words, the score function for the parameter $\symbf{\theta}$ based on data $x_1, ..., x_n$ can be written as the sum of independent contributions $\mathcal{S}(\symbf{\theta}; x_i)$ ($i = 1,..., n$) where each $\mathcal{S}(\symbf{\theta}; x_i)$ can be thought of as the score function for $\symbf{\theta}$ based only on observation $x_i$. 
+$${#eq-score_additive} where the last equality is true by . 
+In other words, the score function for the parameter $\symbf{\theta}$ based on data $x_1, ..., x_n$ can be written as the sum of independent contributions $\mathcal{S}(\symbf{\theta}; x_i)$ ($i = 1,..., n$) where each $\mathcal{S}(\symbf{\theta}; x_i)$ can be thought of as the score function for $\symbf{\theta}$ based only on observation $x_i$. This implies that a Taylor series expansion of $\mathcal{S}(\symbf{\theta}; \mathbf{x}_n)$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that depends on $n$. Since the observations are identically distributed, it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\symbf{\theta}; x_i)$. 
 
-@eq-score_additive implies that a Taylor series expansion of $\mathcal{S}(\symbf{\theta}; \mathbf{x}_n)$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that grows with $n$. Since the observations are identically distributed, it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\symbf{\theta}; x_i)$. 
-
-Note that **RC5)** guarantees the first partial derivative of $\mathcal{S}(\symbf{\theta}; x_i)$ with respect to $\symbf{\theta}$ exists and is continuous for all $\symbf{\theta} \in \Theta^*$. Since $\Theta^*$ is an open set and $\symbf{\theta}_0 \in \Theta^*$, there must exist an open ball $B_r(\symbf{\theta}) \subset \Theta^*$ on which $\mathcal{S}(\symbf{\theta}; x_i)$ is continuously differentiable with respect to $\symbf{\theta}$. This means $\mathcal{S}(\symbf{\theta}; x_i)$ satisfies the criteria necessary to use a version of the Mean-Value Theorem that has been adapted to suit multivariable vector-valued functions (see Appendix \ref{appendix:A}). Hence, we can expand $\mathcal{S}(\symbf{\theta}; X_i)$ as $$\mathcal{S}(\symbf{\theta}; X_i) = \mathcal{S}(\symbf{\theta}_0; X_i) + \Bigg[\int_0^1 \mathbf{J}\Big(\mathcal{S}(\symbf{\theta}_0 + u(\symbf{\theta} - \symbf{\theta}_0); x_i)\Big)du\Bigg](\symbf{\theta} - \symbf{\theta}_0).$$
-
-in an open ball $B_r(\symbf{\theta})$. we can expand $\mathcal{S}(\symbf{\theta}; x_i)$
-
-We can therefore perform a component-wise first-order Taylor series expansion of a given score contribution $\mathcal{S}(\symbf{\theta}; x_i)$ around the point $\symbf{\theta} = \symbf{\theta}_0$, wherein each component $\mathcal{S}_j(\symbf{\theta}; x_i)$ of $\mathcal{S}(\symbf{\theta}; x_i)$ ($j = 1, ..., d$) is expanded separately.
-
-For any $\symbf{\theta} \in N_r(\symbf{\theta}_0)$, there exists $\bar{\symbf{\theta}}_j$ on the line segment connecting $\symbf{\theta}$ and $\symbf{\theta}_0$ such that 
+**RC4-5** guarantee the existence of a neighborhood of $\symbf{\theta}_0$ on which the first two partial derivatives of $\mathcal{S}(\symbf{\theta}; x_i)$ with respect to $\symbf{\theta}$ exist and are continuous. Without loss of generality, we may assume this neighborhood, call it $N_{\symbf{\theta}_0}$, is convex so that it contains all of the line segments connecting any two of its points. In particular, for any $\symbf{\theta} \in N_{\symbf{\theta}_0}$, $\text{LS}(\symbf{\theta}, \symbf{\theta}_0) \subset N_{\symbf{\theta}_0}$. Then by Taylor's theorem with the Lagrange form of the remainder, there exists $\bar{\symbf{\theta}}_j \in \text{LS}(\symbf{\theta}, \symbf{\theta}_0)$ such that the $j$-th component of $\mathcal{S}(\symbf{\theta}; x_i)$ may be expanded as
 $$
 \begin{aligned}
-\mathcal{S}_j(\symbf{\theta}; x_i) &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + \nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i)^T(\symbf{\theta} - \symbf{\theta}_0) + \frac{1}{2}(\symbf{\theta} - \symbf{\theta}_0)^T\nabla^2_{\symbf{\theta}} \mathcal{S}_j(\bar{\symbf{\theta}}_j; x_i)(\symbf{\theta} - \symbf{\theta}_0) \\
-                 &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + [\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + \frac{1}{2}\nabla^2_{\symbf{\theta}} \mathcal{S}_j(\bar{\symbf{\theta}}_j; x_i)(\symbf{\theta} - \symbf{\theta}_0)]^T(\symbf{\theta} - \symbf{\theta}_0) \\
-                 &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + [\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)]^T(\symbf{\theta} - \symbf{\theta}_0),
+\mathcal{S}_j(\symbf{\theta}; x_i) &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + \frac{1}{2}(\symbf{\theta} - \symbf{\theta}_0)\textbf{H}_{\symbf{\theta}}\Big(\mathcal{S}_j(\bar{\symbf{\theta}}_j; x_i)\Big)(\symbf{\theta} - \symbf{\theta}_0)^\top \\
+                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\Big[\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + \frac{1}{2}\textbf{H}_{\symbf{\theta}}\Big( \mathcal{S}_j(\bar{\symbf{\theta}}_j; x_i)\Big)(\symbf{\theta} - \symbf{\theta}_0)^\top\Big] \\
+                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\Big[\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\Big] &&(\text{by } \textbf{RC6}) \\
+                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + \Big[\nabla_{\symbf{\theta}}^\top \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\Big](\symbf{\theta} - \symbf{\theta}_0)^\top.
 \end{aligned}
 $$
-where the last equality follows as a result of **RC6)**. Summing over each of the individual contributions to the score function yields
+When we stack each of these individual equations into a system of equations, we get 
+$$\begin{pmatrix} 
+\mathcal{S}_1(\symbf{\theta}; x_i) \\ 
+\vdots \\ 
+\mathcal{S}_d(\symbf{\theta}; x_i) 
+\end{pmatrix} = 
+\begin{pmatrix} 
+\mathcal{S}_1(\symbf{\theta}_0; x_i) \\ 
+\vdots \\ 
+\mathcal{S}_d(\symbf{\theta}_0; x_i) 
+\end{pmatrix} + \Bigg[
+\begin{pmatrix}
+\nabla^\top \mathcal{S}_1(\symbf{\theta}_0; x_i) \\
+\vdots \\
+\nabla^\top \mathcal{S}_d(\symbf{\theta}_0; x_i)
+\end{pmatrix} + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]
+(\symbf{\theta} - \symbf{\theta}_0)^\top.
+$${#eq-score_Taylor_matrix} The matrix of gradient vectors in the second term on the right-hand side of the above equation is simply the Jacobian of the score function evaluated at $\symbf{\theta} = \symbf{\theta}_0$, i.e., $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big)$. However, by @eq-obs_information, this is just the negative transpose of the observed information matrix also evaluated at $\symbf{\theta} = \symbf{\theta}_0$, $\mathcal{I}(\symbf{\theta}_0)$. Furthermore, since we have assumed $\ell$ is continuous in $\symbf{\theta}$, we can freely swap the order of differentiation in all of its second partial derivatives with respect to $\symbf{\theta}$. This implies the Jacobian of the score will be a symmetric matrix, and so we simply have $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) = -\mathcal{I}_i(\symbf{\theta}_0)$. Hence, using more compact notation, @eq-score_Taylor_matrix becomes 
 $$
 \begin{aligned}
-\mathcal{S}_j(\symbf{\theta}; \mathbf{x}_n) &= \sum_{i=1}^n \mathcal{S}_j(\symbf{\theta}; x_i) \\
-                                  &= \sum_{i=1}^n\big[\mathcal{S}_j(\symbf{\theta}_0; x_i) + [\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)]^T(\symbf{\theta} - \symbf{\theta}_0)\big] \\
-                                  &= \mathcal{S}_j(\symbf{\theta}_0; \mathbf{x}_n) + \Bigg[\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; \mathbf{x}_n) + \Bigg\{\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\Bigg]^T(\symbf{\theta} - \symbf{\theta}_0) \\
-                                  &= \mathcal{S}_j(\symbf{\theta}_0; \mathbf{x}_n) + \Bigg[\frac{1}{n}\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; \mathbf{x}_n) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\Bigg]^Tn(\symbf{\theta} - \symbf{\theta}_0).
+\mathcal{S}(\symbf{\theta}; x_i) &= \mathcal{S}(\symbf{\theta}_0; x_i) + \Big[\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Big]
+(\symbf{\theta} - \symbf{\theta}_0)^\top \\
+                                 &= \mathcal{S}(\symbf{\theta}_0; x_i) - \Big[\mathcal{I}_i(\symbf{\theta}_0) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Big]
+(\symbf{\theta} - \symbf{\theta}_0)^\top
+\end{aligned}
+$${#eq-score_Taylor_compact}
+
+The above represents the second-order Taylor expansion around $\symbf{\theta}_0$ for an individual observation $x_i$'s contribution to the score function. Summing over all of these contributions yields
+$$
+\begin{aligned}
+\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) &= \sum_{i=1}^n \mathcal{S}(\symbf{\theta}; x_i) \\
+                                  &= \sum_{i=1}^n\Bigg[\mathcal{S}(\symbf{\theta}_0; x_i) - \bigg[\mathcal{I}_i(\symbf{\theta}_0) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\bigg]
+(\symbf{\theta} - \symbf{\theta}_0)^\top\Bigg] \\
+                                  &= \mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\mathcal{I}_n(\symbf{\theta}_0) + \Bigg\{\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg](\symbf{\theta} - \symbf{\theta}_0)^\top \\
+                                  &= \mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_n(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]n(\symbf{\theta} - \symbf{\theta}_0)^\top.
 \end{aligned} 
-$$
-If we divide through by $\sqrt n$, we arrive at $$\frac{1}{\sqrt n}\mathcal{S}_j(\symbf{\theta}; \mathbf{x}_n) = \frac{1}{\sqrt n}\mathcal{S}_j(\symbf{\theta}_0; \mathbf{x}_n) + \Bigg[\frac{1}{n}\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; \mathbf{x}_n) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\Bigg]^T\sqrt{n}(\symbf{\theta} - \symbf{\theta}_0).$$
+$${#eq-score_Taylor_summed_1}
+If we divide through by $\sqrt n$, we arrive at $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) = \frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_n(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\symbf{\theta} - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_summed_2}
+
+We established in Section 3.4.1 that regular models will always have a sequence of MLEs $\hat{\symbf{\theta}}_n$ that converge in probability to $\symbf{\theta}_0$ as $n \to \infty$, and that each $\hat{\symbf{\theta}}_n$ in this sequence will satisfy $\mathcal{S}(\hat{\symbf{\theta}}_n; \mathbf{x}_n) = \mathbf{0}$. Plugging $\hat{\symbf{\theta}}_n$ in for $\symbf{\theta}$ in @eq-score_Taylor_summed_2 gives
+$$\frac{1}{\sqrt n}\mathcal{S}(\hat{\symbf{\theta}}_n; \mathbf{x}_n) = \frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_n(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top$$ and therefore, 
+$$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \Bigg[\frac{1}{n}\mathcal{I}_n(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O_p(||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_MLE1}
+
+Note the following observations about the terms in the square brackets in the line above:
+\begin{enumerate}[label = \arabic*)]
+  \item By Equation 3.5.4, $\text{E}_{\symbf{\theta}_0}\big[\mathcal{I}(\symbf{\theta}_0)\big] = \mathscr{I}(\symbf{\theta}_0)$, and thus $\frac{1}{n}\mathcal{I}_n(\symbf{\theta}_0) = \frac{1}{n} \sum_{i=1}^n \mathcal{I}_i(\symbf{\theta}_0)$ is converging in probability to $\mathscr{I}(\symbf{\theta}_0)$ as $n \to \infty$ by the Weak Law of Large Numbers, i.e., $\frac{1}{n}\mathcal{I}_n(\symbf{\theta}_0) = \mathscr{I}(\symbf{\theta}) + o_p(1)$.
+  \item $M(x_i)$ has finite expectation and does not depend on $\symbf{\theta}$ by \textbf{RC6}, which implies through Markov's inequality that it is bounded in probability as $n \to \infty$, i.e., $M(x_i) = O_p(1)$. It follows that $\frac{1}{n}\sum_{i=1}^nM(x_i) = O_p(1)$ as well.
+  \item The fact that $\hat{\symbf{\theta}}_n$ is converging in probability to $\symbf{\theta}_0$ as $n \to \infty$ implies that $||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||$ is $o_p(1)$.
+\end{enumerate}
+From these three facts we can conclude that the entire term inside the square brackets is converging in probability to $\mathscr{I}(\symbf{\theta})$ as $n \to \infty$. This allow us to rewrite @eq-score_Taylor_MLE1 as $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \Big[\mathscr{I}(\symbf{\theta}_0) + o_p(1)\Big]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_MLE2}
 
 
 
-To make this argument rigorous, we need to show that with probability tending to $1$ as the sample size tends toward infinity, the likelihood for a regular model will be strictly larger at $\symbf{\theta}_0$ than for any other $\symbf{\theta} \in \Theta$. We start by observing that **RC1)** implies $$L(\symbf{\theta}; \mathbf{x}_n) = p(\mathbf{x}_n; \symbf{\theta}) = \prod_{i=1}^n p(x_i; \symbf{\theta})$${#eq-MLE1} and $$\ell(\symbf{\theta}; \mathbf{x}_n) = \log p(\mathbf{x}_n; \symbf{\theta}) = \sum_{i=1}^n \log p(x_i; \symbf{\theta}).$${#eq-MLE2}  It follows that 
-$$
-\begin{aligned}
-L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n) &\iff \ell(\symbf{\theta}; \mathbf{x}_n) < \ell(\symbf{\theta}_0; \mathbf{x}_n) \\
-                                                    &\iff \sum_{i=1}^n \log p(x_i; \symbf{\theta}) - \sum_{i=1}^n \log p(x_i; \symbf{\theta}_0) < 0 \\
-                                                    &\iff \sum_{i=1}^n \big[\log p(x_i; \symbf{\theta}) - \log p(x_i; \symbf{\theta}_0)\big] < 0 \\
-                                                    &\iff \sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0 \\
-                                                    &\iff \frac{1}{n}\sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0.
-\end{aligned}
-$${#eq-MLE3}
-Note that **RC3)** guarantees that the ratio $p(x; \symbf{\theta}) / p(x; \symbf{\theta}_0)$ is well-defined and finite for all $x \in \mathcal{X}$, the region of common support. Then by the Weak Law of Large Numbers, $$\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} \to \text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg]$${#eq-MLE4} in probability as $n \to \infty$. Furthermore, $$\text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \int_{\mathcal{X}}\Bigg[\frac{p(x; \symbf{\theta})}{p(x; \symbf{\theta}_0)} \Bigg] p(x; \symbf{\theta}_0)dx = \int_{\mathcal{X}}p(x; \symbf{\theta})dx = 1.$${#eq-MLE5}
-Since $\log(x)$ is a strictly concave function, it follows from Jensen's inequality (see Appendix \ref{appendix:A}) and @eq-MLE5 $$\text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] < \log \text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \log 1 = 0.$${#eq-MLE6} Hence, the quantity on the left-hand side of @eq-MLE4 is converging in probability to a constant that is less than 0 as $n$ tends to infinity. From this and the equivalence we established in @eq-MLE3, it follows that $$\lim_{n \to \infty} P_{\symbf{\theta}_0} \big[L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n)\big] = \lim_{n \to \infty} P_{\symbf{\theta}_0} \Bigg[\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} < 0\Bigg] = 1,$${#eq-MLE7} which proves the claim.
+
+
+
 
 
 
