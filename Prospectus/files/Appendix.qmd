@@ -9,13 +9,13 @@
 
 \subsubsection{Open Ball} The *open ball of radius* $r > 0$ centered at a point $p \in \mathbbm{R}^d$, is the set of all points $x \in \mathbbm{R}^d$ such that the distance between $p$ and $x$ is less than $r$ We denote this set using the notation $$B_r(\mathbf{p}) = \{\mathbf{x} \in \mathbbm{R}^d: ||\mathbf{x} - \mathbf{p}|| < r \},$$ where $||\cdot||$ indicates the Euclidean norm, i.e., $||\mathbf{x}|| = \Big(\sum_{i=1}^d x_i^2\Big)^{1/2}$ for $\mathbf{x} \in \mathbbm{R}^d$.
 
-\subsubsection{Closed Ball} The *closed ball of radius* $r > 0$ centered at a point $p \in \mathbbm{R}^d$, is the set of all points $x \in \mathbbm{R}^d$ such that the distance between $p$ and $x$ is less than or equal to $r$. We denote this set using the notation $$B_r[\mathbf{p}] = \{\mathbf{x} \in \mathbbm{R}^d: \> ||\mathbf{x} - \mathbf{p}||\} \leq r.$$
+\subsubsection{Closed Ball} The *closed ball of radius* $r > 0$ centered at a point $\mathbf{p} \in \mathbbm{R}^d$, is the set of all points $\mathbf{x} \in \mathbbm{R}^d$ such that the distance between $\mathbf{p}$ and $\mathbf{x}$ is less than or equal to $r$. We denote this set using the notation $$B_r[\mathbf{p}] = \{\mathbf{x} \in \mathbbm{R}^d: \> ||\mathbf{x} - \mathbf{p}|| \leq r\}.$$
 
 \subsection{Open and Closed Sets}
 
-\subsubsection{Open Set} A subset $A$ of $\mathbbm{R}^d$ is called an *open set* of $\mathbbm{R}^d$ if every point in $A$ is the center of an open ball entirely contained in $A$. That is, $A$ is open if and only if for any $a \in A$, there exists a radius $r > 0$ such that $B_r(a) \subseteq A$.
+\subsubsection{Open Set} A subset $S$ of $\mathbbm{R}^d$ is called an *open set* of $\mathbbm{R}^d$ if every point in $S$ is the center of an open ball entirely contained in $S$. That is, $S$ is open if and only if for any $\mathbf{p} \in A$, there exists a radius $r > 0$ such that $B_r(\mathbf{p}) \subseteq S$.
 
-\subsubsection{Closed Set} A subset $B$ of $\mathbbm{R}^d$ is called a *closed set* of $\mathbbm{R}^d$ if its complement $B^c = \mathbbm{R}^d \mathbin{\backslash} B$ is open.
+\subsubsection{Closed Set} A subset $S$ of $\mathbbm{R}^d$ is called a *closed set* of $\mathbbm{R}^d$ if its complement $S^c = \mathbbm{R}^d \mathbin{\backslash} S$ is open.
 
 \subsection{Neighborhoods}
 
@@ -23,9 +23,9 @@ A set $N_{\mathbf{p}} \subseteq \mathbbm{R}^d$ is called a *neighborhood* of a p
 
 \subsection{Boundedness}
 
-\subsubsection{Bounded Set} A set $S \subset \mathbb{R}^d$ is called *bounded* if there exists some radius $r > 0$ such that $B_r(\mathbb{\mathbf{0}}) \subset S$.
+\subsubsection{Bounded Set} A set $S \subset \mathbb{R}^d$ is called *bounded* if there exists some radius $r > 0$ such that $B_r(\mathbf{0}) \subset S$.
 
-\subsubsection{Bounded Function} A function $f: X \to \mathbb{R}$ is called *bounded* if there exists a real number $M$ such that $|f(x)| \leq M$ for all $x \in X$.
+\subsubsection{Bounded Function} A function $f: X \to \mathbbm{R}$ is called *bounded* if there exists a real number $M$ such that $|f(x)| \leq M$ for all $x \in X$.
 
 \subsection{Compact Set}
 
@@ -35,13 +35,13 @@ A subset of $\mathbb{R}^d$ is called *compact* if it is closed and bounded.
 
 \subsubsection{Interior Point}
 
-A point $p \in S \subset \mathbbm{R}^d$ is called an *interior point* of $S$ if there exists some radius $r > 0$ such that $\subseteq B_r(\mathbb{p})$.
+A point $\mathbf{p} \in S \subseteq \mathbbm{R}^d$ is called an *interior point* of $S$ if there exists some radius $r > 0$ such that $B_r(\mathbf{p}) \subseteq S$.
 
-\subsubsection{Interior of a Set} The *interior of a set* $S \subset \mathbbm{R}^d$, denoted by $\text{int} \> S$, is the set of all interior points of $S$.
+\subsubsection{Interior of a Set} The *interior of a set* $S \subset \mathbbm{R}^d$, denoted by int $S$, is the set of all interior points of $S$.
 
 \subsection{Line Segments}
 
-For two points $\mathbf{x}_1, \mathbf{x}_2 \in \mathbbm{R}^d$, a third point $\bar{\mathbf{x}}$ is said to be on the *line segment* connecting $\mathbf{x}_1$ and $\mathbf{x}_2$ if there exists $\omega \in [0, 1]$ such that $\bar{\mathbf{x}} = \omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2$.  We use the following notation to refer to such line segments: $$\text{LS}(\mathbf{x}_1, \mathbf{x}_2) = \{\omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2: \> \omega \in [0, 1]\}.$$
+For two points $\mathbf{x}_1, \mathbf{x}_2 \in \mathbbm{R}^d$, a third point $\tilde{\mathbf{x}}$ is said to be on the *line segment* connecting $\mathbf{x}_1$ and $\mathbf{x}_2$ if there exists $\omega \in [0, 1]$ such that $\tilde{\mathbf{x}} = \omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2$.  We use the following notation to refer to such line segments: $$\text{LS}(\mathbf{x}_1, \mathbf{x}_2) = \{\omega\mathbf{x}_1 + (1- \omega)\mathbf{x}_2: \> \omega \in [0, 1]\}.$$
 
 \subsection{Convexity and Concavity}
 
@@ -50,7 +50,6 @@ For two points $\mathbf{x}_1, \mathbf{x}_2 \in \mathbbm{R}^d$, a third point $\b
 \subsubsection{Convex Function} Let $f: X \to \mathbb{R}$, where $X$ is a convex set. $f$ is called a *convex function* if for all $t \in [0, 1]$ and all $x_1, x_2 \in X$, $$f(t x_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2).$$ If it is possible to graph the function on the coordinate plane, this is equivalent to saying that the line segment between any two distinct points on the graph of the function lies above the graph.
 
 $f$ is called *strictly convex* if the equality is tightened, i.e., $$f(t x_1 + (1-t)x_2) < tf(x_1) + (1-t)f(x_2).$$ 
-
 \subsubsection{Concave Function} Let $f: X \to \mathbb{R}$, where $X$ is a convex set. $f$ is called a *concave function* if for all $t \in [0, 1]$ and all $x_1, x_2 \in X$, $$f(t x_1 + (1-t)x_2) \geq tf(x_1) + (1-t)f(x_2).$$ If it is possible to graph the function on the coordinate plane, this is equivalent to saying that the line segment between any two distinct points on the graph of the function lies below the graph.
 
 $f$ is called *strictly concave* if the equality is tightened, i.e., $$f(t x_1 + (1-t)x_2) > tf(x_1) + (1-t)f(x_2).$$ 
@@ -121,7 +120,7 @@ If $K$ is a compact set and $f: K \to \mathbb{R}$ is a continuous function, then
 
 \subsection{Taylor's Theorem}
 
-Suppose $f: \mathbbm{R}^d \to \mathbbm{R}$ is twice continuously differentiable in a neighborhood $N_{\mathbf{x}_0}$ of some point $\mathbf{x}_0 \in \mathbbm{R}^d$. Then for any $\mathbf{x} \in N_{\mathbf{x}_0}$, there exists $\bar{\mathbf{x}} \in \text{LS}(\mathbf{x}, \mathbf{x}_0)$ such that $$f(\mathbf{x}) = f(\mathbf{x}_0) + (\mathbf{x} - \mathbf{x}_0) \nabla f(\mathbf{x}) + \frac{1}{2}(\mathbf{x} - \mathbf{x}_0)\textbf{H}\big(f(\bar{\mathbf{x}})\big)(\mathbf{x} - \mathbf{x}_0)^\top,$$ where $\textbf{H}\big(f(\bar{\mathbf{x}})\big)$ denotes the Hessian matrix of $f(\mathbf{x})$ evaluated at $\mathbf{x} = \bar{\mathbf{x}}$.
+Suppose $f: \mathbbm{R}^d \to \mathbbm{R}$ is twice continuously differentiable in a neighborhood $N_{\mathbf{x}_0}$ of some point $\mathbf{x}_0 \in \mathbbm{R}^d$. Then for any $\mathbf{x} \in N_{\mathbf{x}_0}$, there exists $\tilde{\mathbf{x}} \in \text{LS}(\mathbf{x}, \mathbf{x}_0)$ such that $$f(\mathbf{x}) = f(\mathbf{x}_0) + (\mathbf{x} - \mathbf{x}_0) \nabla f(\mathbf{x}) + \frac{1}{2}(\mathbf{x} - \mathbf{x}_0)\textbf{H}\big(f(\tilde{\mathbf{x}})\big)(\mathbf{x} - \mathbf{x}_0)^\top,$$ where $\textbf{H}\big(f(\tilde{\mathbf{x}})\big)$ denotes the Hessian matrix of $f(\mathbf{x})$ evaluated at $\mathbf{x} = \tilde{\mathbf{x}}$.
 
 This is not Taylor's theorem in its full generality, but rather a particular case of it that is well-suited for use in this paper. More accurately, we could refer to it as a second-order Taylor series expansion of a multivariable scalar-valued function with the Lagrange form of the remainder.
 
