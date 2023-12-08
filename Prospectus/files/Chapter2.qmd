@@ -206,7 +206,8 @@ $$
 \end{aligned}
 $$
 When we stack each of these individual equations into a system of equations, we get 
-$$\begin{pmatrix} 
+$$
+\begin{pmatrix} 
 \mathcal{S}_1(\symbf{\theta}; x_i) \\ 
 \vdots \\ 
 \mathcal{S}_d(\symbf{\theta}; x_i) 
@@ -222,7 +223,9 @@ $$\begin{pmatrix}
 \nabla^\top \mathcal{S}_d(\symbf{\theta}_0; x_i)
 \end{pmatrix} + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]
 (\symbf{\theta} - \symbf{\theta}_0)^\top.
-$${#eq-score_Taylor_matrix} The matrix of gradient vectors in the second term on the right-hand side of the above equation is simply the Jacobian of the score function evaluated at $\symbf{\theta} = \symbf{\theta}_0$, i.e., $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big)$. However, by @eq-obs_information, this is just the negative transpose of the observed information matrix also evaluated at $\symbf{\theta} = \symbf{\theta}_0$, $\mathcal{I}(\symbf{\theta}_0)$. Furthermore, since we have assumed $\ell$ is continuous in $\symbf{\theta}$, we can freely swap the order of differentiation in all of its second partial derivatives with respect to $\symbf{\theta}$. This implies the Jacobian of the score will be a symmetric matrix, and so we simply have $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) = -\mathcal{I}_i(\symbf{\theta}_0)$. Hence, using more compact notation, @eq-score_Taylor_matrix becomes 
+$${#eq-score_Taylor_matrix} 
+
+The matrix of gradient vectors in the second term on the right-hand side of the above equation is simply the Jacobian of the score function evaluated at $\symbf{\theta} = \symbf{\theta}_0$, i.e., $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big)$. However, by @eq-obs_information, this is just the negative transpose of the observed information matrix also evaluated at $\symbf{\theta} = \symbf{\theta}_0$, $\mathcal{I}(\symbf{\theta}_0)$. Furthermore, since we have assumed $\ell$ is continuous in $\symbf{\theta}$, we can freely swap the order of differentiation in all of its second partial derivatives with respect to $\symbf{\theta}$. This implies the Jacobian of the score will be a symmetric matrix, and so we simply have $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) = -\mathcal{I}_i(\symbf{\theta}_0)$. Hence, using more compact notation, @eq-score_Taylor_matrix becomes 
 $$
 \begin{aligned}
 \mathcal{S}(\symbf{\theta}; x_i) &= \mathcal{S}(\symbf{\theta}_0; x_i) + \Big[\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Big]

@@ -1,3 +1,5 @@
 \chapter{Applications}
 
-Consider a stratified sample of data $$X_{ij} \sim \text{N}(\mu_i, \sigma_i^2)$$
+\section{Standardized Mean Difference}
+
+Consider a stratified sample of data in which observation $j$ from stratum $i$ has distribution $$X_{ij} \sim \text{N}(\mu_i, \sigma_i^2),$$ where $i = 1, ..., q$ and $j = 1, ..., m$. Let $\symbf{\theta}_i = (\mu_i, \sigma_i)$ denote the parameter for stratum $i$ so that the overall model parameter is given by $\symbf{\theta} = (\symbf{\theta}_1, ..., \symbf{\theta}_q) = \big((\mu_1, \sigma_1), ..., (\mu_q, \sigma_q)\big)$. Suppose our parameter of interest is the average of the stratum means divided by the stratum standard deviations, i.e., $$\psi = \frac{1}{q} \sum_{i=1}^q\frac{\mu_i}{\sigma_i}.$$ The unrestricted MLEs of $\mu_i$ and $\sigma_i$ are $$\hat{\mu}_i = \bar{x}_i = \frac{1}{m}\sum_{j=1}^m x_{ij}$$ and $$\hat{\sigma}_i = s_i = \Bigg(\frac{1}{m}\sum_{j=1}^m (x_{ij} - \bar{x}_i)^2\Bigg)^{\frac{1}{2}},$$ respectively. Let $\varphi(\symbf{\theta}) =  \frac{1}{q} \sum_{i=1}^q\frac{\mu_i}{\sigma_i}$ so that $\psi = \varphi(\symbf{\theta})$. Then the unrestricted MLE for $\psi$ is $\hat{\psi} = \varphi(\hat{\symbf{\theta}}) = \frac{1}{q} \sum_{i=1}^q\frac{\bar{x}_i}{s_i}.$
