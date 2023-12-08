@@ -1,15 +1,4 @@
-\chapter{Approximating the Integrated Likelihood Function}
-
-\section{The Zero-Score Expectation Parameter}
-
-@severini2007 considered the problem of selecting a weight function $\pi(\lambda|\psi)$ such that when the likelihood function is integrated with respect to this density over the nuisance parameter space, the result is useful for non-Bayesian inference. To do this, he outlined four properties (see Appendix \ref{appendix:B}) that an integrated likelihood function must satisfy if it is to be of any use. He went on to prove that an integrated likelihood satisfying these properties could be obtained by first constructing a new nuisance parameter $\phi \in \Phi$ that is unrelated to the parameter of interest (in the sense that its maximum likelihood estimator remains roughly constant for all values of $\psi$)  and then choosing a prior density $\pi(\phi)$ that is independent of $\psi$. Once chosen, the desired integrated likelihood function for $\psi$ is given by $$\bar{L}(\psi) = \int_{\Phi} \tilde{L}(\psi, \phi) \pi(\phi) d\phi,$${#eq-ZSE_IL1} where $\tilde{L}(\psi, \phi)$ is the likelihood function for the model after it has been reparameterized in terms of $\phi$. The exact choice of prior density for $\phi$ is not particularly important; the only restriction we place upon it is that it must not depend on $\psi$.  
-
-Suppose that we have an explicit parameter of interest and nuisance parameter, so that $\symbf{\theta} = (\psi, \lambda)$. Then @severini2007 defines this new nuisance parameter $\phi$ as the solution to the equation $$\mathbbm{E}(\ell_{\lambda}(\psi, \lambda); \psi_0, \lambda_0)\bigg|_{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = 0,$${#eq-zse} where $\ell_{\lambda}(\psi, \lambda) = \frac{\partial \ell(\psi, \lambda)}{\partial \lambda}$, $\psi_0$ and $\lambda_0$ denote the true values of $\psi$ and $\lambda$, and $\hat{\psi}$ is the MLE for $\psi_0$. In other words, for a particular value of $(\psi, \lambda, \hat{\psi})$, we can find the corresponding value of $\phi$ by solving for it in @eq-zse. $\phi$ is called the *zero-score expectation* (ZSE) parameter because it is defined as the value that makes the expectation of the score function (where the derivative is taken with respect to $\lambda$) evaluated at the point $(\hat{\psi}, \phi)$ equal to zero. 
-Note that $\phi$ is a function of the data through $\hat{\psi}$. Normally we avoid creating such dependencies in our parameters as it renders them useless for the purpose of parameterizing a statistical model. However, from the perspective of the likelihood function, once the data have been collected they are considered fixed in place and there is no issue with using a quantity such as $\phi$ that depends on the data to parameterize it.
-
-For a given value of $(\psi, \phi, \hat{\psi})$, it is also possible to solve @eq-zse for $\lambda$. This allows us to write @eq-ZSE_IL1 in terms of $L(\psi, \lambda)$: $$\bar{L}(\psi) = \int_{\Phi} L(\psi, \lambda(\psi, \phi)) \pi(\phi) d\phi.$${#eq-ZSE_IL2} 
-
-@severini2018 proved that reparameterizing the nuisance parameter in terms of the ZSE parameter yields the same desirable properties in the subsequent integrated likelihood when $\psi$ and $\lambda$ are implicit. Suppose $\psi$ = $\varphi(\symbf{\theta})$, for some function $\varphi: \symbf{\theta} \to \Psi$, and consider the set of all values of $\symbf{\theta}$ satisfying $\varphi(\symbf{\theta}) = \hat{\psi}$. Call this set $\Omega_{\hat{\psi}}$ so that $$\Omega_{\hat{\psi}} = \Big\{\omega \in \symbf{\theta}: \varphi(\omega) = \hat{\psi}\Big\}.$${#eq-omega_psi_hat} Elements of $\Omega_{\hat{\psi}}$ take the form $(\hat{\psi}, \phi)$, where $\phi \in \Lambda$.
+\chapter{Analyzing the Integrated Likelihood Function}
 
 \section{Two-Index Asymptotics}
 
@@ -17,7 +6,7 @@ Earlier we discussed the one-index asymptotics setting, in which the sample size
 
 To mirror the strategy used by @Sartori2003 and @DeBin2015, we will frame our discussion in terms of a stratified sample of data in which each stratum contributes one component to the overall nuisance parameter. Consider a model with parameter $\symbf{\theta} = (\psi, \lambda)$ where $\psi$ is the parameter of interest and $\lambda = (\lambda_1, ..., \lambda_q)$ is a $q$-dimensional nuisance parameter. For the sake of reducing complexity in our notation, we will only consider the case in which $\psi$ and the individual components of $\lambda$ are scalar parameters, though the results of this section should hold in the case where they are all vectors as well. Suppose that we have divided the model's population into $q$ strata and collected a sample of size $m_i$ from each stratum such that observation $j$ from stratum $i$ may be modeled as $$X_{ij} \sim p_{ij}(x_{ij}; \psi, \lambda_i),$${#eq-2idx_model} where $i = 1, ..., q$ and $j = 1, ..., n_i$, making the total sample size $n = \sum_{i = 1}^q m_i$.^[It will be convenient to work under the restriction that the stratum sample sizes are all identical, meaning there exists some positive integer $m$ such that $m_i = m$ for all $i$. However, as both @Sartori2003 and @DeBin2015 note, we could also assume a looser condition in which $m_i = K_i m$ where $0 < K_i < \infty$ without compromising our results.] Hence, there is a one-to-one correspondence between the strata and the components of $\lambda$; assume that each $\lambda_i \in \Lambda$, where the space $\Lambda$ is the same for all $i$, and they all have the same interpretation within their respective strata.
 
-Assume that all the regularity conditions set forth in Section 3.4 apply, except possibly for RC1) - it is not necessary to assume that the observations are i.i.d. here, and in fact it is perfectly acceptable for the $p_{ij}$'s in @eq-2idx_model to differ from one another. We will also allow for the possibility of dependence among observations within a stratum, though not between them. 
+Assume that all the regularity conditions set forth in Section 3.4 apply, except possibly for **RC1** - it is not necessary to assume that the observations are i.i.d. here, and in fact it is perfectly acceptable for the $p_{ij}$'s in @eq-2idx_model to differ from one another. We will also allow for the possibility of dependence among observations within a stratum, though not between them. 
 
 Let $\mathbf{x}_i = (x_{i1}, ..., x_{im})$ denote the sample of observations from stratum $i$, so that their joint density may be written as $p_i(\mathbf{x}_i; \psi, \lambda_i)$. Therefore, the likelihood and log-likelihood for the $i$th stratum are $$L^{(i)}(\psi, \lambda_i) = p_i(\mathbf{x}_i; \psi, \lambda_i),$${#eq-2idx_L_i} and $$\ell^{(i)}(\psi, \lambda_i) = \log L^{(i)}(\psi, \lambda_i),$${#eq-2idx_l_i} respectively. For a particular choice of weight function $g(\lambda_i; \psi)$, the integrated likelihood for $\psi$ in stratum $i$ is given by $$\bar{L}^{(i)}(\psi) = \int_\Lambda L^{(i)}(\psi, \lambda_i) g(\lambda_i; \psi)d\lambda_i.$${#eq-2idx_Lbar_i} 
 
@@ -45,9 +34,9 @@ $${#eq-Laplace2} where $L_P^{(i)}(\psi) = L^{(i)}(\psi, \hat{\lambda}_{i\psi})$ 
 Let $$\bar{\ell}^{(i)}(\psi) = \log \bar{L}^{(i)}(\psi)$${#eq-2idx_lbar_i} denote the integrated log-likelihood for $\psi$. Putting the results in @eq-Laplace2, @eq-Laplace3, and @eq-2idx_lbar_i together, we have
 $$
 \begin{aligned}
-\bar{\ell}^{(i)}(\psi) &= \log \bar{L}^{(i)}(\psi) &&(\text{by Equation 5.2.8})\\
-                       &= \log\Bigg(\hat{\bar{L}}^{(i)}(\psi)\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\}\Bigg) &&(\text{by Equation 5.2.7})\\
-                       &= \log \hat{\bar{L}}^{(i)}(\psi) + \log\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\} &&(\text{by Equation 5.2.6})\\
+\bar{\ell}^{(i)}(\psi) &= \log \bar{L}^{(i)}(\psi) &&(\text{by Equation 4.2.8})\\
+                       &= \log\Bigg(\hat{\bar{L}}^{(i)}(\psi)\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\}\Bigg) &&(\text{by Equation 4.2.7})\\
+                       &= \log \hat{\bar{L}}^{(i)}(\psi) + \log\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\} &&(\text{by Equation 4.2.6})\\
                        &= \log\Bigg\{\frac{\sqrt{2 \pi}}{m} L_P^{(i)}(\psi)g(\hat{\lambda}_{i\psi}; \psi)\big[\mathcal{I}(\hat{\lambda}_{i\psi})\big]^{-1/2} \Bigg\} + O\bigg(\frac{1}{m}\bigg) \\
                        &= \frac{1}{2}\log(2\pi) - \log(m) + \log L_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{1}{m}\bigg) \\
                        &= \ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + \frac{1}{2}\log(2\pi) - \log(m) + O\bigg(\frac{1}{m}\bigg) \> \>\text{ as } \>  \> m \to \infty,
@@ -72,6 +61,33 @@ $$
                  &= \ell_P(\psi) + \sum_{i=1}^q \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\sum_{i=1}^q\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{q}{m}\bigg) \> \>\text{ as } \>  \> m \to \infty.
 \end{aligned}
 $${#eq-Laplace6}
+
+\section{The Zero-Score Expectation Parameter}
+
+@severini2007 considered the problem of selecting a weight function $\pi(\lambda|\psi)$ such that when the likelihood function is integrated with respect to this density over the nuisance parameter space, the result is useful for non-Bayesian inference. To do this, he outlined four properties (see Appendix \ref{appendix:B}) that an integrated likelihood must satisfy if it is to be of any use and went on to show that such a function could be obtained by doing the following:
+
+\begin{enumerate}[label = \arabic*)]
+  \item Find a reparameterization $(\psi, \lambda) \mapsto (\psi, \phi)$ of the model such that the new nuisance parameter $\phi$ is unrelated to $\psi$ in the sense that $\hat{\phi}_{\psi} = \hat{\phi}$; that is, the conditional maximum likelihood estimate of $\phi$ given $\psi$ is simply equal to the unrestricted maximum likelihood estimate of $\phi$.
+  \item Select a prior density $\pi(\lambda|\psi)$ such that when the model undergoes the above reparameterization, the resulting prior density $\pi(\phi)$ does not depend on $\psi$.
+\end{enumerate}
+
+An integrated likelihood function for $\psi$ that possesses the desired properties will then be given by $$\bar{L}(\psi) = \int_{\Phi} \tilde{L}(\psi, \phi) \pi(\phi) d\phi,$${#eq-ZSE_IL1} where $\tilde{L}(\psi, \phi)$ is the likelihood function for the model after it has been reparameterized in terms of $\phi$. The exact choice of prior density for $\phi$ is not particularly important; the only restriction placed upon it is that it must not depend on $\psi$. Hence, the crux of the matter really lies in completing the first step. The approach taken by @severini2007 is to define a new nuisance parameter $\phi$ as the solution to the equation $$\text{E}_{(\psi_0, \lambda_0)}\Big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{X}_n)\Big]\Bigg|_{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = \mathbf{0},$${#eq-ZSE_IL2} where $\psi_0$ and $\lambda_0$ denote the true values of $\psi$ and $\lambda$, and $\hat{\psi}$ is the unrestricted MLE for $\psi_0$. The expectation here is being taken with respect to the data $\mathbf{X}_n = \mathbf{x}_n$ and not the parameters themselves. @eq-ZSE_IL2 can thus be rewritten as $$I(\psi, \lambda, \hat{\psi}, \phi) = \mathbf{0},$$ where $$I(\psi, \lambda, \psi_0, \lambda_0) = \int_{\mathbbm{R}^n} \big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{x}_n)\big] p(\mathbf{x}_n; \psi_0, \lambda_0))d\mathbf{x}_n.$$
+
+Assuming $I$ is invertible, for a particular value of $(\psi, \lambda, \hat{\psi})$, there will be a unique value of $\phi$ that solves @eq-ZSE_IL2. $\phi$ is called the *zero-score expectation* (ZSE) parameter because it is defined as the value that makes the expectation of the score function (in terms of $\lambda$, not the full parameter) with respect to $p(\mathbf{x}_n; \psi_0, \lambda_0)$ evaluated at the point $(\psi_0, \lambda_0) = (\hat{\psi}, \phi)$ equal to zero. This means that $\phi$ is really a function of $(\psi, \lambda, \hat{\psi})$, i.e., $\phi = \phi(\psi, \lambda, \hat{\psi})$. This in turn implies that $\phi$ is a function of the data through $\hat{\psi}$. Normally we try to avoid creating such dependencies in our parameters as it renders them useless for the purpose of parameterizing a statistical model. However, from the perspective of the likelihood function, once the data have been collected they are considered fixed in place and there is no issue with using a quantity such as $\phi$ that depends on the data to parameterize it.
+
+For a given value of $\phi$, the corresponding value of $\lambda$ can be found by $$\lambda(\psi, \phi) = \underset{\lambda \in \Lambda}{\mathrm{argmax}} \> \text{E}_{(\hat{\psi}, \phi)}\big[\ell(\psi, \lambda)\big].$${#eq-ZSE_IL3} For a certain choice of prior density $\pi(\phi)$, this allows us to write @eq-ZSE_IL1 in terms of $L(\psi, \lambda)$: $$\bar{L}(\psi) = \int_{\Phi} L(\psi, \lambda(\psi, \phi)) \pi(\phi) d\phi.$${#eq-ZSE_IL4} 
+
+The procedure described above is  However, @severini2018 proved that reparameterizing the model in terms of the ZSE parameter yields the same nice properties in the subsequent integrated likelihood when $\psi$ and $\lambda$ are implicit. Suppose $\psi$ = $\varphi(\symbf{\theta})$, for some function $\varphi: \symbf{\theta} \to \Psi$, and consider the set of all values of $\symbf{\theta}$ satisfying $\varphi(\symbf{\theta}) = \hat{\psi}$. Call this set $\Omega_{\hat{\psi}}$ so that $$\Omega_{\hat{\psi}} = \Big\{\omega \in \Theta: \varphi(\omega) = \hat{\psi}\Big\}.$${#eq-ZSE_IL5} For a given element $\omega \in \Omega_{\hat{\psi}}$, the associated value of $\theta$ is 
+
+A member of $\Omega_{\hat{\psi}}$ for a model without an explicit nuisance parameter is functionally equivalent to a value $\symbf{\theta} = (\hat{\psi}, \phi)$ for a model with an explicit nuisance parameter.
+
+\subsection{Approximation Algorithm}
+
+The procedure described in the previous section is based on the assumption that $\lambda$ is an explicit nuisance parameter so that taking partial derivatives of $\ell$ with respect to its components is a well-defined operation. In this section, we consider an approach to approximating the integrated likelihood function that 
+
+Consider a model with parameter $\theta \in \Theta$ and parameter of interest $\varphi(\theta)$ for some function $\varphi: \Theta \to \mathbbm{R}$. For a given value of $\psi$, define $$\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.$${#eq-ZSE_IL5}
+
+
 
 
 
