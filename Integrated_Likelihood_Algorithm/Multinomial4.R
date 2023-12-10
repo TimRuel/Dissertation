@@ -112,7 +112,7 @@ likelihood_vals %>%
                names_to = "Pseudolikelihood",
                values_to = "log-likelihood") %>% 
   ggplot() +
-  scale_y_continuous(limits = c(-3, 1)) +
+  scale_y_continuous(limits = c(-3, 0.1)) +
   geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
               se = FALSE,
               linewidth = 0.9,
