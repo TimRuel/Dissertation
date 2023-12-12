@@ -1,6 +1,6 @@
 ---
 title: "Proposal for an Adjusted Numerical Approximation to the Integrated Likelihood Function"
-subtitle: "Dissertation Prospectus"
+subtitle: "A Dissertation Prospectus"
 author: "Tim Ruel"
 date: "Dec 12, 2023"
 date-format: "MMM D, YYYY"
@@ -16,6 +16,15 @@ include-in-header:
       <style>
       #title-slide .title {
         font-size: 2em;
+      }
+      .center-xy {
+        width: 3000;
+        margin: 0;
+        position: absolute;
+        top: 3%;
+        left: -27%;
+        -ms-transform: translateY(-50%), translateX(-50%);
+        transform: translateY(-50%), translateX(-50%);
       }
       </style>
 ---
@@ -75,17 +84,61 @@ include-in-header:
 - $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\theta$ in a neighborhood of $\theta_0$.
 - There exists a random function $M(x)$ (that does not depend on $\theta$) satisfying $\text{E}[M(X)] < \infty$ such that each third partial derivative of $\ell(\theta; x)$ is bounded in absolute value by $M(x)$ uniformly in some neighborhood of $\theta_0$.
 - The integral $\int_{\mathcal{X}} p(x; \theta) dx$ can be differentiated twice under the integral sign with respect to the components of $\theta\in \Theta^*$.
-- $\mathscr{I}_{X}(\theta)$ is positive definite for all $\theta \in \Theta$.
+- $\mathscr{I}(\theta)$ is positive definite for all $\theta \in \Theta$.
 - $\Theta$ is a compact and convex subset of $\mathbb{R}^d$.
+
+:::
+
+## The Bartlett Identities 
+
+::: {style="font-size: 80%;"}
+
+$$
+\rlap{
+  \underbrace{
+    \phantom{
+      \mathscr{I}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg]
+      }
+    }_{\text{Fisher information}}
+  }
+\mathscr{I}(\theta) = 
+\overbrace{
+  \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = 
+  \rlap{
+    \underbrace{
+      \phantom{
+        \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg]
+        }
+      }_{\text{Second Bartlett identity}}
+    }
+\text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]
+  }^{\text{First Bartlett identity}} = 
+  \rlap{
+    \overbrace{
+      \phantom{
+          \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] =
+  \text{E}_{\theta}\big[\mathcal{I}_X(\theta)\big]
+  }
+  }^{\text{Expectation of observed information}}
+}
+  \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] =
+  \text{E}_{\theta}\big[\mathcal{I}(\theta)\big]
+$$
+
+
+- The Bartlett identities are a set of equations relating the expectations of the derivatives of a
+log-likelihood function to one another.
+
+- They can be used as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the likelihood from which it originated - the more identities it satisfies, the more it will resemble a genuine likelihood.
 
 :::
 
 ## The First Bartlett Identity
 
-::: {style="font-size: 65%;"}
+::: {style="font-size: 70%;"}
 
-- A likelihood satisfies the first Bartlett identity if  $$E_{\theta}\Big[\mathcal{S}(\theta; X)\Big] = E_{\theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\bigg] = 0.$$
-- Equivalently, $$\mathscr{I}(\theta) = E_{\theta}\Big[\mathcal{S}(\theta; X)^2\Big] =  \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].$$
+- A likelihood satisfies the first Bartlett identity if  $$E_{\theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\bigg] = 0.$$
+- Equivalently, $$\mathscr{I}(\theta) =  \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].$$
 - Sufficient condition: $$\frac{d}{d \theta}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial}{\partial \theta}p(x; \theta) dx.$$
 - Likelihoods satisfying the first Bartlett identity are called **score-unbiased**.
 
@@ -93,43 +146,26 @@ include-in-header:
 
 ## The Second Bartlett Identity
 
-::: {style="font-size: 60%;"}
+::: {style="font-size: 70%;"}
 
 - A likelihood satisfies the second Bartlett identity if $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2\Bigg] = 0.$$
-- Equivalently, 
+- Equivalently, $$\text{E}_{\theta}\big[\mathcal{I}(\theta)\big] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].$$
 - Sufficient condition: $$\frac{d^2}{d \theta^2}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2}p(x; \theta) dx.$$
 - Likelihoods satisfying the second Bartlett identity are called **information-unbiased**.
 
 :::
 
-## Bartlett
+## One-Index Asymptotics
 
-$$
-\rlap{
-  \underbrace{
-    \phantom{
-      \mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg]
-      }
-    }_{\text{Fisher information}}
-  }
-\mathscr{I}_{X}(\theta) = 
-\overbrace{
-  \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]
-  }^{\text{First Bartlett identity}}
-$$
+- The one-index asymptotics framework describes the behavior of likelihood-based statistics as the
+sample size grows to infinity while the dimension of the nuisance parameter remains fixed.
+- Classical results that hold under stated regularity conditions:
 
+$$\frac{1}{\sqrt n}\mathcal{S}(\theta_0; \mathbf{X}_n)  \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}(\theta_0)\Big)\> \> \text{as } n \to \infty.$$
 
+$$\sqrt n(\hat{\theta}_n - \theta_0)^\top \overset{d}{\to} \text{N}\Big(\mathbf{0}, \mathscr{I}(\theta_0)^{-1}\Big)\> \> \text{as } n \to \infty.$$
 
-$$= \rlap{\overbrace{\phantom{\text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]}}^{\text{First Bartlett identity}}} \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]$$
-
-
-
-\text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\big[\mathcal{I}_X(\theta)\big].$$
-
-$$a+b+\rlap{\overbrace{\phantom{c+d+e+f+g}}^x}c+d
-     +\underbrace{e+f+g+h+i}_y +k+l=e^2$$
-
-## Decomposing the Model Parameter
+## Decomposing the Model Parameter 
 
 - Consider the case in which our actual **parameter of interest** is not $\theta$ but rather a sub-parameter $\psi$ taking values in a set $\Psi$.
 
@@ -137,79 +173,159 @@ $$a+b+\rlap{\overbrace{\phantom{c+d+e+f+g}}^x}c+d
 
 - $\theta$ can therefore be decomposed as $\theta = (\psi, \lambda).$
 
-- The set in which $\lambda$ takes its values may depend on $\psi$ so we will define its parameter space as $$\Lambda(\psi) \equiv \{\lambda \> | \> (\psi, \lambda) \in \Theta\}.$$
+- $\lambda$ will often act as an obstacle to our inference regarding the true value of $\psi$, hence its name.
 
-:::{.notes}
-$\lambda$ will often obfuscate our inference regarding the true value of $\psi$, hence its name.
-
-Note that both $\psi$ and $\lambda$ are explicitly defined here as being a subset of the full model parameter's components. 
-:::
-
-## The Generalized Parameter of Interest
+## Implicit Parameters
 
 - Previously we defined $\psi$ (and by extension $\lambda$) explicitly as a subset of the components of $\theta$ but this need not always be the case.
 
 - In its most general form, the parameter of interest for a model is a function $\varphi: \Theta \to \Psi$ such that $\psi = \varphi(\theta)$.
 
-- When $\varphi(\theta)$ happens to be equal to $\theta$, we can base our inference directly on $L(\theta)$.
+- When $\psi$ and $\lambda$ are implicit, it is impossible to define $\varphi$ such that $$\varphi(\theta) = (\theta_{I_1}, ..., \theta_{I_p}) = \psi,$$ where $\{I_1, ..., I_p\} \subset \{1, ..., d\}$.
 
-- However, as its name suggests, when a nuisance parameter exists, estimating the parameter of interest can be quite difficult. 
+## Pseudolikelihood Functions
 
-## Pseudolikelihood Functions {.smaller}
+::: {style="font-size: 75%;"}
   
-- If we let $$\Theta(\psi) = \{\theta \in \Theta \> | \> \varphi(\theta) = \psi \},$$ then corresponding to $\psi \in \Psi$ is the set of likelihoods $$\mathcal{L}_{\psi} = \{L(\theta) \> | \> \theta \in \Theta(\psi)\}.$$
+- Let $$\Theta(\psi) = \{\theta \in \Theta: \> \varphi(\theta) = \psi \},$$ so that corresponding to $\psi \in \Psi$ is the set of likelihoods $$\mathcal{L}_{\psi} = \{L(\theta): \> \theta \in \Theta(\psi)\}.$$
 
- - Statisticians will often attempt to find a summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$. This summary is called a **pseudolikelihood function** and can take several different forms:
+ - A summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$ is called a **pseudolikelihood function**. The most common methods of summarization are
     - Maximizing
     - Conditioning
+    - Marginalizing
     - **Integrating**
+
+:::
 
 ## The Integrated Likelihood Function
 
-- The **integrated likelihood function** is defined as $$\bar{L}(\psi) = \int_{\Lambda(\psi)} L(\psi, \lambda)\pi(\lambda | \psi)d\lambda.$$
+::: {style="font-size: 80%;"}
 
-- The idea is to summarize $\mathcal{L}_{\psi}$ by its average value with respect to some weight function $\pi(\lambda | \psi)$ over $\Theta(\psi)$.
+- The **integrated likelihood function** is defined as $$\bar{L}(\psi) = \int_{\Lambda} L(\psi, \lambda)\pi(\lambda | \psi)d\lambda.$$
+
+- The idea is to summarize $\mathcal{L}_{\psi}$ by its average value with respect to some weight function $\pi(\lambda | \psi)$.
 
 - $\pi(\lambda | \psi)$ is often referred to as a conditional prior density for $\lambda$ given $\psi$ though in reality it doesn't have to be a genuine density function.
 
+- From a theoretical standpoint, averaging over $\Lambda$ is preferable to maximizing over it as the former incorporates (or at least is capable of incorporating) the uncertainty we have in the value of the nuisance parameter into the resulting pseudolikelihood in a very natural way. 
 
-:::{.notes}
-Note that $\psi$ and $\lambda$ will often be related in some sense.  
 :::
 
-## A New Choice of Nuisance Parameter
+## Similarity to Normalizing Constant of Posterior {.smaller}
 
-- Severini (2007) proposed a method for reparameterizing the nuisance parameter $\lambda$ in such a way that it is "unrelated" to the parameter of interest $\psi$.
+- Note the similarity in form between the expression for an integrated likelihood $$\bar{L}(\psi) = \int_{\Lambda} L(\psi, \lambda)\pi(\lambda | \psi)d\lambda$$ and the calculation of the normalizing constant of a posterior distribution $$\int_{\Theta} p(X|\theta)p(\theta) d\theta.$$
 
-- This parameter would be constructed to have a maximum likelihood estimate that would not actually depend on $\psi$.
+- This similarity provided some of the early motivation for this work, as it suggested the possibility of approximating integrated likelihoods by interpreting them as normalizing constants of posterior distributions. If this posterior distribution could be identified sop that samples could be drawn from it in some fashion, they could theoretically be used to create an empirical approximation of $\bar{L}(\psi)$.
 
-- Integrating the likelihood function with respect to this new nuisance parameter would grant the result some nice properties that would hold for essentially any choice of $\pi(\lambda | \psi)$ as long as it does not depend on $\psi$.
+## Two-Index Asymptotics
 
-:::{.notes}
-In this context, "unrelated" means the derivative of the new nuisance parameter with respect to $\psi$ is constant.
-These nice properties include approximate score- and information-unbiasedness.
+::: {style="font-size: 90%;"}
+
+- The two-index asymptotics framework describes the behavior of likelihood and pseudolikelihood functions as the sample size ($n$) and the dimension of the nuisance parameter ($q$) both tend to infinity, with $q$ growing at least as fast as $n$. 
+- Under such a framework, estimates for $\psi$ based on a properly constructed integrated likelihood function will outperform those coming from more traditional pseudolikelihoods, such as the profile likelihood. 
+- This motivates our examination of two-index asymptotic theory, insofar as it relates to the performance of the integrated likelihood function as a method of inference regarding a parameter of interest.
+
 :::
 
-## The Zero-Score Expectation Parameter {.smaller}
+## Two-Index Asymptotics
 
-- It can be shown that for a given parameterization $\theta = (\psi, \lambda)$, a nuisance parameter $\phi$ that is unrelated to $\psi$ is given by the solution to the equation $$\mathbb{E}\big(\ell_{\lambda}(\psi, \lambda); \hat{\psi}, \phi\big) \equiv \mathbb{E}\big(\ell_{\lambda}(\psi, \lambda); \psi_0, \lambda_0\big) \Bigg| _{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = 0,$$
+- Consider a model with parameter $\theta = (\psi, \lambda)$ where $\psi$ is the parameter of interest and $\lambda = (\lambda_1, ..., \lambda_q)$ is a $q$-dimensional nuisance parameter.
+
+- Suppose that we have divided the model's population into $q$ strata and collected a sample of size $m_i$ from each stratum such that observation $j$ from stratum $i$ may be modeled as $$X_{ij} \sim p_{ij}(x_{ij}; \psi, \lambda_i),$$ where $i = 1, ..., q$ and $j = 1, ..., m_i$, making the total sample size $n = \sum_{i = 1}^q m_i$.
+
+## Two-Index Asymptotics {.smaller}
+
+- A Laplace approximation of the integrated log-likelihood function leads to the following result:
+
+$$
+\begin{aligned}
+\bar{\ell}(\psi) &= \ell_P(\psi) + \sum_{i=1}^q \log \pi(\hat{\lambda}_{i\psi}| \psi) - \frac{1}{2}\sum_{i=1}^q\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O_p\bigg(\frac{q}{m}\bigg) \\
+                 &\> \>\text{ as } \>  \> m \to \infty.
+\end{aligned}
+$$
+
+- Further asymptotic properties of statistics based on the integrated likelihood can be derived from here.
+
+- Under the ZSE parameterization and with a weight function not depending on the parameter of interest, quantities based on an integrated likelihood will have asymptotic behaviours close to the standard ones. They also provide a gain in the accuracy of inference relative to the corresponding quantities computed from the profile likelihood. In particular, the score and information biases will be lower.
+
+## The Zero-Score Expectation Parameter
+
+::: {style="font-size: 65%;"}
+
+Severini (2007) showed that an integrated likelihood function with several nice properties that are useful for non-Bayesian inference could be constructed by doing the following:
+
+1) Find a reparameterization $(\psi, \lambda) \mapsto (\psi, \phi)$ of the model such that the new nuisance parameter $\phi$ is unrelated to $\psi$ in the sense that $\hat{\phi}_{\psi} = \hat{\phi}$. That is, the conditional maximum likelihood estimate of $\phi$ given $\psi$ is simply equal to the unrestricted maximum likelihood estimate of $\phi$.
+2) Select a prior density $\pi(\lambda|\psi)$ such that when the model undergoes the above reparameterization, the resulting prior density $\pi(\phi)$ does not depend on $\psi$.
+3) Form the integrated likelihood $$\bar{L}(\psi) = \int_{\Phi} \tilde{L}(\psi, \phi) \pi(\phi) d\phi,$$ where $\tilde{L}(\psi, \phi)$ is the likelihood function for the model after it has been reparameterized in terms of $\phi$.
+
+:::
+
+## The Zero-Score Expectation Parameter
+
+::: {style="font-size: 70%;"}
+
+- For a given parameterization $\theta = (\psi, \lambda)$, a nuisance parameter $\phi$ that is unrelated to $\psi$ is given by the solution to the equation $$\text{E}_{(\psi_0, \lambda_0)}\Big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{X}_n)\Big]\Bigg|_{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = \mathbf{0},$$
 where
-  - $\ell_{\lambda}(\psi, \lambda)$ is the score function; that is, the derivative of the log-likelihood with respect to $\lambda$,
-  - $\hat{\psi}$ is the maximum likelihood estimate for $\psi$,
-  - and $\psi_0$ and $\lambda_0$ are the "true" values of the parameters.
+  - $\nabla_{\lambda}\ell$ is the gradient of the log-likelihood with respect to $\lambda$;
+  - $\hat{\psi}$ is the maximum likelihood estimate for $\psi$;
+  - $\psi_0$ and $\lambda_0$ are the true values of the parameters.
 
 - The parameter $\phi$ is called the **zero-score expectation parameter** (ZSE). 
 
-:::{.notes}
-Note that while $\phi$ does not depend on $\psi$, it does depend on the data through $\hat{\psi}$.
+- While $\phi$ does not depend on $\psi$, it does depend on the data through $\hat{\psi}$.
+
 :::
 
-## Rewriting the Integrated Likelihood
+## Rewriting the Integrated Likelihood 
 
 - We can rewrite our expression for the integrated likelihood function in terms of the ZSE as follows: $$\bar{L}(\psi) = \int_{\Phi} L(\psi, \lambda(\psi, \phi))\pi(\phi)d\phi.$$
 
-- $\lambda(\psi, \phi) =\underset{\lambda}{\operatorname{argmax}} \mathbb{E}\big(\ell(\psi, \lambda); \hat{\psi}, \phi\big)$ 
-- $\Phi$ is the space of possible $\phi$
+- $\lambda(\psi, \phi) = \underset{\lambda \in \Lambda}{\mathrm{argmax}} \>\text{E}_{(\hat{\psi}, \phi)}\big[\ell(\psi, \lambda; \mathbf{X}_n)\big]$ 
+- $\Phi$ is the space of possible $\phi$.
+
+## The IL for an Implicit Parameter
+
+- Suppose $\psi$ is an implicit parameter of interest so that $\psi = \varphi(\theta)$ for some function $\varphi: \Theta \to \mathbb{R}$. Define $$\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.$$
+- For a model without an explicit nuisance parameter, an element of $\Omega_{\hat{\psi}}$, where $\hat{\psi} = \varphi(\hat{\theta})$ is the MLE for $\psi_0$, plays the same role as the parameter value $(\hat{\psi}, \phi)$ for a model with an explicit nuisance parameter.
+
+## The IL for an Implicit Parameter 
+
+::: {style="font-size: 75%;"}
+
+- For a given element $\omega \in \Omega_{\hat{\psi}}$ and a particular value of $\psi$, say $\psi_1$, the corresponding value of $\theta$ is that which maximizes $\text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big]$ subject to the restriction that $\varphi(\theta) = \psi_1$.
+- Define the function $T_{\psi}: \Omega_{\hat{\psi}} \to \Theta(\psi)$ such that $$T_{\psi}(\omega) = \underset{\theta \in \Theta(\psi)}{\mathrm{argmax}} \> \text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big].$$
+- The integrated likelihood for $\psi$ is then given by $$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L\big(T_{\psi}(\omega)\big)\pi(\omega)d\omega,$$ where $\pi(\omega)$ is a density defined on $\Omega_{\hat{\psi}}$.
+
+:::
+
+## The IL for an Implicit Parameter {.smaller}
+
+- This can also be written as $$\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(W)\big)\Big],$$ where $W$ represents a random variable with density $\pi(\omega)$. 
+- We can further define a function $Q: \mathcal{U} \to \Omega_{\hat{\psi}}$ for some set $\mathcal{U}$ such that if $U$ is a random variable taking values in $\mathcal{U}$, then $Q(U)$ will be a random variable in $\Omega_{\hat{\psi}}$ with a distribution that is completely determined by our choice of $U$. 
+- Therefore, $$\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(Q(U))\big)\Big]$$ is an integrated likelihood for $\psi$ with a weight function corresponding to the density of $Q(U)$. 
+
+## The IL for an Implicit Parameter
+
+::: {style="font-size: 80%;"}
+
+- Define $$\tilde{L}(u; \psi) = L(T_{\psi}(Q(u)), \> u \in \mathcal{U}.$$
+
+- We can then write the integrated likelihood for $\psi$ in terms of $\overset{\sim}{L}(u; \psi)$ as follows: $$\bar{L}(\psi) = \int_{\mathcal{U}} \tilde{L}(u; \psi)\check{\pi}(u)du,$$ where $\check{\pi}(u)$ is a density on $\mathcal{U}$ of our choosing. 
+
+- If $\check{\pi}(u)$ doesn't depend on $\psi$, the integrated likelihood will have the properties we desire.
+
+:::
+
+## Approximating the IL for an Implicit Parameter
+
+::: {style="font-size: 60%;"}
+
+- We can further rewrite this as $$\bar{L}(\psi) = \int_{\mathcal{U}} \frac{\tilde{L}(u; \psi)}{\check{L}(u)} \check{L}(u)\check{\pi}(u)du,$$ where $\check{L}(u)$ represents an arbitrary likelihood function for the "parameter" $u$. 
+- From a Bayesian point of view, the quantity $\check{L}(u)\check{\pi}(u)$ can then be thought of as a posterior density for $u$ up to some proportionality constant. 
+- If we sample random variates $u_1, ..., u_R$ from $\check{L}(u)\check{\pi}(u)$, then a simple empirical estimate to $\bar{L}(\psi)$ at a particular value of $\psi$ is given by $$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{i = 1}^R \frac{\tilde{L}(u_i; \psi)}{\check{L}(u_i)}.$$
+- Repeating this procedure for every value of $\psi \in \Psi$ will give an overall shape for $\hat{\bar{L}}(\psi)$, which can be used to conduct inference for $\psi_0$ without interference from a nuisance parameter.
+
+:::
 
 ## Application to a Multinomial Model {.smaller}
 
@@ -220,50 +336,42 @@ Note that while $\phi$ does not depend on $\psi$, it does depend on the data thr
 - We will take our parameter of interest $\psi$ to be the entropy of the distribution. That is, $$\psi \equiv g(\theta) =  -\sum_{j=1}^m \theta_j \log(\theta_j).$$
  - If $(n_1, ..., n_m)$ are the observed values of $(N_1, ..., N_m)$, then the likelihood and log-likelihood are, respectively, $$L(\theta) = \prod_{j=1}^m \theta_j^{n_j} \text{ and } \ell(\theta) = \log L(\theta).$$
 
-:::{.notes}
-0log(0) is taken to be 0. 
-
-The minimum value of $\psi$ is 0 and the maximum value is log(m).
-:::
-
 ## Application to a Multinomial Model
 
-- We will denote the parameter space for $\Psi$ by $$\Psi = \{t \in \mathbb{R} \> | \> g(\theta) = t \text{ for some } \theta \in \Theta\}.$$
-- The integrated likelihood then becomes $$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(\theta(\omega; \psi))\pi(\omega)d\omega, \> \psi \in \Psi,$$
-where $\Omega_{\hat{\psi}} = \{\omega \in \Theta \> | \> g(\omega) = \hat{\psi}\}$ and $\hat{\psi} = g(\hat{\theta})$ is the MLE for $\psi$.
+- Set $\check{L}(u) := L(u)$ and choose $\check{\pi}(u)$ to be the symmetric Dirichlet distribution on the probability simplex in $\mathbb{R}^d$ with $\alpha_j = 1$ for all $j$.
+- The Dirichlet distribution is a conjugate prior for the multinomial distribution, so that the posterior distribution for $U$ based on data $n = (n_1, ..., n_d)$ is given by $L(u)\check{\pi}(u) \sim \text{Dir}(n + \mathbf{1})$. 
+- Modern statistical computing packages enable us to sample random variates of $U$ directly from this distribution.
 
 ## Application to a Multinomial Model {.smaller}
 
-- Severini (2022) describes a method for approximating the integrated likelihood function for the entropy of this distribution based on the ZSE using basic Monte Carlo integration.
+- Choose $Q$ and $T_{\psi}$ such that $$\mathcal{U} \overset{Q}{\mapsto} \Omega_{\hat{\psi}} \overset{T_{\psi}}{\mapsto} \Theta(\psi).$$
+- In this case, a convenient choice is to have them return the elements in their respective output spaces that are closest to the input element they have each received. This can be done numerically using a suitable optimization package.
+- Sample $R$ random variates of $U$ from the appropriate Dirichlet distribution, use $Q$ and $T_{\psi}$ to calculate $\overset{\sim}{L}(u; \psi)$, and use our previous formula to approximate the integrated likelihood at a particular value of $\psi$. 
+- Repeat this process over a finely spaced sequence of the possible values of $\psi$ in order to get a shape of the overall integrated likelihood. 
 
-- The idea is to draw random variates $\tilde{\omega}$ from $\Omega_{\hat{\psi}}$ according to a distribution that does NOT depend on $\psi$ and then use these variates to generate values of $\theta = \theta(\tilde{\omega}, \psi)$ by solving the maximization problem $$\max \> \mathbb{E} \big(\ell(\theta); \tilde{\omega} \big) \text{ subject to } g(\theta) = \psi$$
+## Result of IL Approximation Technique {.smaller}
 
-- If $\theta(\omega_j, \psi_1)$ is the solution to the above maximization problem for $\tilde{\omega} = \omega_j$ and $\psi = \psi_1$, then the value of the integrated likelihood for $\psi$ at $\psi_1$ can be approximated by $$\bar{L}(\psi_1) = \sum_{j=1}^R L(\theta(\omega_j, \psi_1)),$$ for sufficiently large $R$.
+![The above graph compares an approximated integrated likelihood for the entropy of a multinomial distribution, based on observed data $(n_1, ..., n_6) = (1, 1, 2, 4, 7, 10)$, with that of the profile likelihood for the same parameter of interest.](multinomial_entropy_pseudolikelihoods.png)
 
-## Result of Algorithm  {.smaller}
+## Standardized Mean Difference {.smaller}
 
-![](multinomial_entropy_pseudolikelihood.png)
+- Consider a sample of $q$ independent studies, each comparing a treatment group to a control group. Suppose the $j$th observations of the treatment and control groups in the $i$th study are given by $$Y_{ij}^T \sim\text{N}(\mu_i^T, \sigma_i^2) \> \text{ and } \> Y_{ij}^C \sim\text{N}(\mu_i^C, \sigma_i^2),$$ respectively, where $j = 1, ..., m_i$ observations and $i = 1, ..., q$ studies. 
 
-The above graph shows the result of an implementation of this algorithm for the observed data $(n_1, ..., n_6) = (1, 1, 2, 4, 7, 10)$.
+- The true standardized mean difference (SMD) for study $i$ is defined as $$\delta_i = \frac{\mu_i^T - \mu_i^C}{\sigma_i}.$$ Standard practice is to estimate $\delta_i$ by $$d_i = \frac{\bar{y}_i^T - \bar{y}_i^C}{s_i},$$ where $\bar{y}$ is the traditional sample mean and $s$ is the pooled sample standard deviation. 
 
-## Bayes' Theorem {.smaller}
+## Standardized Mean Difference
 
-- Instead of using simple Monte Carlo approximation, my idea has been to take advantage of the similarity between an integrated likelihood and the normalizing constant for a posterior distribution.
+- Under a linear fixed-effect model, $$d_i = \delta + \epsilon_i,$${#eq-SMD4} with $\epsilon_i \sim \text{N}(0, \sigma_{d_i}^2)$ for $i = 1,..., q$, where $\delta = \frac{1}{q}\sum_{i=1}^q \delta_i$ is the common mean. 
+- The overarching objective of a meta-analysis using this framework is to find an estimate of $\delta$ and its associated standard error. Hence, $\delta$ can be considered an implicit parameter of interest in this model, and so it makes sense to consider the efficacy of an integrated likelihood function as a tool for its estimation.
 
-- Bayes' Theorem tells us that the posterior distribution for a parameter $\theta$ and data $X$ is $$p(\theta | X) = \frac{p(X|\theta)p(\theta)}{p(X)}.$$
+## Standardized Mean Difference
 
-- Since $p(X)$ is constant with respect to $\theta$ and we must have $\int p(\theta | X) d\theta = 1$, it follows that $$p(X) = \int p(X|\theta)p(\theta) d\theta$$ and therefore 
-$$\int p(X|\theta)p(\theta) d\theta = \frac{p(X|\theta)p(\theta)}{p(\theta | X)}.$$
+::: {style="font-size: 90%;"}
 
-## Bayes' Theorem (contd.)
+- Going forward, one of our objectives will be to find appropriate choices for $\check{L}(u)\check{\pi}(u)$, $Q(u)$, and $T_{\delta}(\omega)$ that allow us to form an approximation to the integrated likelihood function $$\bar{L}(\delta) = \int_{\mathcal{U}} \frac{L\big(T_{\delta}(Q(u))\big)}{\check{L}(u)}\check{L}(u)\check{\pi}(u)du$$ using the procedure described in the previous chapter. 
 
-- Note the similarity in form between these two expressions $$\int_{\Phi} L(\psi, \lambda(\psi, \phi))\pi(\phi)d\phi$$ $$\int p(X|\theta)p(\theta) d\theta$$
+- Another potential area of exploration is to consider the SMD under the framework of a random-effects model. This allows for the consideration of the heterogeneity variance parameter $\tau^2$ as another possible parmeter of interest.
 
-- The problem I have been working on has been to simulate the posterior distribution $p(\theta | X)$ using a Markov Chain Monte Carlo algorithm. This will then allow me to approximate the denominator in $\frac{p(X|\theta)p(\theta)}{p(\theta | X)}$.
+:::
 
-## References {.smaller}
-
-Severini, Thomas A. "Integrated Likelihood Inference in Multinomial Distributions." METRON (2022).
-
-Severini, Thomas A. “Integrated Likelihood Functions for Non-Bayesian Inference.” Biometrika 94, no. 3 (2007): 529–42.
-
+# Thank You! {.center}

@@ -323,6 +323,15 @@
   #title-slide .title {
     font-size: 2em;
   }
+  .center-xy {
+    width: 3000;
+    margin: 0;
+    position: absolute;
+    top: 3%;
+    left: -27%;
+    -ms-transform: translateY(-50%), translateX(-50%);
+    transform: translateY(-50%), translateX(-50%);
+  }
   </style>
 </head>
 <body class="quarto-light">
@@ -331,7 +340,7 @@
 
 <section id="title-slide" class="quarto-title-block center">
   <h1 class="title">Proposal for an Adjusted Numerical Approximation to the Integrated Likelihood Function</h1>
-  <p class="subtitle">Dissertation Prospectus</p>
+  <p class="subtitle">A Dissertation Prospectus</p>
 
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
@@ -417,17 +426,57 @@ Tim Ruel
 <li><span class="math inline">\(p(x; \theta)\)</span> is twice continuously differentiable with respect to <span class="math inline">\(\theta\)</span> for all <span class="math inline">\(\theta\)</span> in a neighborhood of <span class="math inline">\(\theta_0\)</span>.</li>
 <li>There exists a random function <span class="math inline">\(M(x)\)</span> (that does not depend on <span class="math inline">\(\theta\)</span>) satisfying <span class="math inline">\(\text{E}[M(X)] &lt; \infty\)</span> such that each third partial derivative of <span class="math inline">\(\ell(\theta; x)\)</span> is bounded in absolute value by <span class="math inline">\(M(x)\)</span> uniformly in some neighborhood of <span class="math inline">\(\theta_0\)</span>.</li>
 <li>The integral <span class="math inline">\(\int_{\mathcal{X}} p(x; \theta) dx\)</span> can be differentiated twice under the integral sign with respect to the components of <span class="math inline">\(\theta\in \Theta^*\)</span>.</li>
-<li><span class="math inline">\(\mathscr{I}_{X}(\theta)\)</span> is positive definite for all <span class="math inline">\(\theta \in \Theta\)</span>.</li>
+<li><span class="math inline">\(\mathscr{I}(\theta)\)</span> is positive definite for all <span class="math inline">\(\theta \in \Theta\)</span>.</li>
 <li><span class="math inline">\(\Theta\)</span> is a compact and convex subset of <span class="math inline">\(\mathbb{R}^d\)</span>.</li>
+</ul>
+</div>
+</section>
+<section id="the-bartlett-identities" class="slide level2">
+<h2>The Bartlett Identities</h2>
+<div style="font-size: 80%;">
+<p><span class="math display">\[
+\rlap{
+  \underbrace{
+    \phantom{
+      \mathscr{I}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg]
+      }
+    }_{\text{Fisher information}}
+  }
+\mathscr{I}(\theta) =
+\overbrace{
+  \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] =
+  \rlap{
+    \underbrace{
+      \phantom{
+        \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg]
+        }
+      }_{\text{Second Bartlett identity}}
+    }
+\text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]
+  }^{\text{First Bartlett identity}} =
+  \rlap{
+    \overbrace{
+      \phantom{
+          \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] =
+  \text{E}_{\theta}\big[\mathcal{I}_X(\theta)\big]
+  }
+  }^{\text{Expectation of observed information}}
+}
+  \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] =
+  \text{E}_{\theta}\big[\mathcal{I}(\theta)\big]
+\]</span></p>
+<ul>
+<li><p>The Bartlett identities are a set of equations relating the expectations of the derivatives of a log-likelihood function to one another.</p></li>
+<li><p>They can be used as a litmus test of sorts for determining the validity of a pseudolikelihood as an approximation to the likelihood from which it originated - the more identities it satisfies, the more it will resemble a genuine likelihood.</p></li>
 </ul>
 </div>
 </section>
 <section id="the-first-bartlett-identity" class="slide level2">
 <h2>The First Bartlett Identity</h2>
-<div style="font-size: 65%;">
+<div style="font-size: 70%;">
 <ul>
-<li>A likelihood satisfies the first Bartlett identity if <span class="math display">\[E_{\theta}\Big[\mathcal{S}(\theta; X)\Big] = E_{\theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\bigg] = 0.\]</span></li>
-<li>Equivalently, <span class="math display">\[\mathscr{I}(\theta) = E_{\theta}\Big[\mathcal{S}(\theta; X)^2\Big] =  \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].\]</span></li>
+<li>A likelihood satisfies the first Bartlett identity if <span class="math display">\[E_{\theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\bigg] = 0.\]</span></li>
+<li>Equivalently, <span class="math display">\[\mathscr{I}(\theta) =  \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].\]</span></li>
 <li>Sufficient condition: <span class="math display">\[\frac{d}{d \theta}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial}{\partial \theta}p(x; \theta) dx.\]</span></li>
 <li>Likelihoods satisfying the first Bartlett identity are called <strong>score-unbiased</strong>.</li>
 </ul>
@@ -435,34 +484,23 @@ Tim Ruel
 </section>
 <section id="the-second-bartlett-identity" class="slide level2">
 <h2>The Second Bartlett Identity</h2>
-<div style="font-size: 60%;">
+<div style="font-size: 70%;">
 <ul>
 <li>A likelihood satisfies the second Bartlett identity if <span class="math display">\[\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2\Bigg] = 0.\]</span></li>
-<li>Equivalently,</li>
+<li>Equivalently, <span class="math display">\[\text{E}_{\theta}\big[\mathcal{I}(\theta)\big] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].\]</span></li>
 <li>Sufficient condition: <span class="math display">\[\frac{d^2}{d \theta^2}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2}p(x; \theta) dx.\]</span></li>
 <li>Likelihoods satisfying the second Bartlett identity are called <strong>information-unbiased</strong>.</li>
 </ul>
 </div>
 </section>
-<section id="bartlett" class="slide level2">
-<h2>Bartlett</h2>
-<p>[ ]</p>
-<p><span class="math display">\[
-\rlap{
-  \underbrace{
-    \phantom{
-      \mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg]
-      }
-    }_{\text{Fisher information}}
-  }
-\mathscr{I}_{X}(\theta) =
-\overbrace{
-  \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]
-  }^{\text{First Bartlett identity}}\]</span></p>
-<p><span class="math display">\[= \rlap{\overbrace{\phantom{\text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]}}^{\text{First Bartlett identity}}} \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]\]</span></p>
-<p><em>{}= </em>{}= _{}.$$</p>
-<p><span class="math display">\[a+b+\rlap{\overbrace{\phantom{c+d+e+f+g}}^x}c+d
-     +\underbrace{e+f+g+h+i}_y +k+l=e^2\]</span></p>
+<section id="one-index-asymptotics" class="slide level2">
+<h2>One-Index Asymptotics</h2>
+<ul>
+<li>The one-index asymptotics framework describes the behavior of likelihood-based statistics as the sample size grows to infinity while the dimension of the nuisance parameter remains fixed.</li>
+<li>Classical results that hold under stated regularity conditions:</li>
+</ul>
+<p><span class="math display">\[\frac{1}{\sqrt n}\mathcal{S}(\theta_0; \mathbf{X}_n)  \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}(\theta_0)\Big)\&gt; \&gt; \text{as } n \to \infty.\]</span></p>
+<p><span class="math display">\[\sqrt n(\hat{\theta}_n - \theta_0)^\top \overset{d}{\to} \text{N}\Big(\mathbf{0}, \mathscr{I}(\theta_0)^{-1}\Big)\&gt; \&gt; \text{as } n \to \infty.\]</span></p>
 </section>
 <section id="decomposing-the-model-parameter" class="slide level2">
 <h2>Decomposing the Model Parameter</h2>
@@ -470,118 +508,162 @@ Tim Ruel
 <li><p>Consider the case in which our actual <strong>parameter of interest</strong> is not <span class="math inline">\(\theta\)</span> but rather a sub-parameter <span class="math inline">\(\psi\)</span> taking values in a set <span class="math inline">\(\Psi\)</span>.</p></li>
 <li><p>Whatever remains in <span class="math inline">\(\theta\)</span> that is not a part of <span class="math inline">\(\psi\)</span> is called the <strong>nuisance parameter</strong> and is denoted by <span class="math inline">\(\lambda\)</span>.</p></li>
 <li><p><span class="math inline">\(\theta\)</span> can therefore be decomposed as <span class="math inline">\(\theta = (\psi, \lambda).\)</span></p></li>
-<li><p>The set in which <span class="math inline">\(\lambda\)</span> takes its values may depend on <span class="math inline">\(\psi\)</span> so we will define its parameter space as <span class="math display">\[\Lambda(\psi) \equiv \{\lambda \&gt; | \&gt; (\psi, \lambda) \in \Theta\}.\]</span></p></li>
+<li><p><span class="math inline">\(\lambda\)</span> will often act as an obstacle to our inference regarding the true value of <span class="math inline">\(\psi\)</span>, hence its name.</p></li>
 </ul>
-<aside class="notes">
-<p><span class="math inline">\(\lambda\)</span> will often obfuscate our inference regarding the true value of <span class="math inline">\(\psi\)</span>, hence its name.</p>
-<p>Note that both <span class="math inline">\(\psi\)</span> and <span class="math inline">\(\lambda\)</span> are explicitly defined here as being a subset of the full model parameter’s components.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section>
-<section id="the-generalized-parameter-of-interest" class="slide level2">
-<h2>The Generalized Parameter of Interest</h2>
+<section id="implicit-parameters" class="slide level2">
+<h2>Implicit Parameters</h2>
 <ul>
 <li><p>Previously we defined <span class="math inline">\(\psi\)</span> (and by extension <span class="math inline">\(\lambda\)</span>) explicitly as a subset of the components of <span class="math inline">\(\theta\)</span> but this need not always be the case.</p></li>
 <li><p>In its most general form, the parameter of interest for a model is a function <span class="math inline">\(\varphi: \Theta \to \Psi\)</span> such that <span class="math inline">\(\psi = \varphi(\theta)\)</span>.</p></li>
-<li><p>When <span class="math inline">\(\varphi(\theta)\)</span> happens to be equal to <span class="math inline">\(\theta\)</span>, we can base our inference directly on <span class="math inline">\(L(\theta)\)</span>.</p></li>
-<li><p>However, as its name suggests, when a nuisance parameter exists, estimating the parameter of interest can be quite difficult.</p></li>
+<li><p>When <span class="math inline">\(\psi\)</span> and <span class="math inline">\(\lambda\)</span> are implicit, it is impossible to define <span class="math inline">\(\varphi\)</span> such that <span class="math display">\[\varphi(\theta) = (\theta_{I_1}, ..., \theta_{I_p}) = \psi,\]</span> where <span class="math inline">\(\{I_1, ..., I_p\} \subset \{1, ..., d\}\)</span>.</p></li>
 </ul>
 </section>
-<section id="pseudolikelihood-functions" class="slide level2 smaller">
+<section id="pseudolikelihood-functions" class="slide level2">
 <h2>Pseudolikelihood Functions</h2>
+<div style="font-size: 75%;">
 <ul>
-<li><p>If we let <span class="math display">\[\Theta(\psi) = \{\theta \in \Theta \&gt; | \&gt; \varphi(\theta) = \psi \},\]</span> then corresponding to <span class="math inline">\(\psi \in \Psi\)</span> is the set of likelihoods <span class="math display">\[\mathcal{L}_{\psi} = \{L(\theta) \&gt; | \&gt; \theta \in \Theta(\psi)\}.\]</span></p></li>
-<li><p>Statisticians will often attempt to find a summary of the values in <span class="math inline">\(\mathcal{L}_{\psi}\)</span> that does not depend on <span class="math inline">\(\lambda\)</span>. This summary is called a <strong>pseudolikelihood function</strong> and can take several different forms:</p>
+<li><p>Let <span class="math display">\[\Theta(\psi) = \{\theta \in \Theta: \&gt; \varphi(\theta) = \psi \},\]</span> so that corresponding to <span class="math inline">\(\psi \in \Psi\)</span> is the set of likelihoods <span class="math display">\[\mathcal{L}_{\psi} = \{L(\theta): \&gt; \theta \in \Theta(\psi)\}.\]</span></p></li>
+<li><p>A summary of the values in <span class="math inline">\(\mathcal{L}_{\psi}\)</span> that does not depend on <span class="math inline">\(\lambda\)</span> is called a <strong>pseudolikelihood function</strong>. The most common methods of summarization are</p>
 <ul>
 <li>Maximizing</li>
 <li>Conditioning</li>
+<li>Marginalizing</li>
 <li><strong>Integrating</strong></li>
 </ul></li>
 </ul>
+</div>
 </section>
 <section id="the-integrated-likelihood-function" class="slide level2">
 <h2>The Integrated Likelihood Function</h2>
+<div style="font-size: 80%;">
 <ul>
-<li><p>The <strong>integrated likelihood function</strong> is defined as <span class="math display">\[\bar{L}(\psi) = \int_{\Lambda(\psi)} L(\psi, \lambda)\pi(\lambda | \psi)d\lambda.\]</span></p></li>
-<li><p>The idea is to summarize <span class="math inline">\(\mathcal{L}_{\psi}\)</span> by its average value with respect to some weight function <span class="math inline">\(\pi(\lambda | \psi)\)</span> over <span class="math inline">\(\Theta(\psi)\)</span>.</p></li>
+<li><p>The <strong>integrated likelihood function</strong> is defined as <span class="math display">\[\bar{L}(\psi) = \int_{\Lambda} L(\psi, \lambda)\pi(\lambda | \psi)d\lambda.\]</span></p></li>
+<li><p>The idea is to summarize <span class="math inline">\(\mathcal{L}_{\psi}\)</span> by its average value with respect to some weight function <span class="math inline">\(\pi(\lambda | \psi)\)</span>.</p></li>
 <li><p><span class="math inline">\(\pi(\lambda | \psi)\)</span> is often referred to as a conditional prior density for <span class="math inline">\(\lambda\)</span> given <span class="math inline">\(\psi\)</span> though in reality it doesn’t have to be a genuine density function.</p></li>
+<li><p>From a theoretical standpoint, averaging over <span class="math inline">\(\Lambda\)</span> is preferable to maximizing over it as the former incorporates (or at least is capable of incorporating) the uncertainty we have in the value of the nuisance parameter into the resulting pseudolikelihood in a very natural way.</p></li>
 </ul>
-<aside class="notes">
-<p>Note that <span class="math inline">\(\psi\)</span> and <span class="math inline">\(\lambda\)</span> will often be related in some sense.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
+</div>
 </section>
-<section id="a-new-choice-of-nuisance-parameter" class="slide level2">
-<h2>A New Choice of Nuisance Parameter</h2>
+<section id="similarity-to-normalizing-constant-of-posterior" class="slide level2 smaller">
+<h2>Similarity to Normalizing Constant of Posterior</h2>
 <ul>
-<li><p>Severini (2007) proposed a method for reparameterizing the nuisance parameter <span class="math inline">\(\lambda\)</span> in such a way that it is “unrelated” to the parameter of interest <span class="math inline">\(\psi\)</span>.</p></li>
-<li><p>This parameter would be constructed to have a maximum likelihood estimate that would not actually depend on <span class="math inline">\(\psi\)</span>.</p></li>
-<li><p>Integrating the likelihood function with respect to this new nuisance parameter would grant the result some nice properties that would hold for essentially any choice of <span class="math inline">\(\pi(\lambda | \psi)\)</span> as long as it does not depend on <span class="math inline">\(\psi\)</span>.</p></li>
+<li><p>Note the similarity in form between the expression for an integrated likelihood <span class="math display">\[\bar{L}(\psi) = \int_{\Lambda} L(\psi, \lambda)\pi(\lambda | \psi)d\lambda\]</span> and the calculation of the normalizing constant of a posterior distribution <span class="math display">\[\int_{\Theta} p(X|\theta)p(\theta) d\theta.\]</span></p></li>
+<li><p>This similarity provided some of the early motivation for this work, as it suggested the possibility of approximating integrated likelihoods by interpreting them as normalizing constants of posterior distributions. If this posterior distribution could be identified sop that samples could be drawn from it in some fashion, they could theoretically be used to create an empirical approximation of <span class="math inline">\(\bar{L}(\psi)\)</span>.</p></li>
 </ul>
-<aside class="notes">
-<p>In this context, “unrelated” means the derivative of the new nuisance parameter with respect to <span class="math inline">\(\psi\)</span> is constant. These nice properties include approximate score- and information-unbiasedness.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section>
-<section id="the-zero-score-expectation-parameter" class="slide level2 smaller">
+<section id="two-index-asymptotics" class="slide level2">
+<h2>Two-Index Asymptotics</h2>
+<div style="font-size: 90%;">
+<ul>
+<li>The two-index asymptotics framework describes the behavior of likelihood and pseudolikelihood functions as the sample size (<span class="math inline">\(n\)</span>) and the dimension of the nuisance parameter (<span class="math inline">\(q\)</span>) both tend to infinity, with <span class="math inline">\(q\)</span> growing at least as fast as <span class="math inline">\(n\)</span>.</li>
+<li>Under such a framework, estimates for <span class="math inline">\(\psi\)</span> based on a properly constructed integrated likelihood function will outperform those coming from more traditional pseudolikelihoods, such as the profile likelihood.</li>
+<li>This motivates our examination of two-index asymptotic theory, insofar as it relates to the performance of the integrated likelihood function as a method of inference regarding a parameter of interest.</li>
+</ul>
+</div>
+</section>
+<section id="two-index-asymptotics-1" class="slide level2">
+<h2>Two-Index Asymptotics</h2>
+<ul>
+<li><p>Consider a model with parameter <span class="math inline">\(\theta = (\psi, \lambda)\)</span> where <span class="math inline">\(\psi\)</span> is the parameter of interest and <span class="math inline">\(\lambda = (\lambda_1, ..., \lambda_q)\)</span> is a <span class="math inline">\(q\)</span>-dimensional nuisance parameter.</p></li>
+<li><p>Suppose that we have divided the model’s population into <span class="math inline">\(q\)</span> strata and collected a sample of size <span class="math inline">\(m_i\)</span> from each stratum such that observation <span class="math inline">\(j\)</span> from stratum <span class="math inline">\(i\)</span> may be modeled as <span class="math display">\[X_{ij} \sim p_{ij}(x_{ij}; \psi, \lambda_i),\]</span> where <span class="math inline">\(i = 1, ..., q\)</span> and <span class="math inline">\(j = 1, ..., m_i\)</span>, making the total sample size <span class="math inline">\(n = \sum_{i = 1}^q m_i\)</span>.</p></li>
+</ul>
+</section>
+<section id="two-index-asymptotics-2" class="slide level2 smaller">
+<h2>Two-Index Asymptotics</h2>
+<ul>
+<li>A Laplace approximation of the integrated log-likelihood function leads to the following result:</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\bar{\ell}(\psi) &amp;= \ell_P(\psi) + \sum_{i=1}^q \log \pi(\hat{\lambda}_{i\psi}| \psi) - \frac{1}{2}\sum_{i=1}^q\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O_p\bigg(\frac{q}{m}\bigg) \\
+                 &amp;\&gt; \&gt;\text{ as } \&gt;  \&gt; m \to \infty.
+\end{aligned}
+\]</span></p>
+<ul>
+<li><p>Further asymptotic properties of statistics based on the integrated likelihood can be derived from here.</p></li>
+<li><p>Under the ZSE parameterization and with a weight function not depending on the parameter of interest, quantities based on an integrated likelihood will have asymptotic behaviours close to the standard ones. They also provide a gain in the accuracy of inference relative to the corresponding quantities computed from the profile likelihood. In particular, the score and information biases will be lower.</p></li>
+</ul>
+</section>
+<section id="the-zero-score-expectation-parameter" class="slide level2">
 <h2>The Zero-Score Expectation Parameter</h2>
+<div style="font-size: 65%;">
+<p>Severini (2007) showed that an integrated likelihood function with several nice properties that are useful for non-Bayesian inference could be constructed by doing the following:</p>
+<ol type="1">
+<li>Find a reparameterization <span class="math inline">\((\psi, \lambda) \mapsto (\psi, \phi)\)</span> of the model such that the new nuisance parameter <span class="math inline">\(\phi\)</span> is unrelated to <span class="math inline">\(\psi\)</span> in the sense that <span class="math inline">\(\hat{\phi}_{\psi} = \hat{\phi}\)</span>. That is, the conditional maximum likelihood estimate of <span class="math inline">\(\phi\)</span> given <span class="math inline">\(\psi\)</span> is simply equal to the unrestricted maximum likelihood estimate of <span class="math inline">\(\phi\)</span>.</li>
+<li>Select a prior density <span class="math inline">\(\pi(\lambda|\psi)\)</span> such that when the model undergoes the above reparameterization, the resulting prior density <span class="math inline">\(\pi(\phi)\)</span> does not depend on <span class="math inline">\(\psi\)</span>.</li>
+<li>Form the integrated likelihood <span class="math display">\[\bar{L}(\psi) = \int_{\Phi} \tilde{L}(\psi, \phi) \pi(\phi) d\phi,\]</span> where <span class="math inline">\(\tilde{L}(\psi, \phi)\)</span> is the likelihood function for the model after it has been reparameterized in terms of <span class="math inline">\(\phi\)</span>.</li>
+</ol>
+</div>
+</section>
+<section id="the-zero-score-expectation-parameter-1" class="slide level2">
+<h2>The Zero-Score Expectation Parameter</h2>
+<div style="font-size: 70%;">
 <ul>
-<li>It can be shown that for a given parameterization <span class="math inline">\(\theta = (\psi, \lambda)\)</span>, a nuisance parameter <span class="math inline">\(\phi\)</span> that is unrelated to <span class="math inline">\(\psi\)</span> is given by the solution to the equation <span class="math display">\[\mathbb{E}\big(\ell_{\lambda}(\psi, \lambda); \hat{\psi}, \phi\big) \equiv \mathbb{E}\big(\ell_{\lambda}(\psi, \lambda); \psi_0, \lambda_0\big) \Bigg| _{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = 0,\]</span> where
+<li><p>For a given parameterization <span class="math inline">\(\theta = (\psi, \lambda)\)</span>, a nuisance parameter <span class="math inline">\(\phi\)</span> that is unrelated to <span class="math inline">\(\psi\)</span> is given by the solution to the equation <span class="math display">\[\text{E}_{(\psi_0, \lambda_0)}\Big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{X}_n)\Big]\Bigg|_{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = \mathbf{0},\]</span> where</p>
 <ul>
-<li><span class="math inline">\(\ell_{\lambda}(\psi, \lambda)\)</span> is the score function; that is, the derivative of the log-likelihood with respect to <span class="math inline">\(\lambda\)</span>,</li>
-<li><span class="math inline">\(\hat{\psi}\)</span> is the maximum likelihood estimate for <span class="math inline">\(\psi\)</span>,</li>
-<li>and <span class="math inline">\(\psi_0\)</span> and <span class="math inline">\(\lambda_0\)</span> are the “true” values of the parameters.</li>
+<li><span class="math inline">\(\nabla_{\lambda}\ell\)</span> is the gradient of the log-likelihood with respect to <span class="math inline">\(\lambda\)</span>;</li>
+<li><span class="math inline">\(\hat{\psi}\)</span> is the maximum likelihood estimate for <span class="math inline">\(\psi\)</span>;</li>
+<li><span class="math inline">\(\psi_0\)</span> and <span class="math inline">\(\lambda_0\)</span> are the true values of the parameters.</li>
 </ul></li>
-<li>The parameter <span class="math inline">\(\phi\)</span> is called the <strong>zero-score expectation parameter</strong> (ZSE).</li>
+<li><p>The parameter <span class="math inline">\(\phi\)</span> is called the <strong>zero-score expectation parameter</strong> (ZSE).</p></li>
+<li><p>While <span class="math inline">\(\phi\)</span> does not depend on <span class="math inline">\(\psi\)</span>, it does depend on the data through <span class="math inline">\(\hat{\psi}\)</span>.</p></li>
 </ul>
-<aside class="notes">
-<p>Note that while <span class="math inline">\(\phi\)</span> does not depend on <span class="math inline">\(\psi\)</span>, it does depend on the data through <span class="math inline">\(\hat{\psi}\)</span>.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
+</div>
 </section>
 <section id="rewriting-the-integrated-likelihood" class="slide level2">
 <h2>Rewriting the Integrated Likelihood</h2>
 <ul>
 <li><p>We can rewrite our expression for the integrated likelihood function in terms of the ZSE as follows: <span class="math display">\[\bar{L}(\psi) = \int_{\Phi} L(\psi, \lambda(\psi, \phi))\pi(\phi)d\phi.\]</span></p></li>
-<li><p><span class="math inline">\(\lambda(\psi, \phi) =\underset{\lambda}{\operatorname{argmax}} \mathbb{E}\big(\ell(\psi, \lambda); \hat{\psi}, \phi\big)\)</span></p></li>
-<li><p><span class="math inline">\(\Phi\)</span> is the space of possible <span class="math inline">\(\phi\)</span></p></li>
+<li><p><span class="math inline">\(\lambda(\psi, \phi) = \underset{\lambda \in \Lambda}{\mathrm{argmax}} \&gt;\text{E}_{(\hat{\psi}, \phi)}\big[\ell(\psi, \lambda; \mathbf{X}_n)\big]\)</span></p></li>
+<li><p><span class="math inline">\(\Phi\)</span> is the space of possible <span class="math inline">\(\phi\)</span>.</p></li>
 </ul>
+</section>
+<section id="the-il-for-an-implicit-parameter" class="slide level2">
+<h2>The IL for an Implicit Parameter</h2>
+<ul>
+<li>Suppose <span class="math inline">\(\psi\)</span> is an implicit parameter of interest so that <span class="math inline">\(\psi = \varphi(\theta)\)</span> for some function <span class="math inline">\(\varphi: \Theta \to \mathbb{R}\)</span>. Define <span class="math display">\[\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.\]</span></li>
+<li>For a model without an explicit nuisance parameter, an element of <span class="math inline">\(\Omega_{\hat{\psi}}\)</span>, where <span class="math inline">\(\hat{\psi} = \varphi(\hat{\theta})\)</span> is the MLE for <span class="math inline">\(\psi_0\)</span>, plays the same role as the parameter value <span class="math inline">\((\hat{\psi}, \phi)\)</span> for a model with an explicit nuisance parameter.</li>
+</ul>
+</section>
+<section id="the-il-for-an-implicit-parameter-1" class="slide level2">
+<h2>The IL for an Implicit Parameter</h2>
+<div style="font-size: 75%;">
+<ul>
+<li>For a given element <span class="math inline">\(\omega \in \Omega_{\hat{\psi}}\)</span> and a particular value of <span class="math inline">\(\psi\)</span>, say <span class="math inline">\(\psi_1\)</span>, the corresponding value of <span class="math inline">\(\theta\)</span> is that which maximizes <span class="math inline">\(\text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big]\)</span> subject to the restriction that <span class="math inline">\(\varphi(\theta) = \psi_1\)</span>.</li>
+<li>Define the function <span class="math inline">\(T_{\psi}: \Omega_{\hat{\psi}} \to \Theta(\psi)\)</span> such that <span class="math display">\[T_{\psi}(\omega) = \underset{\theta \in \Theta(\psi)}{\mathrm{argmax}} \&gt; \text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big].\]</span></li>
+<li>The integrated likelihood for <span class="math inline">\(\psi\)</span> is then given by <span class="math display">\[\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L\big(T_{\psi}(\omega)\big)\pi(\omega)d\omega,\]</span> where <span class="math inline">\(\pi(\omega)\)</span> is a density defined on <span class="math inline">\(\Omega_{\hat{\psi}}\)</span>.</li>
+</ul>
+</div>
+</section>
+<section id="the-il-for-an-implicit-parameter-2" class="slide level2 smaller">
+<h2>The IL for an Implicit Parameter</h2>
+<ul>
+<li>This can also be written as <span class="math display">\[\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(W)\big)\Big],\]</span> where <span class="math inline">\(W\)</span> represents a random variable with density <span class="math inline">\(\pi(\omega)\)</span>.</li>
+<li>We can further define a function <span class="math inline">\(Q: \mathcal{U} \to \Omega_{\hat{\psi}}\)</span> for some set <span class="math inline">\(\mathcal{U}\)</span> such that if <span class="math inline">\(U\)</span> is a random variable taking values in <span class="math inline">\(\mathcal{U}\)</span>, then <span class="math inline">\(Q(U)\)</span> will be a random variable in <span class="math inline">\(\Omega_{\hat{\psi}}\)</span> with a distribution that is completely determined by our choice of <span class="math inline">\(U\)</span>.</li>
+<li>Therefore, <span class="math display">\[\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(Q(U))\big)\Big]\]</span> is an integrated likelihood for <span class="math inline">\(\psi\)</span> with a weight function corresponding to the density of <span class="math inline">\(Q(U)\)</span>.</li>
+</ul>
+</section>
+<section id="the-il-for-an-implicit-parameter-3" class="slide level2">
+<h2>The IL for an Implicit Parameter</h2>
+<div style="font-size: 80%;">
+<ul>
+<li><p>Define <span class="math display">\[\tilde{L}(u; \psi) = L(T_{\psi}(Q(u)), \&gt; u \in \mathcal{U}.\]</span></p></li>
+<li><p>We can then write the integrated likelihood for <span class="math inline">\(\psi\)</span> in terms of <span class="math inline">\(\overset{\sim}{L}(u; \psi)\)</span> as follows: <span class="math display">\[\bar{L}(\psi) = \int_{\mathcal{U}} \tilde{L}(u; \psi)\check{\pi}(u)du,\]</span> where <span class="math inline">\(\check{\pi}(u)\)</span> is a density on <span class="math inline">\(\mathcal{U}\)</span> of our choosing.</p></li>
+<li><p>If <span class="math inline">\(\check{\pi}(u)\)</span> doesn’t depend on <span class="math inline">\(\psi\)</span>, the integrated likelihood will have the properties we desire.</p></li>
+</ul>
+</div>
+</section>
+<section id="approximating-the-il-for-an-implicit-parameter" class="slide level2">
+<h2>Approximating the IL for an Implicit Parameter</h2>
+<div style="font-size: 60%;">
+<ul>
+<li>We can further rewrite this as <span class="math display">\[\bar{L}(\psi) = \int_{\mathcal{U}} \frac{\tilde{L}(u; \psi)}{\check{L}(u)} \check{L}(u)\check{\pi}(u)du,\]</span> where <span class="math inline">\(\check{L}(u)\)</span> represents an arbitrary likelihood function for the “parameter” <span class="math inline">\(u\)</span>.</li>
+<li>From a Bayesian point of view, the quantity <span class="math inline">\(\check{L}(u)\check{\pi}(u)\)</span> can then be thought of as a posterior density for <span class="math inline">\(u\)</span> up to some proportionality constant.</li>
+<li>If we sample random variates <span class="math inline">\(u_1, ..., u_R\)</span> from <span class="math inline">\(\check{L}(u)\check{\pi}(u)\)</span>, then a simple empirical estimate to <span class="math inline">\(\bar{L}(\psi)\)</span> at a particular value of <span class="math inline">\(\psi\)</span> is given by <span class="math display">\[\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{i = 1}^R \frac{\tilde{L}(u_i; \psi)}{\check{L}(u_i)}.\]</span></li>
+<li>Repeating this procedure for every value of <span class="math inline">\(\psi \in \Psi\)</span> will give an overall shape for <span class="math inline">\(\hat{\bar{L}}(\psi)\)</span>, which can be used to conduct inference for <span class="math inline">\(\psi_0\)</span> without interference from a nuisance parameter.</li>
+</ul>
+</div>
 </section>
 <section id="application-to-a-multinomial-model" class="slide level2 smaller">
 <h2>Application to a Multinomial Model</h2>
@@ -591,60 +673,53 @@ Tim Ruel
 <li><p>We will take our parameter of interest <span class="math inline">\(\psi\)</span> to be the entropy of the distribution. That is, <span class="math display">\[\psi \equiv g(\theta) =  -\sum_{j=1}^m \theta_j \log(\theta_j).\]</span></p></li>
 <li><p>If <span class="math inline">\((n_1, ..., n_m)\)</span> are the observed values of <span class="math inline">\((N_1, ..., N_m)\)</span>, then the likelihood and log-likelihood are, respectively, <span class="math display">\[L(\theta) = \prod_{j=1}^m \theta_j^{n_j} \text{ and } \ell(\theta) = \log L(\theta).\]</span></p></li>
 </ul>
-<aside class="notes">
-<p>0log(0) is taken to be 0.</p>
-<p>The minimum value of <span class="math inline">\(\psi\)</span> is 0 and the maximum value is log(m).</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section>
 <section id="application-to-a-multinomial-model-1" class="slide level2">
 <h2>Application to a Multinomial Model</h2>
 <ul>
-<li>We will denote the parameter space for <span class="math inline">\(\Psi\)</span> by <span class="math display">\[\Psi = \{t \in \mathbb{R} \&gt; | \&gt; g(\theta) = t \text{ for some } \theta \in \Theta\}.\]</span></li>
-<li>The integrated likelihood then becomes <span class="math display">\[\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(\theta(\omega; \psi))\pi(\omega)d\omega, \&gt; \psi \in \Psi,\]</span> where <span class="math inline">\(\Omega_{\hat{\psi}} = \{\omega \in \Theta \&gt; | \&gt; g(\omega) = \hat{\psi}\}\)</span> and <span class="math inline">\(\hat{\psi} = g(\hat{\theta})\)</span> is the MLE for <span class="math inline">\(\psi\)</span>.</li>
+<li>Set <span class="math inline">\(\check{L}(u) := L(u)\)</span> and choose <span class="math inline">\(\check{\pi}(u)\)</span> to be the symmetric Dirichlet distribution on the probability simplex in <span class="math inline">\(\mathbb{R}^d\)</span> with <span class="math inline">\(\alpha_j = 1\)</span> for all <span class="math inline">\(j\)</span>.</li>
+<li>The Dirichlet distribution is a conjugate prior for the multinomial distribution, so that the posterior distribution for <span class="math inline">\(U\)</span> based on data <span class="math inline">\(n = (n_1, ..., n_d)\)</span> is given by <span class="math inline">\(L(u)\check{\pi}(u) \sim \text{Dir}(n + \mathbf{1})\)</span>.</li>
+<li>Modern statistical computing packages enable us to sample random variates of <span class="math inline">\(U\)</span> directly from this distribution.</li>
 </ul>
 </section>
 <section id="application-to-a-multinomial-model-2" class="slide level2 smaller">
 <h2>Application to a Multinomial Model</h2>
 <ul>
-<li><p>Severini (2022) describes a method for approximating the integrated likelihood function for the entropy of this distribution based on the ZSE using basic Monte Carlo integration.</p></li>
-<li><p>The idea is to draw random variates <span class="math inline">\(\tilde{\omega}\)</span> from <span class="math inline">\(\Omega_{\hat{\psi}}\)</span> according to a distribution that does NOT depend on <span class="math inline">\(\psi\)</span> and then use these variates to generate values of <span class="math inline">\(\theta = \theta(\tilde{\omega}, \psi)\)</span> by solving the maximization problem <span class="math display">\[\max \&gt; \mathbb{E} \big(\ell(\theta); \tilde{\omega} \big) \text{ subject to } g(\theta) = \psi\]</span></p></li>
-<li><p>If <span class="math inline">\(\theta(\omega_j, \psi_1)\)</span> is the solution to the above maximization problem for <span class="math inline">\(\tilde{\omega} = \omega_j\)</span> and <span class="math inline">\(\psi = \psi_1\)</span>, then the value of the integrated likelihood for <span class="math inline">\(\psi\)</span> at <span class="math inline">\(\psi_1\)</span> can be approximated by <span class="math display">\[\bar{L}(\psi_1) = \sum_{j=1}^R L(\theta(\omega_j, \psi_1)),\]</span> for sufficiently large <span class="math inline">\(R\)</span>.</p></li>
+<li>Choose <span class="math inline">\(Q\)</span> and <span class="math inline">\(T_{\psi}\)</span> such that <span class="math display">\[\mathcal{U} \overset{Q}{\mapsto} \Omega_{\hat{\psi}} \overset{T_{\psi}}{\mapsto} \Theta(\psi).\]</span></li>
+<li>In this case, a convenient choice is to have them return the elements in their respective output spaces that are closest to the input element they have each received. This can be done numerically using a suitable optimization package.</li>
+<li>Sample <span class="math inline">\(R\)</span> random variates of <span class="math inline">\(U\)</span> from the appropriate Dirichlet distribution, use <span class="math inline">\(Q\)</span> and <span class="math inline">\(T_{\psi}\)</span> to calculate <span class="math inline">\(\overset{\sim}{L}(u; \psi)\)</span>, and use our previous formula to approximate the integrated likelihood at a particular value of <span class="math inline">\(\psi\)</span>.</li>
+<li>Repeat this process over a finely spaced sequence of the possible values of <span class="math inline">\(\psi\)</span> in order to get a shape of the overall integrated likelihood.</li>
 </ul>
 </section>
-<section id="result-of-algorithm" class="slide level2 smaller">
-<h2>Result of Algorithm</h2>
+<section id="result-of-il-approximation-technique" class="slide level2 smaller">
+<h2>Result of IL Approximation Technique</h2>
 
-<img data-src="multinomial_entropy_pseudolikelihood.png" class="r-stretch"><p>The above graph shows the result of an implementation of this algorithm for the observed data <span class="math inline">\((n_1, ..., n_6) = (1, 1, 2, 4, 7, 10)\)</span>.</p>
-</section>
-<section id="bayes-theorem" class="slide level2 smaller">
-<h2>Bayes’ Theorem</h2>
+<img data-src="multinomial_entropy_pseudolikelihoods.png" class="r-stretch quarto-figure-center"><p class="caption">The above graph compares an approximated integrated likelihood for the entropy of a multinomial distribution, based on observed data <span class="math inline">\((n_1, ..., n_6) = (1, 1, 2, 4, 7, 10)\)</span>, with that of the profile likelihood for the same parameter of interest.</p></section>
+<section id="standardized-mean-difference" class="slide level2 smaller">
+<h2>Standardized Mean Difference</h2>
 <ul>
-<li><p>Instead of using simple Monte Carlo approximation, my idea has been to take advantage of the similarity between an integrated likelihood and the normalizing constant for a posterior distribution.</p></li>
-<li><p>Bayes’ Theorem tells us that the posterior distribution for a parameter <span class="math inline">\(\theta\)</span> and data <span class="math inline">\(X\)</span> is <span class="math display">\[p(\theta | X) = \frac{p(X|\theta)p(\theta)}{p(X)}.\]</span></p></li>
-<li><p>Since <span class="math inline">\(p(X)\)</span> is constant with respect to <span class="math inline">\(\theta\)</span> and we must have <span class="math inline">\(\int p(\theta | X) d\theta = 1\)</span>, it follows that <span class="math display">\[p(X) = \int p(X|\theta)p(\theta) d\theta\]</span> and therefore <span class="math display">\[\int p(X|\theta)p(\theta) d\theta = \frac{p(X|\theta)p(\theta)}{p(\theta | X)}.\]</span></p></li>
+<li><p>Consider a sample of <span class="math inline">\(q\)</span> independent studies, each comparing a treatment group to a control group. Suppose the <span class="math inline">\(j\)</span>th observations of the treatment and control groups in the <span class="math inline">\(i\)</span>th study are given by <span class="math display">\[Y_{ij}^T \sim\text{N}(\mu_i^T, \sigma_i^2) \&gt; \text{ and } \&gt; Y_{ij}^C \sim\text{N}(\mu_i^C, \sigma_i^2),\]</span> respectively, where <span class="math inline">\(j = 1, ..., m_i\)</span> observations and <span class="math inline">\(i = 1, ..., q\)</span> studies.</p></li>
+<li><p>The true standardized mean difference (SMD) for study <span class="math inline">\(i\)</span> is defined as <span class="math display">\[\delta_i = \frac{\mu_i^T - \mu_i^C}{\sigma_i}.\]</span> Standard practice is to estimate <span class="math inline">\(\delta_i\)</span> by <span class="math display">\[d_i = \frac{\bar{y}_i^T - \bar{y}_i^C}{s_i},\]</span> where <span class="math inline">\(\bar{y}\)</span> is the traditional sample mean and <span class="math inline">\(s\)</span> is the pooled sample standard deviation.</p></li>
 </ul>
 </section>
-<section id="bayes-theorem-contd." class="slide level2">
-<h2>Bayes’ Theorem (contd.)</h2>
+<section id="standardized-mean-difference-1" class="slide level2">
+<h2>Standardized Mean Difference</h2>
 <ul>
-<li><p>Note the similarity in form between these two expressions <span class="math display">\[\int_{\Phi} L(\psi, \lambda(\psi, \phi))\pi(\phi)d\phi\]</span> <span class="math display">\[\int p(X|\theta)p(\theta) d\theta\]</span></p></li>
-<li><p>The problem I have been working on has been to simulate the posterior distribution <span class="math inline">\(p(\theta | X)\)</span> using a Markov Chain Monte Carlo algorithm. This will then allow me to approximate the denominator in <span class="math inline">\(\frac{p(X|\theta)p(\theta)}{p(\theta | X)}\)</span>.</p></li>
+<li>Under a linear fixed-effect model, <span id="eq-SMD4"><span class="math display">\[d_i = \delta + \epsilon_i, \qquad(1)\]</span></span> with <span class="math inline">\(\epsilon_i \sim \text{N}(0, \sigma_{d_i}^2)\)</span> for <span class="math inline">\(i = 1,..., q\)</span>, where <span class="math inline">\(\delta = \frac{1}{q}\sum_{i=1}^q \delta_i\)</span> is the common mean.</li>
+<li>The overarching objective of a meta-analysis using this framework is to find an estimate of <span class="math inline">\(\delta\)</span> and its associated standard error. Hence, <span class="math inline">\(\delta\)</span> can be considered an implicit parameter of interest in this model, and so it makes sense to consider the efficacy of an integrated likelihood function as a tool for its estimation.</li>
 </ul>
 </section>
-<section id="references" class="slide level2 smaller">
-<h2>References</h2>
-<p>Severini, Thomas A. “Integrated Likelihood Inference in Multinomial Distributions.” METRON (2022).</p>
-<p>Severini, Thomas A. “Integrated Likelihood Functions for Non-Bayesian Inference.” Biometrika 94, no. 3 (2007): 529–42.</p>
+<section id="standardized-mean-difference-2" class="slide level2">
+<h2>Standardized Mean Difference</h2>
+<div style="font-size: 90%;">
+<ul>
+<li><p>Going forward, one of our objectives will be to find appropriate choices for <span class="math inline">\(\check{L}(u)\check{\pi}(u)\)</span>, <span class="math inline">\(Q(u)\)</span>, and <span class="math inline">\(T_{\delta}(\omega)\)</span> that allow us to form an approximation to the integrated likelihood function <span class="math display">\[\bar{L}(\delta) = \int_{\mathcal{U}} \frac{L\big(T_{\delta}(Q(u))\big)}{\check{L}(u)}\check{L}(u)\check{\pi}(u)du\]</span> using the procedure described in the previous chapter.</p></li>
+<li><p>Another potential area of exploration is to consider the SMD under the framework of a random-effects model. This allows for the consideration of the heterogeneity variance parameter <span class="math inline">\(\tau^2\)</span> as another possible parmeter of interest.</p></li>
+</ul>
+</div>
+</section>
+<section id="thank-you" class="title-slide slide level1 center">
+<h1>Thank You!</h1>
 
 <img src="nulogo.png" class="slide-logo r-stretch"><div class="footer footer-default">
 
