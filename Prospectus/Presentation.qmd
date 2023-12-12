@@ -1,63 +1,133 @@
 ---
-title: "Numerical Approximation of an Integrated Multinomial Likelihood"
+title: "Proposal for an Adjusted Numerical Approximation to the Integrated Likelihood Function"
+subtitle: "Dissertation Prospectus"
 author: "Tim Ruel"
-date: "Feb 9, 2023"
+date: "Dec 12, 2023"
+date-format: "MMM D, YYYY"
 format: 
   revealjs:
-    theme: [default, custom.scss]
+    theme: [default]
     slide-number: true
-    incremental: true
+    incremental: false
     logo: nulogo.png
+
+include-in-header:
+  - text: |
+      <style>
+      #title-slide .title {
+        font-size: 2em;
+      }
+      </style>
 ---
 
-## Setup
+## Statistical Model Assumptions
 
-> <font size="5">"All models are wrong but some are useful."</font>
+::: {style="font-size: 70%;"}
 
-<font size="5">--- George Box</font>
-
-- In its most general framework, a statistical model can be thought of as a pair $(\mathcal{S}, \mathcal{P})$ where
-  - $\mathcal{S}$ is the set of all possible observations,
-  - $\mathcal{P}$ is a set of probability distributions on $\mathcal{S}$.
-- We assume that there exists a "true" probability distribution inducing the process that generates the data we observe from $\mathcal{S}$. $\mathcal{P}$ does not necessarily have to contain this distribution and in practice it rarely does.
-
-:::{.notes}
-When selecting the distributions that $\mathcal{P}$ does contain, our hope is that one of them provides an adequate approximation to the real distribution. Much of statistical inference simply comes down to determining which distribution this is.
+- **Data-generating mechanism**
+  - There exists an unknown probability distribution $P_0$ over the population of interest that generates the data we observe from it.
+- **Parameterizable**
+  - The set of candidate distributions $\mathcal{P}$ is indexed by a parameter $\theta$ taking values in a space $\Theta$, so that $\mathcal{P} = \{P_{\theta} | \> \theta \in \Theta\}$. 
+- **Absolutely continuous**
+  - Each distribution $P$ in $\mathcal{P}$ is absolutely continuous with respect to some dominating measure (usually Lebesgue or counting measure) and therefore admits a density function $p_\theta$. This allows us to write $\mathcal{P} = \{p_{\theta} | \> \theta \in \Theta\}$.
+- **Parametric**
+  - The dimension of the parameter space is finite. That is, $\Theta \subseteq \mathbb{R}^d$ where $d \in \mathbb{Z}^+$.
+- **Identifiable**: 
+  - $P_{\theta_1} = P_{\theta_2} \implies \theta_1 = \theta_2 \> \> \forall \> \> \theta_1, \theta_2 \in \Theta.$
+  
 :::
 
-## Model Assumptions
+## The Likelihood Function and its Transformations
 
-- We will restrict our attention to a "nice" subset of these models by making the following assumptions: 
-  - $\mathcal{P}$ is **parameterized**. That is, $\mathcal{P} = \{\mathcal{P}_{\theta} | \> \theta \in \Theta\}$, where $\Theta$ is the set of all possible values of the parameter $\theta$.
-  - $\Theta \subseteq \mathbb{R}^k$ where $k \in \mathbb{Z}^+$. Models that satisfy this assumption are said to be **parametric**.
-  - $\mathcal{P}$ is **identifiable**. That is, 
-$$\mathcal{P}_{\theta_1} = \mathcal{P}_{\theta_2} \implies \theta_1 = \theta_2 \> \> \forall \> \> \theta_1, \theta_2 \in \Theta.$$
+::: {style="font-size: 70%;"}
+- **The Likelihood Function** : $L(\theta; \mathbf{x}_n) = p(\mathbf{x}_n; \theta).$
+  - The joint probability of a sample of observations $\mathbf{x}_n = (x_1, ..., x_n)$ considered as a function of $\theta$.
+- **The Log-Likelihood Function**: $\ell(\theta; \mathbf{x}_n) = \log L(\theta; \mathbf{x}_n).$
+  - The natural logarithm of the likelihood function. 
+- **The Score Function**: $\mathcal{S}(\theta; \mathbf{x}_n) = \nabla_{\theta}\ell(\theta; \mathbf{x}_n)$
+  - The gradient of the log-likelihood function with respect to $\theta$. 
+- **The Observed Information**: $\mathcal{I}(\theta) = -\mathbf{H}_{\theta}\Big(\ell(\theta; \mathbf{x}_n)\Big)$
+  - The negative Hessian matrix of the log-likelihood function with respect to $\theta$.
+- **The Fisher Information**: $\mathscr{I}(\theta) = \text{Var}_{\theta}\big[\mathcal{S}(\theta; \mathbf{X}_n)\big]$
+  - The variance of the score function. 
 
-:::{.notes}
-Each $\mathcal{P}_{\theta}$ is a cumulative distribution function.
-
-Put succinctly, a parametric model is a family of probability distributions that has a finite number of parameters.
-
-A model is identifiable if it is theoretically possible to learn the true values of this model's underlying parameters after obtaining an infinite number of observations from it. This is a crucial assumption when performing statistical inference as it ensures we can always distinguish between two probability distributions on the basis of the observable data they generate.
 :::
 
-## The Goal of Statistical Inference
+## Maximum Likelihood Estimation
 
-\
+- A value $\hat{\theta} \in \Theta$ is called a **maximum likelihood estimate** of $\theta_0$ if it satisfies $$L(\hat{\theta}; \mathbf{x}_n) = \sup_{\theta \in \Theta} L(\theta; \mathbf{x}_n).$$
 
-- Once we have chosen a model $(\mathcal{S}, \mathcal{P})$, the goal of statistical inference is to identify the distribution in $\mathcal{P}$ that best approximates the truth. 
+- $\hat{\theta}$ depends on the data $\mathbf{x}_n$ so we can write $\hat{\theta} = \hat{\theta}(\mathbf{x}_n)$. 
 
-- Since we have assumed our model is identifiable, this is equivalent to estimating the value of the $k$-dimensional parameter $\theta$ on the basis of some data we observe.
+- The statistic $\hat{\theta}(\mathbf{X}_n)$ that produces the value $\hat{\theta}(\mathbf{x}_n)$ we observe is called the **maximum likelihood estimator** (MLE) of $\theta_0$.
 
-- We can accomplish task by analyzing the model's likelihood function.
+- For an arbitrary model, there is no guarantee an MLE exists. When it does exist, there is no guarantee it is unique.
 
-## The Likelihood Function
 
-- The **likelihood function** for our model is defined as the joint probability of $n$ observations $x_1, ..., x_n$ taken from our sample space $\mathcal{S}$ considered as a function of the model parameter $\theta$:
-$$L(\theta;x_1, ..., x_n) \equiv p(x_1, ..., x_n ; \theta).$$
-- The form this function takes will depend on the exact specification of $\mathcal{S}$ and $\mathcal{P}$ as well as the sampling process, but once it has been obtained we can use it to estimate $\theta$. 
+## Regularity Conditions 
 
-- But what do we do if we are interested in estimating something besides the full model parameter?
+::: {style="font-size: 65%;"}
+
+- Any observations $x_1, ..., x_n$ belonging to a sample that has been drawn from the model's sample space are independent and identically distributed (i.i.d.) realizations of a random variable $X$ with density function $p_{\theta}(x)$.
+- $P_{\theta_1} = P_{\theta_2} \implies \theta_1 = \theta_2$ for all $\theta_1, \theta_2 \in \Theta$.
+- The distributions in $\mathcal{P}$ have a common support $\mathcal{X} = \{x: p_{\theta}(x) > 0 \}\subseteq \mathbb{R}$ not depending on $\theta$.
+- There exists an open set $\Theta^* \subseteq \Theta$ of which $\theta_0$ is an interior point.
+- $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\theta$ in a neighborhood of $\theta_0$.
+- There exists a random function $M(x)$ (that does not depend on $\theta$) satisfying $\text{E}[M(X)] < \infty$ such that each third partial derivative of $\ell(\theta; x)$ is bounded in absolute value by $M(x)$ uniformly in some neighborhood of $\theta_0$.
+- The integral $\int_{\mathcal{X}} p(x; \theta) dx$ can be differentiated twice under the integral sign with respect to the components of $\theta\in \Theta^*$.
+- $\mathscr{I}_{X}(\theta)$ is positive definite for all $\theta \in \Theta$.
+- $\Theta$ is a compact and convex subset of $\mathbb{R}^d$.
+
+:::
+
+## The First Bartlett Identity
+
+::: {style="font-size: 65%;"}
+
+- A likelihood satisfies the first Bartlett identity if  $$E_{\theta}\Big[\mathcal{S}(\theta; X)\Big] = E_{\theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\bigg] = 0.$$
+- Equivalently, $$\mathscr{I}(\theta) = E_{\theta}\Big[\mathcal{S}(\theta; X)^2\Big] =  \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].$$
+- Sufficient condition: $$\frac{d}{d \theta}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial}{\partial \theta}p(x; \theta) dx.$$
+- Likelihoods satisfying the first Bartlett identity are called **score-unbiased**.
+
+:::
+
+## The Second Bartlett Identity
+
+::: {style="font-size: 60%;"}
+
+- A likelihood satisfies the second Bartlett identity if $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2\Bigg] = 0.$$
+- Equivalently, 
+- Sufficient condition: $$\frac{d^2}{d \theta^2}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2}p(x; \theta) dx.$$
+- Likelihoods satisfying the second Bartlett identity are called **information-unbiased**.
+
+:::
+
+## Bartlett
+
+$$
+\rlap{
+  \underbrace{
+    \phantom{
+      \mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg]
+      }
+    }_{\text{Fisher information}}
+  }
+\mathscr{I}_{X}(\theta) = 
+\overbrace{
+  \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]
+  }^{\text{First Bartlett identity}}
+$$
+
+
+
+$$= \rlap{\overbrace{\phantom{\text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]}}^{\text{First Bartlett identity}}} \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg]$$
+
+
+
+\text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\big[\mathcal{I}_X(\theta)\big].$$
+
+$$a+b+\rlap{\overbrace{\phantom{c+d+e+f+g}}^x}c+d
+     +\underbrace{e+f+g+h+i}_y +k+l=e^2$$
 
 ## Decomposing the Model Parameter
 
@@ -172,7 +242,7 @@ where $\Omega_{\hat{\psi}} = \{\omega \in \Theta \> | \> g(\omega) = \hat{\psi}\
 
 ## Result of Algorithm  {.smaller}
 
-![](pseudolikelihood.png)
+![](multinomial_entropy_pseudolikelihood.png)
 
 The above graph shows the result of an implementation of this algorithm for the observed data $(n_1, ..., n_6) = (1, 1, 2, 4, 7, 10)$.
 
