@@ -1,48 +1,44 @@
 ---
-documentclass: nuthesis
-format: pdf
+format: 
+  pdf:
+    documentclass: nuthesis
+    number-sections: true
+    number-depth: 3
 bibliography: ./files/lit_review.bib
 csl: ./files/apa.csl 
 link-citations: true  
 indent: true
 header-includes: 
-    - \usepackage{amsmath}
     - \numberwithin{equation}{section}
+    - \usepackage{indentfirst}
+    - \usepackage{enumitem}
+    - \usepackage{unicode-math}
+    - \usepackage{mathrsfs}
+    - \usepackage{amsmath}
+    - \usepackage{bbm}
 ---
 
 <!-- Front matter: title page, abstract, acknowledgements, table of contents,... -->
-```{r child = './files/front_matter.qmd'} 
+```{r}
+#| child = './files/front_matter.qmd'
 ``` 
 
-<!-- Beginning body of the dissertation -->
-```{r child = './files/Introduction.qmd'}
+<!-- Dissertation body -->
+```{r}
+#| child = './files/Chapter1.qmd'
 ```
 
 \clearpage
 
-```{r child = './files/Chapter2.qmd'}
-```
-\clearpage
-
-```{r child = './files/Chapter3.qmd'}
-```
-\clearpage
-
-```{r child = './files/Chapter4.qmd'}
-```
-\clearpage
-
-<!-- Inserting references before appendix -->
+<!-- References -->
 \chapter*{References} 
-<div id="refs"></div> 
 
-<!-- Beginning appendix if needed -->
-\appendix
+::: {#refs}
+:::
 
-```{r child = './files/Appendix_A.qmd'}
-```
-
-```{r child = './files/Appendix_B.qmd'}
+<!-- Appendix -->
+```{r} 
+#| child = './files/Appendix.qmd'
 ```
 
 
