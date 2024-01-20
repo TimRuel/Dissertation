@@ -15,16 +15,16 @@ m <- 15
 y <- rpois(m, mu_0)
 
 # Define hyperparameters for u1 (lambda)
-alpha_1 <- 2
-beta_1 <- 2
+alpha_1 <- 1
+beta_1 <- 1
 
 # Define hyperparameters for u2 (mu)
-alpha_2 <- 2
-beta_2 <- 2
+alpha_2 <- 1
+beta_2 <- 1
 
 # Define likelihood function
-likelihood <- function(theta, x, y) {
-  exp(-(length(x)*theta[1] + length(y)*theta[2]))*lambda^(sum(x))*mu^(sum(y))
+likelihood <- function(theta) {
+  exp(-(n*theta[1] + m*theta[2]))*lambda^(sum(x))*mu^(sum(y))
   }
 
 # Define parameter of interest function 
@@ -40,7 +40,7 @@ psi_hat <- g(theta_hat)
 psi_hat_se <- sqrt(var(x) / n + 4*var(y) / m)
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(0, 50, 0.1)
+psi <- seq(15, 30, 0.1)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -87,7 +87,7 @@ for (i in 1:length(psi)) {
                     lower = c(0, 0))$par
     
     # Calculate ratio of likelihood at optimal theta to likelihood at initial random draw for theta
-    L_ratio[j] <- likelihood(T_psi, x, y) / likelihood(u, x, y)
+    L_ratio[j] <- likelihood(T_psi) / likelihood(u)
     
     # Find value of theta for obtaining profile log-likelihood
     theta_hat_p <- auglag(x0 = theta0,
@@ -96,7 +96,7 @@ for (i in 1:length(psi)) {
                           lower = c(0, 0))$par
     
     # Evaluate likelihood function at optimal theta value and store result
-    L[j] <- likelihood(theta_hat_p, x, y)
+    L[j] <- likelihood(theta_hat_p)
   }
   
   # Calculate value of integrated likelihood for current value of psi
@@ -115,7 +115,6 @@ likelihood_vals %>%
                names_to = "Pseudolikelihood",
                values_to = "log-likelihood") %>% 
   ggplot() +
- # scale_y_continuous(limits = c(-3, 0.1)) +
   geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
               se = FALSE,
               linewidth = 0.9,
