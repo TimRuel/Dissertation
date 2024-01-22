@@ -2,7 +2,7 @@ library(tidyverse)
 library(nloptr)
 library(LaplacesDemon)
 
-set.seed(1996)
+set.seed(7835)
 
 # Define observed x data
 lambda_0 <- 5
@@ -40,7 +40,7 @@ psi_hat <- g(theta_hat)
 psi_hat_se <- sqrt(var(x) / n + 4*var(y) / m)
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(15, 30, 0.1)
+psi <- seq(0, 1, 0.01)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -92,7 +92,7 @@ for (i in 1:length(psi)) {
     # Find value of theta for obtaining profile log-likelihood
     theta_hat_p <- auglag(x0 = theta0,
                           fn = function(theta) -E_log_like(theta, theta_hat),
-                          heq = function(theta) g(theta) - psi[i],
+                          heq = function(theta) g(theta) - psi_hat,
                           lower = c(0, 0))$par
     
     # Evaluate likelihood function at optimal theta value and store result
@@ -115,10 +115,26 @@ likelihood_vals %>%
                names_to = "Pseudolikelihood",
                values_to = "log-likelihood") %>% 
   ggplot() +
-  geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
-              se = FALSE,
-              linewidth = 0.9,
-              fullrange = TRUE) +
+  geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood)) +
+  # geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
+  #             se = FALSE,
+  #             linewidth = 0.9,
+  #             fullrange = TRUE) +
+  theme_minimal() +
+  theme(legend.position = c(0.8, 0.8),
+        legend.background = element_rect())
+
+likelihood_vals %>% 
+  pivot_longer(cols = c("Integrated", "Profile"),
+               names_to = "Pseudolikelihood",
+               values_to = "log-likelihood") %>% 
+  filter(Pseudolikelihood == "Profile") %>% 
+  ggplot() +
+  geom_point(aes(x = psi, y = `log-likelihood`)) +
+  # geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
+  #             se = FALSE,
+  #             linewidth = 0.9,
+  #             fullrange = TRUE) +
   theme_minimal() +
   theme(legend.position = c(0.8, 0.8),
         legend.background = element_rect())
