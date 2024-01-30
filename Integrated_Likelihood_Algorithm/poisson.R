@@ -24,7 +24,7 @@ beta_2 <- 1
 
 # Define likelihood function
 likelihood <- function(theta) {
-  exp(-(n*theta[1] + m*theta[2]))*lambda^(sum(x))*mu^(sum(y))
+  exp(-(n*theta[1] + m*theta[2]))*theta[1]^(sum(x))*theta[2]^(sum(y))
   }
 
 # Define parameter of interest function 
@@ -40,7 +40,7 @@ psi_hat <- g(theta_hat)
 psi_hat_se <- sqrt(var(x) / n + 4*var(y) / m)
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(0, 1, 0.01)
+psi <- seq(10, 40, 0.1)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -52,17 +52,18 @@ L_bar <- c()
 L_p <- c()
 
 # Number of replications for each value of psi
-R <- 1
+R <- 50
+
+# Initialize progress bar for for loop
+pb = txtProgressBar(min = 0, max = length(psi), initial = 0, style = 3) 
 
 for (i in 1:length(psi)) {
   
-  print(paste0("Calculating likelihood values for psi value ", i, " out of ", length(psi), "."))
+  # Update progress bar
+  setTxtProgressBar(pb, i)
   
   # Initialize vector for holding values of likelihood ratio
   L_ratio <- c()
-  
-  # Initialize vector for holding values of likelihood 
-  L <- c()
   
   for (j in 1:R) {
     
@@ -88,54 +89,38 @@ for (i in 1:length(psi)) {
     
     # Calculate ratio of likelihood at optimal theta to likelihood at initial random draw for theta
     L_ratio[j] <- likelihood(T_psi) / likelihood(u)
-    
-    # Find value of theta for obtaining profile log-likelihood
-    theta_hat_p <- auglag(x0 = theta0,
-                          fn = function(theta) -E_log_like(theta, theta_hat),
-                          heq = function(theta) g(theta) - psi_hat,
-                          lower = c(0, 0))$par
-    
-    # Evaluate likelihood function at optimal theta value and store result
-    L[j] <- likelihood(theta_hat_p)
   }
   
   # Calculate value of integrated likelihood for current value of psi
   L_bar[i] <- mean(L_ratio)
   
+  # Find value of theta for obtaining profile log-likelihood
+  theta_hat_p <- auglag(x0 = theta0,
+                        fn = function(theta) -E_log_like(theta, theta_hat),
+                        heq = function(theta) g(theta) - psi[i],
+                        lower = c(0, 0))$par
+  
   # Calculate value of profile likelihood for current value of psi
-  L_p[i] <- mean(L)
+  L_p[i] <- likelihood(theta_hat_p)
 }
 
 likelihood_vals <- data.frame(psi = psi, 
                               Integrated = log(L_bar / max(L_bar)),
                               Profile = log(L_p / max(L_p)))
 
-likelihood_vals %>% 
+p <- likelihood_vals %>% 
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
                values_to = "log-likelihood") %>% 
   ggplot() +
-  geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood)) +
-  # geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
-  #             se = FALSE,
-  #             linewidth = 0.9,
-  #             fullrange = TRUE) +
+  # geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood)) +
+  geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
+              se = FALSE,
+              linewidth = 0.9,
+              fullrange = TRUE) +
   theme_minimal() +
-  theme(legend.position = c(0.8, 0.8),
+  theme(legend.position = c(0.8, 0.2),
         legend.background = element_rect())
 
-likelihood_vals %>% 
-  pivot_longer(cols = c("Integrated", "Profile"),
-               names_to = "Pseudolikelihood",
-               values_to = "log-likelihood") %>% 
-  filter(Pseudolikelihood == "Profile") %>% 
-  ggplot() +
-  geom_point(aes(x = psi, y = `log-likelihood`)) +
-  # geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
-  #             se = FALSE,
-  #             linewidth = 0.9,
-  #             fullrange = TRUE) +
-  theme_minimal() +
-  theme(legend.position = c(0.8, 0.8),
-        legend.background = element_rect())
+
 
