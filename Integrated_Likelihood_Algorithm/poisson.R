@@ -2,16 +2,16 @@ library(tidyverse)
 library(nloptr)
 library(LaplacesDemon)
 
-set.seed(7835)
+#set.seed(7835)
 
 # Define observed x data
 lambda_0 <- 5
-n <- 10
+n <- 100
 x <- rpois(n, lambda_0)
 
 # Define observed y data
 mu_0 <- 10
-m <- 15
+m <- 150
 y <- rpois(m, mu_0)
 
 # Define hyperparameters for u1 (lambda)
@@ -40,7 +40,7 @@ psi_hat <- g(theta_hat)
 psi_hat_se <- sqrt(var(x) / n + 4*var(y) / m)
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(10, 40, 0.1)
+psi <- seq(20, 30, 0.1)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -52,7 +52,7 @@ L_bar <- c()
 L_p <- c()
 
 # Number of replications for each value of psi
-R <- 50
+R <- 10
 
 # Initialize progress bar for for loop
 pb = txtProgressBar(min = 0, max = length(psi), initial = 0, style = 3) 
@@ -108,18 +108,21 @@ likelihood_vals <- data.frame(psi = psi,
                               Integrated = log(L_bar / max(L_bar)),
                               Profile = log(L_p / max(L_p)))
 
-p <- likelihood_vals %>% 
+likelihood_vals %>% 
+  filter(between(psi, 15, 40)) %>% 
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
                values_to = "log-likelihood") %>% 
+  # filter(Pseudolikelihood == "Integrated") %>% 
   ggplot() +
-  # geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood)) +
+  # geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
+  #            size = 0.5, ) +
   geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
               se = FALSE,
               linewidth = 0.9,
               fullrange = TRUE) +
   theme_minimal() +
-  theme(legend.position = c(0.8, 0.2),
+  theme(legend.position = c(0.5, 0.2),
         legend.background = element_rect())
 
 
