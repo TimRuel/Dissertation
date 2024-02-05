@@ -2,7 +2,7 @@ library(tidyverse)
 library(nloptr)
 library(LaplacesDemon)
 
-#set.seed(7835)
+set.seed(1996)
 
 # Define observed x data
 lambda_0 <- 5
@@ -10,8 +10,8 @@ n <- 100
 x <- rpois(n, lambda_0)
 
 # Define observed y data
-mu_0 <- 10
-m <- 150
+mu_0 <- 100
+m <- 15
 y <- rpois(m, mu_0)
 
 # Define hyperparameters for u1 (lambda)
@@ -25,10 +25,18 @@ beta_2 <- 1
 # Define likelihood function
 likelihood <- function(theta) {
   exp(-(n*theta[1] + m*theta[2]))*theta[1]^(sum(x))*theta[2]^(sum(y))
-  }
+}
+
+# Define log-likelihood function
+log_likelihood <- function(theta) {
+  -(n*theta[1] + m*theta[2]) + sum(x)*log(theta[1]) + sum(y)*log(theta[2])
+}
 
 # Define parameter of interest function 
 g <- function(theta) theta[1] + 2*theta[2]
+
+theta_0 <- c(lambda_0, mu_0)
+psi_0 <- g(theta_0)
 
 # Define MLE for theta
 theta_hat <- c(mean(x), mean(y))
@@ -39,8 +47,12 @@ psi_hat <- g(theta_hat)
 # Calculate standard error of MLE
 psi_hat_se <- sqrt(var(x) / n + 4*var(y) / m)
 
+# Calculate margin of error
+n_std_errors = 3
+MoE = n_std_errors * psi_hat_se
+
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(20, 30, 0.1)
+psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.1)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -49,10 +61,10 @@ E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
 L_bar <- c()
 
 # Initialize vector for holding values of profile likelihood
-L_p <- c()
+log_L_p <- c()
 
 # Number of replications for each value of psi
-R <- 10
+R <- 1
 
 # Initialize progress bar for for loop
 pb = txtProgressBar(min = 0, max = length(psi), initial = 0, style = 3) 
@@ -88,11 +100,11 @@ for (i in 1:length(psi)) {
                     lower = c(0, 0))$par
     
     # Calculate ratio of likelihood at optimal theta to likelihood at initial random draw for theta
-    L_ratio[j] <- likelihood(T_psi) / likelihood(u)
+    L_ratio[j] <- log_likelihood(T_psi) - log_likelihood(u)
   }
   
   # Calculate value of integrated likelihood for current value of psi
-  L_bar[i] <- mean(L_ratio)
+  L_bar[i] <- mean(exp(L_ratio))
   
   # Find value of theta for obtaining profile log-likelihood
   theta_hat_p <- auglag(x0 = theta0,
@@ -101,22 +113,20 @@ for (i in 1:length(psi)) {
                         lower = c(0, 0))$par
   
   # Calculate value of profile likelihood for current value of psi
-  L_p[i] <- likelihood(theta_hat_p)
+  log_L_p[i] <- log_likelihood(theta_hat_p)
 }
 
 likelihood_vals <- data.frame(psi = psi, 
                               Integrated = log(L_bar / max(L_bar)),
-                              Profile = log(L_p / max(L_p)))
-
-likelihood_vals %>% 
-  filter(between(psi, 15, 40)) %>% 
+                              Profile = log_L_p - max(log_L_p)) %>% 
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
-               values_to = "log-likelihood") %>% 
-  # filter(Pseudolikelihood == "Integrated") %>% 
+               values_to = "log-likelihood")
+
+likelihood_vals %>% 
   ggplot() +
-  # geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
-  #            size = 0.5, ) +
+  geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
+             size = 0.5, ) +
   geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
               se = FALSE,
               linewidth = 0.9,
@@ -126,4 +136,6 @@ likelihood_vals %>%
         legend.background = element_rect())
 
 
-
+likelihood_vals %>% 
+  group_by(Pseudolikelihood) %>% 
+  mutate(variance = sd(`log-likelihood`))
