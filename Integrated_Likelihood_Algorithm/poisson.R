@@ -1,26 +1,25 @@
 library(tidyverse)
 library(nloptr)
 library(LaplacesDemon)
-
-set.seed(1996)
+library(broom)
 
 # Define observed x data
 lambda_0 <- 5
-n <- 100
+n <- 10
 x <- rpois(n, lambda_0)
 
 # Define observed y data
-mu_0 <- 100
+mu_0 <- 10
 m <- 15
 y <- rpois(m, mu_0)
 
 # Define hyperparameters for u1 (lambda)
-alpha_1 <- 1
-beta_1 <- 1
+alpha_1 <- 0
+beta_1 <- 0
 
 # Define hyperparameters for u2 (mu)
-alpha_2 <- 1
-beta_2 <- 1
+alpha_2 <- 0
+beta_2 <- 0
 
 # Define likelihood function
 likelihood <- function(theta) {
@@ -63,8 +62,11 @@ L_bar <- c()
 # Initialize vector for holding values of profile likelihood
 log_L_p <- c()
 
+# Initialize vector for holding standard deviation of Monte Carlo estimates of L_bar at each value of psi
+L_ratio_std_err <- c()
+
 # Number of replications for each value of psi
-R <- 1
+R <- 10
 
 # Initialize progress bar for for loop
 pb = txtProgressBar(min = 0, max = length(psi), initial = 0, style = 3) 
@@ -74,8 +76,8 @@ for (i in 1:length(psi)) {
   # Update progress bar
   setTxtProgressBar(pb, i)
   
-  # Initialize vector for holding values of likelihood ratio
-  L_ratio <- c()
+  # Initialize vector for holding values of log of likelihood ratio
+  log_L_ratio <- c()
   
   for (j in 1:R) {
     
@@ -100,11 +102,14 @@ for (i in 1:length(psi)) {
                     lower = c(0, 0))$par
     
     # Calculate ratio of likelihood at optimal theta to likelihood at initial random draw for theta
-    L_ratio[j] <- log_likelihood(T_psi) - log_likelihood(u)
+    log_L_ratio[j] <- log_likelihood(T_psi) - log_likelihood(u)
   }
   
-  # Calculate value of integrated likelihood for current value of psi
-  L_bar[i] <- mean(exp(L_ratio))
+  # Estimate value of integrated likelihood for current value of psi
+  L_bar[i] <- mean(exp(log_L_ratio))
+  
+  # Estimate standard error of estimate for value of integrated likelihood for current value of psi
+  L_ratio_std_err[i] <- sd(exp(log_L_ratio))
   
   # Find value of theta for obtaining profile log-likelihood
   theta_hat_p <- auglag(x0 = theta0,
@@ -126,16 +131,54 @@ likelihood_vals <- data.frame(psi = psi,
 likelihood_vals %>% 
   ggplot() +
   geom_point(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
-             size = 0.5, ) +
+             size = 0.7) +
   geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
-              se = FALSE,
               linewidth = 0.9,
               fullrange = TRUE) +
-  theme_minimal() +
-  theme(legend.position = c(0.5, 0.2),
-        legend.background = element_rect())
+  theme_minimal()
 
 
 likelihood_vals %>% 
   group_by(Pseudolikelihood) %>% 
-  mutate(variance = sd(`log-likelihood`))
+  summarize(std_dev = sd(`log-likelihood`))
+
+L_ratio_std_err %>% hist()
+
+
+likelihood_vals %>% 
+  filter(Pseudolikelihood == "Integrated") %>% 
+  loess(`log-likelihood` ~ psi, .)
+
+likelihood_vals %>% 
+  filter(Pseudolikelihood == "Profile") %>% 
+  loess(`log-likelihood` ~ psi, .)
+
+likelihood_vals %>%
+  nest(data = -Pseudolikelihood) %>% 
+  mutate(model = map(data, ~loess(`log-likelihood` ~ psi, data = .)), 
+         augmented = map(model, augment)) %>% 
+  unnest(augmented)
+
+
+
+fitted_models <- likelihood_vals %>% 
+  group_by(Pseudolikelihood) %>% 
+  do(model = loess(`log-likelihood` ~ psi, .)) 
+
+likelihood_vals %>% 
+  augment()
+
+
+
+
+fitted_models %>% 
+  rowwise() %>% 
+  augment(model)
+
+
+
+
+
+
+
+
