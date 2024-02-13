@@ -1,0 +1,70 @@
+---
+title: "Research Update"
+author: "Tim Ruel"
+date: "Feb 14, 2024"
+date-format: "MMM D, YYYY"
+format: 
+  revealjs:
+    theme: [default]
+    slide-number: true
+    incremental: false
+    logo: nulogo.png
+
+include-in-header:
+  - text: |
+      <style>
+      #title-slide .title {
+        font-size: 2em;
+      }
+      .center-xy {
+        width: 3000;
+        margin: 0;
+        position: absolute;
+        top: 3%;
+        left: -27%;
+        -ms-transform: translateY(-50%), translateX(-50%);
+        transform: translateY(-50%), translateX(-50%);
+      }
+      </style>
+---
+
+## Topic of Interest
+
+::: {style="font-size: 80%;"}
+
+- The focus of my research over the past ~2.5 years has focused on developing a novel method for eliminating nuisance parameters from a statistical model via integration of the model's likelihood function.
+
+- I chose integration as my summary method of choice because:
+
+  - Integrating is akin to averaging (in the sense of an expected value), which should theoretically outperform other methods due to an average's natural ability to incorporate our uncertainty in the true value of the nuisance parameter.   
+  - The resemblance of the expression for likelihood function's integral to that of posterior distribution's normalizing constant suggested the use of Bayesian techniques as a tool for integral approximation would be an avenue worth exploring. 
+  
+:::
+
+## A Broad Overview
+
+::: {style="font-size: 70%;"}
+
+- Suppose we have observed some data following a distribution for which there is a known conjugate prior. That is, if we assign said prior to the distribution's parameter $\theta$ and then apply Bayes' theorem, the resulting posterior distribution for $\theta$ will have the same form as the prior.
+
+- Let $\psi = g(\theta)$ denote our parameter of interest. The goal is to approximate the integrated likelihood function $\bar{L}(\psi) = \int L(\psi, \lambda) \pi(\lambda)d\lambda$.
+
+- Start by drawing a random sample $u$ from the posterior distribution for $\theta$ based on a noninformative prior.
+
+- Input $u$ and the particular value of $\psi$ for which we wish to approximate $\bar{L}(\psi)$ as arguments to the minimization of a cleverly chosen objective function subject to the appropriate constraints in order to obtain a value in the space of possible values of the parameter of interest with a few "desirable" properties.
+
+:::
+
+## A Weighted Sum of Poisson Means
+
+::: {style="font-size: 75%;"}
+
+- Consider a set of independent Poisson random variables with different mean parameters: $$X_i \overset{\text{indep.}}{\sim} \text{Poisson}(\lambda_i), \> \> i = 1, ..., n.$$
+
+- Suppose we are interested in the weighted sum $$Y = \sum_{i=1}^n w_iX_i,$$ where each $w_i$ is known.
+
+- Our parameter of interest is $\psi = \text{E}(Y) = \sum_{i=1}^n w_i\lambda_i.$
+
+- The individual parameters $\lambda_1, ..., \lambda_n$ are nuisance parameters as we are only interested in them to the extent that they affect the value of $\psi$.
+
+:::
