@@ -3,14 +3,16 @@ library(nloptr)
 library(LaplacesDemon)
 library(broom)
 
+set.seed(4548)
+
 # Define observed x data
-lambda_0 <- 5
-n <- 10
+lambda_0 <- 10
+n <- 52
 x <- rpois(n, lambda_0)
 
 # Define observed y data
-mu_0 <- 10
-m <- 15
+mu_0 <- 0.1
+m <- 37
 y <- rpois(m, mu_0)
 
 # Define hyperparameters for u1 (lambda)
@@ -31,8 +33,11 @@ log_likelihood <- function(theta) {
   -(n*theta[1] + m*theta[2]) + sum(x)*log(theta[1]) + sum(y)*log(theta[2])
 }
 
+# Define linear weights
+w <- c(0.3, 0.8)
+
 # Define parameter of interest function 
-g <- function(theta) theta[1] + 2*theta[2]
+g <- function(theta) sum(theta*w)
 
 theta_0 <- c(lambda_0, mu_0)
 psi_0 <- g(theta_0)
@@ -51,7 +56,7 @@ n_std_errors = 3
 MoE = n_std_errors * psi_hat_se
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.01)
+psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.1)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -63,7 +68,7 @@ L_bar <- c()
 log_L_p <- c()
 
 # Number of replications for each value of psi
-R <- 1000
+R <- 10
 
 # Initialize progress bar for for loop
 pb = txtProgressBar(min = 0, max = length(psi), initial = 0, style = 3) 
@@ -117,15 +122,15 @@ for (i in 1:length(psi)) {
 
 likelihood_vals <- data.frame(psi = psi, 
                               Integrated = L_bar,
-                              Profile = exp(log_L_p))
+                              Profile = log_L_p)
 
 # save(likelihood_vals, file = "likelihood_df_1000_iter.Rda")
 
 log_likelihood_vals <- likelihood_vals %>% 
   # filter(Integrated < max(Integrated)) %>%
   mutate(Integrated = log(Integrated / max(Integrated)),
-         Profile = log(Profile / max(Profile))) 
-  
+         Profile = Profile - max(Profile)) 
+
 log_likelihood_vals_tidy <- log_likelihood_vals %>% 
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
@@ -134,8 +139,8 @@ log_likelihood_vals_tidy <- log_likelihood_vals %>%
 log_likelihood_vals_tidy %>% 
   ggplot() +
   geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
-             size = 0.5,
-             alpha = 0.5) +
+             size = 1,
+             alpha = 1) +
   geom_smooth(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
               linewidth = 0.9,
               se = TRUE,
@@ -158,8 +163,8 @@ fitted_models %>%
 
 
 
-  
-  
+
+
 
 
 
