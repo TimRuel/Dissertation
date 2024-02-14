@@ -365,15 +365,39 @@ Tim Ruel
 </ul>
 </div>
 </section>
-<section id="a-broad-overview" class="slide level2">
-<h2>A Broad Overview</h2>
-<div style="font-size: 70%;">
+<section id="setup" class="slide level2">
+<h2>Setup</h2>
+<p>Consider a model with</p>
 <ul>
-<li><p>Suppose we have observed some data following a distribution for which there is a known conjugate prior. That is, if we assign said prior to the distribution’s parameter <span class="math inline">\(\theta\)</span> and then apply Bayes’ theorem, the resulting posterior distribution for <span class="math inline">\(\theta\)</span> will have the same form as the prior.</p></li>
-<li><p>Let <span class="math inline">\(\psi = g(\theta)\)</span> denote our parameter of interest. The goal is to approximate the integrated likelihood function <span class="math inline">\(\bar{L}(\psi) = \int L(\psi, \lambda) \pi(\lambda)d\lambda\)</span>.</p></li>
-<li><p>Start by drawing a random sample <span class="math inline">\(u\)</span> from the posterior distribution for <span class="math inline">\(\theta\)</span> based on a noninformative prior.</p></li>
-<li><p>Input <span class="math inline">\(u\)</span> and the particular value of <span class="math inline">\(\psi\)</span> for which we wish to approximate <span class="math inline">\(\bar{L}(\psi)\)</span> as arguments to the minimization of a cleverly chosen objective function subject to the appropriate constraints in order to obtain a value in the space of possible values of the parameter of interest with a few “desirable” properties.</p></li>
+<li>parameter <span class="math inline">\(\theta \in \Theta\)</span></li>
+<li>likelihood <span class="math inline">\(L(\theta)\)</span>, log-likelihood <span class="math inline">\(\ell(\theta) = \log L(\theta)\)</span></li>
+<li>parameter of interest <span class="math inline">\(\psi = g(\theta)\)</span> for some function <span class="math inline">\(g: \Theta \to \mathbb{R}\)</span></li>
+<li>nuisance parameter <span class="math inline">\(\lambda \in \Lambda\)</span></li>
 </ul>
+<p>The goal is to obtain the integrated likelihood function <span class="math display">\[\bar{L}(\psi) = \int_{\Lambda} L(\psi, \lambda) \pi(\lambda | \psi)d\theta.\]</span></p>
+</section>
+<section id="approximating-the-integrated-likelihood" class="slide level2">
+<h2>Approximating the Integrated Likelihood</h2>
+<div style="font-size: 90%;">
+<p>For a given value of <span class="math inline">\(\psi\)</span>, define <span class="math display">\[\Omega_{\psi} = \{\omega \in \Theta: g(\omega) = \psi\}\]</span> <span class="math display">\[T_{\psi}(\omega) = \underset{\theta \in \Omega_{\psi}}{\operatorname{argmax}} \&gt; \text{E}(\ell(\theta); \omega), \&gt; \omega \in \Theta\]</span></p>
+<p>We can rewrite the integrated likelihood function as</p>
+<p><span class="math display">\[\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(T_{\psi}(\omega))h(\omega)d\omega\]</span> where <span class="math inline">\(h(\cdot)\)</span> is a density on <span class="math inline">\(\Omega_{\hat{\psi}}\)</span> and <span class="math inline">\(\hat{\psi} = g(\hat{\theta})\)</span> is the MLE of <span class="math inline">\(\psi\)</span>.</p>
+</div>
+</section>
+<section id="approximating-the-integrated-likelihood-1" class="slide level2">
+<h2>Approximating the Integrated Likelihood</h2>
+<p>Define <span class="math display">\[Q: \mathcal{U} \to \Omega_{\hat{\psi}}\]</span> for some set <span class="math inline">\(\mathcal{U}\)</span>. If <span class="math inline">\(U\)</span> is a <span class="math inline">\(\mathcal{U}\)</span>-valued random variable, then <span class="math inline">\(Q(U)\)</span> is random variable in <span class="math inline">\(\Omega_{\hat{\psi}}\)</span>. <span class="math display">\[\bar{L}(\psi) = \text{E}(L(T_{\psi}(Q(U))))\]</span> is then an integrated likelihood with a weight function corresponding to the density of of <span class="math inline">\(Q(U)\)</span>.</p>
+</section>
+<section id="approximating-the-integrated-likelihood-2" class="slide level2">
+<h2>Approximating the Integrated Likelihood</h2>
+<p>Define <span class="math inline">\(\tilde{L}(u; \psi) = L(T_{\psi}(Q(u)))\)</span>, <span class="math inline">\(u \in \mathcal{U}\)</span>. Then we can write <span class="math display">\[\bar{L}(\psi) = \int_{\mathcal{U}} \tilde{L}(u; \psi) \tilde{h}(u)du\]</span> as the integrated likelihood where <span class="math inline">\(\tilde{h}(\cdot)\)</span> is a density on <span class="math inline">\(\mathcal{U}\)</span>. Provided that <span class="math inline">\(\tilde{h}\)</span> doesn’t depend on <span class="math inline">\(\psi\)</span>, <span class="math inline">\(\bar{L}(\psi)\)</span> will have properties resembling that of a genuine likelihood function.</p>
+</section>
+<section id="approximating-the-integrated-likelihood-3" class="slide level2">
+<h2>Approximating the Integrated Likelihood</h2>
+<div style="font-size: 95%;">
+<p>Suppose <span class="math inline">\(\mathcal{U} = \Theta\)</span>. Write <span class="math display">\[\bar{L}(\psi) = \int_{\mathcal{U}} \frac{\tilde{L}(u; \psi)}{L(u)} L(u)\tilde{h}(u)du.\]</span></p>
+<p>Draw <span class="math inline">\(u_1, u_2, ..., u_m\)</span> from the density proportional to <span class="math inline">\(L(u)\tilde{h}(u)\)</span>.</p>
+<p>Approximate <span class="math inline">\(\bar{L}(\psi)\)</span> using the simple Monte Carlo estimate <span class="math display">\[\frac{1}{m} \sum_{i=1}^m \frac{\tilde{L}(u; \psi)}{L(u)}\]</span></p>
 </div>
 </section>
 <section id="a-weighted-sum-of-poisson-means" class="slide level2">
@@ -386,8 +410,12 @@ Tim Ruel
 <li><p>The individual parameters <span class="math inline">\(\lambda_1, ..., \lambda_n\)</span> are nuisance parameters as we are only interested in them to the extent that they affect the value of <span class="math inline">\(\psi\)</span>.</p></li>
 </ul>
 </div>
-
-<img src="nulogo.png" class="slide-logo r-stretch"><div class="footer footer-default">
+</section>
+<section id="comparing-pseudolikelihoods" class="slide level2">
+<h2>Comparing Pseudolikelihoods</h2>
+<p><img data-src="Rplot.png"></p>
+<p><img src="nulogo.png" class="slide-logo"></p>
+<div class="footer footer-default">
 
 </div>
 </section>

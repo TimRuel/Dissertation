@@ -41,17 +41,47 @@ include-in-header:
   
 :::
 
-## A Broad Overview
+## Setup
 
-::: {style="font-size: 70%;"}
+Consider a model with 
 
-- Suppose we have observed some data following a distribution for which there is a known conjugate prior. That is, if we assign said prior to the distribution's parameter $\theta$ and then apply Bayes' theorem, the resulting posterior distribution for $\theta$ will have the same form as the prior.
+- parameter $\theta \in \Theta$
+- likelihood $L(\theta)$, log-likelihood $\ell(\theta) = \log L(\theta)$
+- parameter of interest $\psi = g(\theta)$ for some function $g: \Theta \to \mathbb{R}$
+- nuisance parameter $\lambda \in \Lambda$
 
-- Let $\psi = g(\theta)$ denote our parameter of interest. The goal is to approximate the integrated likelihood function $\bar{L}(\psi) = \int L(\psi, \lambda) \pi(\lambda)d\lambda$.
+The goal is to obtain the integrated likelihood function $$\bar{L}(\psi) = \int_{\Lambda} L(\psi, \lambda) \pi(\lambda | \psi)d\theta.$$
 
-- Start by drawing a random sample $u$ from the posterior distribution for $\theta$ based on a noninformative prior.
+## Approximating the Integrated Likelihood
 
-- Input $u$ and the particular value of $\psi$ for which we wish to approximate $\bar{L}(\psi)$ as arguments to the minimization of a cleverly chosen objective function subject to the appropriate constraints in order to obtain a value in the space of possible values of the parameter of interest with a few "desirable" properties.
+::: {style="font-size: 90%;"}
+
+For a given value of $\psi$, define $$\Omega_{\psi} = \{\omega \in \Theta: g(\omega) = \psi\}$$ $$T_{\psi}(\omega) = \underset{\theta \in \Omega_{\psi}}{\operatorname{argmax}} \> \text{E}(\ell(\theta); \omega), \> \omega \in \Theta$$
+
+We can rewrite the integrated likelihood function as 
+
+$$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(T_{\psi}(\omega))h(\omega)d\omega$$ where $h(\cdot)$ is a density on $\Omega_{\hat{\psi}}$ and $\hat{\psi} = g(\hat{\theta})$ is the MLE of $\psi$.
+
+:::
+
+## Approximating the Integrated Likelihood
+
+Define $$Q: \mathcal{U} \to \Omega_{\hat{\psi}}$$ for some set $\mathcal{U}$. If $U$ is a $\mathcal{U}$-valued random variable, then $Q(U)$ is random variable in $\Omega_{\hat{\psi}}$. $$\bar{L}(\psi) = \text{E}(L(T_{\psi}(Q(U))))$$ is then an integrated likelihood with a weight function corresponding to the density of of $Q(U)$.
+
+
+## Approximating the Integrated Likelihood
+
+Define $\tilde{L}(u; \psi) = L(T_{\psi}(Q(u)))$, $u \in \mathcal{U}$. Then we can write $$\bar{L}(\psi) = \int_{\mathcal{U}} \tilde{L}(u; \psi) \tilde{h}(u)du$$ as the integrated likelihood where $\tilde{h}(\cdot)$ is a density on $\mathcal{U}$. Provided that $\tilde{h}$ doesn't depend on $\psi$, $\bar{L}(\psi)$ will have properties resembling that of a genuine likelihood function.
+
+## Approximating the Integrated Likelihood
+
+::: {style="font-size: 95%;"}
+
+Suppose $\mathcal{U} = \Theta$. Write $$\bar{L}(\psi) = \int_{\mathcal{U}} \frac{\tilde{L}(u; \psi)}{L(u)} L(u)\tilde{h}(u)du.$$
+
+Draw $u_1, u_2, ..., u_m$ from the density proportional to $L(u)\tilde{h}(u)$.
+
+Approximate $\bar{L}(\psi)$ using the simple Monte Carlo estimate $$\frac{1}{m} \sum_{i=1}^m \frac{\tilde{L}(u; \psi)}{L(u)}$$
 
 :::
 
@@ -68,3 +98,7 @@ include-in-header:
 - The individual parameters $\lambda_1, ..., \lambda_n$ are nuisance parameters as we are only interested in them to the extent that they affect the value of $\psi$.
 
 :::
+
+## Comparing Pseudolikelihoods
+
+![](Rplot.png)
