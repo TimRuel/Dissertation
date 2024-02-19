@@ -3,6 +3,8 @@ library(nloptr)
 library(LaplacesDemon)
 library(broom)
 
+set.seed(7835)
+
 # Define observed x data
 lambda_0 <- 5
 n <- 10
@@ -51,7 +53,7 @@ n_std_errors = 3
 MoE = n_std_errors * psi_hat_se
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.01)
+psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.1)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -63,7 +65,7 @@ L_bar <- c()
 log_L_p <- c()
 
 # Number of replications for each value of psi
-R <- 1000
+R <- 10
 
 # Initialize progress bar for for loop
 pb = txtProgressBar(min = 0, max = length(psi), initial = 0, style = 3) 
@@ -76,12 +78,15 @@ for (i in 1:length(psi)) {
   # Initialize vector for holding values of log of likelihood ratio
   log_L_ratio <- c()
   
+  # Random draw from posterior for theta
+  u1 <- rgamma(1, shape = sum(x) + alpha_1, rate = n + beta_1)
+  u2 <- rgamma(1, shape = sum(y) + alpha_2, rate = m + beta_2)
+  u <- c(u1, u2)
+  
+  # Initialize starting point for searching for optimal theta value
+  theta0 <- c(rgamma(1, shape = sum(x), rate = n), rgamma(1, shape = sum(y), rate = m)) 
+  
   for (j in 1:R) {
-    
-    # Random draw from posterior for theta
-    u1 <- rgamma(1, shape = sum(x) + alpha_1, rate = n + beta_1)
-    u2 <- rgamma(1, shape = sum(y) + alpha_2, rate = m + beta_2)
-    u <- c(u1, u2)
     
     # Find value of omega that minimizes distance from u subject to constraints
     Q <- auglag(x0 = u,
@@ -89,8 +94,7 @@ for (i in 1:length(psi)) {
                 heq = function(omega) g(omega) - psi_hat,
                 lower = c(0, 0))$par
     
-    # Initialize starting point for searching for optimal theta value
-    theta0 <- c(rgamma(1, shape = sum(x), rate = n), rgamma(1, shape = sum(y), rate = m)) 
+
     
     # Find value of theta that minimizes log-likelihood expectation function subject to constraints
     T_psi <- auglag(x0 = theta0,
