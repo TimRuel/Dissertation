@@ -6,25 +6,22 @@ library(broom)
 set.seed(7835)
 
 # Define observed x data
-lambda_0 <- 2
-n <- 100
+lambda_0 <- 5
+n <- 10
 x <- rpois(n, lambda_0)
 
 # Define observed y data
 mu_0 <- 10
-m <- 100
+m <- 15
 y <- rpois(m, mu_0)
 
-# Define weights for PoI function
-w <- c(0.2, 0.3)
-
 # Define hyperparameters for u1 (lambda)
-alpha_1 <- 10
-beta_1 <- 10
+alpha_1 <- 0
+beta_1 <- 0
 
 # Define hyperparameters for u2 (mu)
-alpha_2 <- 10
-beta_2 <- 10
+alpha_2 <- 0
+beta_2 <- 0
 
 # Define likelihood function
 likelihood <- function(theta) {
@@ -37,7 +34,7 @@ log_likelihood <- function(theta) {
 }
 
 # Define parameter of interest function 
-g <- function(theta) sum(theta*w)
+g <- function(theta) theta[1] + 2*theta[2]
 
 theta_0 <- c(lambda_0, mu_0)
 psi_0 <- g(theta_0)
@@ -61,17 +58,20 @@ psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.1)
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
 
-# Initialize matrix for holding each iteration's values for log of likelihood ratio at each value of psi 
-log_L_ratio <- matrix(nrow = R, ncol = length(psi)) 
+# Initialize vector for holding values of integrated likelihood
+L_bar <- c()
 
 # Initialize vector for holding values of profile likelihood
 log_L_p <- c()
 
 # Number of replications for each value of psi
-R <- 10
+R <- 50
 
 # Initialize progress bar for for loop
 pb = txtProgressBar(min = 0, max = R, initial = 0, style = 3) 
+
+# Initialize matrix for holding each iteration's values for log of likelihood ratio at each value of psi 
+log_L_ratio <- matrix(nrow = R, ncol = length(psi)) 
 
 for (i in 1:R) {
   
@@ -89,8 +89,6 @@ for (i in 1:R) {
               heq = function(omega) g(omega) - psi_hat,
               lower = c(0, 0))$par
   
-  print(Q)
-  
   for (j in 1:length(psi)) {
     
     # Initialize starting point for searching for optimal theta value
@@ -103,12 +101,12 @@ for (i in 1:R) {
                     lower = c(0, 0))$par
     
     # Calculate ratio of likelihood at optimal theta to likelihood at initial random draw for theta
-    log_L_ratio[i, j] <- log_likelihood(T_psi)
+    log_L_ratio[i, j] <- log_likelihood(T_psi) - log_likelihood(u)
     
     if (i == 1) {
       
       # Find value of theta for obtaining profile log-likelihood
-      theta_hat_p <- auglag(x0 = theta_hat,
+      theta_hat_p <- auglag(x0 = theta0,
                             fn = function(theta) -E_log_like(theta, theta_hat),
                             heq = function(theta) g(theta) - psi[j],
                             lower = c(0, 0))$par
@@ -119,27 +117,32 @@ for (i in 1:R) {
   }
 }
 
-log_likelihood_vals <- data.frame(psi = psi, 
-                                  Integrated = log_L_ratio %>% 
-                                    exp() %>% 
-                                    apply(2, mean) %>% 
-                                    log(),
-                                  Profile = log_L_p)
+likelihood_vals <- data.frame(psi = psi, 
+                              Integrated = log_L_ratio %>% 
+                                exp() %>% 
+                                apply(2, mean),
+                              Profile = log_L_p %>% 
+                                exp())
 
 # save(likelihood_vals, file = "likelihood_df_1000_iter.Rda")
 
+log_likelihood_vals <- likelihood_vals %>% 
+  # filter(Integrated < max(Integrated)) %>%
+  mutate(Integrated = log(Integrated / max(Integrated)),
+         Profile = log(Profile / max(Profile))) 
+
 log_likelihood_vals_tidy <- log_likelihood_vals %>% 
-  mutate(Integrated = Integrated - max(Integrated),
-         Profile = Profile - max(Profile)) %>% 
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
                values_to = "loglikelihood") 
 
 log_likelihood_vals_tidy %>% 
-  ggplot(aes(x = psi, y = loglikelihood, color = Pseudolikelihood)) +
-  # geom_point(size = 0.5,
+  ggplot() +
+  # geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
+  #            size = 0.5,
   #            alpha = 0.5) +
-  geom_smooth(linewidth = 0.9,
+  geom_smooth(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
+              linewidth = 0.9,
               se = TRUE,
               fullrange = TRUE) +
   ylab("Log-Likelihood") +
@@ -156,16 +159,6 @@ fitted_models %>%
   mutate(RSE = map_dbl(model, \(x) x$s)) %>% 
   select(-model)
 
-
-myFmsy <- function(x, y){
-  model <- loess(y ~ x)
-  yfit <- model$fitted
-  x[which(yfit == max(yfit))]
-}
-
-x = log_likelihood_vals_tidy$psi
-y = log_likelihood_vals_tidy$loglikelihood
-myFmsy(x, y)
 
 
 
