@@ -2,6 +2,7 @@ library(tidyverse)
 library(nloptr)
 library(LaplacesDemon)
 library(broom)
+library(Rmpfr)
 
 set.seed(7835)
 
@@ -28,12 +29,16 @@ beta_2 <- 10
 
 # Define likelihood function
 likelihood <- function(theta) {
-  exp(-(n*theta[1] + m*theta[2]))*theta[1]^(sum(x))*theta[2]^(sum(y))
-}
-
-# Define log-likelihood function
-log_likelihood <- function(theta) {
-  -(n*theta[1] + m*theta[2]) + sum(x)*log(theta[1]) + sum(y)*log(theta[2])
+  
+  theta <- theta %>% 
+    mpfr(precBits = 106)
+  
+  (-theta * c(n, m)) %>% 
+    sum() %>% 
+    #mpfr(precBits = 106) %>%
+    exp() %>% 
+    "*"(theta^c(sum(x), sum(y)) %>%
+          sum()) 
 }
 
 # Define parameter of interest function 
@@ -61,11 +66,11 @@ psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.1)
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
 
-# Initialize matrix for holding each iteration's values for log of likelihood ratio at each value of psi 
-log_L_ratio <- matrix(nrow = R, ncol = length(psi)) 
+# Initialize matrix for holding each iteration's values for likelihood ratio at each value of psi 
+L_ratio <- mpfrArray(NA, precBits = 106, dim = c(R, length(psi)))
 
 # Initialize vector for holding values of profile likelihood
-log_L_p <- c()
+L_p <- mpfrArray(NA, precBits = 106, dim = length(psi))
 
 # Number of replications for each value of psi
 R <- 10
@@ -89,8 +94,6 @@ for (i in 1:R) {
               heq = function(omega) g(omega) - psi_hat,
               lower = c(0, 0))$par
   
-  print(Q)
-  
   for (j in 1:length(psi)) {
     
     # Initialize starting point for searching for optimal theta value
@@ -103,7 +106,7 @@ for (i in 1:R) {
                     lower = c(0, 0))$par
     
     # Calculate ratio of likelihood at optimal theta to likelihood at initial random draw for theta
-    log_L_ratio[i, j] <- log_likelihood(T_psi)
+    L_ratio[i, j] <- likelihood(T_psi) / likelihood(u)
     
     if (i == 1) {
       
@@ -114,34 +117,37 @@ for (i in 1:R) {
                             lower = c(0, 0))$par
       
       # Calculate value of profile likelihood for current value of psi
-      log_L_p[j] <- log_likelihood(theta_hat_p)
+      L_p[j] <- likelihood(theta_hat_p)
     }
   }
 }
 
 log_likelihood_vals <- data.frame(psi = psi, 
-                                  Integrated = log_L_ratio %>% 
-                                    exp() %>% 
+                                  Integrated = L_ratio %>% 
                                     apply(2, mean) %>% 
-                                    log(),
-                                  Profile = log_L_p)
+                                    log() %>%
+                                    as.double(),
+                                  Profile = L_p %>% 
+                                    log() %>% 
+                                    as.double()
+                                  )
 
 # save(likelihood_vals, file = "likelihood_df_1000_iter.Rda")
 
 log_likelihood_vals_tidy <- log_likelihood_vals %>% 
   mutate(Integrated = Integrated - max(Integrated),
-         Profile = Profile - max(Profile)) %>% 
+         Profile = Profile - max(Profile)) %>%
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
                values_to = "loglikelihood") 
 
 log_likelihood_vals_tidy %>% 
   ggplot(aes(x = psi, y = loglikelihood, color = Pseudolikelihood)) +
-  # geom_point(size = 0.5,
-  #            alpha = 0.5) +
-  geom_smooth(linewidth = 0.9,
-              se = TRUE,
-              fullrange = TRUE) +
+  geom_point(size = 0.5,
+             alpha = 0.5) +
+  # geom_smooth(linewidth = 0.9,
+  #             se = TRUE,
+  #             fullrange = TRUE) +
   ylab("Log-Likelihood") +
   xlab(expression(psi)) +
   theme_minimal()
