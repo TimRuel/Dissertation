@@ -149,7 +149,7 @@ log_likelihood_vals_tidy %>%
   geom_smooth(linewidth = 0.9,
               se = TRUE,
               fullrange = TRUE,
-              position = position_nudge(y = ifelse(log_likelihood_vals_tidy$Pseudolikelihood == "Integrated", -10, 50))) +
+              position = position_nudge(y = 0.5)) +
   ylab("Log-Likelihood") +
   xlab(expression(psi)) +
   theme_minimal()
