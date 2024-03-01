@@ -94,8 +94,6 @@ for (i in 1:length(psi)) {
                 heq = function(omega) g(omega) - psi_hat,
                 lower = c(0, 0))$par
     
-
-    
     # Find value of theta that minimizes log-likelihood expectation function subject to constraints
     T_psi <- auglag(x0 = theta0,
                     fn = function(theta) -E_log_like(theta, Q),

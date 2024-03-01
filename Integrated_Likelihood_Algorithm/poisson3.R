@@ -7,17 +7,17 @@ library(Rmpfr)
 set.seed(7835)
 
 # Define observed x data
-lambda_0 <- 2
-n <- 100
+lambda_0 <- 0.5
+n <- 30
 x <- rpois(n, lambda_0)
 
 # Define observed y data
-mu_0 <- 10
-m <- 100
+mu_0 <- 0.3
+m <- 20
 y <- rpois(m, mu_0)
 
 # Define weights for PoI function
-w <- c(0.2, 0.3)
+w <- c(0.6, 0.4)
 
 # Define hyperparameters for u1 (lambda)
 alpha_1 <- 10
@@ -35,10 +35,9 @@ likelihood <- function(theta) {
   
   (-theta * c(n, m)) %>% 
     sum() %>% 
-    #mpfr(precBits = 106) %>%
     exp() %>% 
-    "*"(theta^c(sum(x), sum(y)) %>%
-          sum()) 
+    "*"((theta^c(sum(x), sum(y))) %>%
+          prod()) 
 }
 
 # Define parameter of interest function 
@@ -61,7 +60,7 @@ n_std_errors = 3
 MoE = n_std_errors * psi_hat_se
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(psi_hat - MoE, psi_hat + MoE, 0.1)
+psi <- seq(max(0, psi_hat - MoE), psi_hat + MoE, 0.01)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -135,19 +134,22 @@ log_likelihood_vals <- data.frame(psi = psi,
 # save(likelihood_vals, file = "likelihood_df_1000_iter.Rda")
 
 log_likelihood_vals_tidy <- log_likelihood_vals %>% 
-  mutate(Integrated = Integrated - max(Integrated),
-         Profile = Profile - max(Profile)) %>%
+  # mutate(Integrated = Integrated - max(Integrated),
+  #        Profile = Profile - max(Profile)) %>%
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
                values_to = "loglikelihood") 
 
 log_likelihood_vals_tidy %>% 
+  #mutate(nudge = ifelse(Pseudolikelihood == "Integrated", -50, 50)) %>% 
+  # filter(Pseudolikelihood == "Integrated") %>% 
   ggplot(aes(x = psi, y = loglikelihood, color = Pseudolikelihood)) +
-  geom_point(size = 0.5,
-             alpha = 0.5) +
-  # geom_smooth(linewidth = 0.9,
-  #             se = TRUE,
-  #             fullrange = TRUE) +
+  # geom_point(size = 0.5,
+  #            alpha = 0.5) +
+  geom_smooth(linewidth = 0.9,
+              se = TRUE,
+              fullrange = TRUE,
+              position = position_nudge(y = ifelse(log_likelihood_vals_tidy$Pseudolikelihood == "Integrated", -10, 50))) +
   ylab("Log-Likelihood") +
   xlab(expression(psi)) +
   theme_minimal()
@@ -175,7 +177,8 @@ myFmsy(x, y)
 
 
 
-
+log_likelihood_vals_tidy %>% 
+  mutate(nudge = ifelse(Pseudolikelihood == "Integrated", -10, 50))
 
 
 
