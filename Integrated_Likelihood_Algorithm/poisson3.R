@@ -140,20 +140,6 @@ log_likelihood_vals_tidy <- log_likelihood_vals %>%
                names_to = "Pseudolikelihood",
                values_to = "loglikelihood") 
 
-log_likelihood_vals_tidy %>% 
-  #mutate(nudge = ifelse(Pseudolikelihood == "Integrated", -50, 50)) %>% 
-  # filter(Pseudolikelihood == "Integrated") %>% 
-  ggplot(aes(x = psi, y = loglikelihood, color = Pseudolikelihood)) +
-  # geom_point(size = 0.5,
-  #            alpha = 0.5) +
-  geom_smooth(linewidth = 0.9,
-              se = TRUE,
-              fullrange = TRUE,
-              position = position_nudge(y = 0.5)) +
-  ylab("Log-Likelihood") +
-  xlab(expression(psi)) +
-  theme_minimal()
-
 fitted_models <- log_likelihood_vals_tidy %>%
   group_by(Pseudolikelihood) %>% 
   nest() %>% 
@@ -164,21 +150,47 @@ fitted_models %>%
   mutate(RSE = map_dbl(model, \(x) x$s)) %>% 
   select(-model)
 
+fitted_models %>% 
+  mutate(shift = map(model, predict)) %>% 
+  unnest(c(Pseudolikelihood, shift)) %>% 
+  group_by(Pseudolikelihood) %>% 
+  slice_max(shift) %>% 
+  select(-model) %>% 
+  inner_join(log_likelihood_vals_tidy) %>% 
+  mutate(loglikelihood = loglikelihood - shift) %>% 
+  ggplot(aes(x = psi, y = loglikelihood, color = Pseudolikelihood)) +
+  # geom_point(size = 0.5,
+  #            alpha = 0.5) +
+  geom_smooth(linewidth = 0.9,
+              se = FALSE) +
+  scale_x_continuous(limits = c(0.25, 0.5)) +
+  ylab("Log-Likelihood") +
+  xlab(expression(psi)) +
+  theme_minimal()
 
-myFmsy <- function(x, y){
-  model <- loess(y ~ x)
-  yfit <- model$fitted
-  x[which(yfit == max(yfit))]
-}
 
-x = log_likelihood_vals_tidy$psi
-y = log_likelihood_vals_tidy$loglikelihood
-myFmsy(x, y)
+fitted_models %>% 
+  mutate(shift = map(model, predict)) %>% 
+  unnest(c(Pseudolikelihood, shift)) %>% 
+  group_by(Pseudolikelihood) %>% 
+  reframe(diffs = diff(shift)) %>% 
+  group_by(Pseudolikelihood) %>% 
+  summarise(which.min(diffs))
+  
+  
+  
+  
+  pivot_wider(names_from = Pseudolikelihood, values_from = diffs) %>% 
+  unnest(cols = c(Integrated, Profile)) %>% 
+  apply(which.max())
+
+  
 
 
 
-log_likelihood_vals_tidy %>% 
-  mutate(nudge = ifelse(Pseudolikelihood == "Integrated", -10, 50))
+
+
+
 
 
 
