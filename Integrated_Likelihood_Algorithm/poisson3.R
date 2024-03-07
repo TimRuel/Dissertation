@@ -1,8 +1,8 @@
 library(tidyverse)
 library(nloptr)
 library(LaplacesDemon)
-library(broom)
 library(Rmpfr)
+library(geomtextpath)
 
 set.seed(7835)
 
@@ -20,12 +20,12 @@ y <- rpois(m, mu_0)
 w <- c(0.6, 0.4)
 
 # Define hyperparameters for u1 (lambda)
-alpha_1 <- 10
-beta_1 <- 10
+alpha_1 <- 0
+beta_1 <- 0
 
 # Define hyperparameters for u2 (mu)
-alpha_2 <- 10
-beta_2 <- 10
+alpha_2 <- 0
+beta_2 <- 0
 
 # Define likelihood function
 likelihood <- function(theta) {
@@ -56,11 +56,11 @@ psi_hat <- g(theta_hat)
 psi_hat_se <- sqrt(var(x) / n + 4*var(y) / m)
 
 # Calculate margin of error
-n_std_errors = 3
+n_std_errors = 1
 MoE = n_std_errors * psi_hat_se
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(max(0, psi_hat - MoE), psi_hat + MoE, 0.01)
+psi <- seq(max(0, psi_hat - MoE), psi_hat + MoE, 0.001)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*c(n, m))
@@ -131,11 +131,7 @@ log_likelihood_vals <- data.frame(psi = psi,
                                     as.double()
                                   )
 
-# save(likelihood_vals, file = "likelihood_df_1000_iter.Rda")
-
 log_likelihood_vals_tidy <- log_likelihood_vals %>% 
-  # mutate(Integrated = Integrated - max(Integrated),
-  #        Profile = Profile - max(Profile)) %>%
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
                values_to = "loglikelihood") 
@@ -147,43 +143,38 @@ fitted_models <- log_likelihood_vals_tidy %>%
   select(-data) 
 
 fitted_models %>% 
-  mutate(RSE = map_dbl(model, \(x) x$s)) %>% 
-  select(-model)
-
-fitted_models %>% 
   mutate(shift = map(model, predict)) %>% 
   unnest(c(Pseudolikelihood, shift)) %>% 
   group_by(Pseudolikelihood) %>% 
   slice_max(shift) %>% 
   select(-model) %>% 
+  ungroup() %>% 
   inner_join(log_likelihood_vals_tidy) %>% 
   mutate(loglikelihood = loglikelihood - shift) %>% 
-  ggplot(aes(x = psi, y = loglikelihood, color = Pseudolikelihood)) +
-  # geom_point(size = 0.5,
-  #            alpha = 0.5) +
-  geom_smooth(linewidth = 0.9,
+  select(-shift) %>% 
+  ggplot(aes(x = psi, y = loglikelihood, color = Pseudolikelihood, linetype = Pseudolikelihood)) +
+  geom_smooth(linewidth = 1.3,
               se = FALSE) +
-  scale_x_continuous(limits = c(0.25, 0.5)) +
+  geom_hline(aes(yintercept = max(loglikelihood)),
+             linetype = 2) +
+  geom_textvline(xintercept = psi_0, 
+                 label = "psi[0]",
+                 parse = TRUE,
+                 color = "green4") +
+  geom_textvline(aes(xintercept = psi[loglikelihood == max(loglikelihood)]),
+                 label = "MPLE\nMILE",
+                 color = "red3") +
   ylab("Log-Likelihood") +
+  scale_x_continuous(limits = c(0.4, 0.4817),
+                     expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0.1, 0)) +
   xlab(expression(psi)) +
-  theme_minimal()
-
+  theme_minimal() +
+  theme(axis.line = element_line())
 
 fitted_models %>% 
-  mutate(shift = map(model, predict)) %>% 
-  unnest(c(Pseudolikelihood, shift)) %>% 
-  group_by(Pseudolikelihood) %>% 
-  reframe(diffs = diff(shift)) %>% 
-  group_by(Pseudolikelihood) %>% 
-  summarise(which.min(diffs))
-  
-  
-  
-  
-  pivot_wider(names_from = Pseudolikelihood, values_from = diffs) %>% 
-  unnest(cols = c(Integrated, Profile)) %>% 
-  apply(which.max())
-
+  mutate(RSE = map_dbl(model, \(x) x$s)) %>% 
+  select(-model)
   
 
 
