@@ -53,7 +53,7 @@ theta_hat <- c(mean(x), mean(y))
 psi_hat <- g(theta_hat)
 
 # Calculate standard error of MLE
-psi_hat_se <- sqrt(var(x) / n + 4*var(y) / m)
+psi_hat_se <- sqrt(sum(c(var(x), var(y)) / c(n, m) * w^2))
 
 # Calculate margin of error
 n_std_errors = 1
