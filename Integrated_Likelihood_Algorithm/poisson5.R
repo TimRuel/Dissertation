@@ -66,7 +66,7 @@ n_std_errors = 3
 MoE = n_std_errors * psi_hat_se
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi <- seq(max(0, psi_hat - MoE), psi_hat + MoE, 0.001)
+psi <- seq(max(0, psi_hat - MoE), psi_hat + MoE, 0.01)
 
 # Define log-likelihood expectation function to be minimized
 E_log_like <- function(theta, omega) sum((-theta + log(theta)*omega)*n)
