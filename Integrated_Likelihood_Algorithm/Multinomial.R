@@ -55,15 +55,21 @@ for (j in 1:R) {
 
 # Define values for parameter of interest at which to evaluate the
 # integrated likelihood function 
-psi1 <- seq(1, log(m), 0.01)
+psi1 <- seq(0, log(m), 0.01)
 
 # Initialize vector for holding values of integrated likelihood function
 L_bar <- c()
 
 L_p <- c()
 
+# Initialize progress bar for for loop
+pb = txtProgressBar(min = 0, max = length(psi1), initial = 0, style = 3) 
+
 # Calculate value of integrated likelihood for each parameter of interest value
 for (i in 1:length(psi1)) {
+  
+  # Update progress bar
+  setTxtProgressBar(pb, i)
   
   # Initialize vector for holding values of likelihood function
   L <- c()
@@ -113,8 +119,6 @@ for (i in 1:length(psi1)) {
     L1[j] <- likelihood(theta_hat_p, n)
   }
   
-  print(out$convergence)
-  
   L_bar[i] <- mean(L)
   
   L_p[i] <- mean(L1)
@@ -129,18 +133,79 @@ likelihood_dat <- data.frame(psi = psi1,
 likelihood_dat %>% 
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
-               values_to = "log-likelihood") %>% 
+               values_to = "loglikelihood") %>% 
   ggplot() +
-  scale_y_continuous(limits = c(-3, 0)) +
-  geom_smooth(aes(x = psi, y = `log-likelihood`, color = Pseudolikelihood),
+  scale_y_continuous(limits = c(-3.5, 0.3)) +
+  scale_x_continuous(limits = c(1.1, 1.8)) +
+  #geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood)) +
+  geom_smooth(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
               se = FALSE,
               linewidth = 0.9,
               fullrange = TRUE) +
   theme_minimal() +
-  theme(legend.position = c(0.2, 0.8),
+  theme(legend.position = c(0.5, 0.3),
         legend.background = element_rect())
 
-max(L_bar)
+log_likelihood_vals <- data.frame(psi = psi1, 
+                                  Integrated = log(L_bar),
+                                  Profile = log(L_p))
 
+fit_IL <- loess(Integrated ~ psi, data = log_likelihood_vals)
+fit_P <- loess(Profile ~ psi, data = log_likelihood_vals)
 
+crit <- qchisq(0.95, 1) / 2
+
+x <- optimize(
+  function(psi) predict(fit_IL, psi), 
+  lower = psi1 %>% head(1), 
+  upper = psi1 %>% tail(1), 
+  maximum = TRUE
+)$objective
+
+psi_max <- optimize(
+  function(psi) predict(fit_IL, psi), 
+  lower = psi1 %>% head(1), 
+  upper = psi1 %>% tail(1), 
+  maximum = TRUE
+)$maximum
+
+l <- uniroot(function(psi) predict(fit_IL, psi) - x + crit,
+             interval = c(0, psi_max))$root
+
+u <- uniroot(function(psi) predict(fit_IL, psi) - x + crit,
+             interval = c(psi_max, psi1 %>% tail(1)))$root
+
+curve <- function(psi) predict(fit_IL, psi) - x + crit
+
+c(l, u)
+
+ggplot() +
+  geom_function(fun = curve) +
+  scale_x_continuous(limits = c(0,2))
+
+x <- optimize(
+  function(psi) predict(fit_P, psi), 
+  lower = psi1 %>% head(1), 
+  upper = psi1 %>% tail(1), 
+  maximum = TRUE
+)$objective
+
+psi_max <- optimize(
+  function(psi) predict(fit_P, psi), 
+  lower = psi1 %>% head(1), 
+  upper = psi1 %>% tail(1), 
+  maximum = TRUE
+)$maximum
+
+l <- uniroot(function(psi) predict(fit_P, psi) - x + crit,
+             interval = c(0, psi_max))$root
+
+u <- uniroot(function(psi) predict(fit_P, psi) - x + crit,
+             interval = c(psi_max, psi1 %>% tail(1)))$root
+
+curve <- function(psi) predict(fit_P, psi) - x + crit
+
+ggplot() +
+  geom_function(fun = curve) +
+  scale_x_continuous(limits = c(0,2))
 
