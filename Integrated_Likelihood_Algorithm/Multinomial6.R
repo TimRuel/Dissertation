@@ -7,9 +7,9 @@ library(viridis)
 library(ggnewscale)
 library(purrr)
 
-set.seed(1996)
+#set.seed(1996)
 
-n <- c(1, 1, 2, 4, 7, 10)
+n <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
 
 m <- length(n)
 
@@ -91,28 +91,32 @@ for (j in 1:length(psi1)) {
 }
 
 log_likelihood_vals <- data.frame(psi = psi1,
-                                  Integrated = L %>% 
-                                    apply(2, mean) %>% 
-                                    log() %>% 
-                                    as.double(),
+                                  # Integrated = L %>% 
+                                  #   apply(2, mean) %>% 
+                                  #   log() %>% 
+                                  #   as.double(),
                                   Profile = L_p %>% 
                                     log() %>% 
                                     as.double())
 
 log_likelihood_vals %>% 
-  mutate(Integrated = Integrated - max(Integrated),
-         Profile = Profile - max(Profile)) %>% 
-  pivot_longer(cols = c("Integrated", "Profile"),
-               names_to = "Pseudolikelihood",
-               values_to = "loglikelihood") %>% 
+  mutate(Profile = Profile - max(Profile)) %>% 
+  # mutate(Integrated = Integrated - max(Integrated),
+  #        Profile = Profile - max(Profile)) %>%
+  # pivot_longer(cols = c("Integrated", "Profile"),
+  #              names_to = "Pseudolikelihood",
+  #              values_to = "loglikelihood") %>% 
+  # filter(Pseudolikelihood == "Profile") %>%
   ggplot() +
-  scale_y_continuous(limits = c(-3, 0)) +
-  geom_smooth(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
+  scale_y_continuous(limits = c(-4, 1)) +
+  scale_x_continuous(limits = c(2, 2.7)) +
+  #geom_point(aes(x = psi, y = Profile)) +
+  geom_smooth(aes(x = psi, y = Profile),
               se = FALSE,
               linewidth = 0.9,
               fullrange = TRUE) +
   theme_minimal() +
-  theme(legend.position = c(0.2, 0.8),
+  theme(legend.position = c(0.2, 0.2),
         legend.background = element_rect())
 
 fit_IL <- loess(Integrated ~ psi, data = log_likelihood_vals)
@@ -158,12 +162,12 @@ ggplot() +
 # Which is the correct value to use for l_p(psi_hat)? Likelihood Methods in Statistics, p. 145
 l_p_psi_hat <- predict(fit_P, psi_hat)
 
-# l_p_maximum <- optimize(
-#   function(psi) predict(fit_P, psi),
-#   lower = psi1 %>% head(1),
-#   upper = psi1 %>% tail(1),
-#   maximum = TRUE
-# )$objective
+l_p_maximum <- optimize(
+  function(psi) predict(fit_P, psi),
+  lower = psi1 %>% head(1),
+  upper = psi1 %>% tail(1),
+  maximum = TRUE
+)$objective
 
 l_p_maximizer <- optimize(
   function(psi) predict(fit_P, psi), 
@@ -188,5 +192,5 @@ curve(psi1 %>% tail(1))
 
 ggplot() + 
   geom_function(fun = curve) +
-  scale_x_continuous(limits = c(0, 2))
+  scale_x_continuous(limits = c(2, 3))
 
