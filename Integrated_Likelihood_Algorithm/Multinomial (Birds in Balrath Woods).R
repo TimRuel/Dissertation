@@ -6,6 +6,7 @@ library(geomtextpath)
 library(viridis)
 library(ggnewscale)
 library(purrr)
+library(zeallot)
 
 #set.seed(1996)
 
@@ -99,8 +100,16 @@ log_likelihood_vals <- data.frame(psi = psi1,
                                     log() %>% 
                                     as.double())
 
+# saveRDS(log_likelihood_vals, "balrath_woods_profile_log_likelihood_vals_0.001_step_size.Rda")
+# log_likelihood_vals <- readRDS(file = "balrath_woods_profile_log_likelihood_vals_0.001_step_size.Rda")
+
+# fit_P <- loess(Profile ~ psi, data = log_likelihood_vals)
+
+spline_fit_P <- log_likelihood_vals %>% 
+  with(smooth.spline(psi, Profile))
+
 log_likelihood_vals %>% 
-  mutate(Profile = Profile - max(Profile)) %>% 
+  #mutate(Profile = Profile - max(Profile)) %>% 
   # mutate(Integrated = Integrated - max(Integrated),
   #        Profile = Profile - max(Profile)) %>%
   # pivot_longer(cols = c("Integrated", "Profile"),
@@ -108,89 +117,69 @@ log_likelihood_vals %>%
   #              values_to = "loglikelihood") %>% 
   # filter(Pseudolikelihood == "Profile") %>%
   ggplot() +
-  scale_y_continuous(limits = c(-4, 1)) +
+  # scale_y_continuous(limits = c(-4, 1)) +
   scale_x_continuous(limits = c(2, 2.7)) +
-  #geom_point(aes(x = psi, y = Profile)) +
-  geom_smooth(aes(x = psi, y = Profile),
-              se = FALSE,
-              linewidth = 0.9,
-              fullrange = TRUE) +
+  # geom_point(aes(x = psi, y = Profile)) +
+  # geom_smooth(aes(x = psi, y = Profile),
+  #             se = FALSE,
+  #             linewidth = 0.9,
+  #             fullrange = TRUE) +
+  geom_function(fun = function(psi) predict(spline_fit_P, psi)$y) +
   theme_minimal() +
   theme(legend.position = c(0.2, 0.2),
         legend.background = element_rect())
 
-fit_IL <- loess(Integrated ~ psi, data = log_likelihood_vals)
-fit_P <- loess(Profile ~ psi, data = log_likelihood_vals)
-
 crit <- qchisq(0.95, 1) / 2
 
-l_bar_psi_hat <- predict(fit_IL, psi_hat)
+c(l_p_maximizer, l_p_maximum) %<-% optimize(
+  function(psi) predict(spline_fit_P, psi)$y, 
+  lower = psi1 %>% head(1), 
+  upper = psi1 %>% tail(1), 
+  maximum = TRUE)
 
+l <- uniroot(function(psi) predict(spline_fit_P, psi)$y - l_p_maximum + crit,
+             interval = c(psi1 %>% head(1), l_p_maximizer))$root
+
+u <- uniroot(function(psi) predict(spline_fit_P, psi)$y - l_p_maximum + crit,
+             interval = c(l_p_maximizer, psi1 %>% tail(1)))$root
+
+print("Profile")
+c(l, u)
+
+# fit_IL <- loess(Integrated ~ psi, data = log_likelihood_vals)
+# 
+# l_bar_psi_hat <- predict(fit_IL, psi_hat)
+# 
 # l_bar_maximum <- optimize(
 #   function(psi) predict(fit_IL, psi),
 #   lower = psi1 %>% head(1),
 #   upper = psi1 %>% tail(1),
 #   maximum = TRUE
 # )$objective
+# 
+# l_bar_maximizer <- optimize(
+#   function(psi) predict(fit_IL, psi), 
+#   lower = psi1 %>% head(1), 
+#   upper = psi1 %>% tail(1), 
+#   maximum = TRUE
+# )$maximum
+# 
+# l <- uniroot(function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit,
+#              interval = c(psi1 %>% head(1), l_bar_maximizer))$root
+# 
+# u <- uniroot(function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit,
+#              interval = c(l_bar_maximizer, psi1 %>% tail(1)))$root
+# 
+# print("Integrated")
+# c(l, u)
 
-l_bar_maximizer <- optimize(
-  function(psi) predict(fit_IL, psi), 
-  lower = psi1 %>% head(1), 
-  upper = psi1 %>% tail(1), 
-  maximum = TRUE
-)$maximum
-
-l <- uniroot(function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit,
-             interval = c(psi1 %>% head(1), l_bar_maximizer))$root
-
-u <- uniroot(function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit,
-             interval = c(l_bar_maximizer, psi1 %>% tail(1)))$root
-
-print("Integrated")
-c(l, u)
-
-curve <- function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit
-curve(psi1 %>% head(1))
-curve(l_bar_maximizer)
-curve(psi1 %>% tail(1))
-
-ggplot() + 
-  geom_function(fun = curve) +
-  scale_x_continuous(limits = c(0, 2)) +
-  scale_y_continuous(limits = c(-50, 10))
-
-# Which is the correct value to use for l_p(psi_hat)? Likelihood Methods in Statistics, p. 145
-l_p_psi_hat <- predict(fit_P, psi_hat)
-
-l_p_maximum <- optimize(
-  function(psi) predict(fit_P, psi),
-  lower = psi1 %>% head(1),
-  upper = psi1 %>% tail(1),
-  maximum = TRUE
-)$objective
-
-l_p_maximizer <- optimize(
-  function(psi) predict(fit_P, psi), 
-  lower = psi1 %>% head(1), 
-  upper = psi1 %>% tail(1), 
-  maximum = TRUE
-)$maximum
-
-l <- uniroot(function(psi) predict(fit_P, psi) - l_p_psi_hat + crit,
-             interval = c(psi1 %>% head(1), l_p_maximizer))$root
-
-u <- uniroot(function(psi) predict(fit_P, psi) - l_p_psi_hat + crit,
-             interval = c(l_p_maximizer, psi1 %>% tail(1)))$root
-
-print("Profile")
-c(l, u)
-
-curve <- function(psi) predict(fit_P, psi) - l_p_psi_hat + crit
-curve(psi1 %>% head(1))
-curve(l_p_maximizer)
-curve(psi1 %>% tail(1))
-
-ggplot() + 
-  geom_function(fun = curve) +
-  scale_x_continuous(limits = c(2, 3))
+# curve <- function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit
+# curve(psi1 %>% head(1))
+# curve(l_bar_maximizer)
+# curve(psi1 %>% tail(1))
+# 
+# ggplot() + 
+#   geom_function(fun = curve) +
+#   scale_x_continuous(limits = c(0, 2)) +
+#   scale_y_continuous(limits = c(-50, 10))
 
