@@ -32,7 +32,13 @@ psi_hat <- g(theta.hat)
 likelihood <- function(theta) prod(theta^n)
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi1 <- seq(0, log(m), 0.001)
+psi1 <- seq(0, log(m), 0.1)
+
+N <- length(psi1)
+
+psi1_lower <- psi1[psi1 <= psi_hat] %>% rev()
+
+N_lower <- length(psi1_lower)
 
 # Number of replications for each value of psi
 R <- 250
@@ -72,18 +78,36 @@ for (i in 1:R) {
 }
 
 # Initialize vector for holding values of profile likelihood
-L_p <- mpfrArray(NA, precBits = 106, dim = length(psi1))
+L_p <- mpfrArray(NA, precBits = 106, dim = N)
 
 # Initialize progress bar for for loop
-pb = txtProgressBar(min = 0, max = length(psi1), initial = 0, style = 3) 
+pb = txtProgressBar(min = 0, max = N, initial = 0, style = 3) 
 
-for (j in 1:length(psi1)) {
+theta_hat_p <- theta.hat
+
+for (j in N_lower:1) {
   
   # Update progress bar
   setTxtProgressBar(pb, j)
   
   # Find value of theta that minimizes objective function subject to constraints
-  theta_hat_p <- auglag(x0 = theta.hat,
+  theta_hat_p <- auglag(x0 = theta_hat_p,
+                        fn = function(theta) -sum(theta.hat*log(theta)),
+                        heq = function(theta) c(sum(theta) - 1, g(theta) - psi1[j]),
+                        lower = rep(0, m))$par
+  
+  L_p[j] <- likelihood(theta_hat_p)
+}
+
+theta_hat_p <- theta.hat
+
+for (j in (N_lower + 1):N) {
+  
+  # Update progress bar
+  setTxtProgressBar(pb, j)
+  
+  # Find value of theta that minimizes objective function subject to constraints
+  theta_hat_p <- auglag(x0 = theta_hat_p,
                         fn = function(theta) -sum(theta.hat*log(theta)),
                         heq = function(theta) c(sum(theta) - 1, g(theta) - psi1[j]),
                         lower = rep(0, m))$par
@@ -182,4 +206,6 @@ c(l, u)
 #   geom_function(fun = curve) +
 #   scale_x_continuous(limits = c(0, 2)) +
 #   scale_y_continuous(limits = c(-50, 10))
+
+
 
