@@ -124,8 +124,7 @@ log_likelihood_vals <- data.frame(psi = psi1,
                                     log() %>% 
                                     as.double())
 
-# saveRDS(log_likelihood_vals, "balrath_woods_profile_log_likelihood_vals_0.001_step_size.Rda")
-# log_likelihood_vals <- readRDS(file = "balrath_woods_profile_log_likelihood_vals_0.001_step_size.Rda")
+
 
 # fit_P <- loess(Profile ~ psi, data = log_likelihood_vals)
 
@@ -208,4 +207,6 @@ c(l, u)
 #   scale_y_continuous(limits = c(-50, 10))
 
 
+# saveRDS(log_likelihood_vals, "balrath_woods_profile_log_likelihood_vals_0.001_step_size.Rda")
+# log_likelihood_vals <- readRDS(file = "balrath_woods_profile_log_likelihood_vals_0.001_step_size.Rda")
 

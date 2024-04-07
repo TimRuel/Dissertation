@@ -1,4 +1,5 @@
 library(tidyverse)
+library(plyr)
 library(nloptr)
 library(LaplacesDemon)
 library(Rmpfr)
@@ -31,8 +32,9 @@ psi_hat <- g(theta.hat)
 # Define likelihood function
 likelihood <- function(theta) prod(theta^n)
 
-# Define values for parameter of interest at which to evaluate the integrated likelihood  
-psi1 <- seq(0, log(m), 0.05)
+# Define values for parameter of interest at which to evaluate the integrated likelihood
+step_size <- 0.05
+psi1 <- seq(0, round_any(log(m), step_size, ceiling), step_size)
 
 N <- length(psi1)
 
@@ -129,49 +131,41 @@ log_likelihood_vals_tidy <- log_likelihood_vals %>%
                names_to = "Pseudolikelihood",
                values_to = "loglikelihood")
 
-split.dfs <- log_likelihood_vals_tidy %>% 
-  split(log_likelihood_vals_tidy$Pseudolikelihood)
-
-spline.funs = split.dfs %>% 
-  lapply(function(x) splinefun(x[,"psi"], x[,"loglikelihood"]))
-
 spline_fitted_models <- log_likelihood_vals_tidy %>%
   group_by(Pseudolikelihood) %>% 
-  group_map(~ smooth.spline(x$psi, x$loglikelihood))
-  nest() %>% 
-  mutate(spline_fit = map(data, smooth.spline(psi, loglikelihood))) %>% 
-  select(-data) 
+  group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) %>% 
+  set_names(c("Integrated", "Profile"))
 
-# fit_P <- loess(Profile ~ psi, data = log_likelihood_vals)
+MLE_data <- spline_fitted_models %>%
+  sapply(
+    function(mod) {
+      optimize(
+        function(psi) predict(mod, psi)$y, 
+        lower = psi1 %>% head(1), 
+        upper = psi1 %>% tail(1), 
+        maximum = TRUE
+      )}) %>% 
+  t() %>% 
+  data.frame() %>% 
+  rownames_to_column("Pseudolikelihood") %>% 
+  dplyr::rename(MLE = maximum,
+         Maximum = objective) %>% 
+  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[P]"))
 
-spline_fit_P <- log_likelihood_vals %>% 
-  with(smooth.spline(psi, Profile))
+c(IL_curve, P_curve) %<-% mapply(
+  function(mod, maximum) function(psi) predict(mod, psi)$y - maximum,
+  spline_fitted_models,
+  MLE_data$Maximum)
 
-spline_fit_IL <- log_likelihood_vals %>% 
-  with(smooth.spline(psi, Integrated))
-
-c(l_p_maximizer, l_p_maximum) %<-% optimize(
-  function(psi) predict(spline_fit_P, psi)$y, 
-  lower = psi1 %>% head(1), 
-  upper = psi1 %>% tail(1), 
-  maximum = TRUE)
-
-c(l_bar_maximizer, l_bar_maximum) %<-% optimize(
-  function(psi) predict(spline_fit_IL, psi)$y, 
-  lower = psi1 %>% head(1), 
-  upper = psi1 %>% tail(1), 
-  maximum = TRUE)
-
-log_likelihood_vals %>% 
-  ggplot() +
-  stat_function(fun = function(psi) predict(spline_fit_P, psi)$y - l_p_maximum,
+ggplot() +
+  stat_function(fun = P_curve,
                 geom = "textpath",
                 label = "Profile",
                 aes(color = "Profile"),
                 linewidth = 1,
                 hjust = 0.1,
                 show.legend = FALSE) +
-  stat_function(fun = function(psi) predict(spline_fit_IL, psi)$y - l_bar_maximum,
+  stat_function(fun = IL_curve,
                 geom = "textpath",
                 label = "Integrated",
                 aes(color = "Integrated"),
@@ -180,13 +174,11 @@ log_likelihood_vals %>%
                 show.legend = FALSE) +
   geom_hline(yintercept = 0,
              linetype = 5) +
-  geom_labelvline(aes(xintercept = MLE,
+  geom_labelvline(aes(xintercept = as.numeric(MLE),
                       label = MLE_label,
-                      color = MLE_label,
-                      angle = 0),
+                      color = Pseudolikelihood),
                   data = MLE_data,
                   parse = TRUE,
-                  angle = -90,
                   show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(limits = c(1, 2),
@@ -200,57 +192,25 @@ log_likelihood_vals %>%
 
 crit <- qchisq(0.95, 1) / 2
 
-CI_lower_P <- uniroot(function(psi) predict(spline_fit_P, psi)$y - l_p_maximum + crit,
-                    interval = c(psi1 %>% head(1), l_p_maximizer))$root
+c(psi_hat_IL, psi_hat_P) %<-% MLE_data$MLE
 
-CI_upper_P <- uniroot(function(psi) predict(spline_fit_P, psi)$y - l_p_maximum + crit,
-             interval = c(l_p_maximizer, psi1 %>% tail(1)))$root
+CI_lower_P <- uniroot(function(psi) P_curve(psi) + crit,
+                    interval = c(psi1 %>% head(1), psi_hat_P))$root %>% 
+  round(3)
 
-print("Profile")
-c(CI_lower_P, CI_upper_P)
+CI_upper_P <- uniroot(function(psi) P_curve(psi) + crit,
+             interval = c(psi_hat_P, psi1 %>% tail(1)))$root %>% 
+  round(3)
 
-# fit_IL <- loess(Integrated ~ psi, data = log_likelihood_vals)
+CI_lower_IL <- uniroot(function(psi) IL_curve(psi) + crit,
+                      interval = c(psi1 %>% head(1), psi_hat_IL))$root %>% 
+  round(3)
 
-#l_bar_psi_hat <- predict(fit_IL, psi_hat)
+CI_upper_IL <- uniroot(function(psi) IL_curve(psi) + crit,
+                      interval = c(psi_hat_IL, psi1 %>% tail(1)))$root %>% 
+  round(3)
 
-# l_bar_maximum <- optimize(
-#   function(psi) predict(fit_IL, psi),
-#   lower = psi1 %>% head(1),
-#   upper = psi1 %>% tail(1),
-#   maximum = TRUE
-# )$objective
-
-# l_bar_maximizer <- optimize(
-#   function(psi) predict(fit_IL, psi), 
-#   lower = psi1 %>% head(1), 
-#   upper = psi1 %>% tail(1), 
-#   maximum = TRUE
-# )$maximum
-# 
-# l <- uniroot(function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit,
-#              interval = c(psi1 %>% head(1), l_bar_maximizer))$root
-# 
-# u <- uniroot(function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit,
-#              interval = c(l_bar_maximizer, psi1 %>% tail(1)))$root
-# 
-# print("Integrated")
-# c(l, u)
-
-# curve <- function(psi) predict(fit_IL, psi) - l_bar_psi_hat + crit
-# curve(psi1 %>% head(1))
-# curve(l_bar_maximizer)
-# curve(psi1 %>% tail(1))
-# 
-# ggplot() +
-#   geom_function(fun = curve) +
-#   scale_x_continuous(limits = c(0, 2)) +
-#   scale_y_continuous(limits = c(-50, 10))
-
-
-
-test <- auglag(x0 = rdirichlet(1, rep(1, m)),
-       fn = function(omega) -sum(u[10,]*log(omega)),
-       heq = function(omega) c(sum(omega) - 1, g(omega) - psi_hat),
-       lower = rep(0, m))$par
-
-
+data.frame(MLE = c(psi_hat_IL, psi_hat_P) %>% round(3),
+           CI_95 = c(paste0("(", CI_lower_IL, ", ", CI_upper_IL, ")"),
+                     paste0("(", CI_lower_P, ", ", CI_upper_P, ")")),
+           row.names = c("Integrated", "Profile"))

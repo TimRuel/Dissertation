@@ -45,7 +45,7 @@ likelihood <- function(theta) {
 # Define parameter of interest function 
 g <- function(theta) sum(theta*w)
 
-# Define parameter of interest
+# Define true parameter of interest
 psi_0 <- g(theta_0)
 
 # Define MLE for theta
