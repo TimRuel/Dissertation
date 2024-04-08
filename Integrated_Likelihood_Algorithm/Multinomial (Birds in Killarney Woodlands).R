@@ -11,7 +11,7 @@ library(zeallot)
 
 #set.seed(1996)
 
-n <- c(1, 1, 2, 4, 7, 10)
+n <- c(1, 3, 4, 6, 7, 10, 14, 30)
 
 m <- length(n)
 
@@ -33,7 +33,7 @@ psi_hat <- g(theta.hat)
 likelihood <- function(theta) prod(theta^n)
 
 # Define values for parameter of interest at which to evaluate the integrated likelihood
-step_size <- 0.05
+step_size <- 0.1
 psi1 <- seq(0, round_any(log(m), step_size, ceiling), step_size)
 
 N <- length(psi1)
@@ -64,26 +64,10 @@ for (i in 1:R) {
                            heq = function(omega) c(sum(omega) - 1, g(omega) - psi_hat),
                            lower = rep(0, m))$par
   
-  theta_hat <- omega_hat[[i]]
-  
-  for (j in N_lower:1) {
+  for (j in 1:length(psi1)) {
     
     # Find value of theta that minimizes objective function subject to constraints
-    theta_hat <- auglag(x0 = theta_hat,
-                        fn = function(theta) -sum(omega_hat[[i]]*log(theta)),
-                        heq = function(theta) c(sum(theta) - 1, g(theta) - psi1[j]),
-                        lower = rep(0, m))$par
-    
-    # Calculate ratio of likelihood at optimal theta to likelihood at initial random draw for theta
-    L[i, j] <- likelihood(theta_hat)
-  }
-  
-  theta_hat <- omega_hat[[i]]
-  
-  for (j in (N_lower + 1):N) {
-    
-    # Find value of theta that minimizes objective function subject to constraints
-    theta_hat <- auglag(x0 = theta_hat,
+    theta_hat <- auglag(x0 = omega_hat[[i]],
                         fn = function(theta) -sum(omega_hat[[i]]*log(theta)),
                         heq = function(theta) c(sum(theta) - 1, g(theta) - psi1[j]),
                         lower = rep(0, m))$par
@@ -163,7 +147,7 @@ MLE_data <- spline_fitted_models %>%
   data.frame() %>% 
   rownames_to_column("Pseudolikelihood") %>% 
   dplyr::rename(MLE = maximum,
-         Maximum = objective) %>% 
+                Maximum = objective) %>% 
   mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[P]"))
 
 c(IL_curve, P_curve) %<-% mapply(
@@ -195,9 +179,9 @@ ggplot() +
                   parse = TRUE,
                   show.legend = FALSE) +
   ylab("Log-Likelihood") +
-  scale_x_continuous(limits = c(1, 2),
+  scale_x_continuous(limits = c(1.4, 2.1),
                      expand = c(0, 0)) +
-  scale_y_continuous(limits = c(-4, 0.1),
+  scale_y_continuous(limits = c(-5.5, 0.1),
                      expand = c(0.1, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
@@ -209,19 +193,19 @@ crit <- qchisq(0.95, 1) / 2
 c(psi_hat_IL, psi_hat_P) %<-% MLE_data$MLE
 
 CI_lower_P <- uniroot(function(psi) P_curve(psi) + crit,
-                    interval = c(psi1 %>% head(1), psi_hat_P))$root %>% 
+                      interval = c(psi1 %>% head(1), psi_hat_P))$root %>% 
   round(3)
 
 CI_upper_P <- uniroot(function(psi) P_curve(psi) + crit,
-             interval = c(psi_hat_P, psi1 %>% tail(1)))$root %>% 
+                      interval = c(psi_hat_P, psi1 %>% tail(1)))$root %>% 
   round(3)
 
 CI_lower_IL <- uniroot(function(psi) IL_curve(psi) + crit,
-                      interval = c(psi1 %>% head(1), psi_hat_IL))$root %>% 
+                       interval = c(psi1 %>% head(1), psi_hat_IL))$root %>% 
   round(3)
 
 CI_upper_IL <- uniroot(function(psi) IL_curve(psi) + crit,
-                      interval = c(psi_hat_IL, psi1 %>% tail(1)))$root %>% 
+                       interval = c(psi_hat_IL, psi1 %>% tail(1)))$root %>% 
   round(3)
 
 data.frame(MLE = c(psi_hat_IL, psi_hat_P) %>% round(3),
