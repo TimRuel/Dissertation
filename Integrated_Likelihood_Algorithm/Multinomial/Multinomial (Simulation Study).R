@@ -82,9 +82,15 @@ data <- c(1, 1, 2, 4, 7, 10)
 sims <- rmultinom(2, length(data), data)
 
 test <- sims %>% 
-  t() %>% 
-  list() %>% 
-  lapply(get_multinom_entropy_IL, 0.05, 250)
+  data.frame() %>% 
+  as.list() %>% 
+  mclapply(get_multinom_entropy_IL, 0.1, 10) 
 
+test[[1]] %>%
+  apply(2, mean) %>%
+  log() %>%
+  as.double()
+
+do.call()
 
 
