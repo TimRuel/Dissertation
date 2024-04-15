@@ -1,11 +1,19 @@
-library(tidyverse)
 library(plyr)
-library(Rmpfr)
+library(tidyverse)
+library(ggplot2)
+library(LaplacesDemon)
 library(geomtextpath)
 library(viridis)
 library(ggnewscale)
+library(future)
 library(zeallot)
-library(pbapply)
+library(progressr)
+
+plan(multisession)
+
+handlers("cli")
+
+# handlers(global = TRUE)
 
 # setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("utils.R")
@@ -31,16 +39,10 @@ psi_grid <- data |>
 
 R <- 250
 
-if (requireNamespace("progress", quietly = TRUE)) {
-  handlers("progress")
-  with_progress({
-    multinomial_entropy_values_IL <- data |>
-      get_multinomial_entropy_values_IL(psi_grid, R)
-  })
-}
+u <- rdirichlet(R, rep(1, length(data))) 
 
-multinomial_entropy_values_IL <- data |>
-  get_multinomial_entropy_values_IL(psi_grid, R)
+multinomial_entropy_values_IL <- u |> 
+  get_multinomial_entropy_values_IL(data, psi_grid)
 
 multinomial_entropy_values_PL <- data |> 
   get_multinomial_entropy_values_PL(psi_grid) 
@@ -54,14 +56,17 @@ log_likelihood_vals_tidy <- data.frame(psi = psi_grid,
 
 # Desert Rodents
 # R = 250, step_size = 0.01, seed = 38498984
+# saveRDS(log_likelihood_vals_tidy, "desert_rodents_R=250_step_size=0.01.Rda")
 # log_likelihood_vals_tidy <- readRDS("desert_rodents_R=250_step_size=0.01.Rda")
 
 # Birds in Balrath Woods
 # R = 250, step_size = 0.01, seed = 38498984
+# saveRDS(log_likelihood_vals_tidy, "birds_in_balrath_woods_R=250_step_size=0.01.Rda")
 # log_likelihood_vals_tidy <- readRDS("birds_in_balrath_woods_R=250_step_size=0.01.Rda")
 
 # Birds in Killarney Woodlands
 # R = 250, step_size = 0.01, seed = 38498984
+# saveRDS(log_likelihood_vals_tidy, "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
 # log_likelihood_vals_tidy <- readRDS("birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
 
 spline_fitted_models <- log_likelihood_vals_tidy |>

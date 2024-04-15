@@ -22,15 +22,11 @@ get_theta_hat <- function(psi, omega_hat) {
   return(theta_hat)
 }
 
-get_multinomial_entropy_values_IL.aux <- function(data, psi_grid) {
-  
-  m <- length(data)
+get_multinomial_entropy_values_IL.aux <- function(u, data, psi_grid) {
   
   theta_MLE <- data / sum(data)
   
   psi_MLE <- PoI_fn(theta_MLE)
-   
-  u <- LaplacesDemon::rdirichlet(1, rep(1, m))
   
   omega_hat <- get_omega_hat(u, psi_MLE)
   
@@ -41,16 +37,18 @@ get_multinomial_entropy_values_IL.aux <- function(data, psi_grid) {
   return(L)
 }
 
-get_multinomial_entropy_values_IL <- function(data, psi_grid, R) {
+get_multinomial_entropy_values_IL <- function(u, data, psi_grid) {
   
-  l_bar <- data |> 
-    get_multinomial_entropy_values_IL.aux(psi_grid) |> 
-    future.apply::future_replicate(R, expr = _) |> 
-    apply(1, mean) |>
-    log() |>
+  p <- progressr::progressor(along = u)
+  
+  u |> 
+    future.apply::future_apply(1, \(x) {
+      p()
+      get_multinomial_entropy_values_IL.aux(x, data, psi_grid)
+      }) |> 
+    future.apply::future_apply(1, mean) |> 
+    log() |> 
     as.double()
-  
-  return(l_bar)
 }
 
 get_multinomial_entropy_values_PL <- function(data, psi_grid) {
@@ -67,5 +65,10 @@ get_multinomial_entropy_values_PL <- function(data, psi_grid) {
   
   return(l_p)
 }
+
+
+
+
+
 
 
