@@ -1,96 +1,79 @@
-library(tidyverse)
-library(plyr)
-library(nloptr)
-library(LaplacesDemon)
-library(Rmpfr)
-library(geomtextpath)
-library(viridis)
-library(ggnewscale)
-library(purrr)
-library(zeallot)
+library(progressr)
+handlers(global = TRUE)
+handlers("progress", "beepr")
 
-g <- function(x) {
-  
-  y <- ifelse(x != 0, x*log(x), 0)
-  
-  return(-sum(y))
-}
-
-get_multinom_entropy_IL <- function(n, step_size, R) {
-  
-  likelihood <- function(theta) prod(theta^n)
-  
-  m <- length(n)
-  
-  theta.hat <- n / sum(n)
-  
-  psi_hat <- g(theta.hat)
-  
-  psi1 <- seq(0, round_any(log(m), step_size, ceiling), step_size)
-  
-  N <- length(psi1)
-  
-  N_lower <- psi1[psi1 <= psi_hat] %>% length()
-  
-  u <- rdirichlet(R, rep(1, m)) 
-  
-  L <- mpfrArray(NA, precBits = 106, dim = c(R, length(psi1)))
-  
-  omega_hat <- list()
-  
-  pb = txtProgressBar(min = 0, max = R, initial = 0, style = 3) 
-  
-  for (i in 1:R) {
-    
-    setTxtProgressBar(pb, i)
-    
-    omega_hat[[i]] <- auglag(x0 = u[i,],
-                             fn = function(omega) -sum(u[i,]*log(omega)),
-                             heq = function(omega) c(sum(omega) - 1, g(omega) - psi_hat),
-                             lower = rep(0, m))$par
-    
-    theta_hat <- omega_hat[[i]]
-    
-    for (j in N_lower:1) {
-      
-      theta_hat <- auglag(x0 = theta_hat,
-                          fn = function(theta) -sum(omega_hat[[i]]*log(theta)),
-                          heq = function(theta) c(sum(theta) - 1, g(theta) - psi1[j]),
-                          lower = rep(0, m))$par
-      
-      L[i, j] <- likelihood(theta_hat)
-    }
-    
-    theta_hat <- omega_hat[[i]]
-    
-    for (j in (N_lower + 1):N) {
-      
-      theta_hat <- auglag(x0 = theta_hat,
-                          fn = function(theta) -sum(omega_hat[[i]]*log(theta)),
-                          heq = function(theta) c(sum(theta) - 1, g(theta) - psi1[j]),
-                          lower = rep(0, m))$par
-      
-      L[i, j] <- likelihood(theta_hat)
-    }
-  }
-  
-  return(L)
-}
+plan(multisession)
 
 data <- c(1, 1, 2, 4, 7, 10)
 
-sims <- rmultinom(2, length(data), data)
+step_size <- 0.01
 
-test <- sims %>% 
-  data.frame() %>% 
-  as.list() %>% 
+psi_grid <- data |> 
+  length() |> 
+  log() |> 
+  round_any(step_size, ceiling) |> 
+  seq(0, to = _, step_size)
+
+R <- 250
+
+n_sims <- 1000
+
+sims <- rmultinom(n_sims, length(data), data) |> 
+  data.frame() |> 
+  as.list() 
+
+test <- 
   mclapply(get_multinom_entropy_IL, 0.1, 10) 
 
-test[[1]] %>%
-  apply(2, mean) %>%
-  log() %>%
+test[[1]] |>
+  apply(2, mean) |>
+  log() |>
   as.double()
 
 do.call()
 
+
+my_fcn <- function(xs) {
+  p <- function(...) message(...)
+  y <- lapply(xs, inner_func, p = p)
+}
+
+inner_func <- function(x, p) {
+  p(sprintf("x=%g", x))
+  sqrt(x)
+}
+
+my_fcn(1:5)
+
+
+xs <- 1:5
+
+with_progress({
+  p <- progressor(along = xs)
+  y <- future_lapply(xs, function(x, ...) {
+    p(sprintf("x=%g", x))
+    Sys.sleep(6.0-x)
+    sqrt(x)
+  })
+})
+
+slow_sum <- progressr::slow_sum
+print(slow_sum)
+
+x <- 1:10
+
+## Without progress updates
+y <- slow_sum(x)
+
+handlers("txtprogressbar")  ## default
+with_progress({
+  y <- slow_sum(x)
+})
+
+if (requireNamespace("progress", quietly = TRUE)) {
+  handlers("progress")
+  with_progress({
+    y <- slow_sum(x)
+  })
+}
 
