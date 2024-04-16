@@ -37,7 +37,7 @@ psi_grid <- data |>
   round_any(step_size, ceiling) |> 
   seq(0, to = _, step_size)
 
-R <- 250
+R <- 50
 
 u <- rdirichlet(R, rep(1, length(data))) 
 
