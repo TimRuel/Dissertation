@@ -9,7 +9,7 @@ library(future)
 library(zeallot)
 library(progressr)
 
-plan(multisession)
+plan(multisession, workers = 12)
 
 handlers("cli")
 
@@ -37,7 +37,7 @@ psi_grid <- data |>
   round_any(step_size, ceiling) |> 
   seq(0, to = _, step_size)
 
-R <- 50
+R <- 250
 
 u <- rdirichlet(R, rep(1, length(data))) 
 
