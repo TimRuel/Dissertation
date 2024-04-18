@@ -7,9 +7,10 @@ library(viridis)
 library(ggnewscale)
 library(future)
 library(zeallot)
+library(parallelly)
 library(progressr)
 
-plan(multisession, workers = 12)
+plan(multisession, workers = availableCores())
 
 handlers("cli")
 

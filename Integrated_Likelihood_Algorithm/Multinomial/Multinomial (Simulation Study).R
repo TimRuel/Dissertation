@@ -1,10 +1,12 @@
 library(LaplacesDemon)
 library(future.apply)
+library(parallelly)
+library(furrr)
 library(progressr)
 
-plan(multisession)
+plan(list(tweak(multisession, workers = 4)), tweak(multisession, workers = 3))
 
-handlers("cli")
+#handlers("cli")
 
 data <- c(1, 1, 2, 4, 7, 10)
 
@@ -16,19 +18,36 @@ psi_grid <- data |>
   round_any(step_size, ceiling) |> 
   seq(0, to = _, step_size)
 
-R <- 10
+# R <- 10
 
-n_sims <- 10
+n_sims <- 1000
 
 sims <- rmultinom(n_sims, length(data), data) |> 
-  t()
+  data.frame() |> 
+  as.list()
 
-test <- sims |> 
-  future_apply(1, \(x) {
-    u <- rdirichlet(R, rep(1, length(x)))
-    get_multinomial_entropy_values_IL(u, x, psi_grid)
-    },
-    future.seed = TRUE)
+test <- sims |>
+  future_map(get_multinomial_entropy_values_PL, psi_grid, .progress = TRUE)
+
+get_multinomial_entropy_values_PL(sims[[2]], psi_grid)
+
+a <-  sample(0:6, 6)
+a <- a / sum(a)
+psi_grid |> 
+  purrr::map(get_theta_hat, a) |> 
+  sapply(likelihood, data) |> 
+  log() |>
+  as.double()
+
+get_theta_hat(1.3, a)
+  
+
+# test <- sims |> 
+#   future_apply(1, \(x) {
+#     u <- rdirichlet(R, rep(1, length(x)))
+#     get_multinomial_entropy_values_IL(u, x, psi_grid)
+#     },
+#     future.seed = TRUE)
 
 mods <- test |> 
   data.frame() |> 
