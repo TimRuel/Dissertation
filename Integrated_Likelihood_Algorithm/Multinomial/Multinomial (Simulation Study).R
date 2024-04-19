@@ -1,12 +1,7 @@
-library(LaplacesDemon)
-library(future.apply)
 library(parallelly)
 library(furrr)
-library(progressr)
 
 plan(list(tweak(multisession, workers = 4)), tweak(multisession, workers = 3))
-
-#handlers("cli")
 
 data <- c(1, 1, 2, 4, 7, 10)
 
@@ -15,41 +10,50 @@ step_size <- 0.01
 psi_grid <- data |> 
   length() |> 
   log() |> 
-  round_any(step_size, ceiling) |> 
+  plyr::round_any(step_size, ceiling) |> 
   seq(0, to = _, step_size)
 
-# R <- 10
+R <- 250
 
 n_sims <- 1000
 
-sims <- rmultinom(n_sims, length(data), data) |> 
+sims <- n_sims |> 
+  rmultinom(length(data), data) |> 
   data.frame() |> 
   as.list()
 
-test <- sims |>
-  future_map(get_multinomial_entropy_values_PL, psi_grid, .progress = TRUE)
+u_list <- n_sims |> 
+  replicate({
+    R |> 
+      LaplacesDemon::rdirichlet(rep(1, length(data)))|> 
+      t() |> 
+      data.frame() |> 
+      as.list()
+    }, 
+    simplify = FALSE)
 
-get_multinomial_entropy_values_PL(sims[[2]], psi_grid)
+omega_hat_lists <- u_list |> 
+  purrr::map2(sims, 
+              \(x, y) x |> 
+                purrr::map(\(z) z |> 
+                             get_omega_hat(PoI_fn(y / sum(y)))), 
+              .progress = TRUE)
 
-a <-  sample(0:6, 6)
-a <- a / sum(a)
-psi_grid |> 
-  purrr::map(get_theta_hat, a) |> 
-  sapply(likelihood, data) |> 
-  log() |>
-  as.double()
+# saveRDS(omega_hat_lists, "omega_hat_lists.Rda")
+omega_hat_lists <- readRDS("omega_hat_lists.Rda")
 
-get_theta_hat(1.3, a)
+
+stime <- system.time({
   
+  result <- omega_hat_lists |>
+    future_map2(sims,
+                \(x, y) get_multinomial_entropy_values_IL(x, y, psi_grid),
+                .progress = TRUE)
+})
 
-# test <- sims |> 
-#   future_apply(1, \(x) {
-#     u <- rdirichlet(R, rep(1, length(x)))
-#     get_multinomial_entropy_values_IL(u, x, psi_grid)
-#     },
-#     future.seed = TRUE)
+stime
 
-mods <- test |> 
+mods <- result |> 
   data.frame() |> 
   mutate(psi = psi_grid) |> 
   pivot_longer(cols = -psi,

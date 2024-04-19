@@ -22,46 +22,38 @@ get_theta_hat <- function(psi, omega_hat) {
   return(theta_hat)
 }
 
-get_multinomial_entropy_values_IL.aux <- function(u, data, psi_grid) {
-  
-  theta_MLE <- data / sum(data)
-  
-  psi_MLE <- PoI_fn(theta_MLE)
-  
-  omega_hat <- get_omega_hat(u, psi_MLE)
+get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid) {
   
   L <- psi_grid |> 
     purrr::map(get_theta_hat, omega_hat) |> 
-    sapply(likelihood, data)
+    purrr::map_dbl(likelihood, data)
   
   return(L)
 }
 
-get_multinomial_entropy_values_IL <- function(u, data, psi_grid) {
+get_multinomial_entropy_values_IL <- function(omega_hat_list, data, psi_grid) {
   
-  p <- progressr::progressor(along = u)
+  l_bar <- omega_hat_list |>
+    future_map(get_multinomial_entropy_values_IL.aux, 
+               data, 
+               psi_grid, 
+               .progress = TRUE) |> 
+    unlist() |> 
+    matrix(ncol = length(psi_grid), byrow = TRUE) |> 
+    colMeans() |> 
+    log()
   
-  u |> 
-    future.apply::future_apply(1, \(x) {
-      p()
-      get_multinomial_entropy_values_IL.aux(x, data, psi_grid)
-      }) |> 
-    future.apply::future_apply(1, mean) |> 
-    log() |> 
-    as.double()
+  return(l_bar)
 }
 
 get_multinomial_entropy_values_PL <- function(data, psi_grid) {
   
-  m <- length(data)
-  
   theta_MLE <- data / sum(data)
   
   l_p <- psi_grid |> 
-    furrr::future_map(get_theta_hat, theta_MLE) |> 
-    sapply(likelihood, data) |> 
-    log() |>
-    as.double()
+    purrr::map(get_theta_hat, theta_MLE) |> 
+    purrr::map_dbl(likelihood, data) |> 
+    log()
   
   return(l_p)
 }

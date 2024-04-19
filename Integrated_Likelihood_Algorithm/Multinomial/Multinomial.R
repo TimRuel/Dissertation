@@ -1,20 +1,12 @@
-library(plyr)
 library(tidyverse)
-library(ggplot2)
-library(LaplacesDemon)
 library(geomtextpath)
 library(viridis)
 library(ggnewscale)
 library(future)
 library(zeallot)
 library(parallelly)
-library(progressr)
 
 plan(multisession, workers = availableCores())
-
-handlers("cli")
-
-# handlers(global = TRUE)
 
 # setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("utils.R")
@@ -22,27 +14,37 @@ source("utils.R")
 set.seed(38498984)
 
 # Desert Rodents
-data <- c(1, 1, 2, 4, 7, 10)
+# data <- c(1, 1, 2, 4, 7, 10)
 
 # Birds in Balrath Woods
 # data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
  
 # Birds in Killarney Woodlands
-# data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+data <- c(1, 3, 4, 6, 7, 10, 14, 30)
 
 step_size <- 0.01
 
 psi_grid <- data |> 
   length() |> 
   log() |> 
-  round_any(step_size, ceiling) |> 
+  plyr::round_any(step_size, ceiling) |> 
   seq(0, to = _, step_size)
 
 R <- 250
 
-u <- rdirichlet(R, rep(1, length(data))) 
+u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
+  t() |> 
+  data.frame() |> 
+  as.list()
 
-multinomial_entropy_values_IL <- u |> 
+theta_MLE <- data / sum(data)
+
+psi_MLE <- PoI_fn(theta_MLE)
+
+omega_hat_list <- u_list |>
+  purrr::map(get_omega_hat, psi_MLE)
+
+multinomial_entropy_values_IL <- omega_hat_list |> 
   get_multinomial_entropy_values_IL(data, psi_grid)
 
 multinomial_entropy_values_PL <- data |> 
@@ -121,14 +123,14 @@ ggplot() +
                   show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     limits = c(1, 2) # Desert Rodents
+                     # limits = c(1, 2) # Desert Rodents
                      # limits = c(2, 3) # Birds in Balrath Woods
-                     # limits = c(1.4, 2.1) # Birds in Killarney Woodlands
+                     limits = c(1.4, 2.1) # Birds in Killarney Woodlands
                      ) + 
   scale_y_continuous(expand = c(0.1, 0),
-                     limits = c(-3, 0.1) # Desert Rodents
+                     # limits = c(-3, 0.1) # Desert Rodents
                      # limits = c(-4, 0.1) # Birds in Balrath Woods
-                     # limits = c(-5.5, 0.1) # Birds in Killarney Woodlands
+                     limits = c(-5.5, 0.1) # Birds in Killarney Woodlands
                      ) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
