@@ -1,9 +1,23 @@
 library(parallelly)
 library(furrr)
 
-plan(list(tweak(multisession, workers = 4)), tweak(multisession, workers = 3))
+source("utils.R")
 
+set.seed(38498984)
+
+# plan(list(tweak(multisession, workers = 4)), tweak(multisession, workers = 3))
+plan(multisession, workers = availableCores())
+
+# Desert Rodents
 data <- c(1, 1, 2, 4, 7, 10)
+
+# Birds in Balrath Woods
+# data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
+
+# Birds in Killarney Woodlands
+# data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+
+psi_0 <- PoI_fn(data / sum(data))
 
 step_size <- 0.01
 
@@ -53,7 +67,20 @@ stime <- system.time({
 
 stime
 
-mods <- result |> 
+stime <- system.time({
+  
+  multinomial_entropy_values_PL <- sims |>
+    future_map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
+               .progress = TRUE)
+})
+
+stime
+
+saveRDS(multinomial_entropy_values_PL, "birds_in_killarney_woodlands_PL_sims.Rda")
+
+multinomial_entropy_values_PL <- readRDS("desert_rodents_PL_sims.Rda")
+
+mods <- multinomial_entropy_values_PL |> 
   data.frame() |> 
   mutate(psi = psi_grid) |> 
   pivot_longer(cols = -psi,
@@ -72,8 +99,8 @@ MLE_data <- mods |>
         maximum = TRUE
       )}) |> 
   t() |> 
+  apply(2, as.numeric) |> 
   data.frame() |> 
-  rownames_to_column("Iteration") |> 
   dplyr::rename(MLE = maximum,
                 Maximum = objective)
 
@@ -84,31 +111,44 @@ curves <- mapply(
 
 crit <- qchisq(0.95, 1) / 2
 
-mapply(function(curve, MLE) {
-  uniroot(function(psi) curve(psi) + crit,
-          interval = c(psi_grid |> head(1), MLE))$root |> round(3)
+CI_lower_PL <- mapply(function(curve, MLE) {
+  tryCatch(
+    uniroot(function(psi) curve(psi) + crit,
+          interval = c(psi_grid |> head(1), MLE))$root |> round(3),
+    error = function(e) return(psi_grid |> head(1))
+    )
   },
   curves,
   MLE_data$MLE)
 
-mapply(function(curve, MLE) {
-  uniroot(function(psi) curve(psi) + crit,
-          interval = c(MLE, psi_grid |> tail(1)))$root |> round(3)
-},
-curves,
-MLE_data$MLE)
+CI_upper_PL <- mapply(function(curve, MLE) {
+  tryCatch(
+    uniroot(function(psi) curve(psi) + crit,
+          interval = c(MLE, psi_grid |> tail(1)))$root |> round(3),
+    error = function(e) return(psi_grid |> tail(1))
+    )
+  },
+  curves,
+  MLE_data$MLE)
 
-i <- 2
+sim_results_PL <- MLE_data |> 
+  mutate(Lower = CI_lower_PL, 
+         Upper = CI_upper_PL,
+         psi_0 = psi_0,
+         Covered = psi_0 |> between(Lower, Upper)) |> 
+  summarise(Bias = mean(MLE - psi_0),
+            SD = sd(MLE),
+            RMSE = sqrt(mean((MLE - psi_0)^2)),
+            Coverage = mean(Covered, na.rm = TRUE),
+            Length = mean(Upper - Lower, na.rm = TRUE)) |> 
+  t() |> 
+  as.data.frame() |> 
+  setNames("Profile")
+  
+sim_results_PL
 
-uniroot(function(psi) curves[[i]](psi) + crit,
-        interval = c(psi_grid |> head(1), MLE_data$MLE[[i]]))$root |> round(3)
+saveRDS(sim_results_PL, "desert_rodents_sim_results_PL.Rda")
 
 
-ggplot() + 
-  geom_function(fun = function(psi) curves[[i]](psi) + crit) +
-  scale_x_continuous(limits = c(0, 1.9))
 
-curves[[i]](psi_grid |> head(1)) + crit
-curves[[i]](MLE_data$MLE[[i]]) + crit
-curves[[i]](psi_grid |> tail(1)) + crit
 
