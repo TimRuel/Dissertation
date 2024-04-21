@@ -30,7 +30,7 @@ ruel_sim_results_df <- list(desert_rodents_sim_results_IL,
                             birds_in_killarney_woodlands_sim_results_IL,
                             birds_in_killarney_woodlands_sim_results_PL) |>
   map(\(x) rownames_to_column(x, "Metric")) |> 
-  reduce(join, by = "Metric") |> 
+  reduce(plyr::join, by = "Metric") |> 
   add_column(Author = "Ruel", 
              .after = "Metric")
 
@@ -52,12 +52,18 @@ severini_sim_results_df <- data.frame(c("Bias", "SD", "RMSE", "Coverage", "Lengt
              .after = "Metric")
 
 sim_results_df1 <- ruel_sim_results_df |> 
-  interleave(severini_sim_results_df) 
-
+  interleave(severini_sim_results_df) |> 
+  mutate(across(where(is.numeric), \(x) round(x, 3)))
+  
 sim_results_df1 |> 
-  kbl(col.names = c("Metric", "Author", rep(c("Integrated", "Profile"), 3)), 
+  kbl(col.names = c("Metric", 
+                    "Author",
+                    rep(c(paste0("Integrated", footnote_marker_symbol(1)), 
+                          paste0("Profile", footnote_marker_symbol(2))), 3)), 
       align = "c",
-      row.names = FALSE) |> 
+      digits = 3,
+      row.names = FALSE,
+      escape = FALSE) |> 
   kable_styling(bootstrap_options = c("striped", "hover"),
                 full_width = FALSE) |> 
   add_header_above(c(" " = 2, 
@@ -65,16 +71,28 @@ sim_results_df1 |>
                      "Birds in Balrath Woods" = 2, 
                      "Birds in Killarney Woodlands" = 2)) |> 
   column_spec(1, bold = TRUE) |> 
-  collapse_rows(columns = 1, valign = "top")
+  collapse_rows(columns = 1, valign = "top") |> 
+  footnote(general = "Confidence intervals were constructed using a nominal coverage probability of 95%.",
+           general_title = "",
+           symbol = c("Based on 10 Simulations", "Based on 1000 Simulations"),
+           footnote_as_chunk = FALSE)
 
 sim_results_df2 <- ruel_sim_results_df |> 
-  rbind(severini_sim_results_df) 
+  rbind(severini_sim_results_df) |> 
+  mutate(across(where(is.numeric), \(x) round(x, 3)))
 
 sim_results_df2 |> 
   select(-Author) |> 
-  kbl(col.names = c("Metric", rep(c("Integrated", "Profile"), 3)), 
+  kbl(col.names = c("Metric", 
+                    paste0("Integrated", footnote_marker_symbol(1)),
+                    paste0("Profile", footnote_marker_symbol(2)),
+                    "Integrated",
+                    paste0("Profile", footnote_marker_symbol(2)),
+                    paste0("Integrated", footnote_marker_symbol(3)),
+                    paste0("Profile", footnote_marker_symbol(2))),
       align = "c",
-      row.names = FALSE) |> 
+      row.names = FALSE,
+      escape = FALSE) |> 
   kable_styling(bootstrap_options = c("striped", "hover"),
                 full_width = FALSE) |> 
   add_header_above(c(" " = 1, 
@@ -83,7 +101,11 @@ sim_results_df2 |>
                      "Birds in Killarney Woodlands" = 2)) |> 
   column_spec(1, bold = TRUE) |> 
   pack_rows(index = c("Ruel" = 5, "Severini" = 5),
-            label_row_css = "background-color: #666; color: #fff;")
+            label_row_css = "background-color: #666; color: #fff;") |> 
+  footnote(general = "Confidence intervals were constructed using a nominal coverage probability of 95%.",
+           general_title = "",
+           symbol = c("Based on 10 Simulations", "Based on 1000 Simulations"),
+           footnote_as_chunk = FALSE)
 
 
 
