@@ -13,13 +13,13 @@ plan(list(tweak(multisession, workers = 4)), tweak(multisession, workers = 3))
 # plan(sequential)
 
 # Desert Rodents
-data <- c(1, 1, 2, 4, 7, 10)
+# data <- c(1, 1, 2, 4, 7, 10)
 
 # Birds in Balrath Woods
 # data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
 
 # Birds in Killarney Woodlands
-# data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+data <- c(1, 3, 4, 6, 7, 10, 14, 30)
 
 psi_0 <- PoI_fn(data / sum(data))
 
@@ -59,7 +59,7 @@ sims <- n_sims |>
 
 # seed = 38498984, set at top of script
 # saveRDS(omega_hat_lists, "desert_rodents_omega_hat_lists.Rda")
-omega_hat_lists <- readRDS("desert_rodents_omega_hat_lists.Rda")
+# omega_hat_lists <- readRDS("desert_rodents_omega_hat_lists.Rda")
 
 # seed = 38498984, set at top of script
 # saveRDS(omega_hat_lists, "birds_in_balrath_woods_omega_hat_lists.Rda")
@@ -67,7 +67,7 @@ omega_hat_lists <- readRDS("desert_rodents_omega_hat_lists.Rda")
 
 # seed = 38498984, set at top of script
 # saveRDS(omega_hat_lists, "birds_in_killarney_woodlands_omega_hat_lists.Rda")
-# omega_hat_lists <- readRDS("birds_in_killarney_woodlands_omega_hat_lists.Rda")
+omega_hat_lists <- readRDS("birds_in_killarney_woodlands_omega_hat_lists.Rda")
 
 K <- 60
 
@@ -82,7 +82,7 @@ stime <- system.time({
 stime
 
 # saveRDS(multinomial_entropy_values_IL, "desert_rodents_IL_sims.Rda")
-multinomial_entropy_values_IL <- readRDS("desert_rodents_IL_sims.Rda")
+# multinomial_entropy_values_IL <- readRDS("desert_rodents_IL_sims.Rda")
 
 # saveRDS(multinomial_entropy_values_IL, "birds_in_balrath_woods_IL_sims.Rda")
 # multinomial_entropy_values_IL <- readRDS("birds_in_balrath_woods_IL_sims.Rda")
@@ -100,13 +100,13 @@ stime <- system.time({
 stime
 
 # saveRDS(multinomial_entropy_values_PL, "desert_rodents_PL_sims.Rda")
-multinomial_entropy_values_PL <- readRDS("desert_rodents_PL_sims.Rda")
+# multinomial_entropy_values_PL <- readRDS("desert_rodents_PL_sims.Rda")
 
 # saveRDS(multinomial_entropy_values_PL, "birds_in_balrath_woods_PL_sims.Rda")
 # multinomial_entropy_values_PL <- readRDS("birds_in_balrath_woods_PL_sims.Rda")
 
 # saveRDS(multinomial_entropy_values_PL, "birds_in_killarney_woodlands_PL_sims.Rda")
-# multinomial_entropy_values_PL <- readRDS("birds_in_killarney_woodlands_PL_sims.Rda")
+multinomial_entropy_values_PL <- readRDS("birds_in_killarney_woodlands_PL_sims.Rda")
 
 mods_PL <- multinomial_entropy_values_PL |> 
   data.frame() |> 
@@ -212,7 +212,7 @@ sim_results_PL <- MLE_data_PL |>
 # sim_results_PL <- readRDS("birds_in_balrath_woods_sim_results_PL.Rda")
 
 # saveRDS(sim_results_PL, "birds_in_killarney_woodlands_sim_results_PL.Rda")
-# sim_results_PL <- readRDS("birds_in_killarney_woodlands_sim_results_PL.Rda")
+sim_results_PL <- readRDS("birds_in_killarney_woodlands_sim_results_PL.Rda")
 
 sim_results_PL
 
@@ -251,14 +251,14 @@ sim_results_IL <- MLE_data_IL |>
   round(3) |> 
   setNames("Integrated")
 
-saveRDS(sim_results_IL, "desert_rodents_sim_results_IL.Rda")
-sim_results_IL <- readRDS("desert_rodents_sim_results_IL.Rda")
+# saveRDS(sim_results_IL, "desert_rodents_sim_results_IL.Rda")
+# sim_results_IL <- readRDS("desert_rodents_sim_results_IL.Rda")
 
 # saveRDS(sim_results_IL, "birds_in_balrath_woods_sim_results_IL.Rda")
 # sim_results_IL <- readRDS("birds_in_balrath_woods_sim_results_IL.Rda")
 
-# saveRDS(sim_results_IL, "birds_in_killarney_woodlands_sim_results_IL.Rda")
-# sim_results_IL <- readRDS("birds_in_killarney_woodlands_sim_results_IL.Rda")
+saveRDS(sim_results_IL, "birds_in_killarney_woodlands_sim_results_IL.Rda")
+sim_results_IL <- readRDS("birds_in_killarney_woodlands_sim_results_IL.Rda")
 
 sim_results_IL
 
