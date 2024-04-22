@@ -6,7 +6,8 @@ library(future)
 library(zeallot)
 library(parallelly)
 
-plan(multisession, workers = availableCores())
+# plan(multisession, workers = availableCores())
+plan(sequential)
 
 # setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("utils.R")
@@ -17,10 +18,10 @@ set.seed(38498984)
 # data <- c(1, 1, 2, 4, 7, 10)
 
 # Birds in Balrath Woods
-# data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
+data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
  
 # Birds in Killarney Woodlands
-data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+# data <- c(1, 3, 4, 6, 7, 10, 14, 30)
 
 step_size <- 0.01
 
@@ -65,7 +66,7 @@ log_likelihood_vals_tidy <- data.frame(psi = psi_grid,
 # Birds in Balrath Woods
 # R = 250, step_size = 0.01, seed = 38498984
 # saveRDS(log_likelihood_vals_tidy, "birds_in_balrath_woods_R=250_step_size=0.01.Rda")
-# log_likelihood_vals_tidy <- readRDS("birds_in_balrath_woods_R=250_step_size=0.01.Rda")
+log_likelihood_vals_tidy <- readRDS("birds_in_balrath_woods_R=250_step_size=0.01.Rda")
 
 # Birds in Killarney Woodlands
 # R = 250, step_size = 0.01, seed = 38498984
@@ -124,13 +125,13 @@ ggplot() +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
                      # limits = c(1, 2) # Desert Rodents
-                     # limits = c(2, 3) # Birds in Balrath Woods
-                     limits = c(1.4, 2.1) # Birds in Killarney Woodlands
+                     limits = c(2, 3) # Birds in Balrath Woods
+                     # limits = c(1.4, 2.1) # Birds in Killarney Woodlands
                      ) + 
   scale_y_continuous(expand = c(0.1, 0),
                      # limits = c(-3, 0.1) # Desert Rodents
-                     # limits = c(-4, 0.1) # Birds in Balrath Woods
-                     limits = c(-5.5, 0.1) # Birds in Killarney Woodlands
+                     limits = c(-4, 0.1) # Birds in Balrath Woods
+                     # limits = c(-5.5, 0.1) # Birds in Killarney Woodlands
                      ) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
