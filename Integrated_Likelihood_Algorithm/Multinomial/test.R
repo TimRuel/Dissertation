@@ -1,5 +1,34 @@
 source("utils.R")
 
+likelihood1 <- function(theta, data) prod(theta^data)
+
+likelihood2 <- function(theta, data) {
+  
+  theta |> 
+    Rmpfr::mpfr(256) |> 
+    (`^`)(data) |> 
+    prod()
+}
+  
+  prod(theta^data) |> Rmpfr::mpfr(256)
+
+s.time1 <- system.time({
+  
+u_list |> 
+  purrr::map(likelihood1, data)
+})
+
+s.time1
+
+s.time2 <- system.time({
+  
+  u_list |> 
+  purrr::map(likelihood2, data)
+})
+
+s.time2
+
+
 plan(multisession, workers = availableCores())
 
 data <- c(1, 1, 2, 4, 7, 10)
@@ -28,56 +57,7 @@ omega_hat_list <- u_list |>
 
 omega_hat <- omega_hat_list[[1]]
 
-get_theta_hat <- function(init_guess, psi, omega_hat) {
-  
-  fn <- function(theta) -sum(omega_hat*log(theta), na.rm = TRUE)
-  gr <- function(theta) nl.grad(theta, fn)
-  heq <- function(theta) c(sum(theta) - 1, PoI_fn(theta) - psi)
-  heqjac <- function(theta) nl.jacobian(theta, heq)
-  
-  theta_hat <- nloptr::auglag(x0 = init_guess,
-                              fn = fn,
-                              gr = gr,
-                              heq = heq,
-                              heqjac = heqjac,
-                              lower = rep(0, length(omega_hat)),
-                              localsolver = "LBFGS")$par
-  
-  return(theta_hat)
-}
 
-psi_grid |> 
-  purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, omega_hat), .init = omega_hat) |> 
-  magrittr::extract(-1) |> 
-  furrr::future_map_dbl(likelihood, data, .progress = TRUE)
-
-
-get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid) {
-  
-  L <- psi_grid |> 
-    purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, omega_hat), .init = omega_hat) |> 
-    magrittr::extract(-1) |> 
-    purrr::map_dbl(likelihood, data)
-      
-  return(L)
-}
-
-get_multinomial_entropy_values_IL.aux(omega_hat, data, psi_grid)
-
-get_multinomial_entropy_values_IL <- function(omega_hat_list, data, psi_grid) {
-  
-  l_bar <- omega_hat_list |>
-    furrr::future_map(get_multinomial_entropy_values_IL.aux, 
-                      data, 
-                      psi_grid, 
-                      .progress = TRUE) |> 
-    unlist() |> 
-    matrix(ncol = length(psi_grid), byrow = TRUE) |> 
-    colMeans() |> 
-    log()
-  
-  return(l_bar)
-}
 
 plan(multisession, workers = availableCores())
 

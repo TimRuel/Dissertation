@@ -1,13 +1,19 @@
-likelihood <- function(theta, data) prod(theta^data)
+likelihood <- function(theta, data) {
+  
+  theta |> 
+    Rmpfr::mpfr(256) |> 
+    (`^`)(data) |> 
+    prod()
+}
 
 PoI_fn <- function(x) -sum(x*log(x), na.rm = TRUE)
 
 get_omega_hat <- function(u, psi_MLE) {
   
   fn <- function(omega) -sum(u*log(omega), na.rm = TRUE)
-  gr <- function(omega) nl.grad(omega, fn)
+  gr <- function(omega) nloptr::nl.grad(omega, fn)
   heq <- function(omega) c(sum(omega) - 1, PoI_fn(omega) - psi_MLE)
-  heqjac <- function(omega) nl.jacobian(omega, heq)
+  heqjac <- function(omega) nloptr::nl.jacobian(omega, heq)
   
   omega_hat <- nloptr::auglag(x0 = u,
                               fn = fn,
@@ -23,9 +29,9 @@ get_omega_hat <- function(u, psi_MLE) {
 get_theta_hat <- function(init_guess, psi, omega_hat) {
   
   fn <- function(theta) -sum(omega_hat*log(theta), na.rm = TRUE)
-  gr <- function(theta) nl.grad(theta, fn)
+  gr <- function(theta) nloptr::nl.grad(theta, fn)
   heq <- function(theta) c(sum(theta) - 1, PoI_fn(theta) - psi)
-  heqjac <- function(theta) nl.jacobian(theta, heq)
+  heqjac <- function(theta) nloptr::nl.jacobian(theta, heq)
   
   theta_hat <- nloptr::auglag(x0 = init_guess,
                               fn = fn,
@@ -56,29 +62,33 @@ get_multinomial_entropy_values_IL <- function(omega_hat_list, data, psi_grid) {
                       psi_grid, 
                       .progress = TRUE) |> 
     unlist() |> 
-    matrix(ncol = length(psi_grid), byrow = TRUE) |> 
+    Rmpfr::mpfrArray(precBits = 256, ncol = length(psi_grid), byrow = TRUE) |> 
     colMeans() |> 
     log()
   
   return(l_bar)
 }
 
-# Have to change this function to accomodate new init_guess argument in get_theta_hat
-
 get_multinomial_entropy_values_PL <- function(data, psi_grid) {
   
   theta_MLE <- data / sum(data)
   
-  l_p <- psi_grid |> 
-    purrr::map(get_theta_hat, theta_MLE) |> 
-    purrr::map_dbl(likelihood, data) |> 
-    log()
+  L_p <- psi_grid |> 
+    purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, theta_MLE), .init = theta_MLE) |> 
+    magrittr::extract(-1) |> 
+    purrr::map(likelihood, data) 
   
+  l_p <- new("mpfr", unlist(L_p)) |>
+    log()
+
   return(l_p)
 }
 
+test <- u_list |> 
+  purrr::map(likelihood, data) |> 
+  unlist() 
 
-
+new("mpfr", test) |> log()
 
 
 
