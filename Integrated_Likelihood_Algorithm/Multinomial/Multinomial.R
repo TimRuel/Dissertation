@@ -53,16 +53,16 @@ multinomial_entropy_values_PL <- data |>
   get_multinomial_entropy_values_PL(psi_grid) 
 
 log_likelihood_vals_tidy <- data.frame(psi = psi_grid,
-                                       Integrated = multinomial_entropy_values_IL,
-                                       Profile = multinomial_entropy_values_PL) |> 
+                                       Integrated = multinomial_entropy_values_IL |> as.numeric(),
+                                       Profile = multinomial_entropy_values_PL|> as.numeric()) |> 
   pivot_longer(cols = c("Integrated", "Profile"),
                names_to = "Pseudolikelihood",
                values_to = "loglikelihood")
 
 # Desert Rodents
 # R = 250, step_size = 0.01, seed = 1996
-saveRDS(log_likelihood_vals_tidy, "desert_rodents_R=250_step_size=0.01.Rda")
-log_likelihood_vals_tidy <- readRDS("desert_rodents_R=250_step_size=0.01.Rda")
+# saveRDS(log_likelihood_vals_tidy, "desert_rodents_R=250_step_size=0.01.Rda")
+# log_likelihood_vals_tidy <- readRDS("desert_rodents_R=250_step_size=0.01.Rda")
 
 # Birds in Balrath Woods
 # R = 250, step_size = 0.01, seed = 38498984
@@ -75,7 +75,7 @@ log_likelihood_vals_tidy <- readRDS("desert_rodents_R=250_step_size=0.01.Rda")
 # log_likelihood_vals_tidy <- readRDS("birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
 
 spline_fitted_models <- log_likelihood_vals_tidy |>
-  filter(psi >= 1) |> 
+  #filter(psi >= 1) |> 
   group_by(Pseudolikelihood) |> 
   group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
   set_names(c("Integrated", "Profile"))
@@ -126,12 +126,12 @@ ggplot() +
                   show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     limits = c(1, 1.8) # Desert Rodents
+                     limits = c(0, 1.8) # Desert Rodents
                      # limits = c(2, 3) # Birds in Balrath Woods
                      # limits = c(1.4, 2.1) # Birds in Killarney Woodlands
                      ) + 
   scale_y_continuous(expand = c(0.1, 0),
-                     limits = c(-3, 0.1) # Desert Rodents
+                     limits = c(-10, 0.1) # Desert Rodents
                      # limits = c(-4, 0.1) # Birds in Balrath Woods
                      # limits = c(-5.5, 0.1) # Birds in Killarney Woodlands
                      ) +
@@ -164,4 +164,12 @@ data.frame(MLE = c(psi_hat_IL, psi_hat_PL) |> round(3),
            CI_95 = c(paste0("(", CI_lower_IL, ", ", CI_upper_IL, ")"),
                      paste0("(", CI_lower_PL, ", ", CI_upper_PL, ")")),
            row.names = c("Integrated", "Profile"))
+
+
+
+
+log_likelihood_vals_tidy |> 
+  filter(Pseudolikelihood == "Profile") |> 
+  ggplot() +
+  geom_point(aes(x = psi, y = loglikelihood))
 

@@ -1,119 +1,54 @@
 source("utils.R")
 
-likelihood1 <- function(theta, data) prod(theta^data)
-
-likelihood2 <- function(theta, data) {
-  
-  theta |> 
-    Rmpfr::mpfr(256) |> 
-    (`^`)(data) |> 
-    prod()
-}
-  
-  prod(theta^data) |> Rmpfr::mpfr(256)
-
-s.time1 <- system.time({
-  
-u_list |> 
-  purrr::map(likelihood1, data)
-})
-
-s.time1
-
-s.time2 <- system.time({
-  
-  u_list |> 
-  purrr::map(likelihood2, data)
-})
-
-s.time2
-
-
-plan(multisession, workers = availableCores())
-
 data <- c(1, 1, 2, 4, 7, 10)
 
-R <- 250
+theta_MLE <- data / sum(data)
+
+psi_MLE <- PoI_fn(theta_MLE)
 
 step_size <- 0.01
 
 psi_grid <- data |> 
   length() |> 
   log() |> 
-  plyr::round_any(step_size, ceiling) |> 
+  plyr::round_any(step_size, floor) |> 
   seq(0, to = _, step_size)
 
-u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
-  t() |> 
-  data.frame() |> 
-  as.list()
+lower_psi_grid <- psi_grid[psi_grid < psi_MLE] |> 
+  rev()
 
-theta_MLE <- data / sum(data)
+upper_psi_grid <- psi_grid[psi_grid >= psi_MLE]
 
-psi_MLE <- PoI_fn(theta_MLE)
+# R <- 250
 
-omega_hat_list <- u_list |>
-  furrr::future_map(get_omega_hat, psi_MLE, .progress = TRUE)
+# u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
+#   t() |> 
+#   data.frame() |> 
+#   as.list()
 
-omega_hat <- omega_hat_list[[1]]
+# omega_hat_list <- u_list |>
+#   furrr::future_map(get_omega_hat, psi_MLE, .progress = TRUE)
 
 
-
-plan(multisession, workers = availableCores())
-
-s.time1 <- system.time({
+get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, lower_psi_grid, upper_psi_grid) {
   
-  multinomial_entropy_values_IL <- omega_hat_list |> 
-    get_multinomial_entropy_values_IL(data, psi_grid)
-  
-})
-
-s.time1
-
-plan(list(tweak(multisession, workers = 6)), tweak(multisession, workers = 2))
-
-s.time2 <- system.time({
-  
-  multinomial_entropy_values_IL <- omega_hat_list |> 
-    get_multinomial_entropy_values_IL(data, psi_grid)
-  
-})
-
-s.time2
-
-get_theta_hat <- function(psi, omega_hat) {
-  
-  fn <- function(theta) -sum(omega_hat*log(theta), na.rm = TRUE)
-  gr <- function(theta) nl.grad(theta, fn)
-  heq <- function(theta) c(sum(theta) - 1, PoI_fn(theta) - psi)
-  heqjac <- function(theta) nl.jacobian(theta, heq)
-  
-  theta_hat <- nloptr::auglag(x0 = omega_hat,
-                              fn = fn,
-                              gr = gr,
-                              heq = heq,
-                              heqjac = heqjac,
-                              lower = rep(0, length(omega_hat)),
-                              localsolver = "LBFGS")$par
-  
-  return(theta_hat)
-}
-
-get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid) {
-  
-  L <- psi_grid |> 
-    purrr::map(get_theta_hat, omega_hat) |> 
-    purrr::map_dbl(likelihood, data)
+  L <- psi_grid |>
+    purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, omega_hat), .init = omega_hat) |>
+    magrittr::extract(-1) |>
+    purrr::map(likelihood, data)
   
   return(L)
 }
 
-s.time1 <- system.time({
-  
-  get_multinomial_entropy_values_IL.aux(omega_hat, data, psi_grid)
-  
-})
+multinomial_entropy_values_PL <- data |> 
+  get_multinomial_entropy_values_PL(theta_MLE, lower_psi_grid, upper_psi_grid) 
 
-s.time1
+data.frame(psi = psi_grid,
+           loglikelihood = multinomial_entropy_values_PL |> as.numeric()) |> 
+  ggplot() +
+  geom_point(aes(x = psi, y = loglikelihood))
+
+
+
 
 
