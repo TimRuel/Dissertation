@@ -6,19 +6,23 @@ library(future)
 library(zeallot)
 library(parallelly)
 
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("utils.R")
 
 set.seed(1996)
 
 # Desert Rodents
-data <- c(1, 1, 2, 4, 7, 10)
+# data <- c(1, 1, 2, 4, 7, 10)
 
 # Birds in Balrath Woods
 # data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
  
 # Birds in Killarney Woodlands
-# data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+
+theta_MLE <- data / sum(data)
+
+psi_MLE <- PoI_fn(theta_MLE)
 
 step_size <- 0.01
 
@@ -28,6 +32,11 @@ psi_grid <- data |>
   plyr::round_any(step_size, floor) |> 
   seq(0, to = _, step_size)
 
+lower_psi_grid <- psi_grid[psi_grid < psi_MLE] |> 
+  rev()
+
+upper_psi_grid <- psi_grid[psi_grid >= psi_MLE]
+
 R <- 250
 
 u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
@@ -35,22 +44,24 @@ u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |>
   data.frame() |> 
   as.list()
 
-theta_MLE <- data / sum(data)
-
-psi_MLE <- PoI_fn(theta_MLE)
-
 omega_hat_list <- u_list |>
   purrr::map(get_omega_hat, psi_MLE)
 
 plan(multisession, workers = availableCores())
 
 multinomial_entropy_values_IL <- omega_hat_list |> 
-  get_multinomial_entropy_values_IL(data, psi_grid)
+  get_multinomial_entropy_values_IL(data, lower_psi_grid, upper_psi_grid)
 
 plan(sequential)
 
-multinomial_entropy_values_PL <- data |> 
-  get_multinomial_entropy_values_PL(psi_grid) 
+s.time1 <- system.time({
+  
+  multinomial_entropy_values_PL <- data |> 
+    get_multinomial_entropy_values_PL(psi_grid) 
+  
+})
+
+s.time1
 
 log_likelihood_vals_tidy <- data.frame(psi = psi_grid,
                                        Integrated = multinomial_entropy_values_IL |> as.numeric(),
@@ -65,17 +76,16 @@ log_likelihood_vals_tidy <- data.frame(psi = psi_grid,
 # log_likelihood_vals_tidy <- readRDS("desert_rodents_R=250_step_size=0.01.Rda")
 
 # Birds in Balrath Woods
-# R = 250, step_size = 0.01, seed = 38498984
+# R = 250, step_size = 0.01, seed = 1996
 # saveRDS(log_likelihood_vals_tidy, "birds_in_balrath_woods_R=250_step_size=0.01.Rda")
 # log_likelihood_vals_tidy <- readRDS("birds_in_balrath_woods_R=250_step_size=0.01.Rda")
 
 # Birds in Killarney Woodlands
-# R = 250, step_size = 0.01, seed = 38498984
-# saveRDS(log_likelihood_vals_tidy, "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
-# log_likelihood_vals_tidy <- readRDS("birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
+# R = 250, step_size = 0.01, seed = 1996
+saveRDS(log_likelihood_vals_tidy, "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
+log_likelihood_vals_tidy <- readRDS("birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
 
 spline_fitted_models <- log_likelihood_vals_tidy |>
-  #filter(psi >= 1) |> 
   group_by(Pseudolikelihood) |> 
   group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
   set_names(c("Integrated", "Profile"))
@@ -108,14 +118,16 @@ ggplot() +
                 aes(color = "Profile"),
                 linewidth = 1,
                 hjust = 0.1,
-                show.legend = FALSE) +
+                show.legend = FALSE,
+                xlim = c(0, log(length(data)))) +
   stat_function(fun = IL_curve,
                 geom = "textpath",
                 label = "Integrated",
                 aes(color = "Integrated"),
                 linewidth = 1,
                 hjust = 0.1,
-                show.legend = FALSE) +
+                show.legend = FALSE,
+                xlim = c(0, log(length(data)))) +
   geom_hline(yintercept = 0,
              linetype = 5) +
   geom_labelvline(aes(xintercept = as.numeric(MLE),
@@ -126,14 +138,14 @@ ggplot() +
                   show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     limits = c(0, 1.8) # Desert Rodents
-                     # limits = c(2, 3) # Birds in Balrath Woods
-                     # limits = c(1.4, 2.1) # Birds in Killarney Woodlands
+                     # limits = c(1, 2) # Desert Rodents
+                     # limits = c(2, 2.7) # Birds in Balrath Woods
+                     limits = c(1.48, 2) # Birds in Killarney Woodlands
                      ) + 
-  scale_y_continuous(expand = c(0.1, 0),
-                     limits = c(-10, 0.1) # Desert Rodents
+  scale_y_continuous(expand = c(0, 0),
+                     # limits = c(-3, 0.1) # Desert Rodents
                      # limits = c(-4, 0.1) # Birds in Balrath Woods
-                     # limits = c(-5.5, 0.1) # Birds in Killarney Woodlands
+                     limits = c(-5.1, 0.1) # Birds in Killarney Woodlands
                      ) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
@@ -156,20 +168,15 @@ CI_lower_IL <- uniroot(function(psi) IL_curve(psi) + crit,
                        interval = c(psi_grid |> head(1), psi_hat_IL))$root |> 
   round(3)
 
-CI_upper_IL <- uniroot(function(psi) IL_curve(psi) + crit,
+CI_upper_IL <- tryCatch(
+  uniroot(function(psi) IL_curve(psi) + crit,
                        interval = c(psi_hat_IL, psi_grid |> tail(1)))$root |> 
-  round(3)
+  round(3),
+  error = function(e) return(log(length(data)) |> round(3))
+  )
 
 data.frame(MLE = c(psi_hat_IL, psi_hat_PL) |> round(3),
            CI_95 = c(paste0("(", CI_lower_IL, ", ", CI_upper_IL, ")"),
                      paste0("(", CI_lower_PL, ", ", CI_upper_PL, ")")),
            row.names = c("Integrated", "Profile"))
-
-
-
-
-log_likelihood_vals_tidy |> 
-  filter(Pseudolikelihood == "Profile") |> 
-  ggplot() +
-  geom_point(aes(x = psi, y = loglikelihood))
 

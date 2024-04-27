@@ -3,23 +3,23 @@ library(parallelly)
 library(furrr)
 library(purrr)
 
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("utils.R")
 
-set.seed(38498984)
+set.seed(1996)
 
-plan(list(tweak(multisession, workers = 4)), tweak(multisession, workers = 3))
+# plan(list(tweak(multisession, workers = 4)), tweak(multisession, workers = 3))
 # plan(multisession, workers = availableCores())
-# plan(sequential)
+plan(sequential)
 
 # Desert Rodents
-# data <- c(1, 1, 2, 4, 7, 10)
+data <- c(1, 1, 2, 4, 7, 10)
 
 # Birds in Balrath Woods
 # data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
 
 # Birds in Killarney Woodlands
-data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+# data <- c(1, 3, 4, 6, 7, 10, 14, 30)
 
 psi_0 <- PoI_fn(data / sum(data))
 
@@ -40,26 +40,27 @@ sims <- n_sims |>
   data.frame() |> 
   as.list()
 
-# u_list <- n_sims |> 
-#   replicate({
-#     R |> 
-#       LaplacesDemon::rdirichlet(rep(1, length(data)))|> 
-#       t() |> 
-#       data.frame() |> 
-#       as.list()
-#     }, 
-#     simplify = FALSE)
+u_list <- n_sims |>
+  replicate({
+    R |>
+      LaplacesDemon::rdirichlet(rep(1, length(data)))|>
+      t() |>
+      data.frame() |>
+      as.list()
+    },
+    simplify = FALSE)
 
-# omega_hat_lists <- u_list |> 
-#   future_map2(sims, 
-#               \(x, y) x |> 
-#                 purrr::map(\(z) z |> 
-#                              get_omega_hat(PoI_fn(y / sum(y)))), 
-#               .progress = TRUE)
+plan(multisession, workers = availableCores())
+omega_hat_lists <- u_list |>
+  future_map2(sims,
+              \(x, y) x |>
+                purrr::map(\(z) z |>
+                             get_omega_hat(PoI_fn(y / sum(y)))),
+              .progress = TRUE)
 
-# seed = 38498984, set at top of script
+# seed = 1996, set at top of script
 # saveRDS(omega_hat_lists, "desert_rodents_omega_hat_lists.Rda")
-# omega_hat_lists <- readRDS("desert_rodents_omega_hat_lists.Rda")
+omega_hat_lists <- readRDS("desert_rodents_omega_hat_lists.Rda")
 
 # seed = 38498984, set at top of script
 # saveRDS(omega_hat_lists, "birds_in_balrath_woods_omega_hat_lists.Rda")
@@ -67,7 +68,7 @@ sims <- n_sims |>
 
 # seed = 38498984, set at top of script
 # saveRDS(omega_hat_lists, "birds_in_killarney_woodlands_omega_hat_lists.Rda")
-omega_hat_lists <- readRDS("birds_in_killarney_woodlands_omega_hat_lists.Rda")
+# omega_hat_lists <- readRDS("birds_in_killarney_woodlands_omega_hat_lists.Rda")
 
 K <- 60
 
@@ -90,23 +91,34 @@ stime
 # saveRDS(multinomial_entropy_values_IL, "birds_in_killarney_woodlands_IL_sims.Rda")
 # multinomial_entropy_values_IL <- readRDS("birds_in_killarney_woodlands_IL_sims.Rda")
 
+plan(sequential)
 stime <- system.time({
   
-  multinomial_entropy_values_PL <- sims |>
-    future_map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
+  multinomial_entropy_values_PL <- sims[1:50] |>
+    purrr::map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
                .progress = TRUE)
 })
 
 stime
 
-# saveRDS(multinomial_entropy_values_PL, "desert_rodents_PL_sims.Rda")
-# multinomial_entropy_values_PL <- readRDS("desert_rodents_PL_sims.Rda")
+plan(multisession, workers = availableCores())
+stime1 <- system.time({
+  
+  multinomial_entropy_values_PL <- sims[1:50] |>
+    furrr::future_map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
+                      .progress = TRUE)
+})
+
+stime1
+
+saveRDS(multinomial_entropy_values_PL, "desert_rodents_PL_sims.Rda")
+multinomial_entropy_values_PL <- readRDS("desert_rodents_PL_sims.Rda")
 
 # saveRDS(multinomial_entropy_values_PL, "birds_in_balrath_woods_PL_sims.Rda")
 # multinomial_entropy_values_PL <- readRDS("birds_in_balrath_woods_PL_sims.Rda")
 
 # saveRDS(multinomial_entropy_values_PL, "birds_in_killarney_woodlands_PL_sims.Rda")
-multinomial_entropy_values_PL <- readRDS("birds_in_killarney_woodlands_PL_sims.Rda")
+# multinomial_entropy_values_PL <- readRDS("birds_in_killarney_woodlands_PL_sims.Rda")
 
 mods_PL <- multinomial_entropy_values_PL |> 
   data.frame() |> 
