@@ -94,7 +94,7 @@ stime
 plan(sequential)
 stime <- system.time({
   
-  multinomial_entropy_values_PL <- sims[1:50] |>
+  multinomial_entropy_values_PL <- sims |>
     purrr::map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
                .progress = TRUE)
 })
@@ -104,7 +104,7 @@ stime
 plan(multisession, workers = availableCores())
 stime1 <- system.time({
   
-  multinomial_entropy_values_PL <- sims[1:50] |>
+  multinomial_entropy_values_PL <- sims |>
     furrr::future_map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
                       .progress = TRUE)
 })
@@ -217,8 +217,8 @@ sim_results_PL <- MLE_data_PL |>
   round(3) |> 
   setNames("Profile")
 
-# saveRDS(sim_results_PL, "desert_rodents_sim_results_PL.Rda")
-# sim_results_PL <- readRDS("desert_rodents_sim_results_PL.Rda")
+saveRDS(sim_results_PL, "desert_rodents_sim_results_PL.Rda")
+sim_results_PL <- readRDS("desert_rodents_sim_results_PL.Rda")
 
 # saveRDS(sim_results_PL, "birds_in_balrath_woods_sim_results_PL.Rda")
 # sim_results_PL <- readRDS("birds_in_balrath_woods_sim_results_PL.Rda")
