@@ -29,55 +29,65 @@ u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |>
 omega_hat_list <- u_list |>
   furrr::future_map(get_omega_hat, psi_MLE, .progress = TRUE)
 
-likelihood <- function(theta, data) prod(theta^data)
 
-get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, lower_psi_grid, upper_psi_grid) {
+get_theta_hat2 <- function(psi, omega_hat) {
   
-  lower_L <- lower_psi_grid |>
-    purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, omega_hat), 
-                      .init = omega_hat) |>
-    magrittr::extract(-1) |>
-    purrr::map(likelihood, data) |> 
-    rev()
+  theta_hat <- nloptr::auglag(x0 = omega_hat,
+                              fn = function(theta) -sum(omega_hat*log(theta), na.rm = TRUE),
+                              heq = function(theta) c(sum(theta) - 1, PoI_fn(theta) - psi),
+                              lower = rep(0, length(omega_hat)))$par
   
-  upper_L <- upper_psi_grid |>
-    purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, omega_hat), 
-                      .init = omega_hat) |>
-    magrittr::extract(-1) |>
-    purrr::map(likelihood, data) 
-  
-  L <- c(lower_L, upper_L)
-  
-  return(L)
+  return(theta_hat)
 }
 
-get_multinomial_entropy_values_IL <- function(omega_hat_list, data, lower_psi_grid, upper_psi_grid) {
+
+get_multinomial_entropy_values_PL2 <- function(data, psi_grid) {
   
-  l_bar <- omega_hat_list |>
-    furrr::future_map(get_multinomial_entropy_values_IL.aux, 
-                      data, 
-                      lower_psi_grid, 
-                      upper_psi_grid,
-                      .progress = TRUE) |> 
-    unlist() |> 
-    matrix(ncol = length(c(lower_psi_grid, upper_psi_grid)), byrow = TRUE) |> 
-    colMeans() |> 
-    log()
+  m <- length(data)
   
-  return(l_bar)
+  theta_MLE <- data / sum(data)
+  
+  l_p <- psi_grid |> 
+    furrr::future_map(get_theta_hat2, theta_MLE) |> 
+    sapply(likelihood, data) |> 
+    log() |>
+    as.double()
+  
+  return(l_p)
 }
 
 plan(multisession, workers = availableCores())
 
-multinomial_entropy_values_IL <- omega_hat_list |> 
-  get_multinomial_entropy_values_IL(data, lower_psi_grid, upper_psi_grid)
 
-data.frame(psi = psi_grid,
-           loglikelihood = multinomial_entropy_values_IL |> as.numeric()) |> 
-  ggplot() +
-  geom_point(aes(x = psi, y = loglikelihood))
+s.time1 <- system.time({
+  test <- get_multinomial_entropy_values_PL2(data, psi_grid)
+})
+
+s.time2 <- system.time({
+  test2 <- get_multinomial_entropy_values_PL(data, psi_grid)
+})
 
 
+plan(sequential)
+
+stime1 <- system.time({
+  
+  test1 <- sims[1:10] |>
+    purrr::map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
+               .progress = TRUE)
+})
+
+stime1
+
+
+stime2 <- system.time({
+  
+  test2 <- sims[1:10] |>
+    purrr::map(\(x) get_multinomial_entropy_values_PL2(x, psi_grid),
+               .progress = TRUE)
+})
+
+stime2
 
 
 
