@@ -80,32 +80,26 @@ get_multinomial_entropy_values_PL <- function(data, psi_grid) {
   
   psi_MLE <- PoI_fn(theta_MLE)
   
-  lower_psi_grid <- psi_grid[psi_grid < psi_MLE] |> 
-    rev()
+  psi_grid_list <- psi_grid |> 
+    split(factor(psi_grid > psi_MLE)) |> 
+    purrr::modify_in(1, rev) |> 
+    unname()
   
-  upper_psi_grid <- psi_grid[psi_grid >= psi_MLE]
-  
-  lower_L_p <- lower_psi_grid |> 
-    purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, theta_MLE), 
-                      .init = theta_MLE) |> 
-    magrittr::extract(-1) |> 
-    purrr::map_dbl(likelihood, data) |> 
-    rev()
-  
-  upper_L_p <- upper_psi_grid |> 
-    purrr::accumulate(\(acc, nxt) get_theta_hat(acc, nxt, theta_MLE), 
-                      .init = theta_MLE) |> 
-    magrittr::extract(-1) |> 
-    purrr::map_dbl(likelihood, data)
-  
-  l_p <- c(lower_L_p, upper_L_p) |> 
+  l_p <- psi_grid_list |> 
+    purrr::map(
+      \(x) purrr::accumulate(
+        x,
+        \(acc, nxt) get_theta_hat(acc, nxt, theta_MLE), 
+        .init = theta_MLE
+        ) |> 
+        magrittr::extract(-1) |> 
+        purrr::map_dbl(likelihood, data)
+    ) |> 
+    purrr::modify_in(1, rev) |> 
+    unlist() |> 
     log()
   
   return(l_p)
 }
-
-
-
-
 
 
