@@ -30,14 +30,15 @@ u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |>
 omega_hat_list <- u_list |>
   furrr::future_map(get_omega_hat, psi_MLE, .progress = TRUE)
 
+n_sims <- 1000
+
+sims2 <- n_sims |> 
+  rmultinom(sum(data), data) |> 
+  data.frame() |> 
+  as.list()
 
 
-
-get_multinomial_entropy_values_PL2 <- function(data, psi_grid) {
-  
-  theta_MLE <- data / sum(data)
-  
-  psi_MLE <- PoI_fn(theta_MLE)
+get_multinomial_entropy_values_PL2 <- function(data, psi_grid, theta_MLE, psi_MLE) {
   
   psi_grid_list <- psi_grid |> 
     split(factor(psi_grid > psi_MLE)) |> 
@@ -45,16 +46,15 @@ get_multinomial_entropy_values_PL2 <- function(data, psi_grid) {
     unname()
   
   l_p <- psi_grid_list |> 
-    furrr::future_map(
+    purrr::map(
       \(x) purrr::accumulate(
         x,
         \(acc, nxt) get_theta_hat(acc, nxt, theta_MLE), 
         .init = theta_MLE
-        ) |> 
-        magrittr::extract(-1) |> 
-        purrr::map_dbl(likelihood, data),
-      .progress = TRUE
       ) |> 
+        magrittr::extract(-1) |> 
+        purrr::map_dbl(likelihood, data)
+    ) |> 
     purrr::modify_in(1, rev) |> 
     unlist() |> 
     log()
@@ -70,10 +70,10 @@ s.time1 <- system.time({
 
 s.time1
 
-plan(multisession, workers = 6)
+plan(sequential)
 
 s.time2 <- system.time({
-  test2 <- get_multinomial_entropy_values_PL2(data, psi_grid)
+  test2 <- get_multinomial_entropy_values_PL2(data, psi_grid, theta_MLE, psi_MLE)
 })
 
 s.time2
@@ -90,7 +90,7 @@ stime1 <- system.time({
 
 stime1
 
-plan(multisession, workers = 2)
+plan(multisession, workers = 12)
 
 stime2 <- system.time({
   

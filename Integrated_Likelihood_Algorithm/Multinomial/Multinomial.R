@@ -24,7 +24,7 @@ theta_MLE <- data / sum(data)
 
 psi_MLE <- PoI_fn(theta_MLE)
 
-step_size <- 0.01
+step_size <- 0.05
 
 psi_grid <- data |> 
   length() |> 
@@ -82,8 +82,8 @@ log_likelihood_vals_tidy <- data.frame(psi = psi_grid,
 
 # Birds in Killarney Woodlands
 # R = 250, step_size = 0.01, seed = 1996
-saveRDS(log_likelihood_vals_tidy, "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
-log_likelihood_vals_tidy <- readRDS("birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
+# saveRDS(log_likelihood_vals_tidy, "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
+# log_likelihood_vals_tidy <- readRDS("birds_in_killarney_woodlands_R=250_step_size=0.01.Rda")
 
 spline_fitted_models <- log_likelihood_vals_tidy |>
   group_by(Pseudolikelihood) |> 
@@ -138,14 +138,14 @@ ggplot() +
                   show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     # limits = c(1, 2) # Desert Rodents
+                     limits = c(1, 2) # Desert Rodents
                      # limits = c(2, 2.7) # Birds in Balrath Woods
-                     limits = c(1.48, 2) # Birds in Killarney Woodlands
+                     # limits = c(1.48, 2) # Birds in Killarney Woodlands
                      ) + 
   scale_y_continuous(expand = c(0, 0),
-                     # limits = c(-3, 0.1) # Desert Rodents
+                     limits = c(-3, 0.1) # Desert Rodents
                      # limits = c(-4, 0.1) # Birds in Balrath Woods
-                     limits = c(-5.1, 0.1) # Birds in Killarney Woodlands
+                     # limits = c(-5.1, 0.1) # Birds in Killarney Woodlands
                      ) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +

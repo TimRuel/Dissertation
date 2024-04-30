@@ -13,17 +13,17 @@ set.seed(1996)
 plan(sequential)
 
 # Desert Rodents
-data <- c(1, 1, 2, 4, 7, 10)
+# data <- c(1, 1, 2, 4, 7, 10)
 
 # Birds in Balrath Woods
 # data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
 
 # Birds in Killarney Woodlands
-# data <- c(1, 3, 4, 6, 7, 10, 14, 30)
+data <- c(1, 3, 4, 6, 7, 10, 14, 30)
 
 psi_0 <- PoI_fn(data / sum(data))
 
-step_size <- 0.01
+step_size <- 0.05
 
 psi_grid <- data |> 
   length() |> 
@@ -111,14 +111,14 @@ stime1 <- system.time({
 
 stime1
 
-saveRDS(multinomial_entropy_values_PL, "desert_rodents_PL_sims.Rda")
-multinomial_entropy_values_PL <- readRDS("desert_rodents_PL_sims.Rda")
+# saveRDS(multinomial_entropy_values_PL, "desert_rodents_PL_sims.Rda")
+# multinomial_entropy_values_PL <- readRDS("desert_rodents_PL_sims.Rda")
 
 # saveRDS(multinomial_entropy_values_PL, "birds_in_balrath_woods_PL_sims.Rda")
 # multinomial_entropy_values_PL <- readRDS("birds_in_balrath_woods_PL_sims.Rda")
 
-# saveRDS(multinomial_entropy_values_PL, "birds_in_killarney_woodlands_PL_sims.Rda")
-# multinomial_entropy_values_PL <- readRDS("birds_in_killarney_woodlands_PL_sims.Rda")
+saveRDS(multinomial_entropy_values_PL, "birds_in_killarney_woodlands_PL_sims.Rda")
+multinomial_entropy_values_PL <- readRDS("birds_in_killarney_woodlands_PL_sims.Rda")
 
 mods_PL <- multinomial_entropy_values_PL |> 
   data.frame() |> 
