@@ -127,35 +127,28 @@ get_multinomial_entropy_values_IL <- function(omega_hat_list, data, psi_grid) {
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-# E_log_like <- function(theta, omega) -sum(omega*log(theta), na.rm = TRUE)
-# 
-# get_omega_psi_hat <- function()
-# 
-# get_multinomial_entropy_values_IL.aux <- function(u, get_omega_psi_hat, data, psi_grid) {
-#   
-#   theta_MLE <- data / sum(data)
-#   
-#   psi_MLE <- entropy(theta_MLE)
-#   
-#   psi_grid_list <- psi_grid |> 
-#     split(factor(psi_grid > psi_MLE)) |> 
-#     purrr::modify_in(1, rev) |> 
-#     unname()
-#   
-#   L <- psi_grid_list |> 
-#     purrr::map(
-#       \(x) purrr::accumulate(
-#         x,
-#         \(acc, nxt) get_theta_hat(acc, nxt, omega_hat), 
-#         .init = omega_hat
-#       ) |> 
-#         magrittr::extract(-1) |> 
-#         purrr::map_dbl(likelihood, data)
-#     ) |> 
-#     purrr::modify_in(1, rev) 
-#   
-#   return(L)
-# }
+get_multinomial_entropy_values_modified_IL <- function(omega_hat_list, u_list, data, psi_grid) {
+  
+  L_tilde <- omega_hat_list |>
+    furrr::future_map(get_multinomial_entropy_values_IL.aux, 
+                      data, 
+                      psi_grid,
+                      .progress = TRUE) |> 
+    unlist() |> 
+    matrix(ncol = length(psi_grid), byrow = TRUE) 
+  
+  L <- u_list |> 
+    purrr::map_dbl(likelihood, data) |> 
+    unlist() |> 
+    as.numeric()
+  
+  l_bar <- L_tilde |> 
+    (`/`)(L) |> 
+    colMeans() |> 
+    log()
+  
+  return(l_bar)
+}
 
 
 

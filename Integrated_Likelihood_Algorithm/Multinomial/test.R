@@ -1,6 +1,8 @@
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("utils.R")
 
+set.seed(1996)
+
 data <- c(1, 1, 2, 4, 7, 10)
 
 theta_MLE <- data / sum(data)
@@ -24,6 +26,29 @@ u_list <- LaplacesDemon::rdirichlet(R, alpha) |>
   data.frame() |>
   as.list()
 
-get_omega_hat(u_list[[1]], psi_MLE, distance)
+omega_hat_list <- u_list |>
+  purrr::map(get_omega_hat, psi_MLE, log_likelihood)
+
+plan(multisession, workers = 12)
+
+L_tilde <- omega_hat_list |>
+  furrr::future_map(get_multinomial_entropy_values_IL.aux, 
+                    data, 
+                    psi_grid,
+                    .progress = TRUE) |> 
+  unlist() |> 
+  matrix(ncol = length(psi_grid), byrow = TRUE) 
+
+L <- u_list |> 
+  purrr::map_dbl(likelihood, data) |> 
+  unlist() |> 
+  as.numeric()
+
+L_tilde |> 
+  (`/`)(L) |> 
+  colMeans() |> 
+  log()
+
+L_tilde / L
 
 
