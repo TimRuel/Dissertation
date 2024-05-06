@@ -6,8 +6,8 @@ library(purrr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
+# population <- "Desert Rodents"
+population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,     
@@ -22,9 +22,7 @@ switch(population,
          
          omega_hat_lists_file_path <- "desert_rodents_omega_hat_lists.Rda"
          
-         multinomial_entropy_sims_IL_file_path <- "desert_rodents_IL_sims.Rda"
-         
-         multinomial_entropy_sims_PL_file_path <- "desert_rodents_PL_sims.Rda"
+         multinomial_entropy_sims_file_path <- "desert_rodents_sims.Rda"
          },
        
        "Birds in Balrath Woods" = {
@@ -33,13 +31,11 @@ switch(population,
          
          data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
          
-         step_size <- 0.05
+         step_size <- 0.01
          
          omega_hat_lists_file_path <- "birds_in_balrath_woods_omega_hat_lists.Rda"
          
-         multinomial_entropy_sims_IL_file_path <- "birds_in_balrath_woods_IL_sims.Rda"
-         
-         multinomial_entropy_sims_PL_file_path <- "birds_in_balrath_woods_PL_sims.Rda"
+         multinomial_entropy_sims_file_path <- "birds_in_balrath_woods_sims.Rda"
          },
        
        "Birds in Killarney Woodlands" = {
@@ -52,9 +48,7 @@ switch(population,
          
          omega_hat_lists_file_path <- "birds_in_killarney_woodlands_omega_hat_lists.Rda"
          
-         multinomial_entropy_sims_IL_file_path <- "birds_in_killarney_woodlands_IL_sims.Rda"
-         
-         multinomial_entropy_sims_PL_file_path <- "birds_in_killarney_woodlands_PL_sims.Rda"
+         multinomial_entropy_sims_file_path <- "birds_in_killarney_woodlands_sims.Rda"
          }
        )  
 
@@ -105,11 +99,9 @@ omega_hat_lists <- readRDS(paste0("Omega_hat Preallocations/", omega_hat_lists_f
 plan(multisession, workers = availableCores())
 
 multinomial_entropy_sims_IL <- omega_hat_lists |>
-  future_map2(data_sims,
-              \(x, y) get_multinomial_entropy_values_IL(x, y, psi_grid),
-              .progress = TRUE)
-
-saveRDS(multinomial_entropy_sims_IL, paste0("Simulations/", multinomial_entropy_sims_IL_file_path))
+  map2(data_sims,
+       \(x, y) get_multinomial_entropy_values_IL(x, y, psi_grid),
+       .progress = TRUE)
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -121,4 +113,11 @@ multinomial_entropy_sims_PL <- data_sims |>
     future_map(\(x) get_multinomial_entropy_values_PL(x, psi_grid),
                .progress = TRUE)
 
-saveRDS(multinomial_entropy_sims_PL, paste0("Simulations/", multinomial_entropy_sims_PL_file_path))
+################################################################################
+################################### STORAGE #################################### 
+################################################################################
+
+multinomial_entropy_sims <- list("Integrated" = multinomial_entropy_sims_IL, 
+                                 "Profile" = multinomial_entropy_sims_PL)
+
+saveRDS(multinomial_entropy_sims, paste0("Simulations/", multinomial_entropy_sims_file_path))

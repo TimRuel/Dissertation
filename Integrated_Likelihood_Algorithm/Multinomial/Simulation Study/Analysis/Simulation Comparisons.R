@@ -5,33 +5,21 @@ library(gdata)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-desert_rodents_sim_results_PL <- readRDS("desert_rodents_sim_results_PL.Rda") |> 
-  setNames("Desert Rodents (Profile)") 
+desert_rodents_sim_results <- readRDS("Results/desert_rodents_sim_results.Rda") |> 
+  dplyr::rename("Desert Rodents (Integrated)" = "Integrated", 
+                "Desert Rodents (Profile)" = "Profile")
 
-desert_rodents_sim_results_IL <- readRDS("desert_rodents_sim_results_IL.Rda") |> 
-  setNames("Desert Rodents (Integrated)")
+birds_in_balrath_woods_sim_results <- readRDS("Results/birds_in_balrath_woods_sim_results.Rda") |> 
+  dplyr::rename("Birds in Balrath Woods (Integrated)" = "Integrated", 
+                "Birds in Balrath Woods (Profile)" = "Profile")
 
-birds_in_balrath_woods_sim_results_PL <- readRDS("birds_in_balrath_woods_sim_results_PL.Rda") |> 
-  setNames("Birds in Balrath Woods (Profile)")
+birds_in_killarney_woodlands_sim_results <- readRDS("Results/birds_in_killarney_woodlands_sim_results.Rda") |> 
+  dplyr::rename("Birds in Killarney Woodlands (Integrated)" = "Integrated", 
+                "Birds in Killarney Woodlands (Profile)" = "Profile")
 
-birds_in_balrath_woods_sim_results_IL <- data.frame(rep(NA, 5)) |> 
-  setNames("Birds in Balrath Woods (Integrated)") |> 
-  mutate(Metric = c("Bias", "SD", "RMSE", "Coverage", "Length")) |> 
-  column_to_rownames("Metric")
-
-birds_in_killarney_woodlands_sim_results_PL <- readRDS("birds_in_killarney_woodlands_sim_results_PL.Rda") |> 
-  setNames("Birds in Killarney Woodlands (Profile)")
-
-birds_in_killarney_woodlands_sim_results_IL <- readRDS("birds_in_killarney_woodlands_sim_results_IL.Rda") |> 
-  setNames("Birds in Killarney Woodlands (Integrated)")
-
-ruel_sim_results_df <- list(desert_rodents_sim_results_IL,
-                            desert_rodents_sim_results_PL, 
-                            birds_in_balrath_woods_sim_results_IL,
-                            birds_in_balrath_woods_sim_results_PL, 
-                            birds_in_killarney_woodlands_sim_results_IL,
-                            birds_in_killarney_woodlands_sim_results_PL) |>
-  map(\(x) rownames_to_column(x, "Metric")) |> 
+ruel_sim_results_df <- list(desert_rodents_sim_results,
+                            birds_in_balrath_woods_sim_results,
+                            birds_in_killarney_woodlands_sim_results) |>
   reduce(plyr::join, by = "Metric") |> 
   add_column(Author = "Ruel", 
              .after = "Metric")
@@ -77,7 +65,7 @@ sim_results_df1 |>
   collapse_rows(columns = 1, valign = "top") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
                       Cell entries in blue were based on 60 simulations.
-                      No simulations have yet been done for cell entries in red.
+                      Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
            general_title = "",
            footnote_as_chunk = FALSE)
@@ -108,7 +96,7 @@ sim_results_df2 |>
             label_row_css = "background-color: #666; color: #fff;") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
                       Cell entries in blue were based on 60 simulations.
-                      No simulations have yet been done for cell entries in red.
+                      Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
            general_title = "",
            footnote_as_chunk = FALSE)
@@ -143,7 +131,7 @@ sim_results_df3 |>
             label_row_css = "background-color: #666; color: #fff;") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
                       Cell entries in blue were based on 60 simulations.
-                      No simulations have yet been done for cell entries in red.
+                      Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
            general_title = "",
            footnote_as_chunk = FALSE)

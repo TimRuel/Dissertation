@@ -1,4 +1,5 @@
 library(tidyverse)
+library(purrr)
 library(geomtextpath)
 library(viridis)
 library(ggnewscale)
@@ -60,20 +61,20 @@ max_psi_val <- data |>
 
 log_likelihood_vals <- readRDS(paste0("../Data/Pseudolikelihoods/", log_likelihood_vals_file_path))
 
-pseudolikelihoods <- c("Modified Integrated", "Integrated", "Profile")
+pseudolikelihood_names <- c("Modified Integrated", "Integrated", "Profile")
 
 spline_fitted_models <- log_likelihood_vals |>
   group_by(Pseudolikelihood) |> 
   group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
-  set_names(pseudolikelihoods)
+  set_names(pseudolikelihood_names)
 
 MLE_data <- spline_fitted_models |>
   sapply(
     function(mod) {
       optimize(
         function(psi) predict(mod, psi)$y, 
-        lower = psi_grid |> head(1), 
-        upper = psi_grid |> tail(1), 
+        lower = 0, 
+        upper = max_psi_val, 
         maximum = TRUE
       )}) |> 
   t() |> 
@@ -83,20 +84,19 @@ MLE_data <- spline_fitted_models |>
                 Maximum = objective) |> 
   mutate(MLE_label = c("hat(psi)[m-IL]", "hat(psi)[IL]", "hat(psi)[PL]"))
 
-log_likelihood_curves <- mapply(
-  function(mod, maximum) function(psi) predict(mod, psi)$y - maximum,
-  spline_fitted_models,
-  MLE_data$Maximum)
+pseudo_log_likelihood_curves <- spline_fitted_models |> 
+  map2(MLE_data$Maximum,
+       function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
 
-c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% purrr::map2(
-  log_likelihood_curves,
-  pseudolikelihoods,
-  function(curve, pseudolikelihood) {
+c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% map2(
+  pseudo_log_likelihood_curves,
+  pseudolikelihood_names,
+  function(curve, pseudolikelihood_name) {
     
     stat_fn <- stat_function(fun = curve,
                              geom = "textpath",
-                             label = pseudolikelihood,
-                             aes(color = pseudolikelihood),
+                             label = pseudolikelihood_name,
+                             aes(color = pseudolikelihood_name),
                              linewidth = 1,
                              hjust = 0.1,
                              show.legend = FALSE,
@@ -137,32 +137,31 @@ crit <- qchisq(0.95, 1) / 2
 
 c(psi_hat_mod_IL, psi_hat_IL, psi_hat_PL) %<-% MLE_data$MLE
 
-conf_ints <- purrr::map2(
-  log_likelihood_curves,
-  MLE_data$MLE,
-  function(curve, MLE) {
-    
-    lower_bound <- tryCatch(
-      
-      uniroot(function(psi) curve(psi) + crit,
-              interval = c(0, MLE))$root,
-      
-      error = function(e) return(0)
-      ) |> 
-      round(3)
-    
-    upper_bound <- tryCatch(
-      
-      uniroot(function(psi) curve(psi) + crit,
-              interval = c(MLE, max_psi_val))$root,
-      
-      error = function(e) return(log(length(data)))
-      ) |> 
-      round(3)
-    
-    return(paste0("(", lower_bound, ", ", upper_bound, ")"))
-    }
-  ) |> 
+conf_ints <- pseudo_log_likelihood_curves |> 
+  map2(MLE_data$MLE,
+       function(curve, MLE) {
+         
+         lower_bound <- tryCatch(
+           
+           uniroot(function(psi) curve(psi) + crit,
+                   interval = c(0, MLE))$root,
+           
+           error = function(e) return(0)
+           ) |> 
+           round(3)
+         
+         upper_bound <- tryCatch(
+           
+           uniroot(function(psi) curve(psi) + crit,
+                   interval = c(MLE, max_psi_val))$root,
+           
+           error = function(e) return(log(length(data)))
+           ) |> 
+           round(3)
+         
+         return(paste0("(", lower_bound, ", ", upper_bound, ")"))
+         }
+       ) |> 
   unlist()
 
 MLE_data |> 

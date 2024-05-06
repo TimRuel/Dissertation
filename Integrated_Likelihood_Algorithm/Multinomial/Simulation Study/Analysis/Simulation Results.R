@@ -2,6 +2,7 @@ library(dplyr)
 library(purrr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+source("../../utils.R")
 
 population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
@@ -15,20 +16,20 @@ switch(population,
          
          step_size <- 0.01
          
-         multinomial_entropy_sims_IL_file_path <- "desert_rodents_IL_sims.Rda"
+         multinomial_entropy_sims_file_path <- "desert_rodents_sims.Rda"
          
-         multinomial_entropy_sims_PL_file_path <- "desert_rodents_PL_sims.Rda"
+         multinomial_entropy_sim_results_file_path <- "desert_rodents_sim_results.Rda"
          },
        
        "Birds in Balrath Woods" = {
          
          data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
          
-         step_size <- 0.05
+         step_size <- 0.01
          
-         multinomial_entropy_sims_IL_file_path <- "birds_in_balrath_woods_IL_sims.Rda"
+         multinomial_entropy_sims_file_path <- "birds_in_balrath_woods_sims.Rda"
          
-         multinomial_entropy_sims_PL_file_path <- "birds_in_balrath_woods_PL_sims.Rda"
+         multinomial_entropy_sim_results_file_path <- "birds_in_balrath_woods_sim_results.Rda"
          },
        
        "Birds in Killarney Woodlands" = {
@@ -37,23 +38,19 @@ switch(population,
          
          step_size <- 0.01
          
-         multinomial_entropy_sims_IL_file_path <- "birds_in_killarney_woodlands_IL_sims.Rda"
+         multinomial_entropy_sims_file_path <- "birds_in_killarney_woodlands_sims.Rda"
          
-         multinomial_entropy_sims_PL_file_path <- "birds_in_killarney_woodlands_PL_sims.Rda"
+         multinomial_entropy_sim_results_file_path <- "birds_in_killarney_woodlands_sim_results.Rda"
          }
        )  
 
 psi_grid <- data |> 
   length() |> 
   log() |> 
-  plyr::round_any(step_size, ceiling) |> 
+  plyr::round_any(step_size, floor) |> 
   seq(0, to = _, step_size)
 
-multinomial_entropy_sims_IL <- readRDS(paste0("../Data/Simulations/", multinomial_entropy_sims_IL_file_path))
-
-multinomial_entropy_sims_PL <- readRDS(paste0("../Data/Simulations/", multinomial_entropy_sims_PL_file_path))
-
-multinomial_entropy_sims <- list("Integrated" = multinomial_entropy_sims_IL, "Profile" = multinomial_entropy_sims_PL)
+multinomial_entropy_sims <- readRDS(paste0("../Data/Simulations/", multinomial_entropy_sims_file_path))
 
 spline_fitted_models_list <- multinomial_entropy_sims |> 
   map(
@@ -79,122 +76,94 @@ MLE_data_list <- spline_fitted_models_list |>
             optimize(
               function(psi) predict(mod, psi)$y, 
               lower = 0, 
-              upper = psi_grid |> tail(1), 
+              upper = log(length(data)), 
               maximum = TRUE)
             }
           ) |> 
         t() |> 
         data.frame() |> 
-        dplyr::rename(MLE = maximum,
-               Maximum = objective)
+        mutate(MLE = as.numeric(maximum),
+               Maximum = as.numeric(objective)) |> 
+        select(MLE, Maximum)
       }
     )
 
-curves_PL <- mapply(
-  function(mod, maximum) function(psi) predict(mod, psi)$y - maximum,
-  mods_PL,
-  MLE_data_PL$Maximum)
-
-curves_IL <- mapply(
-  function(mod, maximum) function(psi) predict(mod, psi)$y - maximum,
-  mods_IL,
-  MLE_data_IL$Maximum)
+pseudo_log_likelihood_curves_list <- spline_fitted_models_list |> 
+  map2(MLE_data_list,
+       function(spline_fitted_models, MLE_data) {
+         spline_fitted_models |>
+           map2(MLE_data$Maximum,
+                function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
+         }
+       )
 
 crit <- qchisq(0.95, 1) / 2
 
-CI_lower_PL <- mapply(function(curve, MLE) {
-  tryCatch(
-    uniroot(function(psi) curve(psi) + crit,
-            interval = c(psi_grid |> head(1), MLE))$root |> round(3),
-    error = function(e) return(NA)
+conf_ints_list <- pseudo_log_likelihood_curves_list |> 
+  map2(MLE_data_list,
+       function(pseudo_log_likelihood_curves, MLE_data) {
+         pseudo_log_likelihood_curves |> 
+           map2(MLE_data$MLE,
+                function(curve, MLE) {
+                  
+                  lower_bound <- tryCatch(
+                    
+                    uniroot(function(psi) curve(psi) + crit,
+                            interval = c(0, MLE))$root,
+                    
+                    error = function(e) return(0)
+                    ) |>
+                    round(3)
+                  
+                  upper_bound <- tryCatch(
+                    
+                    uniroot(function(psi) curve(psi) + crit,
+                            interval = c(MLE, log(length(data))))$root,
+                    
+                    error = function(e) return(log(length(data)))
+                    ) |> 
+                    round(3)
+                  
+                  return(c(lower_bound, upper_bound))   
+                  }
+           )
+       }
+  ) |> 
+  map(
+    function(conf_ints) {
+      conf_ints |> 
+        do.call(rbind, args = _) |> 
+        as.data.frame() |> 
+        setNames(c("Lower", "Upper"))
+    }
   )
-},
-curves_PL,
-MLE_data_PL$MLE)
-
-CI_upper_PL <- mapply(function(curve, MLE) {
-  tryCatch(
-    uniroot(function(psi) curve(psi) + crit,
-            interval = c(MLE, psi_grid |> tail(1)))$root |> round(3),
-    error = function(e) return(NA)
-  )
-},
-curves_PL,
-MLE_data_PL$MLE)
 
 psi_0 <- entropy(data / sum(data))
 
-sim_results_PL <- MLE_data_PL |> 
-  mutate(Lower = CI_lower_PL, 
-         Upper = CI_upper_PL,
-         psi_0 = psi_0,
-         Covered = psi_0 |> between(Lower, Upper)) |> 
-  summarise(Bias = mean(MLE - psi_0),
-            SD = sd(MLE),
-            RMSE = sqrt(mean((MLE - psi_0)^2)),
-            Coverage = mean(Covered, na.rm = TRUE),
-            Length = mean(Upper - Lower, na.rm = TRUE)) |> 
+multinomial_entropy_sim_results <- MLE_data_list |> 
+  map2(conf_ints_list,
+       function(MLE_data, conf_ints) {
+         
+         MLE_data |> 
+           mutate(Lower = conf_ints$Lower, 
+                  Upper = conf_ints$Upper,
+                  psi_0 = psi_0,
+                  Covered = psi_0 |> between(Lower, Upper)) |> 
+           summarise(Bias = mean(MLE - psi_0),
+                     SD = sd(MLE),
+                     RMSE = sqrt(mean((MLE - psi_0)^2)),
+                     Coverage = mean(Covered, na.rm = TRUE),
+                     Length = mean(Upper - Lower, na.rm = TRUE))
+         }
+       ) |> 
+  do.call(rbind, args = _) |> 
   t() |> 
   as.data.frame() |> 
-  round(3) |> 
-  setNames("Profile")
+  rownames_to_column("Metric")
 
-# saveRDS(sim_results_PL, "desert_rodents_sim_results_PL.Rda")
-# sim_results_PL <- readRDS("desert_rodents_sim_results_PL.Rda")
+saveRDS(multinomial_entropy_sim_results, paste0("Results/", multinomial_entropy_sim_results_file_path))
 
-saveRDS(sim_results_PL, "birds_in_balrath_woods_sim_results_PL.Rda")
-# sim_results_PL <- readRDS("birds_in_balrath_woods_sim_results_PL.Rda")
 
-# saveRDS(sim_results_PL, "birds_in_killarney_woodlands_sim_results_PL.Rda")
-# sim_results_PL <- readRDS("birds_in_killarney_woodlands_sim_results_PL.Rda")
-
-sim_results_PL
-
-CI_lower_IL <- mapply(function(curve, MLE) {
-  tryCatch(
-    uniroot(function(psi) curve(psi) + crit,
-            interval = c(psi_grid |> head(1), MLE))$root |> round(3),
-    error = function(e) return(NA)
-  )
-},
-curves_IL,
-MLE_data_IL$MLE)
-
-CI_upper_IL <- mapply(function(curve, MLE) {
-  tryCatch(
-    uniroot(function(psi) curve(psi) + crit,
-            interval = c(MLE, psi_grid |> tail(1)))$root |> round(3),
-    error = function(e) return(NA)
-  )
-},
-curves_IL,
-MLE_data_IL$MLE)
-
-sim_results_IL <- MLE_data_IL |> 
-  mutate(Lower = CI_lower_IL, 
-         Upper = CI_upper_IL,
-         psi_0 = psi_0,
-         Covered = psi_0 |> between(Lower, Upper)) |> 
-  summarise(Bias = mean(MLE - psi_0),
-            SD = sd(MLE),
-            RMSE = sqrt(mean((MLE - psi_0)^2)),
-            Coverage = mean(Covered, na.rm = TRUE),
-            Length = mean(Upper - Lower, na.rm = TRUE)) |> 
-  t() |> 
-  as.data.frame() |> 
-  round(3) |> 
-  setNames("Integrated")
-
-# saveRDS(sim_results_IL, "desert_rodents_sim_results_IL.Rda")
-# sim_results_IL <- readRDS("desert_rodents_sim_results_IL.Rda")
-
-# saveRDS(sim_results_IL, "birds_in_balrath_woods_sim_results_IL.Rda")
-# sim_results_IL <- readRDS("birds_in_balrath_woods_sim_results_IL.Rda")
-
-saveRDS(sim_results_IL, "birds_in_killarney_woodlands_sim_results_IL.Rda")
-sim_results_IL <- readRDS("birds_in_killarney_woodlands_sim_results_IL.Rda")
-
-sim_results_IL
 
 
 
