@@ -8,8 +8,8 @@ library(kableExtra)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
+# population <- "Desert Rodents"
+population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,
@@ -17,9 +17,7 @@ switch(population,
        "Desert Rodents" = {
          
          data <- c(1, 1, 2, 4, 7, 10)
-         
-         step_size <- 0.01
-         
+
          log_likelihood_vals_file_path <- "desert_rodents_R=250_step_size=0.01.Rda"
          
          x_range <- c(1, 2)
@@ -31,9 +29,7 @@ switch(population,
       
          data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
          
-         step_size <- 0.05
-         
-         log_likelihood_vals_file_path <- "birds_in_balrath_woods_R=250_step_size=0.05.Rda"
+         log_likelihood_vals_file_path <- "birds_in_balrath_woods_R=250_step_size=0.01.Rda"
          
          x_range <- c(2, 2.7)
          
@@ -43,9 +39,7 @@ switch(population,
        "Birds in Killarney Woodlands" = {
          
          data <- c(1, 3, 4, 6, 7, 10, 14, 30)
-         
-         step_size <- 0.01
-         
+      
          log_likelihood_vals_file_path <- "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda"
          
          x_range <- c(1.48, 2)
@@ -53,11 +47,6 @@ switch(population,
          y_range <- c(-5, 0.1)
        }
 )  
-
-max_psi_val <- data |> 
-  length() |> 
-  log() |> 
-  plyr::round_any(step_size, floor)
 
 log_likelihood_vals <- readRDS(paste0("../Data/Pseudolikelihoods/", log_likelihood_vals_file_path))
 
@@ -74,7 +63,7 @@ MLE_data <- spline_fitted_models |>
       optimize(
         function(psi) predict(mod, psi)$y, 
         lower = 0, 
-        upper = max_psi_val, 
+        upper = log(length(data)), 
         maximum = TRUE
       )}) |> 
   t() |> 
@@ -153,7 +142,7 @@ conf_ints <- pseudo_log_likelihood_curves |>
          upper_bound <- tryCatch(
            
            uniroot(function(psi) curve(psi) + crit,
-                   interval = c(MLE, max_psi_val))$root,
+                   interval = c(MLE, log(length(data))))$root,
            
            error = function(e) return(log(length(data)))
            ) |> 
@@ -170,7 +159,7 @@ MLE_data |>
          conf_int = conf_ints) |> 
   kbl(col.names = c("Pseudolikelihood", 
                     "MLE",
-                    "95% Confidence Interval"), 
+                    "95% Confidence Interval"),   
       align = "c",
       caption = population) |> 
   kable_styling(bootstrap_options = c("striped", "hover")) 
