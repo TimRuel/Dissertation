@@ -8,8 +8,8 @@ library(kableExtra)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-# population <- "Desert Rodents"
-population <- "Birds in Balrath Woods"
+population <- "Desert Rodents"
+# population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,
@@ -53,6 +53,9 @@ log_likelihood_vals <- readRDS(paste0("../Data/Pseudolikelihoods/", log_likeliho
 pseudolikelihood_names <- c("Modified Integrated", "Integrated", "Profile")
 
 spline_fitted_models <- log_likelihood_vals |>
+  tidyr::pivot_longer(cols = c("Mod_Integrated", "Integrated", "Profile"),
+                      names_to = "Pseudolikelihood",
+                      values_to = "loglikelihood") |> 
   group_by(Pseudolikelihood) |> 
   group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
   set_names(pseudolikelihood_names)
@@ -166,12 +169,16 @@ MLE_data |>
 
 
 
-# log_likelihood_vals |>
-#   filter(Pseudolikelihood == "Mod_Integrated") |>
+# data.frame(psi = psi_grid,
+#            loglikelihood = multinomial_entropy_values_modified_IL) |>
+#              # filter(Pseudolikelihood == "Mod_Integrated") |>
+#   # filter(Pseudolikelihood == "Mod_Integrated") |>
 #   ggplot(aes(x = psi, y = loglikelihood)) +
 #   geom_point()
 
 
-
+# log_likelihood_vals |>
+#   filter(Pseudolikelihood == "Mod_Integrated") |> 
+#   print(n = Inf)
 
 

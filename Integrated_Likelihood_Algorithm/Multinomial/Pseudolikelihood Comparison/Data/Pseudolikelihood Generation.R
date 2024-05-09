@@ -4,8 +4,8 @@ library(purrr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-# population <- "Desert Rodents"
-population <- "Birds in Balrath Woods"
+population <- "Desert Rodents"
+# population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,
@@ -88,11 +88,37 @@ u_list_mod_IL <- LaplacesDemon::rdirichlet(R, alpha) |>
   data.frame() |>
   as.list()
 
+u_data_list <- u_list_mod_IL |>
+  map(\(u) rmultinom(1, sum(data), u)) |>
+  data.frame() |>
+  as.list()
+
+objective <- function(u, t) sum(u * log(t), na.rm = TRUE) 
+
 omega_hat_list_mod_IL <- u_list_mod_IL |>
-  map(get_omega_hat, psi_MLE, distance)
+  map(get_omega_hat, psi_MLE, objective)
 
 multinomial_entropy_values_modified_IL <- omega_hat_list_mod_IL |> 
     get_multinomial_entropy_values_modified_IL(u_list_mod_IL, data, psi_grid)
+
+L_tilde <- omega_hat_list_mod_IL |>
+  furrr::future_map(get_multinomial_entropy_values_IL.aux, 
+                    data, 
+                    psi_grid,
+                    .progress = TRUE) |> 
+  unlist() |> 
+  matrix(ncol = length(psi_grid), byrow = TRUE) 
+
+L <- u_list_mod_IL |> 
+  purrr::map_dbl(likelihood, data) |> 
+  unlist() |> 
+  as.numeric()
+
+l_bar <- L_tilde |> 
+  (`/`)(L) |> 
+  colMeans() |> 
+  log()
+
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -110,9 +136,19 @@ multinomial_entropy_values_PL <- data |>
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Mod_Integrated = multinomial_entropy_values_modified_IL,
                                   Integrated = multinomial_entropy_values_IL,
-                                  Profile = multinomial_entropy_values_PL) |> 
-  tidyr::pivot_longer(cols = c("Mod_Integrated", "Integrated", "Profile"),
-                      names_to = "Pseudolikelihood",
-                      values_to = "loglikelihood")
+                                  Profile = multinomial_entropy_values_PL) 
+
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
+
+
+log_likelihood_vals <- readRDS(paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
+
+log_likelihood_vals <- log_likelihood_vals |> 
+  tidyr::pivot_wider(names_from = Pseudolikelihood,
+                     values_from = loglikelihood) |> 
+  dplyr::mutate(Mod_Integrated = l_bar)
+
+
+
+

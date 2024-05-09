@@ -17,7 +17,7 @@ get_omega_hat <- function(u, psi_MLE, objective) {
   heq <- function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE)
   heqjac <- function(omega) nloptr::nl.jacobian(omega, heq)
   
-  omega_hat <- nloptr::auglag(x0 = u,
+  omega_hat <- nloptr::auglag(x0 = u / sum(u),
                               fn = fn,
                               gr = gr,
                               heq = heq,
