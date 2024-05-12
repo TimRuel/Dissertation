@@ -4,15 +4,15 @@ library(purrr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
+# population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
-# population <- "Birds in Killarney Woodlands"
+population <- "Birds in Killarney Woodlands"
 
 switch(population,
        
        "Desert Rodents" = {
          
-         seed <- 1996
+         seed <- 7835
          
          data <- c(1, 1, 2, 4, 7, 10)
          
@@ -62,63 +62,49 @@ R <- 250
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
+neg_log_likelihood <- function(theta, data) -sum(data * log(theta), na.rm = TRUE)
+
+init_guess <- rep(1, length(data)) / length(data)
+
 plan(multisession, workers = availableCores())
 
-u_list_IL <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
+multinomial_entropy_values_IL <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
   t() |> 
   data.frame() |> 
-  as.list()
-
-omega_hat_list_IL <- u_list_IL |>
-  map(get_omega_hat, psi_MLE, log_likelihood)
-  
-multinomial_entropy_values_IL <- omega_hat_list_IL |> 
+  as.list() |> 
+  map(\(u) make_objective_fn(u, neg_log_likelihood)) |>
+  map(\(objective_fn) get_omega_hat(objective_fn, psi_MLE, init_guess)) |> 
   get_multinomial_entropy_values_IL(data, psi_grid)
-
+  
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-plan(multisession, workers = availableCores())
-
 alpha <- data + 1
 
-u_list_mod_IL <- LaplacesDemon::rdirichlet(R, alpha) |>
+u_list <- LaplacesDemon::rdirichlet(R, alpha) |>
   t() |>
   data.frame() |>
   as.list()
 
-u_data_list <- u_list_mod_IL |>
-  map(\(u) rmultinom(1, sum(data), u)) |>
-  data.frame() |>
-  as.list()
-
-objective <- function(u, t) sum(u * log(t), na.rm = TRUE) 
-
-omega_hat_list_mod_IL <- u_list_mod_IL |>
-  map(get_omega_hat, psi_MLE, objective)
-
-multinomial_entropy_values_modified_IL <- omega_hat_list_mod_IL |> 
-    get_multinomial_entropy_values_modified_IL(u_list_mod_IL, data, psi_grid)
-
-L_tilde <- omega_hat_list_mod_IL |>
-  furrr::future_map(get_multinomial_entropy_values_IL.aux, 
-                    data, 
-                    psi_grid,
-                    .progress = TRUE) |> 
-  unlist() |> 
-  matrix(ncol = length(psi_grid), byrow = TRUE) 
-
-L <- u_list_mod_IL |> 
-  purrr::map_dbl(likelihood, data) |> 
+L <- u_list |> 
+  map_dbl(\(u) likelihood(u, data)) |> 
   unlist() |> 
   as.numeric()
 
-l_bar <- L_tilde |> 
-  (`/`)(L) |> 
-  colMeans() |> 
-  log()
+euclidean_distance <- function(u, omega) dist(matrix(c(u, omega), 
+                                                     nrow = 2, 
+                                                     byrow = TRUE),
+                                              method = "euclid")[1]
 
+init_guess <- rep(1, length(data)) / length(data)
+
+plan(multisession, workers = availableCores())
+
+multinomial_entropy_values_mod_IL <- u_list |> 
+  map(\(u) make_objective_fn(u, euclidean_distance)) |>
+  map(\(objective_fn) get_omega_hat(objective_fn, psi_MLE, init_guess)) |> 
+  get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -134,21 +120,11 @@ multinomial_entropy_values_PL <- data |>
 ################################################################################
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Mod_Integrated = multinomial_entropy_values_modified_IL,
+                                  Mod_Integrated = multinomial_entropy_values_mod_IL,
                                   Integrated = multinomial_entropy_values_IL,
                                   Profile = multinomial_entropy_values_PL) 
 
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
-
-
-log_likelihood_vals <- readRDS(paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
-
-log_likelihood_vals <- log_likelihood_vals |> 
-  tidyr::pivot_wider(names_from = Pseudolikelihood,
-                     values_from = loglikelihood) |> 
-  dplyr::mutate(Mod_Integrated = l_bar)
-
-
 
 

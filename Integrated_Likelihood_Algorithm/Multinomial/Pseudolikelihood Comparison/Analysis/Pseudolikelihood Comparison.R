@@ -8,9 +8,9 @@ library(kableExtra)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-population <- "Desert Rodents"
+# population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
-# population <- "Birds in Killarney Woodlands"
+population <- "Birds in Killarney Woodlands"
 
 switch(population,
        
@@ -125,9 +125,22 @@ ggplot() +
   theme_minimal() +
   theme(axis.line = element_line())
 
-crit <- qchisq(0.95, 1) / 2
+log_likelihood_vals |> 
+  tidyr::pivot_longer(cols = c("Mod_Integrated", "Integrated", "Profile"),
+                      names_to = "Pseudolikelihood",
+                      values_to = "loglikelihood") |> 
+  ggplot() +
+  geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
+             size = 1) +
+  ylab("Log-Likelihood") +
+  scale_color_brewer(palette = "Set1") +
+  # scale_x_continuous(limits = c(2, 2.7)) +
+  # scale_y_continuous(limits = c(-110, -85)) +
+  xlab(expression(psi)) +
+  theme_minimal() +
+  theme(axis.line = element_line())
 
-c(psi_hat_mod_IL, psi_hat_IL, psi_hat_PL) %<-% MLE_data$MLE
+crit <- qchisq(0.95, 1) / 2
 
 conf_ints <- pseudo_log_likelihood_curves |> 
   map2(MLE_data$MLE,
@@ -169,16 +182,5 @@ MLE_data |>
 
 
 
-# data.frame(psi = psi_grid,
-#            loglikelihood = multinomial_entropy_values_modified_IL) |>
-#              # filter(Pseudolikelihood == "Mod_Integrated") |>
-#   # filter(Pseudolikelihood == "Mod_Integrated") |>
-#   ggplot(aes(x = psi, y = loglikelihood)) +
-#   geom_point()
-
-
-# log_likelihood_vals |>
-#   filter(Pseudolikelihood == "Mod_Integrated") |> 
-#   print(n = Inf)
 
 

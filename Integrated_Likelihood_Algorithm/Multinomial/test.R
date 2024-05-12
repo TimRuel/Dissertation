@@ -5,6 +5,8 @@ set.seed(1996)
 
 data <- c(1, 1, 2, 4, 7, 10)
 
+rmultinom(1, sum(data), (data + 1) / (6 + sum(data)))
+
 theta_MLE <- data / sum(data)
 
 psi_MLE <- entropy(theta_MLE)
@@ -21,34 +23,61 @@ psi_grid <- data |>
 
 R <- 250
 
-u_list <- LaplacesDemon::rdirichlet(R, alpha) |>
+u_list_mod_IL <- LaplacesDemon::rdirichlet(R, alpha) |>
   t() |>
   data.frame() |>
   as.list()
 
-omega_hat_list <- u_list |>
-  purrr::map(get_omega_hat, psi_MLE, log_likelihood)
+plan(multisession, workers = 12)
+
+multinomial_entropy_values_modified_IL <- u_list_mod_IL |> 
+  get_multinomial_entropy_values_modified_IL(u_list_mod_IL, data, psi_grid)
+
+objective <- function(u, t) sum(u * log(t), na.rm = TRUE)
+
+omega_hat_list_mod_IL <- u_list_mod_IL |>
+  map(get_omega_hat, psi_MLE, objective)
 
 plan(multisession, workers = 12)
 
-L_tilde <- omega_hat_list |>
-  furrr::future_map(get_multinomial_entropy_values_IL.aux, 
-                    data, 
-                    psi_grid,
-                    .progress = TRUE) |> 
-  unlist() |> 
-  matrix(ncol = length(psi_grid), byrow = TRUE) 
+multinomial_entropy_values_modified_IL1 <- omega_hat_list_mod_IL |> 
+  get_multinomial_entropy_values_modified_IL(u_list_mod_IL, data, psi_grid)
 
-L <- u_list |> 
-  purrr::map_dbl(likelihood, data) |> 
-  unlist() |> 
-  as.numeric()
+plan(multisession, workers = availableCores())
 
-L_tilde |> 
-  (`/`)(L) |> 
-  colMeans() |> 
-  log()
+u_list_IL <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
+  t() |> 
+  data.frame() |> 
+  as.list()
 
-L_tilde / L
+u <- LaplacesDemon::rdirichlet(1, rep(1, length(data)))
 
+omega_hat_list_IL <- u_list_IL |>
+  map(get_omega_hat, psi_MLE, log_likelihood)
+
+omega_hat <- get_omega_hat(u, psi_MLE, log_likelihood)
+
+multinomial_entropy_values_IL <- u |> list() |> rep(R) |> 
+  get_multinomial_entropy_values_IL(data, psi_grid)
+
+multinomial_entropy_values_IL1 <- omega_hat_list_IL |> 
+  get_multinomial_entropy_values_IL(data, psi_grid)
+
+plan(multisession, workers = 12)
+
+multinomial_entropy_values_modified_IL2 <- u_list_IL |> 
+  get_multinomial_entropy_values_modified_IL(u_list_IL, data, psi_grid)
+
+multinomial_entropy_values_IL2 <- u_list_mod_IL |> 
+  get_multinomial_entropy_values_IL(data, psi_grid)
+
+data.frame(psi = psi_grid,
+           loglikelihood = multinomial_entropy_values_IL2) |>
+  ggplot(aes(x = psi, y = loglikelihood)) +
+  geom_point()
+
+data.frame(psi = psi_grid,
+           loglikelihood = multinomial_entropy_values_IL) |>
+  ggplot(aes(x = psi, y = loglikelihood)) +
+  geom_point()
 
