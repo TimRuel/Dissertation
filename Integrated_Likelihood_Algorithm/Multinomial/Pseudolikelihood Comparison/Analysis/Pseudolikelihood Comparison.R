@@ -8,9 +8,9 @@ library(kableExtra)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-# population <- "Desert Rodents"
+population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
-population <- "Birds in Killarney Woodlands"
+# population <- "Birds in Killarney Woodlands"
 
 switch(population,
        

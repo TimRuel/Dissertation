@@ -20,6 +20,7 @@ get_omega_hat <- function(objective_fn, psi_MLE, init_guess) {
                               heq = heq,
                               heqjac = heqjac,
                               lower = rep(0, length(init_guess)),
+                              localtol = 1e-03,
                               localsolver = "LBFGS")$par
   
   return(omega_hat)

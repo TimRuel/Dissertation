@@ -12,7 +12,7 @@ switch(population,
        
        "Desert Rodents" = {
          
-         seed <- 1996
+         seed <- 7835
          
          data <- c(1, 1, 2, 4, 7, 10)
          
@@ -62,57 +62,46 @@ psi_grid <- data |>
 
 R <- 250
 
-plan(multisession, workers = availableCores())
-
 alpha <- data + 1
 
-u_list_mod_IL <- LaplacesDemon::rdirichlet(R, alpha) |>
+u_list <- LaplacesDemon::rdirichlet(R, alpha) |>
   t() |>
   data.frame() |>
   as.list()
 
-distance_euclid <- function(u, t) dist(matrix(c(u, t), 
-                                              nrow = 2, 
-                                              byrow = TRUE),
-                                       method = "euclid")[1] 
-
-fn <- function(omega) distance_euclid(u_list_mod_IL[[100]], omega)
-gr <- function(omega) nloptr::nl.grad(omega, fn)
-heq <- function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE)
-heqjac <- function(omega) nloptr::nl.jacobian(omega, heq)
-
-omega_hat <- nloptr::auglag(x0 = rep(1, 6) / 6,
-                            fn = fn,
-                            gr = gr,
-                            heq = heq,
-                            heqjac = heqjac,
-                            lower = rep(0, length(u)),
-                            localsolver = "LBFGS")$par
-
-
-
-
-
-
-
-
-
-
-
-
-
+init_guess <- rep(1, length(data)) / length(data)
 
 ################################################################################
 ############################## EUCLIDEAN DISTANCE ##############################
 ################################################################################
 
-distance_euclid <- function(u, t) dist(matrix(c(u, t), 
-                                              nrow = 2, 
-                                              byrow = TRUE),
-                                       method = "euclidean")[1] 
+euclidean_distance <- function(u, omega) dist(matrix(c(u, omega), 
+                                                     nrow = 2, 
+                                                     byrow = TRUE),
+                                              method = "euclid")[1]
 
-omega_hat_list_mod_IL_euclid <- u_list_mod_IL |>
-  map(get_omega_hat, psi_MLE, distance_euclid)
+omega_hat_list_euclid <- u_list |> 
+  map(\(u) make_objective_fn(u, euclidean_distance)) |>
+  map(\(objective_fn) get_omega_hat(objective_fn, psi_MLE, init_guess))
+
+objective_fn <- make_objective_fn(u_list[[496]], euclidean_distance)
+gr <- function(omega) nloptr::nl.grad(omega, objective_fn)
+heq <- function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE)
+heqjac <- function(omega) nloptr::nl.jacobian(omega, heq)
+
+omega_hat <- nloptr::auglag(x0 = init_guess,
+                            fn = objective_fn,
+                            gr = gr,
+                            heq = heq,
+                            heqjac = heqjac,
+                            localtol = 1e-05,
+                            lower = rep(0, length(init_guess)),
+                            localsolver = "LBFGS")$par
+
+
+
+
+plan(multisession, workers = availableCores())
 
 multinomial_entropy_values_modified_IL_euclid <- omega_hat_list_mod_IL_euclid |> 
   get_multinomial_entropy_values_modified_IL(u_list_mod_IL, data, psi_grid)
@@ -121,13 +110,14 @@ multinomial_entropy_values_modified_IL_euclid <- omega_hat_list_mod_IL_euclid |>
 ############################## CANBERRA DISTANCE ##############################
 ################################################################################
 
-distance_canberra <- function(u, t) dist(matrix(c(u, t), 
+canberra_distance <- function(u, t) dist(matrix(c(u, t), 
                                                 nrow = 2, 
                                                 byrow = TRUE),
                                          method = "canberra")[1]   
 
-omega_hat_list_mod_IL_canberra <- u_list_mod_IL |>
-  map(get_omega_hat, psi_MLE, distance_canberra)
+omega_hat_list_canberra <- u_list |> 
+  map(\(u) make_objective_fn(u, canberra_distance)) |>
+  map(\(objective_fn) get_omega_hat(objective_fn, psi_MLE, init_guess))
 
 multinomial_entropy_values_modified_IL_canberra <- omega_hat_list_mod_IL_canberra |> 
   get_multinomial_entropy_values_modified_IL(u_list_mod_IL, data, psi_grid)
