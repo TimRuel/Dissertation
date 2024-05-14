@@ -80,30 +80,13 @@ euclidean_distance <- function(u, omega) dist(matrix(c(u, omega),
                                                      byrow = TRUE),
                                               method = "euclid")[1]
 
-omega_hat_list_euclid <- u_list |> 
-  map(\(u) make_objective_fn(u, euclidean_distance)) |>
-  map(\(objective_fn) get_omega_hat(objective_fn, psi_MLE, init_guess))
+tol <- 0.0001
 
-objective_fn <- make_objective_fn(u_list[[496]], euclidean_distance)
-gr <- function(omega) nloptr::nl.grad(omega, objective_fn)
-heq <- function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE)
-heqjac <- function(omega) nloptr::nl.jacobian(omega, heq)
-
-omega_hat <- nloptr::auglag(x0 = init_guess,
-                            fn = objective_fn,
-                            gr = gr,
-                            heq = heq,
-                            heqjac = heqjac,
-                            localtol = 1e-05,
-                            lower = rep(0, length(init_guess)),
-                            localsolver = "LBFGS")$par
-
-
-
+c(u_list, omega_hat_list_euclid) %<-% get_omega_hat_list(euclidean_distance, psi_MLE, alpha, R, tol)
 
 plan(multisession, workers = availableCores())
 
-multinomial_entropy_values_modified_IL_euclid <- omega_hat_list_mod_IL_euclid |> 
+multinomial_entropy_values_modified_IL_euclid <- omega_hat_list_euclid |> 
   get_multinomial_entropy_values_modified_IL(u_list_mod_IL, data, psi_grid)
 
 ################################################################################

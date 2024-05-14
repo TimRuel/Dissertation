@@ -6,24 +6,31 @@ likelihood <- function(theta, data) prod(theta^data)
 
 entropy <- function(theta) -sum(theta * log(theta), na.rm = TRUE)
 
-make_objective_fn <- function(u, objective) function(omega) objective(u, omega)
-
-get_omega_hat <- function(objective_fn, psi_MLE, init_guess) {
+get_omega_hat_list <- function(objective_fn, psi_MLE, prior, R, tol) {
   
-  gr <- function(omega) nloptr::nl.grad(omega, objective_fn)
-  heq <- function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE)
-  heqjac <- function(omega) nloptr::nl.jacobian(omega, heq)
+  u_list <- list()
   
-  omega_hat <- nloptr::auglag(x0 = init_guess,
-                              fn = objective_fn,
-                              gr = gr,
-                              heq = heq,
-                              heqjac = heqjac,
-                              lower = rep(0, length(init_guess)),
-                              localtol = 1e-03,
-                              localsolver = "LBFGS")$par
+  omega_hat_list <- list()
   
-  return(omega_hat)
+  while (length(omega_hat_list) < R) {
+    
+    u <- LaplacesDemon::rdirichlet(1, prior)
+    
+    omega_hat <- nloptr::auglag(x0 = rep(1, length(prior)) / length(prior),
+                                fn = function(omega) objective_fn(u, omega),
+                                heq = function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE),
+                                lower = rep(0, length(prior)),
+                                localsolver = "LBFGS")$par
+    
+    if (abs(entropy(omega_hat) - psi_MLE) < tol) {
+      
+      u_list <- c(u_list, list(u))
+      
+      omega_hat_list <- c(omega_hat_list, list(omega_hat))
+    }
+  }
+  
+  return(list("u" = u_list, "omega_hat" = omega_hat_list))
 }
 
 get_theta_hat <- function(init_guess, psi, omega_hat) {

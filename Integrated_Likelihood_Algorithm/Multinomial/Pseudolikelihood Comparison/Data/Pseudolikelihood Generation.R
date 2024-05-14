@@ -1,12 +1,13 @@
 library(future)
+library(zeallot)
 library(purrr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-# population <- "Desert Rodents"
+population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
-population <- "Birds in Killarney Woodlands"
+# population <- "Birds in Killarney Woodlands"
 
 switch(population,
        
@@ -64,11 +65,14 @@ R <- 250
 
 neg_log_likelihood <- function(theta, data) -sum(data * log(theta), na.rm = TRUE)
 
-init_guess <- rep(1, length(data)) / length(data)
-
 plan(multisession, workers = availableCores())
 
-multinomial_entropy_values_IL <- LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
+multinomial_entropy_values_IL <- neg_log_likelihood |> 
+  get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
+  pluck("omega_hat") |> 
+  get_multinomial_entropy_values_IL(data, psi_grid)
+  
+  LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
   t() |> 
   data.frame() |> 
   as.list() |> 
@@ -82,28 +86,21 @@ multinomial_entropy_values_IL <- LaplacesDemon::rdirichlet(R, rep(1, length(data
 
 alpha <- data + 1
 
-u_list <- LaplacesDemon::rdirichlet(R, alpha) |>
-  t() |>
-  data.frame() |>
-  as.list()
+euclidean_distance <- function(u, omega) dist(matrix(c(u, omega), 
+                                                     nrow = 2, 
+                                                     byrow = TRUE),
+                                              method = "euclid")[1]
+
+c(u_list, omega_hat_list) %<-% get_omega_hat_list(euclidean_distance, psi_MLE, alpha, R, tol)
 
 L <- u_list |> 
   map_dbl(\(u) likelihood(u, data)) |> 
   unlist() |> 
   as.numeric()
 
-euclidean_distance <- function(u, omega) dist(matrix(c(u, omega), 
-                                                     nrow = 2, 
-                                                     byrow = TRUE),
-                                              method = "euclid")[1]
-
-init_guess <- rep(1, length(data)) / length(data)
-
 plan(multisession, workers = availableCores())
 
-multinomial_entropy_values_mod_IL <- u_list |> 
-  map(\(u) make_objective_fn(u, euclidean_distance)) |>
-  map(\(objective_fn) get_omega_hat(objective_fn, psi_MLE, init_guess)) |> 
+multinomial_entropy_values_mod_IL <- omega_hat_list |> 
   get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
 
 ################################################################################
@@ -127,4 +124,7 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 
-
+data.frame(psi = psi_grid,
+           Integrated = multinomial_entropy_values_IL) |> 
+  ggplot() +
+  geom_point(aes(x = psi, y = Integrated))
