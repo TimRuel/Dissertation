@@ -1,6 +1,7 @@
 library(future)
 library(zeallot)
 library(purrr)
+library(dipsaus)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
@@ -47,15 +48,26 @@ switch(population,
 
 set.seed(seed)
 
-theta_MLE <- data / sum(data)
+n <- sum(data)
+
+m <- length(data)
+
+theta_MLE <- data / n
 
 psi_MLE <- entropy(theta_MLE)
 
-psi_grid <- data |> 
-  length() |> 
-  log() |> 
+sigma <- theta_MLE*diag(m) - matrix(theta_MLE) %*% theta_MLE
+
+psi_MLE_SE <- sqrt(sum(matrix(1 + log(theta_MLE)) %*% (1 + log(theta_MLE)) * sigma) / n)
+
+num_std_errors <- 3
+MoE <- num_std_errors * psi_MLE_SE
+
+psi_grid <- psi_MLE %+-% MoE |> 
+  rev() |> 
+  (\(x) c(max(0, x[1]), min(log(m), x[2])))() |> 
   plyr::round_any(step_size, floor) |> 
-  seq(0, to = _, step_size)
+  (\(x) seq(x[1], x[2], step_size))() 
 
 R <- 250
 
