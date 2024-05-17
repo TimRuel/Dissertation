@@ -5,12 +5,19 @@ library(viridis)
 library(ggnewscale)
 library(zeallot)
 library(kableExtra)
+library(stringr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
-# population <- "Birds in Killarney Woodlands"
+log_likelihood_vals_file_path <- file.choose()
+
+log_likelihood_vals <- readRDS(log_likelihood_vals_file_path)
+
+population <- log_likelihood_vals_file_path |>  
+  str_remove("^.*\\\\") |> 
+  str_remove("_R.*$") |> 
+  str_replace("_", " ") |> 
+  tools::toTitleCase()
 
 switch(population,
        
@@ -18,8 +25,6 @@ switch(population,
          
          data <- c(1, 1, 2, 4, 7, 10)
 
-         log_likelihood_vals_file_path <- "desert_rodents_R=250_step_size=0.01.Rda"
-         
          x_range <- c(1, 2)
          
          y_range <- c(-3, 0.1)
@@ -28,8 +33,6 @@ switch(population,
        "Birds in Balrath Woods" = {
       
          data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
-         
-         log_likelihood_vals_file_path <- "birds_in_balrath_woods_R=250_step_size=0.01.Rda"
          
          x_range <- c(2, 2.7)
          
@@ -40,15 +43,11 @@ switch(population,
          
          data <- c(1, 3, 4, 6, 7, 10, 14, 30)
       
-         log_likelihood_vals_file_path <- "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda"
-         
          x_range <- c(1.48, 2)
          
          y_range <- c(-5, 0.1)
        }
 )  
-
-log_likelihood_vals <- readRDS(paste0("../Data/Pseudolikelihoods/", log_likelihood_vals_file_path))
 
 pseudolikelihood_names <- c("Modified Integrated", "Integrated", "Profile")
 
@@ -164,18 +163,19 @@ conf_ints <- pseudo_log_likelihood_curves |>
            ) |> 
            round(3)
          
-         return(paste0("(", lower_bound, ", ", upper_bound, ")"))
+         return(c(lower_bound, upper_bound))
          }
-       ) |> 
-  unlist()
+       )
 
 MLE_data |> 
   select(Pseudolikelihood, MLE) |> 
   mutate(MLE = as.numeric(MLE) |> round(3),
-         conf_int = conf_ints) |> 
+         conf_int = map(conf_ints, \(x) paste0("(", x[1], ", ", x[2], ")")),
+         length = map(conf_ints, diff)) |> 
   kbl(col.names = c("Pseudolikelihood", 
                     "MLE",
-                    "95% Confidence Interval"),   
+                    "95% Confidence Interval",
+                    "CI Length"),   
       align = "c",
       caption = population) |> 
   kable_styling(bootstrap_options = c("striped", "hover")) 

@@ -6,47 +6,29 @@ library(dipsaus)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
+# population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
-# population <- "Birds in Killarney Woodlands"
+population <- "Birds in Killarney Woodlands"
 
 switch(population,
        
        "Desert Rodents" = {
          
-         seed <- 7835
-         
          data <- c(1, 1, 2, 4, 7, 10)
-         
-         step_size <- 0.01
-         
-         log_likelihood_vals_file_path <- "desert_rodents_R=250_step_size=0.01.Rda"
          },
        
        "Birds in Balrath Woods" = {
          
-         seed <- 7835
-         
          data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
-         
-         step_size <- 0.01
-         
-         log_likelihood_vals_file_path <- "birds_in_balrath_woods_R=250_step_size=0.01.Rda"
          },
        
        "Birds in Killarney Woodlands" = {
          
-         seed <- 1996
-         
          data <- c(1, 3, 4, 6, 7, 10, 14, 30)
-         
-         step_size <- 0.01
-         
-         log_likelihood_vals_file_path <- "birds_in_killarney_woodlands_R=250_step_size=0.01.Rda"
          }
        )  
 
-set.seed(seed)
+set.seed(38497283)
 
 n <- sum(data)
 
@@ -60,8 +42,10 @@ sigma <- theta_MLE*diag(m) - matrix(theta_MLE) %*% theta_MLE
 
 psi_MLE_SE <- sqrt(sum(matrix(1 + log(theta_MLE)) %*% (1 + log(theta_MLE)) * sigma) / n)
 
-num_std_errors <- 3
+num_std_errors <- 2.5
 MoE <- num_std_errors * psi_MLE_SE
+
+step_size <- 0.01
 
 psi_grid <- psi_MLE %+-% MoE |> 
   rev() |> 
@@ -69,7 +53,9 @@ psi_grid <- psi_MLE %+-% MoE |>
   plyr::round_any(step_size, floor) |> 
   (\(x) seq(x[1], x[2], step_size))() 
 
-R <- 250
+R <- 500
+
+tol <- 0.0001
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
@@ -82,14 +68,6 @@ plan(multisession, workers = availableCores())
 multinomial_entropy_values_IL <- neg_log_likelihood |> 
   get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
   pluck("omega_hat") |> 
-  get_multinomial_entropy_values_IL(data, psi_grid)
-  
-  LaplacesDemon::rdirichlet(R, rep(1, length(data))) |> 
-  t() |> 
-  data.frame() |> 
-  as.list() |> 
-  map(\(u) make_objective_fn(u, neg_log_likelihood)) |>
-  map(\(objective_fn) get_omega_hat(objective_fn, psi_MLE, init_guess)) |> 
   get_multinomial_entropy_values_IL(data, psi_grid)
   
 ################################################################################
@@ -133,10 +111,14 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = multinomial_entropy_values_IL,
                                   Profile = multinomial_entropy_values_PL) 
 
+log_likelihood_vals_file_path <- population |> 
+  tolower() |> 
+  chartr(" ", "_", x = _) |> 
+  glue::glue("_R={R}_step_size={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 
 data.frame(psi = psi_grid,
-           Integrated = multinomial_entropy_values_IL) |> 
+           Integrated = multinomial_entropy_values_PL) |> 
   ggplot() +
   geom_point(aes(x = psi, y = Integrated))

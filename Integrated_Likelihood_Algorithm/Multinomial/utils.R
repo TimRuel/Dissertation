@@ -16,17 +16,21 @@ get_omega_hat_list <- function(objective_fn, psi_MLE, prior, R, tol) {
     
     u <- LaplacesDemon::rdirichlet(1, prior)
     
-    omega_hat <- nloptr::auglag(x0 = rep(1, length(prior)) / length(prior),
+    omega_hat <- nloptr::auglag(x0 = LaplacesDemon::rdirichlet(1, rep(1, length(prior))),
                                 fn = function(omega) objective_fn(u, omega),
                                 heq = function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE),
                                 lower = rep(0, length(prior)),
                                 localsolver = "LBFGS")$par
+    
+    print(entropy(omega_hat))
     
     if (abs(entropy(omega_hat) - psi_MLE) < tol) {
       
       u_list <- c(u_list, list(u))
       
       omega_hat_list <- c(omega_hat_list, list(omega_hat))
+      
+      print(paste0(length(omega_hat_list), " omega_hats found"))
     }
   }
   
