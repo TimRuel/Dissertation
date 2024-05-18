@@ -6,6 +6,31 @@ likelihood <- function(theta, data) prod(theta^data)
 
 entropy <- function(theta) -sum(theta * log(theta), na.rm = TRUE)
 
+get_psi_grid <- function(data, step_size, num_std_errors) {
+  
+  n <- sum(data)
+  
+  m <- length(data)
+  
+  theta_MLE <- data / n
+  
+  psi_MLE <- entropy(theta_MLE)
+  
+  sigma <- theta_MLE*diag(m) - matrix(theta_MLE) %*% theta_MLE
+  
+  psi_MLE_SE <- sqrt(sum(matrix(1 + log(theta_MLE)) %*% (1 + log(theta_MLE)) * sigma, na.rm = TRUE) / n)
+  
+  MoE <- num_std_errors * psi_MLE_SE
+  
+  psi_grid <- psi_MLE %+-% MoE |> 
+    rev() |> 
+    (\(x) c(max(0, x[1]), min(log(m), x[2])))() |> 
+    plyr::round_any(step_size, floor) |> 
+    (\(x) seq(x[1], x[2], step_size))()
+  
+  return(psi_grid)
+}
+
 get_omega_hat_list <- function(objective_fn, psi_MLE, prior, R, tol) {
   
   u_list <- list()
@@ -22,15 +47,11 @@ get_omega_hat_list <- function(objective_fn, psi_MLE, prior, R, tol) {
                                 lower = rep(0, length(prior)),
                                 localsolver = "LBFGS")$par
     
-    print(entropy(omega_hat))
-    
     if (abs(entropy(omega_hat) - psi_MLE) < tol) {
       
       u_list <- c(u_list, list(u))
       
       omega_hat_list <- c(omega_hat_list, list(omega_hat))
-      
-      print(paste0(length(omega_hat_list), " omega_hats found"))
     }
   }
   

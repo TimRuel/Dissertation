@@ -1,11 +1,14 @@
 library(future)
+library(zeallot)
 library(purrr)
+library(dipsaus)
+library(tidyverse)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
+# population <- "Desert Rodents"
+population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,
@@ -52,7 +55,7 @@ sigma <- theta_MLE*diag(m) - matrix(theta_MLE) %*% theta_MLE
 
 psi_MLE_SE <- sqrt(sum(matrix(1 + log(theta_MLE)) %*% (1 + log(theta_MLE)) * sigma) / n)
 
-num_std_errors <- 2.5
+num_std_errors <- 2.1
 MoE <- num_std_errors * psi_MLE_SE
 
 step_size <- 0.01
@@ -94,48 +97,48 @@ multinomial_entropy_values_modified_IL_euclid <- omega_hat_list_euclid |>
 ############################## CANBERRA DISTANCE ##############################
 ################################################################################
 
-plan(sequential)
-
-canberra_distance <- function(u, t) dist(matrix(c(u, t), 
-                                                nrow = 2, 
-                                                byrow = TRUE),
-                                         method = "canberra")[1]
-
-tol <- 0.01
-
-c(u_list, omega_hat_list_canberra) %<-% get_omega_hat_list(canberra_distance, psi_MLE, alpha, R, tol)
-
-L <- u_list |> 
-  map_dbl(\(u) likelihood(u, data)) |> 
-  unlist() |> 
-  as.numeric()
-
-plan(multisession, workers = availableCores())
-
-multinomial_entropy_values_modified_IL_canberra <- omega_hat_list_canberra |> 
-  get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
-
-################################################################################
-############################## EXPECTED LOGLIKELIHOOD ##########################
-################################################################################
-
-plan(sequential)
-
-E_log_like <- function(u, t) sum(u * log(t), na.rm = TRUE) 
-
-tol <- 0.01
-
-c(u_list, omega_hat_list_E_log_like) %<-% get_omega_hat_list(E_log_like, psi_MLE, alpha, R, tol)
-
-L <- u_list |> 
-  map_dbl(\(u) likelihood(u, data)) |> 
-  unlist() |> 
-  as.numeric()
-
-plan(multisession, workers = availableCores())
-
-multinomial_entropy_values_modified_IL_E_log_like <- omega_hat_list_E_log_like |> 
-  get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
+# plan(sequential)
+# 
+# canberra_distance <- function(u, t) dist(matrix(c(u, t), 
+#                                                 nrow = 2, 
+#                                                 byrow = TRUE),
+#                                          method = "canberra")[1]
+# 
+# tol <- 0.01
+# 
+# c(u_list, omega_hat_list_canberra) %<-% get_omega_hat_list(canberra_distance, psi_MLE, alpha, R, tol)
+# 
+# L <- u_list |> 
+#   map_dbl(\(u) likelihood(u, data)) |> 
+#   unlist() |> 
+#   as.numeric()
+# 
+# plan(multisession, workers = availableCores())
+# 
+# multinomial_entropy_values_modified_IL_canberra <- omega_hat_list_canberra |> 
+#   get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
+# 
+# ################################################################################
+# ############################## EXPECTED LOGLIKELIHOOD ##########################
+# ################################################################################
+# 
+# plan(sequential)
+# 
+# E_log_like <- function(u, t) sum(u * log(t), na.rm = TRUE) 
+# 
+# tol <- 0.01
+# 
+# c(u_list, omega_hat_list_E_log_like) %<-% get_omega_hat_list(E_log_like, psi_MLE, alpha, R, tol)
+# 
+# L <- u_list |> 
+#   map_dbl(\(u) likelihood(u, data)) |> 
+#   unlist() |> 
+#   as.numeric()
+# 
+# plan(multisession, workers = availableCores())
+# 
+# multinomial_entropy_values_modified_IL_E_log_like <- omega_hat_list_E_log_like |> 
+#   get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
 
 ################################################################################
 ############################## u_list ##########################################
@@ -143,7 +146,7 @@ multinomial_entropy_values_modified_IL_E_log_like <- omega_hat_list_E_log_like |
 
 plan(sequential)
 
-u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(prior))) |> 
+u_list <- LaplacesDemon::rdirichlet(R, alpha) |> 
   t() |> 
   data.frame() |> 
   as.list() 
@@ -158,6 +161,14 @@ plan(multisession, workers = availableCores())
 multinomial_entropy_values_modified_IL_u_list <- u_list |> 
   get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
 
+u_list <- LaplacesDemon::rdirichlet(R, rep(1, length(alpha))) |> 
+  t() |> 
+  data.frame() |> 
+  as.list()
+
+multinomial_entropy_values_IL_u_list <- u_list |> 
+  get_multinomial_entropy_values_IL(data, psi_grid)
+
 ################################################################################
 ############################## COMPARISON ##########################
 ################################################################################
@@ -166,14 +177,13 @@ plan(sequential)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Euclidean = multinomial_entropy_values_modified_IL_euclid,
-                                  Canberra = multinomial_entropy_values_modified_IL_canberra,
-                                  E_log_like = multinomial_entropy_values_modified_IL_E_log_like,
-                                  u = multinomial_entropy_values_modified_IL_u_list) 
+                                  mod_u = multinomial_entropy_values_modified_IL_u_list,
+                                  u = multinomial_entropy_values_IL_u_list) 
 
-Q_fns <- c("Euclidean", "Canberra", "Expected Loglikelihood", "u")
+Q_fns <- c("Euclidean", "mod_u", "u")
 
 spline_fitted_models <- log_likelihood_vals |>
-  tidyr::pivot_longer(cols = c("Euclidean", "Canberra", "E_log_like", "u"),
+  tidyr::pivot_longer(cols = c("Euclidean", "mod_u", "u"),
                       names_to = "Q",
                       values_to = "loglikelihood") |> 
   group_by(Q) |> 
@@ -194,13 +204,13 @@ MLE_data <- spline_fitted_models |>
   rownames_to_column("Q") |> 
   dplyr::rename(MLE = maximum,
                 Maximum = objective) |> 
-  mutate(MLE_label = c("Euclidean", "Canberra", "E_log_like", "u"))
+  mutate(MLE_label = c("Euclidean", "mod_u", "u"))
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
   map2(MLE_data$Maximum,
        function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
 
-c(stat_fn_euclid, stat_fn_canberra, stat_fn_E_log_like, stat_fn_u) %<-% map2(
+c(stat_fn_euclid, stat_fn_mod_u, stat_fn_u) %<-% map2(
   pseudo_log_likelihood_curves,
   Q_fns,
   function(curve, Q_fn) {
@@ -219,8 +229,7 @@ c(stat_fn_euclid, stat_fn_canberra, stat_fn_E_log_like, stat_fn_u) %<-% map2(
 
 ggplot() +
   stat_fn_euclid +
-  stat_fn_canberra +
-  stat_fn_E_log_like + 
+  stat_fn_mod_u +
   stat_fn_u +
   geom_hline(yintercept = 0,
              linetype = 5) +
