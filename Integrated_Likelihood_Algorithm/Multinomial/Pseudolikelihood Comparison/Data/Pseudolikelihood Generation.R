@@ -42,15 +42,13 @@ step_size <- 0.01
 
 num_std_errors <- 3
 
-R <- 250
+R <- 1000
 
 tol <- 0.0001
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
-
-neg_log_likelihood <- function(theta, data) -sum(data * log(theta), na.rm = TRUE)
 
 plan(multisession, workers = availableCores())
 
@@ -65,7 +63,7 @@ multinomial_entropy_values_IL <- neg_log_likelihood |>
 
 alpha <- data + 1
 
-euclidean_distance <- function(u, omega) dist(matrix(c(u, omega), 
+euclidean_distance <- function(omega, u) dist(matrix(c(omega, u), 
                                                      nrow = 2, 
                                                      byrow = TRUE),
                                               method = "euclid")[1]
@@ -110,7 +108,7 @@ log_likelihood_vals_file_path <- population |>
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 
-data.frame(psi = psi_grid,
-           Integrated = multinomial_entropy_values_IL) |> 
-  ggplot() +
-  geom_point(aes(x = psi, y = Integrated))
+# data.frame(psi = psi_grid,
+#            Integrated = multinomial_entropy_values_IL) |> 
+#   ggplot() +
+#   geom_point(aes(x = psi, y = Integrated))

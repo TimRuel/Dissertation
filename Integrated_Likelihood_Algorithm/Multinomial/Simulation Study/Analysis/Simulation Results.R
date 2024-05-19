@@ -4,9 +4,20 @@ library(purrr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
-# population <- "Birds in Killarney Woodlands"
+multinomial_entropy_sims_file_path <- file.choose()
+
+multinomial_entropy_sims <- readRDS(multinomial_entropy_sims_file_path)
+
+population <- multinomial_entropy_sims |>  
+  str_remove("^.*\\\\") |> 
+  str_remove("_R.*$") |> 
+  str_replace_all("_", " ") |> 
+  tools::toTitleCase()
+
+step_size <- log_likelihood_vals_file_path |>  
+  str_remove("^.*step_size=") |> 
+  str_remove(".Rda") |> 
+  as.numeric()
 
 switch(population,
        
@@ -25,20 +36,12 @@ switch(population,
          
          data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
          
-         step_size <- 0.01
-         
-         multinomial_entropy_sims_file_path <- "birds_in_balrath_woods_sims.Rda"
-         
          multinomial_entropy_sim_results_file_path <- "birds_in_balrath_woods_sim_results.Rda"
          },
        
        "Birds in Killarney Woodlands" = {
          
          data <- c(1, 3, 4, 6, 7, 10, 14, 30)
-         
-         step_size <- 0.01
-         
-         multinomial_entropy_sims_file_path <- "birds_in_killarney_woodlands_sims.Rda"
          
          multinomial_entropy_sim_results_file_path <- "birds_in_killarney_woodlands_sim_results.Rda"
          }

@@ -4,6 +4,8 @@
 
 likelihood <- function(theta, data) prod(theta^data)
 
+neg_log_likelihood <- function(theta, data) -sum(data * log(theta), na.rm = TRUE)
+
 entropy <- function(theta) -sum(theta * log(theta), na.rm = TRUE)
 
 get_psi_grid <- function(data, step_size, num_std_errors, split = FALSE) {
@@ -52,7 +54,7 @@ get_omega_hat_list <- function(objective_fn, psi_MLE, prior, R, tol) {
     u <- LaplacesDemon::rdirichlet(1, prior)
     
     omega_hat <- nloptr::auglag(x0 = LaplacesDemon::rdirichlet(1, rep(1, length(prior))),
-                                fn = function(omega) objective_fn(u, omega),
+                                fn = function(omega) objective_fn(omega, u),
                                 heq = function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE),
                                 lower = rep(0, length(prior)),
                                 localsolver = "LBFGS")$par
