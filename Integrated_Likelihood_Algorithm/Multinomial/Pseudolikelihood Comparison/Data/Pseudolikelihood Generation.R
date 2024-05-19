@@ -6,9 +6,9 @@ library(dipsaus)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-# population <- "Desert Rodents"
+population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
-population <- "Birds in Killarney Woodlands"
+# population <- "Birds in Killarney Woodlands"
 
 switch(population,
        
@@ -38,22 +38,11 @@ theta_MLE <- data / n
 
 psi_MLE <- entropy(theta_MLE)
 
-sigma <- theta_MLE*diag(m) - matrix(theta_MLE) %*% theta_MLE
-
-psi_MLE_SE <- sqrt(sum(matrix(1 + log(theta_MLE)) %*% (1 + log(theta_MLE)) * sigma) / n)
-
-num_std_errors <- 2.5
-MoE <- num_std_errors * psi_MLE_SE
-
 step_size <- 0.01
 
-psi_grid <- psi_MLE %+-% MoE |> 
-  rev() |> 
-  (\(x) c(max(0, x[1]), min(log(m), x[2])))() |> 
-  plyr::round_any(step_size, floor) |> 
-  (\(x) seq(x[1], x[2], step_size))() 
+num_std_errors <- 3
 
-R <- 500
+R <- 250
 
 tol <- 0.0001
 
@@ -68,7 +57,7 @@ plan(multisession, workers = availableCores())
 multinomial_entropy_values_IL <- neg_log_likelihood |> 
   get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
   pluck("omega_hat") |> 
-  get_multinomial_entropy_values_IL(data, psi_grid)
+  get_multinomial_entropy_values_IL(data, step_size, num_std_errors)
   
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -91,7 +80,7 @@ L <- u_list |>
 plan(multisession, workers = availableCores())
 
 multinomial_entropy_values_mod_IL <- omega_hat_list |> 
-  get_multinomial_entropy_values_modified_IL(L, data, psi_grid)
+  get_multinomial_entropy_values_modified_IL(L, data, step_size, num_std_errors)
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -100,11 +89,14 @@ multinomial_entropy_values_mod_IL <- omega_hat_list |>
 plan(sequential)
 
 multinomial_entropy_values_PL <- data |> 
-    get_multinomial_entropy_values_PL(psi_grid)
+    get_multinomial_entropy_values_PL(step_size, num_std_errors)
 
 ################################################################################
 ################################### STORAGE #################################### 
 ################################################################################
+
+psi_grid <- data |> 
+  get_psi_grid(step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Mod_Integrated = multinomial_entropy_values_mod_IL,
@@ -119,6 +111,6 @@ log_likelihood_vals_file_path <- population |>
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 
 data.frame(psi = psi_grid,
-           Integrated = multinomial_entropy_values_PL) |> 
+           Integrated = multinomial_entropy_values_IL) |> 
   ggplot() +
   geom_point(aes(x = psi, y = Integrated))

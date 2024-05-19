@@ -6,7 +6,7 @@ likelihood <- function(theta, data) prod(theta^data)
 
 entropy <- function(theta) -sum(theta * log(theta), na.rm = TRUE)
 
-get_psi_grid <- function(data, step_size, num_std_errors) {
+get_psi_grid <- function(data, step_size, num_std_errors, split = FALSE) {
   
   n <- sum(data)
   
@@ -27,6 +27,16 @@ get_psi_grid <- function(data, step_size, num_std_errors) {
     (\(x) c(max(0, x[1]), min(log(m), x[2])))() |> 
     plyr::round_any(step_size, floor) |> 
     (\(x) seq(x[1], x[2], step_size))()
+  
+  if (split) {
+    
+    psi_grid_list <- psi_grid |> 
+      split(factor(psi_grid > psi_MLE)) |> 
+      purrr::modify_in(1, rev) |> 
+      unname()
+    
+    return(psi_grid_list)
+  }
   
   return(psi_grid)
 }
@@ -80,16 +90,12 @@ get_theta_hat <- function(init_guess, psi, omega_hat) {
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-get_multinomial_entropy_values_PL <- function(data, psi_grid) {
+get_multinomial_entropy_values_PL <- function(data, step_size, num_std_errors) {
   
   theta_MLE <- data / sum(data)
   
-  psi_MLE <- entropy(theta_MLE)
-  
-  psi_grid_list <- psi_grid |> 
-    split(factor(psi_grid > psi_MLE)) |> 
-    purrr::modify_in(1, rev) |> 
-    unname()
+  psi_grid_list <- data |> 
+    get_psi_grid(step_size, num_std_errors, split = TRUE)
   
   l_p <- psi_grid_list |> 
     purrr::map(
@@ -112,16 +118,7 @@ get_multinomial_entropy_values_PL <- function(data, psi_grid) {
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid) {
-  
-  theta_MLE <- data / sum(data)
-  
-  psi_MLE <- entropy(theta_MLE)
-  
-  psi_grid_list <- psi_grid |> 
-    split(factor(psi_grid > psi_MLE)) |> 
-    purrr::modify_in(1, rev) |> 
-    unname()
+get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid_list) {
   
   L <- psi_grid_list |> 
     purrr::map(
@@ -138,15 +135,20 @@ get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid) {
   return(L)
 }
 
-get_multinomial_entropy_values_IL <- function(omega_hat_list, data, psi_grid) {
+get_multinomial_entropy_values_IL <- function(omega_hat_list, data, step_size, num_std_errors) {
+  
+  psi_grid_list <- data |> 
+    get_psi_grid(step_size, num_std_errors, split = TRUE)
   
   l_bar <- omega_hat_list |>
-    furrr::future_map(get_multinomial_entropy_values_IL.aux, 
-                      data, 
-                      psi_grid,
+    furrr::future_map(\(x) get_multinomial_entropy_values_IL.aux(x, data, psi_grid_list),
                       .progress = TRUE) |> 
     unlist() |> 
-    matrix(ncol = length(psi_grid), byrow = TRUE) |> 
+    matrix(ncol = psi_grid_list |> 
+             unlist() |> 
+             as.numeric() |> 
+             length(), 
+           byrow = TRUE) |> 
     colMeans() |> 
     log()
   
@@ -157,15 +159,20 @@ get_multinomial_entropy_values_IL <- function(omega_hat_list, data, psi_grid) {
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-get_multinomial_entropy_values_modified_IL <- function(omega_hat_list, L, data, psi_grid) {
+get_multinomial_entropy_values_modified_IL <- function(omega_hat_list, L, data, step_size, num_std_errors) {
+  
+  psi_grid_list <- data |> 
+    get_psi_grid(step_size, num_std_errors, split = TRUE)
   
   L_tilde <- omega_hat_list |>
-    furrr::future_map(get_multinomial_entropy_values_IL.aux, 
-                      data, 
-                      psi_grid,
+    furrr::future_map(\(x) get_multinomial_entropy_values_IL.aux(x, data, psi_grid_list),
                       .progress = TRUE) |> 
     unlist() |> 
-    matrix(ncol = length(psi_grid), byrow = TRUE)
+    matrix(ncol = psi_grid_list |> 
+             unlist() |> 
+             as.numeric() |> 
+             length(),
+           byrow = TRUE)
   
   l_bar <- L_tilde |> 
     (`/`)(L) |> 
