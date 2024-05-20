@@ -3,7 +3,7 @@ library(tidyr)
 library(stringr)
 library(furrr)
 library(purrr)
-library(dipsaus)
+library(pushoverr)
 
 plan(sequential)
 
@@ -44,7 +44,7 @@ seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 2
+num_sims <- 1000
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
@@ -81,6 +81,8 @@ IL_preallocations_file_path <- population |>
 
 saveRDS(IL_preallocations, IL_preallocations_file_path)
 
+pushover("Integrated Likelihood Preallocation Finished")
+
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
@@ -89,7 +91,7 @@ seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 2
+num_sims <- 1000
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
@@ -127,3 +129,6 @@ mod_IL_preallocations_file_path <- population |>
   paste0("Preallocations/Modified Integrated Likelihood/", ... = _)
 
 saveRDS(mod_IL_preallocations, mod_IL_preallocations_file_path)
+
+pushover("Modified Integrated Likelihood Preallocation Finished")
+
