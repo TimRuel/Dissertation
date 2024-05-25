@@ -1,33 +1,39 @@
 library(dplyr)
 library(purrr)
+library(stringr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-multinomial_entropy_sims_file_path <- file.choose()
+multinomial_entropy_sims_IL_file_path <- file.choose()
 
-multinomial_entropy_sims <- readRDS(multinomial_entropy_sims_file_path)
+multinomial_entropy_sims_IL <- readRDS(multinomial_entropy_sims_IL_file_path)
 
-population <- multinomial_entropy_sims |>  
-  str_remove("^.*\\\\") |> 
-  str_remove("_R.*$") |> 
+multinomial_entropy_sims_mod_IL_file_path <- file.choose()
+
+multinomial_entropy_sims_mod_IL <- readRDS(multinomial_entropy_sims_mod_IL_file_path)
+
+multinomial_entropy_sims_PL_file_path <- file.choose()
+
+multinomial_entropy_sims_PL <- readRDS(multinomial_entropy_sims_PL_file_path)
+
+population <- multinomial_entropy_sims_IL_file_path |>  
+  str_remove("^.*/") |> 
+  str_remove("_IL.*$") |> 
   str_replace_all("_", " ") |> 
   tools::toTitleCase()
 
-step_size <- log_likelihood_vals_file_path |>  
-  str_remove("^.*step_size=") |> 
-  str_remove(".Rda") |> 
-  as.numeric()
+# population <- multinomial_entropy_sims_IL_file_path |>  
+#   str_remove("^.*\\\\") |> 
+#   str_remove("_R.*$") |> 
+#   str_replace_all("_", " ") |> 
+#   tools::toTitleCase()
 
 switch(population,
        
        "Desert Rodents" = {
          
          data <- c(1, 1, 2, 4, 7, 10)
-         
-         step_size <- 0.01
-         
-         multinomial_entropy_sims_file_path <- "desert_rodents_sims.Rda"
          
          multinomial_entropy_sim_results_file_path <- "desert_rodents_sim_results.Rda"
          },
@@ -47,28 +53,144 @@ switch(population,
          }
        )  
 
-psi_grid <- data |> 
-  length() |> 
-  log() |> 
-  plyr::round_any(step_size, floor) |> 
-  seq(0, to = _, step_size)
+n <- sum(data)
 
-multinomial_entropy_sims <- readRDS(paste0("../Data/Simulations/", multinomial_entropy_sims_file_path))
+################################################################################
+############################ INTEGRATED LIKELIHOOD ############################# 
+################################################################################
 
-spline_fitted_models_list <- multinomial_entropy_sims |> 
-  map(
-    function(sims) {
-      sims |> 
-        data.frame() |> 
-        mutate(psi = psi_grid) |> 
-        tidyr::pivot_longer(cols = -psi,
-                            names_to = "Iteration",
-                            values_to = "loglikelihood") |>
-        group_by(Iteration) |>
-        filter(is.finite(loglikelihood)) |>
-        group_map(~ smooth.spline(.x$psi, .x$loglikelihood))
-      }
-    )
+seed_IL <- multinomial_entropy_sims_IL_file_path |>  
+  str_remove("^.*seed=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+set.seed(seed_IL)
+
+num_sims_IL <- multinomial_entropy_sims_IL_file_path |>  
+  str_remove("^.*numsims=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+data_sims_IL <- num_sims_IL |> 
+  rmultinom(n, data) |> 
+  data.frame() |> 
+  as.list() |> 
+  map(as.numeric)
+
+step_size_IL <- multinomial_entropy_sims_IL_file_path |>  
+  str_remove("^.*stepsize=") |> 
+  str_extract("\\d+\\.\\d+") |> 
+  as.numeric()
+
+num_std_errors_IL <- multinomial_entropy_sims_IL_file_path |>  
+  str_remove("^.*numse=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+psi_grid_list_IL <- data_sims_IL |> 
+  map(\(data) get_psi_grid(data, step_size_IL, num_std_errors_IL))
+
+################################################################################
+######################## MODIFIED INTEGRATED LIKELIHOOD ########################
+################################################################################
+
+seed_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+  str_remove("^.*seed=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+set.seed(seed_mod_IL)
+
+num_sims_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+  str_remove("^.*numsims=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+data_sims_mod_IL <- num_sims_mod_IL |> 
+  rmultinom(n, data) |> 
+  data.frame() |> 
+  as.list() |> 
+  map(as.numeric)
+
+step_size_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+  str_remove("^.*stepsize=") |> 
+  str_extract("\\d+\\.\\d+") |> 
+  as.numeric()
+
+num_std_errors_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+  str_remove("^.*numse=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+psi_grid_list_mod_IL <- data_sims_mod_IL |> 
+  map(\(data) get_psi_grid(data, step_size_mod_IL, num_std_errors_mod_IL))
+
+################################################################################
+############################## PROFILE LIKELIHOOD ############################## 
+################################################################################
+
+seed_PL <- multinomial_entropy_sims_PL_file_path |>  
+  str_remove("^.*seed=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+set.seed(seed_PL)
+
+num_sims_PL <- multinomial_entropy_sims_PL_file_path |>  
+  str_remove("^.*numsims=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+data_sims_PL <- num_sims_PL |> 
+  rmultinom(n, data) |> 
+  data.frame() |> 
+  as.list() |> 
+  map(as.numeric)
+
+step_size_PL <- multinomial_entropy_sims_PL_file_path |>  
+  str_remove("^.*stepsize=") |> 
+  str_extract("\\d+\\.\\d+") |> 
+  as.numeric()
+
+num_std_errors_PL <- multinomial_entropy_sims_PL_file_path |>  
+  str_remove("^.*numse=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+psi_grid_list_PL <- data_sims_PL |> 
+  map(\(data) get_psi_grid(data, step_size_PL, num_std_errors_PL))
+
+################################################################################
+################################## SYNTHESIS ################################### 
+################################################################################
+
+multinomial_entropy_sims_lists <- list("Integrated" = multinomial_entropy_sims_IL,
+                                       "Mod_Integrated" = multinomial_entropy_sims_mod_IL,
+                                       "Profile" = multinomial_entropy_sims_PL)
+
+psi_grid_lists <- list("Integrated" = psi_grid_list_IL[1:100],
+                       "Mod_Integrated" = psi_grid_list_mod_IL[1:100],
+                       "Profile" = psi_grid_list_PL)
+
+spline_fitted_models_list <- multinomial_entropy_sims_lists |> 
+  map2(psi_grid_lists,
+       \(sims_list, psi_grid_list) {
+         sims_list |> 
+           map2(psi_grid_list,
+                \(sims, psi_grid) {
+                  sims |> 
+                    data.frame() |> 
+                    mutate(psi = psi_grid) |> 
+                    tidyr::pivot_longer(cols = -psi,
+                                        names_to = "Iteration",
+                                        values_to = "loglikelihood") |>
+                    group_by(Iteration) |>
+                    filter(is.finite(loglikelihood)) |>
+                    group_map(~ smooth.spline(.x$psi, .x$loglikelihood))
+                  }
+           )
+         }
+       )
 
 MLE_data_list <- spline_fitted_models_list |> 
   map(
@@ -77,7 +199,7 @@ MLE_data_list <- spline_fitted_models_list |>
         sapply(
           function(mod) {
             optimize(
-              function(psi) predict(mod, psi)$y, 
+              function(psi) predict(mod[[1]], psi)$y, 
               lower = 0, 
               upper = log(length(data)), 
               maximum = TRUE)
@@ -96,7 +218,7 @@ pseudo_log_likelihood_curves_list <- spline_fitted_models_list |>
        function(spline_fitted_models, MLE_data) {
          spline_fitted_models |>
            map2(MLE_data$Maximum,
-                function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
+                function(mod, maximum) function(psi) predict(mod[[1]], psi)$y - maximum)
          }
        )
 
@@ -162,7 +284,7 @@ multinomial_entropy_sim_results <- MLE_data_list |>
   do.call(rbind, args = _) |> 
   t() |> 
   as.data.frame() |> 
-  rownames_to_column("Metric")
+  tibble::rownames_to_column("Metric")
 
 saveRDS(multinomial_entropy_sim_results, paste0("Results/", multinomial_entropy_sim_results_file_path))
 
