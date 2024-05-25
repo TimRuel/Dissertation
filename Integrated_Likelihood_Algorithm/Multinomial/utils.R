@@ -24,8 +24,7 @@ get_psi_grid <- function(data, step_size, num_std_errors, split = FALSE) {
   
   MoE <- num_std_errors * psi_MLE_SE
   
-  psi_grid <- psi_MLE %+-% MoE |> 
-    rev() |> 
+  psi_grid <- (psi_MLE + MoE*c(-1, 1)) |> 
     (\(x) c(max(0, x[1]), min(log(m), x[2])))() |> 
     plyr::round_any(step_size, floor) |> 
     (\(x) seq(x[1], x[2], step_size))()

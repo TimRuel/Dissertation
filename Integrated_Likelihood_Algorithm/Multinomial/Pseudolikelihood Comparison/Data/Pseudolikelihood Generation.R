@@ -1,7 +1,7 @@
 library(future)
 library(zeallot)
 library(purrr)
-library(dipsaus)
+library(tidyverse)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
@@ -42,7 +42,7 @@ step_size <- 0.01
 
 num_std_errors <- 3
 
-R <- 1000
+R <- 250
 
 tol <- 0.0001
 
@@ -52,10 +52,15 @@ tol <- 0.0001
 
 plan(multisession, workers = availableCores())
 
-multinomial_entropy_values_IL <- neg_log_likelihood |> 
-  get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
-  pluck("omega_hat") |> 
-  get_multinomial_entropy_values_IL(data, step_size, num_std_errors)
+stime <- system.time({
+
+  multinomial_entropy_values_IL <- neg_log_likelihood |> 
+    get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
+    pluck("omega_hat") |> 
+    get_multinomial_entropy_values_IL(data, step_size, num_std_errors)
+})
+
+stime
   
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -108,7 +113,10 @@ log_likelihood_vals_file_path <- population |>
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 
-# data.frame(psi = psi_grid,
-#            Integrated = multinomial_entropy_values_IL) |> 
-#   ggplot() +
-#   geom_point(aes(x = psi, y = Integrated))
+psi_grid <- data_sims[[4]] |> 
+  get_psi_grid(step_size, num_std_errors, split = FALSE)
+
+data.frame(psi = psi_grid,
+           Integrated = multinomial_entropy_sims_IL[[4]]) |>
+  ggplot() +
+  geom_point(aes(x = psi, y = Integrated))
