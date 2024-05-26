@@ -78,7 +78,7 @@ sim_results_df1 |>
   column_spec(c(7, 10), color = "grey") |>
   collapse_rows(columns = 1, valign = "top") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 100 simulations.
+                      Cell entries in blue were based on 200 simulations.
                       Cell entries in green were based on 50 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
@@ -113,7 +113,7 @@ sim_results_df2 |>
   pack_rows(index = c("Ruel" = 5, "Severini" = 5),
             label_row_css = "background-color: #666; color: #fff;") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 100 simulations.
+                      Cell entries in blue were based on 200 simulations.
                       Cell entries in green were based on 50 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",

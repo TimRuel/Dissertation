@@ -17,17 +17,17 @@ multinomial_entropy_sims_PL_file_path <- file.choose()
 
 multinomial_entropy_sims_PL <- readRDS(multinomial_entropy_sims_PL_file_path)
 
-population <- multinomial_entropy_sims_IL_file_path |>  
-  str_remove("^.*/") |> 
-  str_remove("_IL.*$") |> 
-  str_replace_all("_", " ") |> 
-  tools::toTitleCase()
-
 # population <- multinomial_entropy_sims_IL_file_path |>  
-#   str_remove("^.*\\\\") |> 
-#   str_remove("_R.*$") |> 
+#   str_remove("^.*/") |> 
+#   str_remove("_IL.*$") |> 
 #   str_replace_all("_", " ") |> 
 #   tools::toTitleCase()
+
+population <- multinomial_entropy_sims_IL_file_path |>
+  str_remove("^.*\\\\") |>
+  str_remove("_IL.*$") |>
+  str_replace_all("_", " ") |>
+  tools::toTitleCase()
 
 switch(population,
        
@@ -168,8 +168,8 @@ multinomial_entropy_sims_lists <- list("Integrated" = multinomial_entropy_sims_I
                                        "Mod_Integrated" = multinomial_entropy_sims_mod_IL,
                                        "Profile" = multinomial_entropy_sims_PL)
 
-psi_grid_lists <- list("Integrated" = psi_grid_list_IL[1:100],
-                       "Mod_Integrated" = psi_grid_list_mod_IL[1:100],
+psi_grid_lists <- list("Integrated" = psi_grid_list_IL[1:200],
+                       "Mod_Integrated" = psi_grid_list_mod_IL[1:200],
                        "Profile" = psi_grid_list_PL)
 
 spline_fitted_models_list <- multinomial_entropy_sims_lists |> 
