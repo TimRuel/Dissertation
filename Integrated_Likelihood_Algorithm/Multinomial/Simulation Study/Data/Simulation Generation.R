@@ -89,7 +89,7 @@ data_batches <- chunk(data_sims, 10)
 
 plan(multisession, workers = availableCores())
 
-for (batch in 1:1) {
+for (batch in 2:2) {
   
   multinomial_entropy_sims_IL <- omega_hat_IL_batches[[batch]] |>
     map2(data_batches[[batch]],
@@ -180,7 +180,7 @@ data_batches <- chunk(data_sims, 10)
 
 plan(multisession, workers = availableCores())
 
-for (batch in 1:1) {
+for (batch in 2:2) {
   
   multinomial_entropy_sims_mod_IL <- list(omega_hat_mod_IL_batches[[batch]],
                                           L_batches[[batch]],
