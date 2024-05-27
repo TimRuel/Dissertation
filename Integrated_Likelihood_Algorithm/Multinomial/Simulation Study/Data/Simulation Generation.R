@@ -89,7 +89,7 @@ data_batches <- chunk(data_sims, 10)
 
 plan(multisession, workers = availableCores())
 
-for (batch in 2:2) {
+for (batch in 3:3) {
   
   multinomial_entropy_sims_IL <- omega_hat_IL_batches[[batch]] |>
     map2(data_batches[[batch]],
@@ -180,7 +180,7 @@ data_batches <- chunk(data_sims, 10)
 
 plan(multisession, workers = availableCores())
 
-for (batch in 2:2) {
+for (batch in 3:3) {
   
   multinomial_entropy_sims_mod_IL <- list(omega_hat_mod_IL_batches[[batch]],
                                           L_batches[[batch]],
@@ -231,48 +231,48 @@ for (batch in 2:2) {
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-# plan(sequential)
-# 
-# seed <- 38497283
-# 
-# set.seed(seed)
-# 
-# num_sims <- 50
-# 
-# data_sims <- num_sims |> 
-#   rmultinom(n, data) |> 
-#   data.frame() |> 
-#   as.list() |> 
-#   map(as.numeric)
-# 
-# num_std_errors <- 3
-# 
-# step_size <- 0.01
-# 
-# start <- 1
-# 
-# end <- num_sims
-# 
-# data_batches <- chunk(data_sims, 10)
-# 
-# plan(multisession, workers = availableCores())
-# 
-# for (batch in 1:1) {
-#   
-#   multinomial_entropy_sims_PL <- data_batches[[batch]] |>
-#     future_map(\(data) get_multinomial_entropy_values_PL(data, step_size, num_std_errors),
-#                .progress = TRUE)
-#   
-#   multinomial_entropy_sims_PL_file_path <- population |> 
-#     tolower() |> 
-#     str_replace_all(" ", "_") |> 
-#     glue::glue("_PL_sims_seed={seed}_numsims={num_sims}_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda") |> 
-#     paste0("Simulations/", population, "/Profile Likelihood/", ... = _)
-#   
-#   saveRDS(multinomial_entropy_sims_PL, multinomial_entropy_sims_PL_file_path)
-#   
-#   pushover(paste0("Profile Batch ", batch, " done!"))
-# }
+plan(sequential)
+
+seed <- 38497283
+
+set.seed(seed)
+
+num_sims <- 50
+
+data_sims <- num_sims |>
+  rmultinom(n, data) |>
+  data.frame() |>
+  as.list() |>
+  map(as.numeric)
+
+num_std_errors <- 3
+
+step_size <- 0.01
+
+start <- 1
+
+end <- num_sims
+
+data_batches <- chunk(data_sims, 10)
+
+plan(multisession, workers = availableCores())
+
+for (batch in 1:3) {
+
+  multinomial_entropy_sims_PL <- data_batches[[batch]] |>
+    future_map(\(data) get_multinomial_entropy_values_PL(data, step_size, num_std_errors),
+               .progress = TRUE)
+
+  multinomial_entropy_sims_PL_file_path <- population |>
+    tolower() |>
+    str_replace_all(" ", "_") |>
+    glue::glue("_PL_sims_seed={seed}_numsims={num_sims}_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda") |>
+    paste0("Simulations/", population, "/Profile Likelihood/", ... = _)
+
+  saveRDS(multinomial_entropy_sims_PL, multinomial_entropy_sims_PL_file_path)
+
+  pushover(paste0("Profile Batch ", batch, " done!"))
+}
 
 # multinomial_entropy_sims_PL <- data_sims[start:end] |>
 #     future_map(\(data) get_multinomial_entropy_values_PL(data, step_size, num_std_errors),
