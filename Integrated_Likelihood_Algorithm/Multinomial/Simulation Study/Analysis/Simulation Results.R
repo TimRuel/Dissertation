@@ -168,8 +168,8 @@ multinomial_entropy_sims_lists <- list("Integrated" = multinomial_entropy_sims_I
                                        "Mod_Integrated" = multinomial_entropy_sims_mod_IL,
                                        "Profile" = multinomial_entropy_sims_PL)
 
-psi_grid_lists <- list("Integrated" = psi_grid_list_IL[1:200],
-                       "Mod_Integrated" = psi_grid_list_mod_IL[1:200],
+psi_grid_lists <- list("Integrated" = psi_grid_list_IL[1:length(multinomial_entropy_sims_IL)],
+                       "Mod_Integrated" = psi_grid_list_mod_IL[1:length(multinomial_entropy_sims_mod_IL)],
                        "Profile" = psi_grid_list_PL)
 
 spline_fitted_models_list <- multinomial_entropy_sims_lists |> 

@@ -78,7 +78,7 @@ sim_results_df1 |>
   column_spec(c(7, 10), color = "grey") |>
   collapse_rows(columns = 1, valign = "top") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 200 simulations.
+                      Cell entries in blue were based on 300 simulations.
                       Cell entries in green were based on 50 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
@@ -113,7 +113,7 @@ sim_results_df2 |>
   pack_rows(index = c("Ruel" = 5, "Severini" = 5),
             label_row_css = "background-color: #666; color: #fff;") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 200 simulations.
+                      Cell entries in blue were based on 300 simulations.
                       Cell entries in green were based on 50 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
@@ -122,7 +122,11 @@ sim_results_df2 |>
 
 sim_results_df3 <- sim_results_df1 |> 
   pivot_longer(where(is.numeric) | where(is.logical)) |>
-  mutate(Likelihood = ifelse(grepl("Integrated", name), "Integrated", "Profile"),
+  mutate(Likelihood = ifelse(grepl("Integrated", name), 
+                             ifelse(grepl("Mod_Integrated", name), 
+                                    "Mod_Integrated",
+                                    "Integrated"),
+                             "Profile"), 
          name = str_replace(name, "(?<=\\()[^()]*(?=\\))", Author)) |> 
   select(-Author) |> 
   pivot_wider(names_from = name) |> 
@@ -143,13 +147,14 @@ sim_results_df3 |>
                      "Birds in Balrath Woods" = 2, 
                      "Birds in Killarney Woodlands" = 2)) |> 
   column_spec(1, bold = TRUE) |> 
-  column_spec(c(2, 6), color = "blue") |>
-  column_spec(4, color = "red") |>
-  row_spec(6:10, color = "black") |>
-  pack_rows(index = c("Integrated" = 5, "Profile" = 5),
+  column_spec(2, color = c(rep("blue", 10), rep("green", 5))) |>
+  column_spec(c(3, 5, 7), color = c(rep("black", 5), rep("grey", 5), rep("black", 5))) |> 
+  column_spec(c(4, 6), color = c(rep("red", 5), rep("grey", 5), rep("black", 5))) |>
+  pack_rows(index = c("Integrated" = 5, "Modified Integrated" = 5, "Profile" = 5),
             label_row_css = "background-color: #666; color: #fff;") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 60 simulations.
+                      Cell entries in blue were based on 300 simulations.
+                      Cell entries in green were based on 50 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
            general_title = "",

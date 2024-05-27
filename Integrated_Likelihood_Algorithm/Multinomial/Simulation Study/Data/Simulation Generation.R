@@ -237,7 +237,7 @@ seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 50
+num_sims <- 1000
 
 data_sims <- num_sims |>
   rmultinom(n, data) |>
