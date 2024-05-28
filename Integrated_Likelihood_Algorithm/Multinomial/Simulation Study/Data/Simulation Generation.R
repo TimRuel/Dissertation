@@ -77,62 +77,77 @@ num_std_errors <- 3
 
 step_size <- 0.01
 
-start <- 1
+# chunk <- function(x,n) split(x, cut(seq_along(x), n, labels = FALSE)) 
+# 
+# omega_hat_IL_batches <- chunk(omega_hat_lists_IL, 10)
+# 
+# data_batches <- chunk(data_sims, 10)
+# 
+# plan(multisession, workers = availableCores(method = "system"))
+# 
+# for (batch in 3:3) {
+#   
+#   multinomial_entropy_sims_IL <- omega_hat_IL_batches[[batch]] |>
+#     map2(data_batches[[batch]],
+#          \(omega_hat_list, data) get_multinomial_entropy_values_IL(omega_hat_list, data, step_size, num_std_errors),
+#          .progress = TRUE)
+#   
+#   multinomial_entropy_sims_IL_file_path <- IL_preallocations_file_path |> 
+#     str_remove("^.*preallocations_") |> 
+#     str_remove(".Rda") |> 
+#     paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda")) |> 
+#     paste0("Simulations/", 
+#            population, 
+#            "/Integrated Likelihood/", 
+#            population |> 
+#              tolower() |> 
+#              str_replace_all(" ", "_"),
+#            "_IL_sims_",
+#            ... = _)
+#   
+#   saveRDS(multinomial_entropy_sims_IL, multinomial_entropy_sims_IL_file_path)
+#   
+#   pushover(paste0("IL Batch ", batch, " done!"))
+# }
+
+start <- 401
 
 end <- num_sims
 
-chunk <- function(x,n) split(x, cut(seq_along(x), n, labels = FALSE)) 
+plan(list(tweak(multisession, workers = 4),
+          tweak(multisession, workers = 15)))
 
-omega_hat_IL_batches <- chunk(omega_hat_lists_IL, 10)
+multinomial_entropy_sims_IL <- omega_hat_lists_IL[start:end] |>
+  map2(data_sims[start:end],
+       \(omega_hat_list, data) {
+         
+         time <- format(Sys.time(), "%M") |>
+           as.numeric()
+         
+         if ((time %% 2) == 0) pushover("Still running")
+         
+         multinomial_entropy_values_IL <- get_multinomial_entropy_values_IL(omega_hat_list, data, step_size, num_std_errors)
+         
+         return(multinomial_entropy_values_IL)
+         },
+       .progress = TRUE)
 
-data_batches <- chunk(data_sims, 10)
+multinomial_entropy_sims_IL_file_path <- IL_preallocations_file_path |>
+  str_remove("^.*preallocations_") |>
+  str_remove(".Rda") |>
+  paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}_batch=5.Rda")) |>
+  paste0("Simulations/",
+         population,
+         "/Integrated Likelihood/",
+         population |>
+           tolower() |>
+           str_replace_all(" ", "_"),
+         "_IL_sims_",
+         ... = _)
 
-plan(multisession, workers = availableCores())
+saveRDS(multinomial_entropy_sims_IL, multinomial_entropy_sims_IL_file_path)
 
-for (batch in 3:3) {
-  
-  multinomial_entropy_sims_IL <- omega_hat_IL_batches[[batch]] |>
-    map2(data_batches[[batch]],
-         \(omega_hat_list, data) get_multinomial_entropy_values_IL(omega_hat_list, data, step_size, num_std_errors),
-         .progress = TRUE)
-  
-  multinomial_entropy_sims_IL_file_path <- IL_preallocations_file_path |> 
-    str_remove("^.*preallocations_") |> 
-    str_remove(".Rda") |> 
-    paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda")) |> 
-    paste0("Simulations/", 
-           population, 
-           "/Integrated Likelihood/", 
-           population |> 
-             tolower() |> 
-             str_replace_all(" ", "_"),
-           "_IL_sims_",
-           ... = _)
-  
-  saveRDS(multinomial_entropy_sims_IL, multinomial_entropy_sims_IL_file_path)
-  
-  pushover(paste0("IL Batch ", batch, " done!"))
-}
-
-# multinomial_entropy_sims_IL <- omega_hat_lists_IL[start:end] |>
-#   map2(data_sims[start:end],
-#        \(omega_hat_list, data) get_multinomial_entropy_values_IL(omega_hat_list, data, step_size, num_std_errors),
-#        .progress = TRUE)
-# 
-# multinomial_entropy_sims_IL_file_path <- IL_preallocations_file_path |> 
-#   str_remove("^.*preallocations_") |> 
-#   str_remove(".Rda") |> 
-#   paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda")) |> 
-#   paste0("Simulations/", 
-#          population, 
-#          "/Integrated Likelihood/", 
-#          population |> 
-#            tolower() |> 
-#            str_replace_all(" ", "_"),
-#          "_IL_sims_",
-#          ... = _)
-#   
-# saveRDS(multinomial_entropy_sims_IL, multinomial_entropy_sims_IL_file_path)
+pushover("IL done!")
 
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -168,59 +183,73 @@ num_std_errors <- 3
 
 step_size <- 0.01
 
-start <- 1
-
-end <- num_sims
-
 omega_hat_mod_IL_batches <- chunk(omega_hat_lists_mod_IL, 10)
 
 L_batches <- chunk(L_lists, 10)
 
 data_batches <- chunk(data_sims, 10)
 
-plan(multisession, workers = availableCores())
+plan(list(tweak(multisession, workers = 4),
+          tweak(multisession, workers = 15)))
 
-for (batch in 3:3) {
-  
+for (batch in 4:10) {
+
   multinomial_entropy_sims_mod_IL <- list(omega_hat_mod_IL_batches[[batch]],
                                           L_batches[[batch]],
                                           data_batches[[batch]]) |>
-    pmap(\(omega_hat_list, L, data) get_multinomial_entropy_values_modified_IL(omega_hat_list, L, data, step_size, num_std_errors),
-         .progress = TRUE)
-  
-  multinomial_entropy_sims_mod_IL_file_path <- mod_IL_preallocations_file_path |> 
-    str_remove("^.*preallocations_") |> 
-    str_remove(".Rda") |> 
-    paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda")) |> 
-    paste0("Simulations/", 
-           population, 
-           "/Modified Integrated Likelihood/", 
-           population |> 
-             tolower() |> 
+    pmap(\(omega_hat_list, L, data) {
+      
+      time <- format(Sys.time(), "%M") |>
+        as.numeric()
+      
+      if ((time %% 2) == 0) pushover(paste0("Batch ", batch, " still running"))
+      
+      multinomial_entropy_values_modified_IL <- get_multinomial_entropy_values_modified_IL(omega_hat_list, L, data, step_size, num_std_errors)
+      
+      return(multinomial_entropy_values_modified_IL)
+      },
+      .progress = TRUE)
+
+  multinomial_entropy_sims_mod_IL_file_path <- mod_IL_preallocations_file_path |>
+    str_remove("^.*preallocations_") |>
+    str_remove(".Rda") |>
+    paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda")) |>
+    paste0("Simulations/",
+           population,
+           "/Modified Integrated Likelihood/",
+           population |>
+             tolower() |>
              str_replace_all(" ", "_"),
            "_mod_IL_sims_",
            ... = _)
-  
+
   saveRDS(multinomial_entropy_sims_mod_IL, multinomial_entropy_sims_mod_IL_file_path)
-  
+
   pushover(paste0("Mod IL Batch ", batch, " done!"))
 }
 
+# start <- 1
+# 
+# end <- num_sims
+# 
+# plan(list(tweak(multisession, workers = 4),
+#           tweak(multisession, workers = 15)))
+# 
 # multinomial_entropy_sims_mod_IL <- list(omega_hat_lists_mod_IL[start:end],
 #                                         L_lists[start:end],
 #                                         data_sims[start:end]) |>
 #   pmap(\(omega_hat_list, L, data) get_multinomial_entropy_values_modified_IL(omega_hat_list, L, data, step_size, num_std_errors),
 #        .progress = TRUE)
 # 
-# multinomial_entropy_sims_mod_IL_file_path <- mod_IL_preallocations_file_path |> 
-#   str_remove("^.*preallocations_") |> 
-#   str_remove(".Rda") |> 
-#   paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}.Rda")) |> 
-#   paste0("Simulations/", 
-#          population, 
-#          "/Modified Integrated Likelihood/", 
-#          population |> 
-#            tolower() |> 
+# multinomial_entropy_sims_mod_IL_file_path <- mod_IL_preallocations_file_path |>
+#   str_remove("^.*preallocations_") |>
+#   str_remove(".Rda") |>
+#   paste0(glue::glue("_numse={num_std_errors}_stepsize={step_size}.Rda")) |>
+#   paste0("Simulations/",
+#          population,
+#          "/Modified Integrated Likelihood/",
+#          population |>
+#            tolower() |>
 #            str_replace_all(" ", "_"),
 #          "_mod_IL_sims_",
 #          ... = _)
@@ -231,57 +260,36 @@ for (batch in 3:3) {
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-plan(sequential)
-
-seed <- 38497283
-
-set.seed(seed)
-
-num_sims <- 1000
-
-data_sims <- num_sims |>
-  rmultinom(n, data) |>
-  data.frame() |>
-  as.list() |>
-  map(as.numeric)
-
-num_std_errors <- 3
-
-step_size <- 0.01
-
-start <- 1
-
-end <- num_sims
-
-data_batches <- chunk(data_sims, 10)
-
-plan(multisession, workers = availableCores())
-
-for (batch in 1:3) {
-
-  multinomial_entropy_sims_PL <- data_batches[[batch]] |>
-    future_map(\(data) get_multinomial_entropy_values_PL(data, step_size, num_std_errors),
-               .progress = TRUE)
-
-  multinomial_entropy_sims_PL_file_path <- population |>
-    tolower() |>
-    str_replace_all(" ", "_") |>
-    glue::glue("_PL_sims_seed={seed}_numsims={num_sims}_numse={num_std_errors}_stepsize={step_size}_batch={batch}.Rda") |>
-    paste0("Simulations/", population, "/Profile Likelihood/", ... = _)
-
-  saveRDS(multinomial_entropy_sims_PL, multinomial_entropy_sims_PL_file_path)
-
-  pushover(paste0("Profile Batch ", batch, " done!"))
-}
-
-# multinomial_entropy_sims_PL <- data_sims[start:end] |>
+# plan(sequential)
+# 
+# seed <- 38497283
+# 
+# set.seed(seed)
+# 
+# num_sims <- 1000
+# 
+# data_sims <- num_sims |>
+#   rmultinom(n, data) |>
+#   data.frame() |>
+#   as.list() |>
+#   map(as.numeric)
+# 
+# num_std_errors <- 3
+# 
+# step_size <- 0.01
+# 
+# plan(multisession, workers = 20)
+# 
+# multinomial_entropy_sims_PL <- data_sims |>
 #     future_map(\(data) get_multinomial_entropy_values_PL(data, step_size, num_std_errors),
 #                .progress = TRUE)
 # 
-# multinomial_entropy_sims_PL_file_path <- population |> 
-#   tolower() |> 
-#   str_replace_all(" ", "_") |> 
-#   glue::glue("_PL_sims_seed={seed}_numsims={num_sims}_R={R}_tol={tol}.Rda") |> 
+# multinomial_entropy_sims_PL_file_path <- population |>
+#   tolower() |>
+#   str_replace_all(" ", "_") |>
+#   glue::glue("_PL_sims_seed={seed}_numsims={num_sims}_numse={num_std_errors}_stepsize={step_size}.Rda") |>
 #   paste0("Simulations/", population, "/Profile Likelihood/", ... = _)
 # 
 # saveRDS(multinomial_entropy_sims_PL, multinomial_entropy_sims_PL_file_path)
+# 
+# pushover("Profile Done!")
