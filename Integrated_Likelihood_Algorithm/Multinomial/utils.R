@@ -91,12 +91,9 @@ get_theta_hat <- function(init_guess, psi, omega_hat) {
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-get_multinomial_entropy_values_PL <- function(data, step_size, num_std_errors) {
+get_multinomial_entropy_values_PL <- function(data, psi_grid_list) {
   
   theta_MLE <- data / sum(data)
-  
-  psi_grid_list <- data |> 
-    get_psi_grid(step_size, num_std_errors, split = TRUE)
   
   l_p <- psi_grid_list |> 
     purrr::map(
@@ -136,10 +133,7 @@ get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid_list
   return(L)
 }
 
-get_multinomial_entropy_values_IL <- function(omega_hat_list, data, step_size, num_std_errors) {
-  
-  psi_grid_list <- data |> 
-    get_psi_grid(step_size, num_std_errors, split = TRUE)
+get_multinomial_entropy_values_IL <- function(omega_hat_list, psi_grid_list, data) {
   
   l_bar <- omega_hat_list |>
     furrr::future_map(\(x) get_multinomial_entropy_values_IL.aux(x, data, psi_grid_list),
@@ -160,10 +154,7 @@ get_multinomial_entropy_values_IL <- function(omega_hat_list, data, step_size, n
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-get_multinomial_entropy_values_modified_IL <- function(omega_hat_list, L, data, step_size, num_std_errors) {
-  
-  psi_grid_list <- data |> 
-    get_psi_grid(step_size, num_std_errors, split = TRUE)
+get_multinomial_entropy_values_modified_IL <- function(omega_hat_list, psi_grid_list, L, data) {
   
   L_tilde <- omega_hat_list |>
     furrr::future_map(\(x) get_multinomial_entropy_values_IL.aux(x, data, psi_grid_list),

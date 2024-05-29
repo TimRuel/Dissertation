@@ -13,11 +13,17 @@ log_likelihood_vals_file_path <- file.choose()
 
 log_likelihood_vals <- readRDS(log_likelihood_vals_file_path)
 
-population <- log_likelihood_vals_file_path |>  
-  str_remove("^.*\\\\") |> 
-  str_remove("_R.*$") |> 
+population <- IL_preallocations_file_path |>  
+  str_remove("^.*/") |> 
+  str_remove("_IL.*$") |> 
   str_replace_all("_", " ") |> 
   tools::toTitleCase()
+
+# population <- log_likelihood_vals_file_path |>  
+#   str_remove("^.*\\\\") |> 
+#   str_remove("_R.*$") |> 
+#   str_replace_all("_", " ") |> 
+#   tools::toTitleCase()
 
 switch(population,
        

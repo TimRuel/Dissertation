@@ -173,15 +173,18 @@ data_sims <- num_sims |>
   as.list() |> 
   map(as.numeric)
 
+num_std_errors <- 3
+
+step_size <- 0.01
+
+psi_grid_lists <- data_sims |> 
+  map(\(data) get_psi_grid(data, step_size, num_std_errors, split = TRUE))
+
 L_lists <- u_lists_mod_IL |> 
   map(\(u_list) u_list |> 
         map_dbl(\(u) likelihood(u, data)) |> 
   unlist() |> 
   as.numeric())
-
-num_std_errors <- 3
-
-step_size <- 0.01
 
 omega_hat_mod_IL_batches <- chunk(omega_hat_lists_mod_IL, 10)
 
@@ -189,22 +192,25 @@ L_batches <- chunk(L_lists, 10)
 
 data_batches <- chunk(data_sims, 10)
 
+psi_grid_lists_batches <- chunk(psi_grid_lists, 10)
+
 plan(list(tweak(multisession, workers = 4),
           tweak(multisession, workers = 15)))
 
 for (batch in 4:10) {
 
   multinomial_entropy_sims_mod_IL <- list(omega_hat_mod_IL_batches[[batch]],
+                                          psi_grid_lists_batches[[batch]],
                                           L_batches[[batch]],
                                           data_batches[[batch]]) |>
-    pmap(\(omega_hat_list, L, data) {
+    future_pmap(\(omega_hat_list, psi_grid_list, L, data) {
       
       time <- format(Sys.time(), "%M") |>
         as.numeric()
       
-      if ((time %% 2) == 0) pushover(paste0("Batch ", batch, " still running"))
+      if ((time %% 15) == 0) pushover(paste0("Batch ", batch, " still running"))
       
-      multinomial_entropy_values_modified_IL <- get_multinomial_entropy_values_modified_IL(omega_hat_list, L, data, step_size, num_std_errors)
+      multinomial_entropy_values_modified_IL <- get_multinomial_entropy_values_modified_IL(omega_hat_list, psi_grid_list, L, data)
       
       return(multinomial_entropy_values_modified_IL)
       },
