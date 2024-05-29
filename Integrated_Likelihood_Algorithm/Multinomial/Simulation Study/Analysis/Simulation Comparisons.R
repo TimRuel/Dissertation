@@ -71,7 +71,6 @@ sim_results_df1 |>
                      "Birds in Killarney Woodlands" = 3)) |> 
   column_spec(1, bold = TRUE, color = "white", background = "#666") |> 
   column_spec(2, bold = TRUE) |> 
-  column_spec(3, color = rep(c("blue", "black"), 5)) |>
   column_spec(4, color = rep(c("blue", "grey"), 5)) |>
   column_spec(c(6, 9), color = rep(c("red", "black"), 5)) |> 
   column_spec(c(7, 10), color = "grey") |>
@@ -102,7 +101,6 @@ sim_results_df2 |>
                      "Birds in Balrath Woods" = 3, 
                      "Birds in Killarney Woodlands" = 3)) |> 
   column_spec(1, bold = TRUE) |> 
-  column_spec(2, color = rep(c("blue", "black"), each = 5)) |>
   column_spec(3, color = rep(c("blue", "grey"), each = 5)) |>
   column_spec(c(5, 8), color = rep(c("red", "black"), each = 5)) |>
   column_spec(c(6, 9), color = "grey") |>
@@ -143,7 +141,7 @@ sim_results_df3 |>
                      "Birds in Balrath Woods" = 2, 
                      "Birds in Killarney Woodlands" = 2)) |> 
   column_spec(1, bold = TRUE) |> 
-  column_spec(2, color = c(rep("blue", 10), rep("black", 5))) |>
+  column_spec(2, color = c(rep("black", 5), rep("blue", 5), rep("black", 5))) |>
   column_spec(c(3, 5, 7), color = c(rep("black", 5), rep("grey", 5), rep("black", 5))) |> 
   column_spec(c(4, 6), color = c(rep("red", 5), rep("grey", 5), rep("black", 5))) |>
   pack_rows(index = c("Integrated" = 5, "Modified Integrated" = 5, "Profile" = 5),
