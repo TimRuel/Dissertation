@@ -8,6 +8,11 @@ neg_log_likelihood <- function(theta, data) -sum(data * log(theta), na.rm = TRUE
 
 entropy <- function(theta) -sum(theta * log(theta), na.rm = TRUE)
 
+euclidean_distance <- function(u, omega) dist(matrix(c(u, omega),
+                                                     nrow = 2,
+                                                     byrow = TRUE),
+                                              method = "euclid")[1]
+
 get_psi_grid <- function(data, step_size, num_std_errors, split = FALSE) {
   
   n <- sum(data)
@@ -120,14 +125,14 @@ get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid_list
   
   L <- psi_grid_list |> 
     purrr::map(
-      \(x) purrr::accumulate(
-        x,
-        \(acc, nxt) get_theta_hat(acc, nxt, omega_hat), 
-        .init = omega_hat
-      ) |> 
+      \(psi_grid) psi_grid |> 
+        purrr::accumulate(
+          \(acc, nxt) get_theta_hat(acc, nxt, omega_hat), 
+          .init = omega_hat
+          ) |> 
         magrittr::extract(-1) |> 
         purrr::map_dbl(likelihood, data)
-    ) |> 
+      ) |> 
     purrr::modify_in(1, rev) 
   
   return(L)
@@ -166,11 +171,11 @@ get_multinomial_entropy_values_modified_IL <- function(omega_hat_list, psi_grid_
              length(),
            byrow = TRUE)
   
-  l_bar <- L_tilde |> 
-    (`/`)(L) |> 
-    colMeans() |> 
-    log()
-  
+  l_bar <- L_tilde |>
+      (`/`)(L) |>
+      colMeans() |>
+      log()
+
   return(l_bar)
 }
 

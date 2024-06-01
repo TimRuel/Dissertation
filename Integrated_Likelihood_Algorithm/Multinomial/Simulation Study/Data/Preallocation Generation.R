@@ -103,29 +103,39 @@ R <- 250
 
 tol <- 0.0001
 
-euclidean_distance <- function(u, omega) dist(matrix(c(u, omega),
-                                                     nrow = 2,
-                                                     byrow = TRUE),
-                                              method = "euclid")[1]
+# Q_name <- "euclidean_distance"
+Q_name <- "neg_log_likelihood"
+
+Q <- Q_name |>
+  get()
+
+plan(multisession, workers = 50L)
 
 mod_IL_preallocations <- data_sims |>
   future_map(\(x) {
     
-      psi_MLE <- entropy(x / sum(x))
+    time <- format(Sys.time(), "%M") |>
+      as.numeric()
+    
+    if ((time %% 15) == 0) pushover("Still running")
+    
+    psi_MLE <- entropy(x / sum(x))
                                       
-      alpha <- data + 1
+    alpha <- x + 1
       
-      out <- get_omega_hat_list(euclidean_distance, psi_MLE, alpha, R, tol)
+    out <- get_omega_hat_list(Q, psi_MLE, alpha, R, tol)
       
-      return(out)
-      },
-      .progress = TRUE) |> 
+    return(out)
+    },
+    .progress = TRUE) |> 
   transpose()
+
+Q_name <- gsub("_", "", Q_name)
 
 mod_IL_preallocations_file_path <- population |> 
   tolower() |> 
   str_replace_all(" ", "_") |> 
-  glue::glue("_mod_IL_preallocations_seed={seed}_numsims={num_sims}_R={R}_tol={tol}.Rda") |> 
+  glue::glue("_mod_IL_preallocations_Q={Q_name}_seed={seed}_numsims={num_sims}_R={R}_tol={tol}.Rda") |> 
   paste0("Preallocations/Modified Integrated Likelihood/", ... = _)
 
 saveRDS(mod_IL_preallocations, mod_IL_preallocations_file_path)

@@ -1,7 +1,7 @@
 library(future)
 library(zeallot)
 library(purrr)
-library(tidyverse)
+# library(dplyr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
@@ -53,17 +53,12 @@ tol <- 0.0001
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-plan(multisession, workers = 50)
+plan(multisession, workers = 63)
 
-stime1 <- system.time({
-
-  multinomial_entropy_values_IL <- neg_log_likelihood |> 
+multinomial_entropy_values_IL <- neg_log_likelihood |> 
     get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
     pluck("omega_hat") |> 
     get_multinomial_entropy_values_IL(psi_grid_list, data)
-})
-
-stime1
   
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -85,15 +80,10 @@ L <- u_list |>
   unlist() |> 
   as.numeric()
 
-plan(multisession, workers = 50)
+plan(multisession, workers = 63)
 
-stime2 <- system.time({
-  
-  multinomial_entropy_values_mod_IL <- omega_hat_list |> 
+multinomial_entropy_values_mod_IL <- omega_hat_list |> 
     get_multinomial_entropy_values_modified_IL(psi_grid_list, L, data)
-})
-
-stime2
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 

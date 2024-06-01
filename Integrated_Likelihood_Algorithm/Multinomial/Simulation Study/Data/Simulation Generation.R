@@ -186,6 +186,8 @@ L_lists <- u_lists_mod_IL |>
   unlist() |> 
   as.numeric())
 
+chunk <- function(x,n) split(x, cut(seq_along(x), n, labels = FALSE))
+
 omega_hat_mod_IL_batches <- chunk(omega_hat_lists_mod_IL, 10)
 
 L_batches <- chunk(L_lists, 10)
@@ -195,23 +197,23 @@ data_batches <- chunk(data_sims, 10)
 psi_grid_lists_batches <- chunk(psi_grid_lists, 10)
 
 plan(list(tweak(multisession, workers = 4),
-          tweak(multisession, workers = 15)))
+          tweak(multisession, workers = 13)))
 
-for (batch in 4:10) {
+for (batch in 1:10) {
 
   multinomial_entropy_sims_mod_IL <- list(omega_hat_mod_IL_batches[[batch]],
                                           psi_grid_lists_batches[[batch]],
                                           L_batches[[batch]],
                                           data_batches[[batch]]) |>
     future_pmap(\(omega_hat_list, psi_grid_list, L, data) {
-      
+
       time <- format(Sys.time(), "%M") |>
         as.numeric()
-      
+
       if ((time %% 15) == 0) pushover(paste0("Batch ", batch, " still running"))
-      
+
       multinomial_entropy_values_modified_IL <- get_multinomial_entropy_values_modified_IL(omega_hat_list, psi_grid_list, L, data)
-      
+
       return(multinomial_entropy_values_modified_IL)
       },
       .progress = TRUE)
@@ -234,18 +236,25 @@ for (batch in 4:10) {
   pushover(paste0("Mod IL Batch ", batch, " done!"))
 }
 
-# start <- 1
+# plan(list(tweak(multisession, workers = 7),
+#           tweak(multisession, workers = 9)))
 # 
-# end <- num_sims
-# 
-# plan(list(tweak(multisession, workers = 4),
-#           tweak(multisession, workers = 15)))
-# 
-# multinomial_entropy_sims_mod_IL <- list(omega_hat_lists_mod_IL[start:end],
-#                                         L_lists[start:end],
-#                                         data_sims[start:end]) |>
-#   pmap(\(omega_hat_list, L, data) get_multinomial_entropy_values_modified_IL(omega_hat_list, L, data, step_size, num_std_errors),
-#        .progress = TRUE)
+# multinomial_entropy_sims_mod_IL <- list(omega_hat_lists_mod_IL,
+#                                         psi_grid_lists,
+#                                         L_lists,
+#                                         data_sims) |>
+#   future_pmap(\(omega_hat_list, psi_grid_list, L, data) {
+#     
+#     time <- format(Sys.time(), "%M") |>
+#       as.numeric()
+#     
+#     if ((time %% 15) == 0) pushover("Still running")
+#     
+#     multinomial_entropy_values_modified_IL <- get_multinomial_entropy_values_modified_IL(omega_hat_list, psi_grid_list, L, data)
+#     
+#     return(multinomial_entropy_values_modified_IL)
+#   },
+#   .progress = TRUE)
 # 
 # multinomial_entropy_sims_mod_IL_file_path <- mod_IL_preallocations_file_path |>
 #   str_remove("^.*preallocations_") |>
@@ -261,6 +270,8 @@ for (batch in 4:10) {
 #          ... = _)
 # 
 # saveRDS(multinomial_entropy_sims_mod_IL, multinomial_entropy_sims_mod_IL_file_path)
+# 
+# pushover("Mod IL done!")
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
