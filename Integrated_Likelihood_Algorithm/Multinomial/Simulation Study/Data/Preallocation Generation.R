@@ -130,7 +130,11 @@ mod_IL_preallocations <- data_sims |>
     .progress = TRUE) |> 
   transpose()
 
-Q_name <- gsub("_", "", Q_name)
+Q_name <- Q_name |> 
+  strsplit("_") |> 
+  pluck(1) |> 
+  substr(1, 1) |> 
+  paste(collapse = "")
 
 mod_IL_preallocations_file_path <- population |> 
   tolower() |> 

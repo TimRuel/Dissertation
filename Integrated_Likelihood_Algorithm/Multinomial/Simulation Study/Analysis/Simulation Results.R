@@ -17,17 +17,17 @@ multinomial_entropy_sims_PL_file_path <- file.choose()
 
 multinomial_entropy_sims_PL <- readRDS(multinomial_entropy_sims_PL_file_path)
 
-population <- multinomial_entropy_sims_IL_file_path |>
-  str_remove("^.*/") |>
-  str_remove("_IL.*$") |>
-  str_replace_all("_", " ") |>
-  tools::toTitleCase()
-
 # population <- multinomial_entropy_sims_IL_file_path |>
-#   str_remove("^.*\\\\") |>
+#   str_remove("^.*/") |>
 #   str_remove("_IL.*$") |>
 #   str_replace_all("_", " ") |>
 #   tools::toTitleCase()
+
+population <- multinomial_entropy_sims_IL_file_path |>
+  str_remove("^.*\\\\") |>
+  str_remove("_IL.*$") |>
+  str_replace_all("_", " ") |>
+  tools::toTitleCase()
 
 switch(population,
        

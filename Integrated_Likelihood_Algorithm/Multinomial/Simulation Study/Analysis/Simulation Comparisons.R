@@ -71,12 +71,11 @@ sim_results_df1 |>
                      "Birds in Killarney Woodlands" = 3)) |> 
   column_spec(1, bold = TRUE, color = "white", background = "#666") |> 
   column_spec(2, bold = TRUE) |> 
-  column_spec(4, color = rep(c("blue", "grey"), 5)) |>
+  column_spec(4, color = rep(c("black", "grey"), 5)) |>
   column_spec(c(6, 9), color = rep(c("red", "black"), 5)) |> 
   column_spec(c(7, 10), color = "grey") |>
   collapse_rows(columns = 1, valign = "top") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 300 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
            general_title = "",
@@ -101,14 +100,13 @@ sim_results_df2 |>
                      "Birds in Balrath Woods" = 3, 
                      "Birds in Killarney Woodlands" = 3)) |> 
   column_spec(1, bold = TRUE) |> 
-  column_spec(3, color = rep(c("blue", "grey"), each = 5)) |>
+  column_spec(3, color = rep(c("black", "grey"), each = 5)) |>
   column_spec(c(5, 8), color = rep(c("red", "black"), each = 5)) |>
   column_spec(c(6, 9), color = "grey") |>
   # row_spec(6:10, color = "black") |>
   pack_rows(index = c("Ruel" = 5, "Severini" = 5),
             label_row_css = "background-color: #666; color: #fff;") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 300 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
            general_title = "",
@@ -141,13 +139,11 @@ sim_results_df3 |>
                      "Birds in Balrath Woods" = 2, 
                      "Birds in Killarney Woodlands" = 2)) |> 
   column_spec(1, bold = TRUE) |> 
-  column_spec(2, color = c(rep("black", 5), rep("blue", 5), rep("black", 5))) |>
   column_spec(c(3, 5, 7), color = c(rep("black", 5), rep("grey", 5), rep("black", 5))) |> 
   column_spec(c(4, 6), color = c(rep("red", 5), rep("grey", 5), rep("black", 5))) |>
   pack_rows(index = c("Integrated" = 5, "Modified Integrated" = 5, "Profile" = 5),
             label_row_css = "background-color: #666; color: #fff;") |> 
   footnote(general = "Cell entries in black were based on 1000 simulations.
-                      Cell entries in blue were based on 300 simulations.
                       Cell entries in red were based on 2 simulations.
                       Confidence intervals were constructed using a nominal coverage probability of 95%.",
            general_title = "",
