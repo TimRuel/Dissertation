@@ -6,46 +6,45 @@ library(dplyr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
-# population <- "Birds in Killarney Woodlands"
-
-switch(population,
-       
-       "Desert Rodents" = {
-         
-         data <- c(1, 1, 2, 4, 7, 10)
-         },
-       
-       "Birds in Balrath Woods" = {
-         
-         data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
-         },
-       
-       "Birds in Killarney Woodlands" = {
-         
-         data <- c(1, 3, 4, 6, 7, 10, 14, 30)
-         }
-       )  
-
 set.seed(38497283)
 
-n <- sum(data)
+# Define dimension of parameter
+m <- 20
 
-m <- length(data)
+# Define true values of full model parameter
+theta_0 <- m |> 
+  runif(1, 10) |> 
+  round(2)
 
-theta_MLE <- data / n
+# Define sample sizes from each population
+n <- 10:20 |> 
+  sample(m, replace = TRUE)
 
-psi_MLE <- entropy(theta_MLE)
+# Define observed data from each population
+data <- mapply(rpois, n, theta_0)
 
-step_size <- 0.01
+# Define weights for PoI function
+weights <- m |> 
+  runif() |>
+  round(2)
+
+# Define hyperparameters for u's
+alpha <- rep(1, m)
+beta <- rep(1, m)
+
+theta_MLE <- data |> 
+  map_dbl(mean)
+
+psi_MLE <- weighted_sum(theta_MLE, weights)
+
+step_size <- 0.1
 
 num_std_errors <- 3
 
 psi_grid_list <- data |> 
-  get_psi_grid(step_size, num_std_errors, split = TRUE)
+  get_psi_grid(weights, step_size, num_std_errors, split = TRUE)
 
-R <- 250
+R <- 10
 
 tol <- 0.0001
 
@@ -53,12 +52,18 @@ tol <- 0.0001
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-plan(multisession, workers = 63)
+alpha <- rep(1, m)
 
-multinomial_entropy_values_IL <- neg_log_likelihood |> 
-    get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
-    pluck("omega_hat") |> 
-    get_multinomial_entropy_values_IL(psi_grid_list, data)
+beta <- rep(0.01, m)
+
+u_params <- list(alpha, beta)
+
+plan(multisession, workers = future::availableCores())
+
+poisson_weighted_sum_values_IL <- neg_log_likelihood |> 
+  get_omega_hat_list(psi_MLE, weights, u_params, R, tol) |> 
+  pluck("omega_hat") |> 
+  get_poisson_weighted_sum_values_IL(data, weights, psi_grid_list)
   
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -66,24 +71,22 @@ multinomial_entropy_values_IL <- neg_log_likelihood |>
 
 plan(sequential)
 
-alpha <- data + 1
+alpha <- data |> 
+  map2_dbl(1/2, sum)
 
-euclidean_distance <- function(omega, u) dist(matrix(c(omega, u), 
-                                                     nrow = 2, 
-                                                     byrow = TRUE),
-                                              method = "euclid")[1]
+beta <- n
 
-c(u_list, omega_hat_list) %<-% get_omega_hat_list(euclidean_distance, psi_MLE, alpha, R, tol)
+u_params <- list(alpha, beta)
 
-L <- u_list |> 
-  map_dbl(\(u) likelihood(u, data)) |> 
-  unlist() |> 
-  as.numeric()
+c(u_list, omega_hat_list) %<-% get_omega_hat_list(neg_log_likelihood, psi_MLE, weights, u_params, R, tol)
 
-plan(multisession, workers = 63)
+l <- u_list |> 
+  map_dbl(\(u) log_likelihood(u, data)) 
 
-multinomial_entropy_values_mod_IL <- omega_hat_list |> 
-    get_multinomial_entropy_values_modified_IL(psi_grid_list, L, data)
+plan(multisession, workers = future::availableCores())
+
+poisson_weighted_sum_values_mod_IL <- omega_hat_list |> 
+  get_poisson_weighted_sum_values_modified_IL(data, weights, psi_grid_list, l)
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -91,25 +94,22 @@ multinomial_entropy_values_mod_IL <- omega_hat_list |>
 
 plan(sequential)
 
-multinomial_entropy_values_PL <- data |> 
-    get_multinomial_entropy_values_PL(psi_grid_list)
+poisson_weighted_sum_values_PL <- data |> 
+  get_poisson_weighted_sum_values_PL(weights, psi_grid_list)
 
 ################################################################################
 ################################### STORAGE #################################### 
 ################################################################################
 
 psi_grid <- data |> 
-  get_psi_grid(step_size, num_std_errors, split = FALSE)
+  get_psi_grid(weights, step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Mod_Integrated = multinomial_entropy_values_mod_IL,
-                                  Integrated = multinomial_entropy_values_IL,
-                                  Profile = multinomial_entropy_values_PL) 
+                                  Mod_Integrated = poisson_weighted_sum_values_mod_IL,
+                                  Integrated = poisson_weighted_sum_values_IL,
+                                  Profile = poisson_weighted_sum_values_PL) 
 
-log_likelihood_vals_file_path <- population |> 
-  tolower() |> 
-  chartr(" ", "_", x = _) |> 
-  glue::glue("_R={R}_step_size={step_size}.Rda")
+log_likelihood_vals_file_path <- "log_likelihood_vals.Rda"
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 

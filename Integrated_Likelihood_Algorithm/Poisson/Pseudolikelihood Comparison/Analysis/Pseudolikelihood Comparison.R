@@ -13,48 +13,6 @@ log_likelihood_vals_file_path <- file.choose()
 
 log_likelihood_vals <- readRDS(log_likelihood_vals_file_path)
 
-population <- IL_preallocations_file_path |>  
-  str_remove("^.*/") |> 
-  str_remove("_IL.*$") |> 
-  str_replace_all("_", " ") |> 
-  tools::toTitleCase()
-
-# population <- log_likelihood_vals_file_path |>  
-#   str_remove("^.*\\\\") |> 
-#   str_remove("_R.*$") |> 
-#   str_replace_all("_", " ") |> 
-#   tools::toTitleCase()
-
-switch(population,
-       
-       "Desert Rodents" = {
-         
-         data <- c(1, 1, 2, 4, 7, 10)
-
-         x_range <- c(1, 2)
-         
-         y_range <- c(-3, 0.1)
-       },
-       
-       "Birds in Balrath Woods" = {
-      
-         data <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 6, 8)
-         
-         x_range <- c(2, 2.7)
-         
-         y_range <- c(-4, 0.1)
-       },
-       
-       "Birds in Killarney Woodlands" = {
-         
-         data <- c(1, 3, 4, 6, 7, 10, 14, 30)
-      
-         x_range <- c(1.48, 2)
-         
-         y_range <- c(-5, 0.1)
-       }
-)  
-
 pseudolikelihood_names <- c("Modified Integrated", "Integrated", "Profile")
 
 spline_fitted_models <- log_likelihood_vals |>
@@ -70,8 +28,8 @@ MLE_data <- spline_fitted_models |>
     function(mod) {
       optimize(
         function(psi) predict(mod, psi)$y, 
-        lower = 0, 
-        upper = log(length(data)), 
+        lower = psi_grid |> head(1), 
+        upper = psi_grid |> tail(1), 
         maximum = TRUE
       )}) |> 
   t() |> 
@@ -97,7 +55,7 @@ c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% map2(
                              linewidth = 1,
                              hjust = 0.1,
                              show.legend = FALSE,
-                             xlim = c(0, log(length(data))))
+                             xlim = c(psi_grid |> head(1), psi_grid |> tail(1)))
     return(stat_fn)
     }
   )
@@ -113,7 +71,7 @@ ggplot() +
              data = MLE_data,
              show.legend = FALSE) +
   ggrepel::geom_label_repel(aes(x = as.numeric(MLE),
-                                y = y_range[1] + 1.5,
+                                y = -0.5,
                                 label = MLE_label,
                                 color = Pseudolikelihood),
                             data = MLE_data,
@@ -122,9 +80,9 @@ ggplot() +
                             show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     limits = x_range) + 
+                     limits = c(70, 78)) +
   scale_y_continuous(expand = c(0, 0),
-                     limits = y_range) +
+                     limits = c(-1, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
   theme_minimal() +
@@ -187,6 +145,8 @@ MLE_data |>
   kable_styling(bootstrap_options = c("striped", "hover")) 
 
 
-
+log_likelihood_vals |> 
+  ggplot(aes(x = psi, y = Mod_Integrated)) +
+  geom_point()
 
 
