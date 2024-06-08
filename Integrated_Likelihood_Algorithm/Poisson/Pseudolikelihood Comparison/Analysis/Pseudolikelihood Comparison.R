@@ -71,7 +71,7 @@ ggplot() +
              data = MLE_data,
              show.legend = FALSE) +
   ggrepel::geom_label_repel(aes(x = as.numeric(MLE),
-                                y = -0.5,
+                                y = -1,
                                 label = MLE_label,
                                 color = Pseudolikelihood),
                             data = MLE_data,
@@ -79,10 +79,10 @@ ggplot() +
                             parse = TRUE,
                             show.legend = FALSE) +
   ylab("Log-Likelihood") +
-  scale_x_continuous(expand = c(0, 0),
-                     limits = c(70, 78)) +
-  scale_y_continuous(expand = c(0, 0),
-                     limits = c(-1, 0)) +
+  # scale_x_continuous(expand = c(0, 0),
+  #                    limits = c(70, 78)) +
+  # scale_y_continuous(expand = c(0, 0),
+  #                    limits = c(-1, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
   theme_minimal() +
@@ -118,13 +118,17 @@ conf_ints <- pseudo_log_likelihood_curves |>
            ) |> 
            round(3)
          
+         # upper_bound <- uniroot(function(psi) curve(psi) + crit,
+         #                        interval = c(MLE, psi_grid |> tail(1)))$root |> 
+         #   round(3)
+         
          upper_bound <- tryCatch(
-           
+
            uniroot(function(psi) curve(psi) + crit,
-                   interval = c(MLE, log(length(data))))$root,
-           
-           error = function(e) return(log(length(data)))
-           ) |> 
+                   interval = c(MLE, psi_grid |> tail(1)))$root,
+
+           error = function(e) return(psi_grid |> tail(1))
+           ) |>
            round(3)
          
          return(c(lower_bound, upper_bound))
@@ -140,10 +144,8 @@ MLE_data |>
                     "MLE",
                     "95% Confidence Interval",
                     "CI Length"),   
-      align = "c",
-      caption = population) |> 
+      align = "c") |> 
   kable_styling(bootstrap_options = c("striped", "hover")) 
-
 
 log_likelihood_vals |> 
   ggplot(aes(x = psi, y = Mod_Integrated)) +

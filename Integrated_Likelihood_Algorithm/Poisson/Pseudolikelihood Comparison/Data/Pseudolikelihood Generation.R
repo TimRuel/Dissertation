@@ -9,44 +9,40 @@ source("../../utils.R")
 set.seed(38497283)
 
 # Define dimension of parameter
-m <- 20
+n <- 18
 
 # Define true values of full model parameter
-theta_0 <- m |> 
-  runif(1, 10) |> 
+theta_0 <- n |> 
+  runif() |> 
   round(2)
 
-# Define sample sizes from each population
-n <- 10:20 |> 
-  sample(m, replace = TRUE)
+theta_0 <- theta_0 / sum(theta_0) * 10
 
 # Define observed data from each population
-data <- mapply(rpois, n, theta_0)
+data <- rpois(n, theta_0)
 
 # Define weights for PoI function
 weights <- m |> 
   runif() |>
   round(2)
 
-# Define hyperparameters for u's
-alpha <- rep(1, m)
-beta <- rep(1, m)
+weights <- weights / mean(weights)
 
 theta_MLE <- data |> 
   map_dbl(mean)
 
 psi_MLE <- weighted_sum(theta_MLE, weights)
 
-step_size <- 0.1
+step_size <- 0.01
 
-num_std_errors <- 3
+num_std_errors <- 2
 
 psi_grid_list <- data |> 
   get_psi_grid(weights, step_size, num_std_errors, split = TRUE)
 
-R <- 10
+R <- 250
 
-tol <- 0.0001
+tol <- 0.001
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
@@ -109,7 +105,7 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = poisson_weighted_sum_values_IL,
                                   Profile = poisson_weighted_sum_values_PL) 
 
-log_likelihood_vals_file_path <- "log_likelihood_vals.Rda"
+log_likelihood_vals_file_path <- "log_likelihood_vals_2.Rda"
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 

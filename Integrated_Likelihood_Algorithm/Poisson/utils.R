@@ -89,6 +89,8 @@ get_omega_hat_list <- function(objective_fn, psi_MLE, weights, u_params, R, tol)
       u_list <- c(u_list, list(u))
       
       omega_hat_list <- c(omega_hat_list, list(omega_hat))
+      
+      if (length(omega_hat_list) %% 10 == 0) print(paste0(length(omega_hat_list), " found!"))
     }
   }
   
