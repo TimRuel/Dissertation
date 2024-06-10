@@ -2,27 +2,11 @@
 #################################### GENERAL ###################################
 ################################################################################
 
-log_likelihood <- function(theta, data) {
-  
-  sum_data <- data |> 
-    purrr::map_dbl(sum)
-  
-  n <- data |> 
-    purrr::map_dbl(length)
-  
-  # theta <- theta |>
-  #   mpfr(precBits = 256)
-  
-  l <- sum(sum_data * log(theta) - n * theta)
-  
-  return(l)
-}
+log_likelihood <- function(theta, data) sum(data * log(theta) - theta, na.rm = TRUE)
 
 neg_log_likelihood <- function(theta, data) -log_likelihood(theta, data)
 
 likelihood <- function(theta, data) exp(log_likelihood(theta, data))
-
-E_log_like <- function(theta, omega) sum((log(theta) * omega - theta) * n, na.rm = TRUE)
 
 weighted_sum <- function(theta, weights) sum(theta * weights, na.rm = TRUE)
 
@@ -33,18 +17,11 @@ euclidean_distance <- function(u, omega) dist(matrix(c(u, omega),
 
 get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE) {
   
-  n <- data |> 
-    purrr::map_dbl(length)
-  
-  theta_MLE <- data |> 
-    purrr::map_dbl(mean)
-  
-  psi_MLE <- weighted_sum(theta_MLE, weights)
+  psi_MLE <- weighted_sum(data, weights)
   
   psi_MLE_SE <- data |>  
-    sapply(var) |>  
-    (\(v) v * weights^2 / n)() |> 
-    sum() |>  
+    (`*`)(weights^2) |> 
+    sum() |> 
     sqrt()
   
   MoE <- num_std_errors * psi_MLE_SE
@@ -67,7 +44,7 @@ get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE
   return(psi_grid)
 }
 
-get_omega_hat_list <- function(objective_fn, psi_MLE, weights, u_params, R, tol) {
+get_omega_hat_list <- function(objective_fn, psi_MLE, weights, alpha, beta, R, tol) {
   
   u_list <- list()
   
@@ -75,8 +52,7 @@ get_omega_hat_list <- function(objective_fn, psi_MLE, weights, u_params, R, tol)
   
   while (length(omega_hat_list) < R) {
     
-    u <- u_params |> 
-      purrr::pmap_dbl(\(alpha, beta) rgamma(1, alpha, beta))
+    u <- rgamma(length(weights), alpha, beta)
     
     omega_hat <- nloptr::auglag(x0 = u,
                                 fn = function(omega) objective_fn(omega, u),
@@ -99,7 +75,7 @@ get_omega_hat_list <- function(objective_fn, psi_MLE, weights, u_params, R, tol)
 
 get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
   
-  fn <- function(theta) -E_log_like(theta, omega_hat)
+  fn <- function(theta) neg_log_likelihood(theta, omega_hat)
   gr <- function(theta) nloptr::nl.grad(theta, fn)
   heq <- function(theta) weighted_sum(theta, weights) - psi
   heqjac <- function(theta) nloptr::nl.jacobian(theta, heq)
@@ -122,7 +98,7 @@ get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
 get_poisson_weighted_sum_values_PL <- function(data, weights, psi_grid_list) {
   
   theta_MLE <- data |> 
-    purrr::map_dbl(mean)
+    as.numeric()
   
   l_p <- psi_grid_list |> 
     purrr::map(

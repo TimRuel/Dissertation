@@ -55,7 +55,7 @@ c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% map2(
                              linewidth = 1,
                              hjust = 0.1,
                              show.legend = FALSE,
-                             xlim = c(psi_grid |> head(1), psi_grid |> tail(1)))
+                             xlim = c(0, psi_grid |> tail(1)))
     return(stat_fn)
     }
   )
@@ -79,10 +79,10 @@ ggplot() +
                             parse = TRUE,
                             show.legend = FALSE) +
   ylab("Log-Likelihood") +
-  # scale_x_continuous(expand = c(0, 0),
-  #                    limits = c(70, 78)) +
-  # scale_y_continuous(expand = c(0, 0),
-  #                    limits = c(-1, 0)) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = c(4, 7)) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = c(-0.2, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
   theme_minimal() +
@@ -148,7 +148,6 @@ MLE_data |>
   kable_styling(bootstrap_options = c("striped", "hover")) 
 
 log_likelihood_vals |> 
-  ggplot(aes(x = psi, y = Mod_Integrated)) +
+  ggplot(aes(x = psi, y = Integrated)) + 
   geom_point()
-
 

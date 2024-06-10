@@ -22,20 +22,17 @@ theta_0 <- theta_0 / sum(theta_0) * 10
 data <- rpois(n, theta_0)
 
 # Define weights for PoI function
-weights <- m |> 
+weights <- n |> 
   runif() |>
   round(2)
 
 weights <- weights / mean(weights)
 
-theta_MLE <- data |> 
-  map_dbl(mean)
-
-psi_MLE <- weighted_sum(theta_MLE, weights)
+psi_MLE <- weighted_sum(data, weights)
 
 step_size <- 0.01
 
-num_std_errors <- 2
+num_std_errors <- 3
 
 psi_grid_list <- data |> 
   get_psi_grid(weights, step_size, num_std_errors, split = TRUE)
@@ -48,16 +45,14 @@ tol <- 0.001
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-alpha <- rep(1, m)
+alpha <- 1/2
 
-beta <- rep(0.01, m)
-
-u_params <- list(alpha, beta)
+beta <- 1/2
 
 plan(multisession, workers = future::availableCores())
 
 poisson_weighted_sum_values_IL <- neg_log_likelihood |> 
-  get_omega_hat_list(psi_MLE, weights, u_params, R, tol) |> 
+  get_omega_hat_list(psi_MLE, weights, alpha, beta, R, tol) |> 
   pluck("omega_hat") |> 
   get_poisson_weighted_sum_values_IL(data, weights, psi_grid_list)
   
@@ -67,14 +62,11 @@ poisson_weighted_sum_values_IL <- neg_log_likelihood |>
 
 plan(sequential)
 
-alpha <- data |> 
-  map2_dbl(1/2, sum)
+alpha <- data + 1/2
 
-beta <- n
+beta <- 1 + 1/2
 
-u_params <- list(alpha, beta)
-
-c(u_list, omega_hat_list) %<-% get_omega_hat_list(neg_log_likelihood, psi_MLE, weights, u_params, R, tol)
+c(u_list, omega_hat_list) %<-% get_omega_hat_list(neg_log_likelihood, psi_MLE, weights, alpha, beta, R, tol)
 
 l <- u_list |> 
   map_dbl(\(u) log_likelihood(u, data)) 
@@ -101,11 +93,11 @@ psi_grid <- data |>
   get_psi_grid(weights, step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Mod_Integrated = poisson_weighted_sum_values_mod_IL,
-                                  Integrated = poisson_weighted_sum_values_IL,
-                                  Profile = poisson_weighted_sum_values_PL) 
+                                  # Mod_Integrated = poisson_weighted_sum_values_mod_IL,
+                                  Integrated = poisson_weighted_sum_values_IL)
+                                  # Profile = poisson_weighted_sum_values_PL) 
 
-log_likelihood_vals_file_path <- "log_likelihood_vals_2.Rda"
+log_likelihood_vals_file_path <- "log_likelihood_vals_4.Rda"
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 
