@@ -44,33 +44,31 @@ get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE
   return(psi_grid)
 }
 
-get_omega_hat_list <- function(objective_fn, psi_MLE, weights, alpha, beta, R, tol) {
+get_omega_hat <- function(objective_fn, psi_MLE, weights, alpha, beta, tol, seed, return_u = FALSE) {
   
-  u_list <- list()
+  set.seed(seed)
   
-  omega_hat_list <- list()
+  u <- rgamma(length(weights), alpha, beta)
   
-  while (length(omega_hat_list) < R) {
+  omega_hat <- nloptr::auglag(x0 = u,
+                              fn = function(omega) objective_fn(omega, u),
+                              heq = function(omega) weighted_sum(omega, weights) - psi_MLE,
+                              lower = rep(0, length(u)),
+                              localsolver = "LBFGS")$par
+  
+  if (abs(weighted_sum(omega_hat, weights) - psi_MLE) < tol) {
     
-    u <- rgamma(length(weights), alpha, beta)
-    
-    omega_hat <- nloptr::auglag(x0 = u,
-                                fn = function(omega) objective_fn(omega, u),
-                                heq = function(omega) weighted_sum(omega, weights) - psi_MLE,
-                                lower = rep(0, length(u)),
-                                localsolver = "LBFGS")$par
-    
-    if (abs(weighted_sum(omega_hat, weights) - psi_MLE) < tol) {
+    if (return_u) {
       
-      u_list <- c(u_list, list(u))
-      
-      omega_hat_list <- c(omega_hat_list, list(omega_hat))
-      
-      if (length(omega_hat_list) %% 10 == 0) print(paste0(length(omega_hat_list), " found!"))
+      return(list(u = u, omega_hat = omega_hat))
     }
+    
+    return(omega_hat)
   }
   
-  return(list("u" = u_list, "omega_hat" = omega_hat_list))
+  else {
+    get_omega_hat(objective_fn, psi_MLE, weights, alpha, beta, tol, 3*seed + 1, return_u)
+  }
 }
 
 get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
@@ -97,15 +95,12 @@ get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
 
 get_poisson_weighted_sum_values_PL <- function(data, weights, psi_grid_list) {
   
-  theta_MLE <- data |> 
-    as.numeric()
-  
   l_p <- psi_grid_list |> 
     purrr::map(
       \(x) purrr::accumulate(
         x,
-        \(acc, nxt) get_theta_hat(acc, nxt, theta_MLE, weights), 
-        .init = theta_MLE
+        \(acc, nxt) get_theta_hat(acc, nxt, data, weights), 
+        .init = data
       ) |> 
         magrittr::extract(-1) |> 
         sapply(log_likelihood, data)
@@ -122,7 +117,7 @@ get_poisson_weighted_sum_values_PL <- function(data, weights, psi_grid_list) {
 
 get_poisson_weighted_sum_values_IL.aux <- function(omega_hat, data, weights, psi_grid_list) {
   
-  l <- psi_grid_list |> 
+  L <- psi_grid_list |> 
     purrr::map(
       \(psi_grid) psi_grid |> 
         purrr::accumulate(
@@ -130,11 +125,12 @@ get_poisson_weighted_sum_values_IL.aux <- function(omega_hat, data, weights, psi
           .init = omega_hat
           ) |> 
         magrittr::extract(-1) |> 
-        sapply(log_likelihood, data)
+        sapply(likelihood, data)
       ) |> 
-    purrr::modify_in(1, rev) 
+    purrr::modify_in(1, rev) |> 
+    unlist()
   
-  return(l)
+  return(L)
 }
 
 get_poisson_weighted_sum_values_IL <- function(omega_hat_list, data, weights, psi_grid_list) {
