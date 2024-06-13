@@ -5,32 +5,8 @@ library(purrr)
 library(dplyr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-source("../../utils.R")
 
-set.seed(7835)
-
-# Define dimension of parameter
-n <- 18
-
-# Define true values of full model parameter
-theta_0 <- n |> 
-  runif() |> 
-  round(2)
-
-theta_0 <- theta_0 / sum(theta_0) * 10
-
-# Define observed data from each population
-data <- rpois(n, theta_0) |> 
-  as.numeric()
-
-# Define weights for PoI function
-weights <- n |> 
-  runif() |>
-  round(2)
-
-weights <- weights / mean(weights)
-
-psi_MLE <- weighted_sum(data, weights)
+source("Data Generation.R")
 
 step_size <- 0.5
 
@@ -39,7 +15,7 @@ num_std_errors <- 3
 psi_grid_list <- data |> 
   get_psi_grid(weights, step_size, num_std_errors, split = TRUE)
 
-R <- 10
+R <- 20
 
 tol <- 0.0001
 
@@ -58,7 +34,8 @@ omega_hat_list <- foreach(
   i = 1:R, 
   .combine = "list", 
   .multicombine = TRUE, 
-  .maxcombine = R
+  .maxcombine = R,
+  .options.future = list(seed = TRUE)
   
   ) %dofuture% {
     
@@ -99,7 +76,8 @@ c(u_list, omega_hat_list) %<-% transpose(
     i = 1:R, 
     .combine = "list", 
     .multicombine = TRUE,
-    .maxcombine = R
+    .maxcombine = R,
+    .options.future = list(seed = TRUE)
     
     ) %dofuture% {
       
@@ -116,7 +94,8 @@ poisson_weighted_sum_values_mod_IL <- foreach(
   omega_hat = omega_hat_list,
   .combine = "rbind",
   .multicombine = TRUE,
-  .maxcombine = R
+  .maxcombine = R,
+  .options.future = list(seed = TRUE)
   
   ) %dofuture% {
   
@@ -148,7 +127,10 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = poisson_weighted_sum_values_IL,
                                   Profile = poisson_weighted_sum_values_PL)
 
-log_likelihood_vals_file_path <- "log_likelihood_vals_6.Rda"
+log_likelihood_vals_file_path <- population_params_file_path |> 
+  str_extract("Population\\s[A-Za-z0-9]+") |> 
+  paste0("Pseudolikelihoods/", . = _, "/log_likelihood_vals_") |> 
+  glue::glue("R={R}_stepsize={step_size}_numse={num_std_errors}.Rda")
 
-saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
+saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
