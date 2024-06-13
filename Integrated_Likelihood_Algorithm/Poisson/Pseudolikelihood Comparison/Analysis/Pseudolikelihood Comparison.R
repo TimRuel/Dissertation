@@ -71,7 +71,7 @@ ggplot() +
              data = MLE_data,
              show.legend = FALSE) +
   ggrepel::geom_label_repel(aes(x = as.numeric(MLE),
-                                y = -1,
+                                y = -0.05,
                                 label = MLE_label,
                                 color = Pseudolikelihood),
                             data = MLE_data,
@@ -80,9 +80,9 @@ ggplot() +
                             show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     limits = c(4, 7)) +
+                     limits = c(6.5, 9.5)) +
   scale_y_continuous(expand = c(0, 0),
-                     limits = c(-0.2, 0)) +
+                     limits = c(-0.1, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
   theme_minimal() +
@@ -118,16 +118,12 @@ conf_ints <- pseudo_log_likelihood_curves |>
            ) |> 
            round(3)
          
-         # upper_bound <- uniroot(function(psi) curve(psi) + crit,
-         #                        interval = c(MLE, psi_grid |> tail(1)))$root |> 
-         #   round(3)
-         
          upper_bound <- tryCatch(
 
            uniroot(function(psi) curve(psi) + crit,
                    interval = c(MLE, psi_grid |> tail(1)))$root,
 
-           error = function(e) return(psi_grid |> tail(1))
+           error = function(e) return(Inf)
            ) |>
            round(3)
          

@@ -7,7 +7,7 @@ library(dplyr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-set.seed(38497283)
+set.seed(7835)
 
 # Define dimension of parameter
 n <- 18
@@ -32,16 +32,16 @@ weights <- weights / mean(weights)
 
 psi_MLE <- weighted_sum(data, weights)
 
-step_size <- 0.05
+step_size <- 0.5
 
 num_std_errors <- 3
 
 psi_grid_list <- data |> 
   get_psi_grid(weights, step_size, num_std_errors, split = TRUE)
 
-R <- 250
+R <- 10
 
-tol <- 0.00001
+tol <- 0.0001
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
@@ -63,7 +63,7 @@ omega_hat_list <- foreach(
   ) %dofuture% {
     
     neg_log_likelihood |> 
-      get_omega_hat(psi_MLE, weights, alpha, beta, tol, (5*i)^2)
+      get_omega_hat(psi_MLE, weights, alpha, beta, tol)
     }
 
 poisson_weighted_sum_values_IL <- foreach(
@@ -71,15 +71,16 @@ poisson_weighted_sum_values_IL <- foreach(
   omega_hat = omega_hat_list,
   .combine = "rbind",
   .multicombine = TRUE,
-  .maxcombine = R
+  .maxcombine = R,
+  .options.future = list(seed = TRUE)
   
   ) %dofuture% {
     
     omega_hat |> 
       get_poisson_weighted_sum_values_IL.aux(data, weights, psi_grid_list)
     } |> 
-  colMeans() |>
-  log()
+  matrixStats::colLogSumExps() |> 
+  (`-`)(log(length(omega_hat_list)))
   
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -102,13 +103,13 @@ c(u_list, omega_hat_list) %<-% transpose(
     
     ) %dofuture% {
       
-      neg_log_likelihood |> 
-        get_omega_hat(psi_MLE, weights, alpha, beta, tol, (5*i)^2, return_u = TRUE)
+      euclidean_distance |> 
+        get_omega_hat(psi_MLE, weights, alpha, beta, tol, return_u = TRUE)
       }
   )
 
-L <- u_list |> 
-  map_dbl(\(u) likelihood(u, data)) 
+l <- u_list |> 
+  map_dbl(\(u) log_likelihood(u, data)) 
 
 poisson_weighted_sum_values_mod_IL <- foreach(
   
@@ -122,9 +123,9 @@ poisson_weighted_sum_values_mod_IL <- foreach(
   omega_hat |> 
     get_poisson_weighted_sum_values_IL.aux(data, weights, psi_grid_list)
     } |> 
-  (`/`)(L) |>
-  colMeans() |>
-  log()
+  (`-`)(l) |>
+  matrixStats::colLogSumExps() |> 
+  (`-`)(log(length(omega_hat_list)))
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -147,7 +148,7 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = poisson_weighted_sum_values_IL,
                                   Profile = poisson_weighted_sum_values_PL)
 
-log_likelihood_vals_file_path <- "log_likelihood_vals_5.Rda"
+log_likelihood_vals_file_path <- "log_likelihood_vals_6.Rda"
 
 saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 

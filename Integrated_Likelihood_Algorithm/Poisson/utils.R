@@ -10,10 +10,7 @@ likelihood <- function(theta, data) exp(log_likelihood(theta, data))
 
 weighted_sum <- function(theta, weights) sum(theta * weights, na.rm = TRUE)
 
-euclidean_distance <- function(u, omega) dist(matrix(c(u, omega),
-                                                     nrow = 2,
-                                                     byrow = TRUE),
-                                              method = "euclid")[1]
+euclidean_distance <- function(omega, u) sqrt(sum((omega - u)^2))
 
 get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE) {
   
@@ -44,13 +41,11 @@ get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE
   return(psi_grid)
 }
 
-get_omega_hat <- function(objective_fn, psi_MLE, weights, alpha, beta, tol, seed, return_u = FALSE) {
-  
-  set.seed(seed)
+get_omega_hat <- function(objective_fn, psi_MLE, weights, alpha, beta, tol, return_u = FALSE) {
   
   u <- rgamma(length(weights), alpha, beta)
   
-  omega_hat <- nloptr::auglag(x0 = u,
+  omega_hat <- nloptr::auglag(x0 = rep(psi_MLE / length(weights), length(weights)),
                               fn = function(omega) objective_fn(omega, u),
                               heq = function(omega) weighted_sum(omega, weights) - psi_MLE,
                               lower = rep(0, length(u)),
@@ -67,7 +62,7 @@ get_omega_hat <- function(objective_fn, psi_MLE, weights, alpha, beta, tol, seed
   }
   
   else {
-    get_omega_hat(objective_fn, psi_MLE, weights, alpha, beta, tol, 3*seed + 1, return_u)
+    get_omega_hat(objective_fn, psi_MLE, weights, alpha, beta, tol, return_u)
   }
 }
 
@@ -125,7 +120,7 @@ get_poisson_weighted_sum_values_IL.aux <- function(omega_hat, data, weights, psi
           .init = omega_hat
           ) |> 
         magrittr::extract(-1) |> 
-        sapply(likelihood, data)
+        sapply(log_likelihood, data)
       ) |> 
     purrr::modify_in(1, rev) |> 
     unlist()
@@ -144,11 +139,13 @@ get_poisson_weighted_sum_values_IL <- function(omega_hat_list, data, weights, ps
              as.numeric() |> 
              length(), 
            byrow = TRUE) |> 
-    Rmpfr::mpfr(64) |> 
-    exp() |> 
-    colMeans() |>
-    log() |> 
-    as.numeric()
+    matrixStats::colLogSumExps() |> 
+    (`-`)(log(length(omega_hat_list)))
+    # Rmpfr::mpfr(64) |>
+    # exp() |> 
+    # colMeans() |>
+    # log() |> 
+    # as.numeric()
   
   return(l_bar)
 }
@@ -159,7 +156,7 @@ get_poisson_weighted_sum_values_IL <- function(omega_hat_list, data, weights, ps
 
 get_poisson_weighted_sum_values_modified_IL <- function(omega_hat_list, data, weights, psi_grid_list, l) {
   
-  L_tilde <- omega_hat_list |>
+  l_bar <- omega_hat_list |>
     furrr::future_map(\(x) get_poisson_weighted_sum_values_IL.aux(x, data, weights, psi_grid_list),
                       .progress = TRUE) |> 
     unlist() |> 
@@ -167,15 +164,18 @@ get_poisson_weighted_sum_values_modified_IL <- function(omega_hat_list, data, we
              unlist() |> 
              as.numeric() |> 
              length(),
-           byrow = TRUE)
-  
-  l_bar <- L_tilde |>
+           byrow = TRUE) |> 
     (`-`)(l) |>
-    Rmpfr::mpfr(64) |> 
-    exp() |> 
-    colMeans() |>
-    log() |> 
-    as.numeric()
+    matrixStats::colLogSumExps() |> 
+    (`-`)(log(length(omega_hat_list)))
+  
+  # l_bar <- L_tilde |>
+  #   (`-`)(l) |>
+  #   Rmpfr::mpfr(64) |> 
+  #   exp() |> 
+  #   colMeans() |>
+  #   log() |> 
+  #   as.numeric()
 
   return(l_bar)
 }
