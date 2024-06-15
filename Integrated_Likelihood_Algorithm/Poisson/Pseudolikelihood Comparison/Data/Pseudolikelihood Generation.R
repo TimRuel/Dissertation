@@ -43,7 +43,7 @@ omega_hat_list <- foreach(
       get_omega_hat(psi_MLE, weights, alpha, beta, tol)
     }
 
-poisson_weighted_sum_values_IL <- foreach(
+integrated_log_likelihood_vals <- foreach(
   
   omega_hat = omega_hat_list,
   .combine = "rbind",
@@ -54,7 +54,7 @@ poisson_weighted_sum_values_IL <- foreach(
   ) %dofuture% {
     
     omega_hat |> 
-      get_poisson_weighted_sum_values_IL.aux(data, weights, psi_grid_list)
+      get_integrated_log_likelihood(data, weights, psi_grid_list)
     } |> 
   matrixStats::colLogSumExps() |> 
   (`-`)(log(length(omega_hat_list)))
@@ -86,10 +86,10 @@ c(u_list, omega_hat_list) %<-% transpose(
       }
   )
 
-l <- u_list |> 
+l2 <- u_list |> 
   map_dbl(\(u) log_likelihood(u, data)) 
 
-poisson_weighted_sum_values_mod_IL <- foreach(
+mod_integrated_log_likelihood_vals <- foreach(
   
   omega_hat = omega_hat_list,
   .combine = "rbind",
@@ -100,9 +100,9 @@ poisson_weighted_sum_values_mod_IL <- foreach(
   ) %dofuture% {
   
   omega_hat |> 
-    get_poisson_weighted_sum_values_IL.aux(data, weights, psi_grid_list)
+    get_integrated_log_likelihood(data, weights, psi_grid_list)
     } |> 
-  (`-`)(l) |>
+  (`-`)(l2) |>
   matrixStats::colLogSumExps() |> 
   (`-`)(log(length(omega_hat_list)))
 
@@ -112,8 +112,8 @@ poisson_weighted_sum_values_mod_IL <- foreach(
 
 plan(sequential)
 
-poisson_weighted_sum_values_PL <- data |> 
-  get_poisson_weighted_sum_values_PL(weights, psi_grid_list)
+profile_log_likelihood_vals <- data |> 
+  get_profile_log_likelihood(weights, psi_grid_list)
 
 ################################################################################
 ################################### STORAGE #################################### 
@@ -123,9 +123,9 @@ psi_grid <- data |>
   get_psi_grid(weights, step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Mod_Integrated = poisson_weighted_sum_values_mod_IL,
-                                  Integrated = poisson_weighted_sum_values_IL,
-                                  Profile = poisson_weighted_sum_values_PL)
+                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
+                                  Integrated = integrated_log_likelihood_vals,
+                                  Profile = profile_log_likelihood_vals)
 
 log_likelihood_vals_file_path <- population_params_file_path |> 
   str_extract("Population\\s[A-Za-z0-9]+") |> 

@@ -2,16 +2,15 @@
 #################################### GENERAL ###################################
 ################################################################################
 
-likelihood <- function(theta, data) prod(theta^data)
+log_likelihood <- function(theta, data) sum(data * log(theta), na.rm = TRUE)
 
-neg_log_likelihood <- function(theta, data) -sum(data * log(theta), na.rm = TRUE)
+neg_log_likelihood <- function(theta, data) -log_likelihood(theta, data)
+
+likelihood <- function(theta, data) exp(log_likelihood(theta, data))
 
 entropy <- function(theta) -sum(theta * log(theta), na.rm = TRUE)
 
-euclidean_distance <- function(u, omega) dist(matrix(c(u, omega),
-                                                     nrow = 2,
-                                                     byrow = TRUE),
-                                              method = "euclid")[1]
+euclidean_distance <- function(omega, u) sqrt(sum((omega - u)^2))
 
 get_psi_grid <- function(data, step_size, num_std_errors, split = FALSE) {
   
@@ -47,36 +46,35 @@ get_psi_grid <- function(data, step_size, num_std_errors, split = FALSE) {
   return(psi_grid)
 }
 
-get_omega_hat_list <- function(objective_fn, psi_MLE, prior, R, tol) {
+get_omega_hat <- function(objective_fn, psi_MLE, u_params, tol, return_u = FALSE) {
   
-  u_list <- list()
+  u <- LaplacesDemon::rdirichlet(1, u_params)
   
-  omega_hat_list <- list()
+  omega_hat <- nloptr::auglag(x0 = rep(1 / length(u), length(u)),
+                              fn = function(omega) objective_fn(omega, u),
+                              heq = function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE),
+                              lower = rep(0, length(u)),
+                              localsolver = "LBFGS")$par
   
-  while (length(omega_hat_list) < R) {
+  if (abs(entropy(omega_hat) - psi_MLE) < tol) {
     
-    u <- LaplacesDemon::rdirichlet(1, prior)
-    
-    omega_hat <- nloptr::auglag(x0 = LaplacesDemon::rdirichlet(1, rep(1, length(prior))),
-                                fn = function(omega) objective_fn(omega, u),
-                                heq = function(omega) c(sum(omega) - 1, entropy(omega) - psi_MLE),
-                                lower = rep(0, length(prior)),
-                                localsolver = "LBFGS")$par
-    
-    if (abs(entropy(omega_hat) - psi_MLE) < tol) {
+    if (return_u) {
       
-      u_list <- c(u_list, list(u))
-      
-      omega_hat_list <- c(omega_hat_list, list(omega_hat))
+      return(list(u = u, omega_hat = omega_hat))
     }
+    
+    return(omega_hat)
   }
   
-  return(list("u" = u_list, "omega_hat" = omega_hat_list))
+  else {
+    
+    get_omega_hat(objective_fn, psi_MLE, u_params, tol, return_u)
+  }
 }
 
 get_theta_hat <- function(init_guess, psi, omega_hat) {
   
-  fn <- function(theta) -sum(omega_hat * log(theta), na.rm = TRUE)
+  fn <- function(theta) neg_log_likelihood(theta, omega_hat)
   gr <- function(theta) nloptr::nl.grad(theta, fn)
   heq <- function(theta) c(sum(theta) - 1, entropy(theta) - psi)
   heqjac <- function(theta) nloptr::nl.jacobian(theta, heq)
@@ -96,7 +94,7 @@ get_theta_hat <- function(init_guess, psi, omega_hat) {
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-get_multinomial_entropy_values_PL <- function(data, psi_grid_list) {
+get_profile_log_likelihood <- function(data, psi_grid_list) {
   
   theta_MLE <- data / sum(data)
   
@@ -121,9 +119,9 @@ get_multinomial_entropy_values_PL <- function(data, psi_grid_list) {
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid_list) {
+get_integrated_log_likelihood <- function(omega_hat, data, psi_grid_list) {
   
-  L <- psi_grid_list |> 
+  l1 <- psi_grid_list |> 
     purrr::map(
       \(psi_grid) psi_grid |> 
         purrr::accumulate(
@@ -131,11 +129,12 @@ get_multinomial_entropy_values_IL.aux <- function(omega_hat, data, psi_grid_list
           .init = omega_hat
           ) |> 
         magrittr::extract(-1) |> 
-        purrr::map_dbl(likelihood, data)
+        purrr::map_dbl(log_likelihood, data)
       ) |> 
-    purrr::modify_in(1, rev) 
+    purrr::modify_in(1, rev) |> 
+    unlist()
   
-  return(L)
+  return(l1)
 }
 
 get_multinomial_entropy_values_IL <- function(omega_hat_list, psi_grid_list, data) {

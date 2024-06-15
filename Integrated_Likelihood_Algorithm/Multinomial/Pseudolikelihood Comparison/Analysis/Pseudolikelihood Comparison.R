@@ -11,19 +11,27 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 log_likelihood_vals_file_path <- file.choose()
 
-log_likelihood_vals <- readRDS(log_likelihood_vals_file_path)
+pseudolikelihood_names <- c("Mod_Integrated", "Profile", "Integrated")
 
-population <- IL_preallocations_file_path |>  
-  str_remove("^.*/") |> 
-  str_remove("_IL.*$") |> 
-  str_replace_all("_", " ") |> 
-  tools::toTitleCase()
+log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |> 
+  tidyr::pivot_longer(cols = pseudolikelihood_names,
+                      names_to = "Pseudolikelihood",
+                      values_to = "loglikelihood") |> 
+  mutate(Pseudolikelihood = Pseudolikelihood |> 
+           as_factor() |> 
+           fct_inorder())
 
 # population <- log_likelihood_vals_file_path |>  
-#   str_remove("^.*\\\\") |> 
-#   str_remove("_R.*$") |> 
+#   str_remove("^.*/") |> 
+#   str_remove("_IL.*$") |> 
 #   str_replace_all("_", " ") |> 
 #   tools::toTitleCase()
+
+population <- log_likelihood_vals_file_path |>
+  str_remove("^.*\\\\") |>
+  str_remove("_R.*$") |>
+  str_replace_all("_", " ") |>
+  tools::toTitleCase()
 
 switch(population,
        
@@ -55,12 +63,9 @@ switch(population,
        }
 )  
 
-pseudolikelihood_names <- c("Modified Integrated", "Integrated", "Profile")
+pseudolikelihood_names <- c("Mod_Integrated", "Profile", "Integrated")
 
 spline_fitted_models <- log_likelihood_vals |>
-  tidyr::pivot_longer(cols = c("Mod_Integrated", "Integrated", "Profile"),
-                      names_to = "Pseudolikelihood",
-                      values_to = "loglikelihood") |> 
   group_by(Pseudolikelihood) |> 
   group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
   set_names(pseudolikelihood_names)
@@ -79,11 +84,24 @@ MLE_data <- spline_fitted_models |>
   rownames_to_column("Pseudolikelihood") |> 
   dplyr::rename(MLE = maximum,
                 Maximum = objective) |> 
-  mutate(MLE_label = c("hat(psi)[m-IL]", "hat(psi)[IL]", "hat(psi)[PL]"))
+  mutate(MLE = as.numeric(MLE),
+         MLE_label = c("hat(psi)[m-IL]", "hat(psi)[IL]", "hat(psi)[PL]"))
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
   map2(MLE_data$Maximum,
        function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
+
+log_likelihood_vals |> 
+  ggplot() +
+  geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
+             size = 1) +
+  ylab("Log-Likelihood") +
+  scale_color_brewer(palette = "Set1") +
+  # scale_x_continuous(limits = c(2, 2.7)) +
+  # scale_y_continuous(limits = c(-110, -85)) +
+  xlab(expression(psi)) +
+  theme_minimal() +
+  theme(axis.line = element_line())
 
 c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% map2(
   pseudo_log_likelihood_curves,
@@ -108,11 +126,11 @@ ggplot() +
   stat_fn_PL +
   geom_hline(yintercept = 0,
              linetype = 5) +
-  geom_vline(aes(xintercept = as.numeric(MLE),
+  geom_vline(aes(xintercept = MLE,
                  color = Pseudolikelihood),
              data = MLE_data,
              show.legend = FALSE) +
-  ggrepel::geom_label_repel(aes(x = as.numeric(MLE),
+  ggrepel::geom_label_repel(aes(x = MLE,
                                 y = y_range[1] + 1.5,
                                 label = MLE_label,
                                 color = Pseudolikelihood),
@@ -126,21 +144,6 @@ ggplot() +
   scale_y_continuous(expand = c(0, 0),
                      limits = y_range) +
   scale_color_brewer(palette = "Set1") +
-  xlab(expression(psi)) +
-  theme_minimal() +
-  theme(axis.line = element_line())
-
-log_likelihood_vals |> 
-  tidyr::pivot_longer(cols = c("Mod_Integrated", "Integrated", "Profile"),
-                      names_to = "Pseudolikelihood",
-                      values_to = "loglikelihood") |> 
-  ggplot() +
-  geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
-             size = 1) +
-  ylab("Log-Likelihood") +
-  scale_color_brewer(palette = "Set1") +
-  # scale_x_continuous(limits = c(2, 2.7)) +
-  # scale_y_continuous(limits = c(-110, -85)) +
   xlab(expression(psi)) +
   theme_minimal() +
   theme(axis.line = element_line())
@@ -175,7 +178,7 @@ conf_ints <- pseudo_log_likelihood_curves |>
 
 MLE_data |> 
   select(Pseudolikelihood, MLE) |> 
-  mutate(MLE = as.numeric(MLE) |> round(3),
+  mutate(MLE = MLE |> round(3),
          conf_int = map(conf_ints, \(x) paste0("(", x[1], ", ", x[2], ")")),
          length = map(conf_ints, diff)) |> 
   kbl(col.names = c("Pseudolikelihood", 

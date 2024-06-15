@@ -1,7 +1,8 @@
 library(future)
+library(doFuture)
 library(zeallot)
 library(purrr)
-# library(dplyr)
+library(dplyr)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
@@ -53,37 +54,84 @@ tol <- 0.0001
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-plan(multisession, workers = 63)
+plan(multisession, workers = future::availableCores())
 
-multinomial_entropy_values_IL <- neg_log_likelihood |> 
-    get_omega_hat_list(psi_MLE, rep(1, length(data)), R, tol) |> 
-    pluck("omega_hat") |> 
-    get_multinomial_entropy_values_IL(psi_grid_list, data)
+alpha <- rep(1/2, m)
+
+omega_hat_list <- foreach(
   
+  i = 1:R, 
+  .combine = "list", 
+  .multicombine = TRUE, 
+  .maxcombine = R,
+  .options.future = list(seed = TRUE)
+  
+) %dofuture% {
+  
+  neg_log_likelihood |> 
+    get_omega_hat(psi_MLE, alpha, tol, return_u = FALSE)
+}
+
+integrated_log_likelihood_vals <- foreach(
+  
+  omega_hat = omega_hat_list,
+  .combine = "rbind",
+  .multicombine = TRUE,
+  .maxcombine = R,
+  .options.future = list(seed = TRUE)
+  
+) %dofuture% {
+  
+  omega_hat |> 
+    get_integrated_log_likelihood(data, psi_grid_list)
+} |> 
+  matrixStats::colLogSumExps() |>
+  (`-`)(log(length(omega_hat_list)))
+
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-plan(sequential)
+plan(multisession, workers = future::availableCores())
 
-alpha <- data + 1
+alpha <- data + 1/2
 
-euclidean_distance <- function(omega, u) dist(matrix(c(omega, u), 
-                                                     nrow = 2, 
-                                                     byrow = TRUE),
-                                              method = "euclid")[1]
+c(u_list, omega_hat_list) %<-% transpose(
+  
+  foreach(
+    
+    i = 1:R, 
+    .combine = "list", 
+    .multicombine = TRUE,
+    .maxcombine = R,
+    .options.future = list(seed = TRUE)
+    
+  ) %dofuture% {
+    
+    euclidean_distance |> 
+      get_omega_hat(psi_MLE, alpha, tol, return_u = TRUE)
+  }
+)
 
-c(u_list, omega_hat_list) %<-% get_omega_hat_list(euclidean_distance, psi_MLE, alpha, R, tol)
+l2 <- u_list |> 
+  map_dbl(\(u) likelihood(u, data))
 
-L <- u_list |> 
-  map_dbl(\(u) likelihood(u, data)) |> 
-  unlist() |> 
-  as.numeric()
-
-plan(multisession, workers = 63)
-
-multinomial_entropy_values_mod_IL <- omega_hat_list |> 
-    get_multinomial_entropy_values_modified_IL(psi_grid_list, L, data)
+mod_integrated_log_likelihood_vals <- foreach(
+  
+  omega_hat = omega_hat_list,
+  .combine = "rbind",
+  .multicombine = TRUE,
+  .maxcombine = R,
+  .options.future = list(seed = TRUE)
+  
+) %dofuture% {
+  
+  omega_hat |> 
+    get_integrated_log_likelihood(data, psi_grid_list)
+  } |> 
+  (`-`)(l2) |>
+  matrixStats::colLogSumExps() |> 
+  (`-`)(log(length(omega_hat_list)))
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -91,8 +139,8 @@ multinomial_entropy_values_mod_IL <- omega_hat_list |>
 
 plan(sequential)
 
-multinomial_entropy_values_PL <- data |> 
-    get_multinomial_entropy_values_PL(psi_grid_list)
+profile_log_likelihood_vals <- data |> 
+  get_profile_log_likelihood(psi_grid_list)
 
 ################################################################################
 ################################### STORAGE #################################### 
@@ -102,9 +150,9 @@ psi_grid <- data |>
   get_psi_grid(step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Mod_Integrated = multinomial_entropy_values_mod_IL,
-                                  Integrated = multinomial_entropy_values_IL,
-                                  Profile = multinomial_entropy_values_PL) 
+                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
+                                  Integrated = integrated_log_likelihood_vals,
+                                  Profile = profile_log_likelihood_vals) 
 
 log_likelihood_vals_file_path <- population |> 
   tolower() |> 

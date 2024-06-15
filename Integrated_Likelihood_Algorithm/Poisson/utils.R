@@ -88,7 +88,7 @@ get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-get_poisson_weighted_sum_values_PL <- function(data, weights, psi_grid_list) {
+get_profile_log_likelihood <- function(data, weights, psi_grid_list) {
   
   l_p <- psi_grid_list |> 
     purrr::map(
@@ -110,9 +110,9 @@ get_poisson_weighted_sum_values_PL <- function(data, weights, psi_grid_list) {
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-get_poisson_weighted_sum_values_IL.aux <- function(omega_hat, data, weights, psi_grid_list) {
+get_integrated_log_likelihood <- function(omega_hat, data, weights, psi_grid_list) {
   
-  L <- psi_grid_list |> 
+  l1 <- psi_grid_list |> 
     purrr::map(
       \(psi_grid) psi_grid |> 
         purrr::accumulate(
@@ -125,60 +125,5 @@ get_poisson_weighted_sum_values_IL.aux <- function(omega_hat, data, weights, psi
     purrr::modify_in(1, rev) |> 
     unlist()
   
-  return(L)
+  return(l1)
 }
-
-get_poisson_weighted_sum_values_IL <- function(omega_hat_list, data, weights, psi_grid_list) {
-  
-  l_bar <- omega_hat_list |>
-    furrr::future_map(\(x) get_poisson_weighted_sum_values_IL.aux(x, data, weights, psi_grid_list),
-                      .progress = TRUE) |> 
-    unlist() |> 
-    matrix(ncol = psi_grid_list |> 
-             unlist() |> 
-             as.numeric() |> 
-             length(), 
-           byrow = TRUE) |> 
-    matrixStats::colLogSumExps() |> 
-    (`-`)(log(length(omega_hat_list)))
-    # Rmpfr::mpfr(64) |>
-    # exp() |> 
-    # colMeans() |>
-    # log() |> 
-    # as.numeric()
-  
-  return(l_bar)
-}
-
-################################################################################
-######################## MODIFIED INTEGRATED LIKELIHOOD ########################
-################################################################################
-
-get_poisson_weighted_sum_values_modified_IL <- function(omega_hat_list, data, weights, psi_grid_list, l) {
-  
-  l_bar <- omega_hat_list |>
-    furrr::future_map(\(x) get_poisson_weighted_sum_values_IL.aux(x, data, weights, psi_grid_list),
-                      .progress = TRUE) |> 
-    unlist() |> 
-    matrix(ncol = psi_grid_list |> 
-             unlist() |> 
-             as.numeric() |> 
-             length(),
-           byrow = TRUE) |> 
-    (`-`)(l) |>
-    matrixStats::colLogSumExps() |> 
-    (`-`)(log(length(omega_hat_list)))
-  
-  # l_bar <- L_tilde |>
-  #   (`-`)(l) |>
-  #   Rmpfr::mpfr(64) |> 
-  #   exp() |> 
-  #   colMeans() |>
-  #   log() |> 
-  #   as.numeric()
-
-  return(l_bar)
-}
-
-
-

@@ -1,7 +1,7 @@
+library(doFuture)
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(furrr)
 library(purrr)
 library(pushoverr)
 
@@ -58,20 +58,34 @@ tol <- 0.0001
 
 plan(multisession, workers = availableCores())
 
-IL_preallocations <- data_sims |>
-  future_map(\(x) {
-    
-    psi_MLE <- entropy(x / sum(x))
-    
-    prior <- rep(1, length(x))
-    
-    omega_hat_list_IL <- neg_log_likelihood |>
-      get_omega_hat_list(psi_MLE, prior, R, tol) |>
-      pluck("omega_hat")
-    
-    return(omega_hat_list_IL)
-  },
-  .progress = TRUE)
+IL_preallocations <- foreach(
+  
+  i = 1:R, 
+  .combine = "list", 
+  .multicombine = TRUE, 
+  .maxcombine = R,
+  .options.future = list(seed = TRUE)
+  
+) %dofuture% {
+  
+  neg_log_likelihood |> 
+    get_omega_hat(psi_MLE, alpha, tol, return_u = FALSE)
+}
+
+# IL_preallocations <- data_sims |>
+#   future_map(\(x) {
+#     
+#     psi_MLE <- entropy(x / sum(x))
+#     
+#     prior <- rep(1, length(x))
+#     
+#     omega_hat_list_IL <- neg_log_likelihood |>
+#       get_omega_hat_list(psi_MLE, prior, R, tol) |>
+#       pluck("omega_hat")
+#     
+#     return(omega_hat_list_IL)
+#   },
+#   .progress = TRUE)
 
 IL_preallocations_file_path <- population |> 
   tolower() |> 
