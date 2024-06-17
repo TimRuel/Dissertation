@@ -5,11 +5,16 @@ library(doFuture)
 library(purrr)
 library(zeallot)
 library(pushoverr)
+library(progressr)
+library(tictoc)
 
 plan(sequential)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
+
+num_cores <- availableCores(method = "system") |> 
+  as.numeric()
 
 # population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
@@ -47,7 +52,7 @@ seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 2
+num_sims <- 1000
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
@@ -59,16 +64,18 @@ alpha <- 1/2
 
 u_params <- rep(alpha, m)
 
-R <- 10
+R <- 250
 
 tol <- 0.0001
 
 num_std_errors <- 3
 
-step_size <- 0.05
+step_size <- 0.01
 
-plan(multisession, workers = availableCores())
+num_chunks <- 15
 
+plan(multisession, workers = num_cores)
+  
 integrated_log_likelihood_sims <-
   
   foreach(
@@ -76,7 +83,8 @@ integrated_log_likelihood_sims <-
     .combine = "list",
     .multicombine = TRUE,
     .maxcombine = num_sims,
-    .options.future = list(seed = TRUE)
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
     
   ) %:%
   
@@ -119,11 +127,14 @@ pushover("Integrated Likelihood Sims Done!")
 
 plan(sequential)
 
+handlers(global = TRUE)
+handlers("progress")
+
 seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 2
+num_sims <- 4
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
@@ -133,21 +144,26 @@ data_sims <- num_sims |>
 
 alpha <- 1/2
 
-R <- 10
+R <- 250
 
 tol <- 0.0001
 
 num_std_errors <- 3
 
-step_size <- 0.05
+step_size <- 0.01
 
-Q_name <- "euclidean_distance"
-# Q_name <- "neg_log_likelihood"
+# num_chunks <- round(R * num_sims / num_cores)
+num_chunks <- 15
+
+# Q_name <- "euclidean_distance"
+Q_name <- "neg_log_likelihood"
 
 Q <- Q_name |>
   get()
 
-plan(multisession, workers = availableCores())
+plan(multisession, workers = num_cores)
+
+# tic()
 
 mod_integrated_log_likelihood_sims <-
   
@@ -156,7 +172,8 @@ mod_integrated_log_likelihood_sims <-
     .combine = "list",
     .multicombine = TRUE,
     .maxcombine = num_sims,
-    .options.future = list(seed = TRUE)
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
     
   ) %:%
   
@@ -169,24 +186,28 @@ mod_integrated_log_likelihood_sims <-
     
   ) %dofuture% {
     
-    psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
+    if (i == R) pushover("Still running")
+    
+    psi_grid_list <-
+      get_psi_grid(data, step_size, num_std_errors, split = TRUE)
     
     psi_MLE <- entropy(data / sum(data))
     
     u_params <- data + alpha
     
-    c(u, omega_hat) %<-%  get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+    c(u, omega_hat) %<-% get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
     
     log_like_u <- log_likelihood(u, data)
-      
-    omega_hat |> 
-      get_integrated_log_likelihood(data, psi_grid_list) |> 
+    
+    omega_hat |>
+      get_integrated_log_likelihood(data, psi_grid_list) |>
       (`-`)(log_like_u)
   } |>
-  map(\(x) x |> 
+  map(\(x) x |>
         matrixStats::colLogSumExps() |>
-        (`-`)(log(R))
-  )
+        (`-`)(log(R)))
+
+# toc()
 
 Q_name <- Q_name |> 
   strsplit("_") |> 
@@ -211,11 +232,14 @@ pushover("Modified Integrated Likelihood Sims Done!")
 
 plan(sequential)
 
+handlers(global = TRUE)
+handlers("progress")
+
 seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 2
+num_sims <- 10
 
 data_sims <- num_sims |>
   rmultinom(n, data) |>
@@ -225,26 +249,35 @@ data_sims <- num_sims |>
 
 num_std_errors <- 3
 
-step_size <- 0.05
+step_size <- 0.01
 
-plan(multisession, workers = availableCores())
+num_chunks <- 15
 
-profile_log_likelihood_sims <-
+gen_PL_sims <- function(sims) {
+  
+  p <- progressor(along = sims)
   
   foreach(
-    data = data_sims,
+    
+    data = sims,
     .combine = "list",
     .multicombine = TRUE,
     .maxcombine = num_sims,
-    .options.future = list(seed = TRUE)
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
     
   ) %dofuture% {
     
     psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
-    
+    p()
     data |>
       get_profile_log_likelihood(psi_grid_list)
   }
+}
+
+plan(multisession, workers = num_cores)
+
+profile_log_likelihood_sims <- gen_PL_sims(data_sims)
 
 profile_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_numse={num_std_errors}_stepsize={step_size}.Rda" |> 
   glue::glue() |> 

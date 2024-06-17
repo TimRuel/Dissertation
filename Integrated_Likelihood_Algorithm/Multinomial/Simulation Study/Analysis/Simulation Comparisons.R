@@ -18,9 +18,8 @@ birds_in_balrath_woods_sim_results <- readRDS("Results/birds_in_balrath_woods_si
 
 birds_in_killarney_woodlands_sim_results <- readRDS("Results/birds_in_killarney_woodlands_sim_results.Rda") |> 
   dplyr::rename("Birds in Killarney Woodlands (Integrated)" = "Integrated", 
-                "Birds in Killarney Woodlands (Profile)" = "Profile") |> 
-  mutate("Birds in Killarney Woodlands (Mod_Integrated)" = NA) |> 
-  select(1, 2, 4, 3)
+                "Birds in Killarney Woodlands (Mod_Integrated)" = "Mod_Integrated",
+                "Birds in Killarney Woodlands (Profile)" = "Profile") 
 
 ruel_sim_results_df <- list(desert_rodents_sim_results,
                             birds_in_balrath_woods_sim_results,

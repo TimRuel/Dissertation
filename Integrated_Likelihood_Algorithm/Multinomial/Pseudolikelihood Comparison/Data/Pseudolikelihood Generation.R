@@ -54,71 +54,57 @@ tol <- 0.0001
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-plan(multisession, workers = future::availableCores())
+plan(multisession, workers = availableCores(method = "system"))
 
-alpha <- rep(1/2, m)
+alpha <- 1/2
 
-omega_hat_list <- foreach(
-  
-  i = 1:R, 
-  .combine = "list", 
-  .multicombine = TRUE, 
-  .maxcombine = R,
-  .options.future = list(seed = TRUE)
-  
-) %dofuture% {
-  
-  neg_log_likelihood |> 
-    get_omega_hat(psi_MLE, alpha, tol, return_u = FALSE)
-}
+u_params <- rep(alpha, m)
+
+num_chunks <- 10
+
+stime <- system.time({
 
 integrated_log_likelihood_vals <- foreach(
   
-  omega_hat = omega_hat_list,
+  i = 1:R,
   .combine = "rbind",
   .multicombine = TRUE,
   .maxcombine = R,
-  .options.future = list(seed = TRUE)
+  .options.future = list(seed = TRUE,
+                         chunk.size = num_chunks)
   
 ) %dofuture% {
   
-  omega_hat |> 
+  neg_log_likelihood |>
+    get_omega_hat(psi_MLE, u_params, tol, return_u = FALSE) |>
     get_integrated_log_likelihood(data, psi_grid_list)
 } |> 
   matrixStats::colLogSumExps() |>
-  (`-`)(log(length(omega_hat_list)))
+  (`-`)(log(R))
+
+})
+
+stime
 
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-plan(multisession, workers = future::availableCores())
+plan(multisession, workers = availableCores(method = "system"))
 
-alpha <- data + 1/2
+alpha <- 1/2
 
-c(u_list, omega_hat_list) %<-% transpose(
-  
-  foreach(
-    
-    i = 1:R, 
-    .combine = "list", 
-    .multicombine = TRUE,
-    .maxcombine = R,
-    .options.future = list(seed = TRUE)
-    
-  ) %dofuture% {
-    
-    euclidean_distance |> 
-      get_omega_hat(psi_MLE, alpha, tol, return_u = TRUE)
-  }
-)
+u_params <- data + alpha
 
-l2 <- u_list |> 
-  map_dbl(\(u) likelihood(u, data))
+Q_name <- "euclidean_distance"
+# Q_name <- "neg_log_likelihood"
+
+Q <- Q_name |>
+  get()
 
 mod_integrated_log_likelihood_vals <- foreach(
   
-  omega_hat = omega_hat_list,
+  i = 1:R,
   .combine = "rbind",
   .multicombine = TRUE,
   .maxcombine = R,
@@ -126,12 +112,16 @@ mod_integrated_log_likelihood_vals <- foreach(
   
 ) %dofuture% {
   
+  c(u, omega_hat) %<-%  get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+  
+  log_like_u <- log_likelihood(u, data)
+  
   omega_hat |> 
-    get_integrated_log_likelihood(data, psi_grid_list)
+    get_integrated_log_likelihood(data, psi_grid_list) |> 
+    (`-`)(log_like_u)
   } |> 
-  (`-`)(l2) |>
   matrixStats::colLogSumExps() |> 
-  (`-`)(log(length(omega_hat_list)))
+  (`-`)(log(R))
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 

@@ -23,11 +23,7 @@ multinomial_entropy_sims_PL <- readRDS(multinomial_entropy_sims_PL_file_path)
 #   str_replace_all("_", " ") |>
 #   tools::toTitleCase()
 
-population <- multinomial_entropy_sims_IL_file_path |>
-  str_remove("^.*\\\\") |>
-  str_remove("_IL.*$") |>
-  str_replace_all("_", " ") |>
-  tools::toTitleCase()
+population <- gsub(".*/Simulations/(.*)/Integrated Likelihood/.*", "\\1", multinomial_entropy_sims_IL_file_path)
 
 switch(population,
        
