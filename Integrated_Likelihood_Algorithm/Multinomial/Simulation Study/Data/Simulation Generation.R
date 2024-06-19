@@ -13,8 +13,7 @@ plan(sequential)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-num_cores <- availableCores(method = "system") |> 
-  as.numeric()
+num_cores <- as.numeric(Sys.getenv("SLURM_NPROCS"))
 
 # population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
@@ -134,7 +133,7 @@ seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 4
+num_sims <- 100
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
@@ -152,8 +151,7 @@ num_std_errors <- 3
 
 step_size <- 0.01
 
-# num_chunks <- round(R * num_sims / num_cores)
-num_chunks <- 15
+num_chunks <- ceiling(R / num_cores)
 
 # Q_name <- "euclidean_distance"
 Q_name <- "neg_log_likelihood"
@@ -163,7 +161,7 @@ Q <- Q_name |>
 
 plan(multisession, workers = num_cores)
 
-# tic()
+tic()
 
 mod_integrated_log_likelihood_sims <-
   
@@ -207,7 +205,7 @@ mod_integrated_log_likelihood_sims <-
         matrixStats::colLogSumExps() |>
         (`-`)(log(R)))
 
-# toc()
+toc()
 
 Q_name <- Q_name |> 
   strsplit("_") |> 
