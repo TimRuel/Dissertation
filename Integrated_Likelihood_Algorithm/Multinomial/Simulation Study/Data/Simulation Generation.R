@@ -13,7 +13,9 @@ plan(sequential)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-num_cores <- as.numeric(Sys.getenv("SLURM_NPROCS"))
+# num_cores <- as.numeric(Sys.getenv("SLURM_NPROCS"))
+num_cores <- availableCores() |> 
+  as.numeric()
 
 # population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"

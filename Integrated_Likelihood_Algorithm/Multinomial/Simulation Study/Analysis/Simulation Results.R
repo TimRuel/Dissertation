@@ -181,7 +181,7 @@ spline_fitted_models_list <- multinomial_entropy_sims_lists |>
                                         names_to = "Iteration",
                                         values_to = "loglikelihood") |>
                     group_by(Iteration) |>
-                    filter(is.finite(loglikelihood)) |>
+                    # filter(is.finite(loglikelihood)) |>
                     group_map(~ smooth.spline(.x$psi, .x$loglikelihood))
                   }
            )
@@ -245,7 +245,11 @@ conf_ints_list <- pseudo_log_likelihood_curves_list |>
                     ) |> 
                     round(3)
                   
-                  return(c(lower_bound, upper_bound))   
+                  interval = c(lower_bound, upper_bound)
+                  
+                  # if (upper_bound < 1) return(NA)
+                  
+                  return(interval)
                   }
            )
        }
@@ -270,8 +274,9 @@ multinomial_entropy_sim_results <- MLE_data_list |>
                   Upper = conf_ints$Upper,
                   psi_0 = psi_0,
                   Covered = psi_0 |> between(Lower, Upper)) |> 
+           drop_na() |> 
            summarise(Bias = mean(MLE - psi_0),
-                     SD = sd(MLE),
+                     SD = sqrt(mean((MLE - mean(MLE))^2)),
                      RMSE = sqrt(mean((MLE - psi_0)^2)),
                      Coverage = mean(Covered, na.rm = TRUE),
                      Length = mean(Upper - Lower, na.rm = TRUE))
