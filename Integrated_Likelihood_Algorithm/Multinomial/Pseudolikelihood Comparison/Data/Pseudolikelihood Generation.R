@@ -3,12 +3,20 @@ library(doFuture)
 library(zeallot)
 library(purrr)
 library(dplyr)
+library(progressr)
+
+handlers(global = TRUE)
+handlers("cli")
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
+# num_cores <- as.numeric(Sys.getenv("SLURM_NPROCS"))
+num_cores <- availableCores() |> 
+  as.numeric()
+
+# population <- "Desert Rodents"
+population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,
@@ -31,66 +39,38 @@ switch(population,
 
 set.seed(38497283)
 
-n <- sum(data)
-
 m <- length(data)
 
-theta_MLE <- data / n
+step_size <- 0.0001
 
-psi_MLE <- entropy(theta_MLE)
-
-step_size <- 0.01
-
-num_std_errors <- 3
-
-psi_grid_list <- data |> 
-  get_psi_grid(step_size, num_std_errors, split = TRUE)
+num_std_errors <- 4
 
 R <- 250
 
 tol <- 0.0001
 
+# num_chunks <- ceiling(R / num_cores)
+
+num_chunks <- 15
+
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-plan(multisession, workers = availableCores(method = "system"))
+plan(multisession, workers = num_cores)
 
 alpha <- 1/2
 
 u_params <- rep(alpha, m)
 
-num_chunks <- 10
-
-stime <- system.time({
-
-integrated_log_likelihood_vals <- foreach(
-  
-  i = 1:R,
-  .combine = "rbind",
-  .multicombine = TRUE,
-  .maxcombine = R,
-  .options.future = list(seed = TRUE,
-                         chunk.size = num_chunks)
-  
-) %dofuture% {
-  
-  neg_log_likelihood |>
-    get_omega_hat(psi_MLE, u_params, tol, return_u = FALSE) |>
-    get_integrated_log_likelihood(data, psi_grid_list)
-} |> 
-  matrixStats::colLogSumExps() |>
-  (`-`)(log(R))
-
-})
-
-stime
+integrated_log_likelihood_vals <- data |> 
+  get_integrated_log_likelihood_vals(step_size, num_std_errors, u_params, R, tol, num_chunks)
 
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-plan(multisession, workers = availableCores(method = "system"))
+plan(multisession, workers = num_cores)
 
 alpha <- 1/2
 
@@ -102,26 +82,8 @@ Q_name <- "euclidean_distance"
 Q <- Q_name |>
   get()
 
-mod_integrated_log_likelihood_vals <- foreach(
-  
-  i = 1:R,
-  .combine = "rbind",
-  .multicombine = TRUE,
-  .maxcombine = R,
-  .options.future = list(seed = TRUE)
-  
-) %dofuture% {
-  
-  c(u, omega_hat) %<-%  get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
-  
-  log_like_u <- log_likelihood(u, data)
-  
-  omega_hat |> 
-    get_integrated_log_likelihood(data, psi_grid_list) |> 
-    (`-`)(log_like_u)
-  } |> 
-  matrixStats::colLogSumExps() |> 
-  (`-`)(log(R))
+mod_integrated_log_likelihood_vals <- data |> 
+  get_mod_integrated_log_likelihood_vals(Q, step_size, num_std_errors, u_params, R, tol, num_chunks)
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -129,8 +91,15 @@ mod_integrated_log_likelihood_vals <- foreach(
 
 plan(sequential)
 
+psi_grid_list <- data |> 
+  get_psi_grid(step_size, num_std_errors, split = TRUE)
+
+tic()
+
 profile_log_likelihood_vals <- data |> 
   get_profile_log_likelihood(psi_grid_list)
+
+toc()
 
 ################################################################################
 ################################### STORAGE #################################### 
@@ -140,8 +109,8 @@ psi_grid <- data |>
   get_psi_grid(step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
                                   Integrated = integrated_log_likelihood_vals,
+                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
                                   Profile = profile_log_likelihood_vals) 
 
 log_likelihood_vals_file_path <- population |> 
