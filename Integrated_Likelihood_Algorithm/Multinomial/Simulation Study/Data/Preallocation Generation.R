@@ -10,9 +10,14 @@ plan(sequential)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-population <- "Desert Rodents"
+# num_cores <- Sys.getenv("SLURM_NPROCS") |> 
+#   as.numeric()
+num_cores <- availableCores() |>
+  as.numeric()
+
+# population <- "Desert Rodents"
 # population <- "Birds in Balrath Woods"
-# population <- "Birds in Killarney Woodlands"
+population <- "Birds in Killarney Woodlands"
 
 switch(population,     
        
@@ -52,40 +57,43 @@ data_sims <- num_sims |>
   as.list() |> 
   map(as.numeric)
 
+alpha <- 1/2
+
+u_params <- rep(alpha, m)
+
 R <- 250
 
 tol <- 0.0001
 
-plan(multisession, workers = availableCores())
+num_chunks <- ceiling(R / num_cores)
 
-IL_preallocations <- foreach(
-  
-  i = 1:R, 
-  .combine = "list", 
-  .multicombine = TRUE, 
-  .maxcombine = R,
-  .options.future = list(seed = TRUE)
-  
-) %dofuture% {
-  
-  neg_log_likelihood |> 
-    get_omega_hat(psi_MLE, alpha, tol, return_u = FALSE)
-}
+plan(multisession, workers = num_cores)
 
-# IL_preallocations <- data_sims |>
-#   future_map(\(x) {
-#     
-#     psi_MLE <- entropy(x / sum(x))
-#     
-#     prior <- rep(1, length(x))
-#     
-#     omega_hat_list_IL <- neg_log_likelihood |>
-#       get_omega_hat_list(psi_MLE, prior, R, tol) |>
-#       pluck("omega_hat")
-#     
-#     return(omega_hat_list_IL)
-#   },
-#   .progress = TRUE)
+IL_preallocations <-
+  
+  foreach(
+    data = data_sims,
+    .combine = "list",
+    .multicombine = TRUE,
+    .maxcombine = num_sims,
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
+    
+  ) %:%
+  
+  foreach(
+    i = 1:R,
+    .combine = "rbind",
+    .multicombine = TRUE,
+    .maxcombine = R,
+    .options.future = list(seed = TRUE)
+    
+  ) %dofuture% {
+    
+    psi_MLE <- entropy(data / sum(data))
+    
+    get_omega_hat(neg_log_likelihood, psi_MLE, u_params, tol, return_u = FALSE)
+  }
 
 IL_preallocations_file_path <- population |> 
   tolower() |> 
@@ -113,36 +121,49 @@ data_sims <- num_sims |>
   as.list() |> 
   map(as.numeric)
 
+alpha <- 1/2
+
 R <- 250
 
 tol <- 0.0001
 
-# Q_name <- "euclidean_distance"
-Q_name <- "neg_log_likelihood"
+Q_name <- "euclidean_distance"
+# Q_name <- "neg_log_likelihood"
 
 Q <- Q_name |>
   get()
 
-plan(multisession, workers = 50L)
+num_chunks <- ceiling(R / num_cores)
 
-mod_IL_preallocations <- data_sims |>
-  future_map(\(x) {
+plan(multisession, workers = num_cores)
+
+mod_IL_preallocations <-
+  
+  foreach(
+    data = data_sims,
+    .combine = "list",
+    .multicombine = TRUE,
+    .maxcombine = num_sims,
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
     
-    time <- format(Sys.time(), "%M") |>
-      as.numeric()
+  ) %:%
+  
+  foreach(
+    i = 1:R,
+    .combine = "list",
+    .multicombine = TRUE,
+    .maxcombine = R,
+    .options.future = list(seed = TRUE)
     
-    if ((time %% 15) == 0) pushover("Still running")
+  ) %dofuture% {
     
-    psi_MLE <- entropy(x / sum(x))
-                                      
-    alpha <- x + 1
-      
-    out <- get_omega_hat_list(Q, psi_MLE, alpha, R, tol)
-      
-    return(out)
-    },
-    .progress = TRUE) |> 
-  transpose()
+    psi_MLE <- entropy(data / sum(data))
+    
+    u_params <- data + alpha
+    
+    get_omega_hat(neg_log_likelihood, psi_MLE, u_params, tol, return_u = TRUE)
+  }
 
 Q_name <- Q_name |> 
   strsplit("_") |> 

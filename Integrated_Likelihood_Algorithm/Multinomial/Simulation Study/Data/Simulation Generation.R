@@ -8,6 +8,9 @@ library(pushoverr)
 library(progressr)
 library(tictoc)
 
+handlers(global = TRUE)
+handlers("cli")
+
 plan(sequential)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -17,9 +20,25 @@ source("../../utils.R")
 num_cores <- availableCores() |> 
   as.numeric()
 
-# population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
-population <- "Birds in Killarney Woodlands"
+IL_preallocations_file_path <- file.choose()
+omega_hat_lists_IL <- readRDS(IL_preallocations_file_path)
+
+mod_IL_preallocations_file_path <- file.choose()
+test <- readRDS(mod_IL_preallocations_file_path)
+
+# c(u_lists_mod_IL, omega_hat_lists_mod_IL) %<-% 
+
+population <- IL_preallocations_file_path |>  
+  str_remove("^.*/") |> 
+  str_remove("_IL.*$") |> 
+  str_replace_all("_", " ") |> 
+  tools::toTitleCase()
+
+# population <- IL_preallocations_file_path |>  
+#   str_remove("^.*\\\\") |> 
+#   str_remove("_IL.*$") |> 
+#   str_replace_all("_", " ") |> 
+#   tools::toTitleCase()
 
 switch(population,     
        
@@ -49,11 +68,19 @@ m <- length(data)
 
 plan(sequential)
 
-seed <- 38497283
+seed <- IL_preallocations_file_path |>  
+  str_remove("^.*seed=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
 
 set.seed(seed)
 
-num_sims <- 1000
+# num_sims <- IL_preallocations_file_path |>  
+#   str_remove("^.*numsims=") |> 
+#   str_extract("\\d+") |> 
+#   as.numeric()
+
+num_sims <- 50
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
@@ -61,56 +88,21 @@ data_sims <- num_sims |>
   as.list() |> 
   map(as.numeric)
 
-alpha <- 1/2
-
-u_params <- rep(alpha, m)
-
-R <- 250
-
-tol <- 0.0001
-
-num_std_errors <- 3
+R <- IL_preallocations_file_path |>  
+  str_remove("^.*R=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
 
 step_size <- 0.01
 
-num_chunks <- 15
+num_std_errors <- 4
+
+num_chunks <- ceiling(R * num_sims / num_cores)
 
 plan(multisession, workers = num_cores)
-  
-integrated_log_likelihood_sims <-
-  
-  foreach(
-    data = data_sims,
-    .combine = "list",
-    .multicombine = TRUE,
-    .maxcombine = num_sims,
-    .options.future = list(seed = TRUE,
-                           chunk.size = num_chunks)
-    
-  ) %:%
-  
-  foreach(
-    i = 1:R,
-    .combine = "rbind",
-    .multicombine = TRUE,
-    .maxcombine = R,
-    .options.future = list(seed = TRUE)
-    
-  ) %dofuture% {
-    
-    psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
-    
-    psi_MLE <- entropy(data / sum(data))
-    
-    neg_log_likelihood |>
-      get_omega_hat(psi_MLE, u_params, tol, return_u = FALSE) |>
-      get_integrated_log_likelihood(data, psi_grid_list)
-  } |>
-  map(\(x) x |> 
-        matrixStats::colLogSumExps() |>
-        (`-`)(log(R))
-  )
 
+integrated_log_likelihood_sims <- get_integrated_log_likelihood_sims(data_sims, omega_hat_lists_IL, R, step_size, num_std_errors, num_chunks)
+  
 integrated_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_R={R}_tol={tol}_numse={num_std_errors}_stepsize={step_size}.Rda" |> 
   glue::glue() |> 
   paste0("Simulations/",
@@ -127,9 +119,6 @@ pushover("Integrated Likelihood Sims Done!")
 ################################################################################
 
 plan(sequential)
-
-handlers(global = TRUE)
-handlers("progress")
 
 seed <- 38497283
 

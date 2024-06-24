@@ -174,47 +174,40 @@ spline_fitted_models_list <- multinomial_entropy_sims_lists |>
          sims_list |> 
            map2(psi_grid_list,
                 \(sims, psi_grid) {
-                  sims |> 
-                    data.frame() |> 
-                    mutate(psi = psi_grid) |> 
-                    tidyr::pivot_longer(cols = -psi,
-                                        names_to = "Iteration",
-                                        values_to = "loglikelihood") |>
-                    group_by(Iteration) |>
-                    # filter(is.finite(loglikelihood)) |>
-                    group_map(~ smooth.spline(.x$psi, .x$loglikelihood))
+                  data.frame(psi = psi_grid,
+                             loglikelihood = sims) |> 
+                    (\(df) smooth.spline(df$psi, df$loglikelihood))()
                   }
            )
          }
        )
 
 MLE_data_list <- spline_fitted_models_list |> 
-  map(
-    function(spline_fitted_models) {
-      spline_fitted_models |> 
-        sapply(
-          function(mod) {
-            optimize(
-              function(psi) predict(mod[[1]], psi)$y, 
-              lower = 0, 
-              upper = log(length(data)), 
-              maximum = TRUE)
-            }
-          ) |> 
-        t() |> 
-        data.frame() |> 
-        mutate(MLE = as.numeric(maximum),
-               Maximum = as.numeric(objective)) |> 
-        select(MLE, Maximum)
-      }
-    )
+  map2(psi_grid_lists,
+       \(spline_fitted_models, psi_grid_list) {
+         spline_fitted_models |> 
+           map2(psi_grid_list,
+            \(mod, psi_grid) {
+              optimize(\(psi) predict(mod, psi)$y, 
+                       lower = psi_grid |> head(1), 
+                       upper = psi_grid |> tail(1), 
+                       maximum = TRUE) |> 
+                data.frame() |> 
+                mutate(MLE = as.numeric(maximum),
+                       Maximum = as.numeric(objective)) |> 
+                select(MLE, Maximum)
+              }
+            ) |> 
+           bind_rows()
+         }
+       )
 
 pseudo_log_likelihood_curves_list <- spline_fitted_models_list |> 
   map2(MLE_data_list,
        function(spline_fitted_models, MLE_data) {
          spline_fitted_models |>
            map2(MLE_data$Maximum,
-                function(mod, maximum) function(psi) predict(mod[[1]], psi)$y - maximum)
+                function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
          }
        )
 
@@ -246,8 +239,6 @@ conf_ints_list <- pseudo_log_likelihood_curves_list |>
                     round(3)
                   
                   interval = c(lower_bound, upper_bound)
-                  
-                  # if (upper_bound < 1) return(NA)
                   
                   return(interval)
                   }
