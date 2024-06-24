@@ -11,27 +11,27 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 log_likelihood_vals_file_path <- file.choose()
 
-pseudolikelihood_names <- c("Mod_Integrated", "Profile", "Integrated")
+pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
 log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |> 
-  tidyr::pivot_longer(cols = pseudolikelihood_names,
+  tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
                       names_to = "Pseudolikelihood",
                       values_to = "loglikelihood") |> 
   mutate(Pseudolikelihood = Pseudolikelihood |> 
            as_factor() |> 
            fct_inorder())
 
-# population <- log_likelihood_vals_file_path |>  
-#   str_remove("^.*/") |> 
-#   str_remove("_IL.*$") |> 
-#   str_replace_all("_", " ") |> 
-#   tools::toTitleCase()
-
 population <- log_likelihood_vals_file_path |>
-  str_remove("^.*\\\\") |>
-  str_remove("_R.*$") |>
+  str_remove("^.*/") |>
+  str_remove("_R=.*$") |>
   str_replace_all("_", " ") |>
   tools::toTitleCase()
+
+# population <- log_likelihood_vals_file_path |>
+#   str_remove("^.*\\\\") |>
+#   str_remove("_R=.*$") |>
+#   str_replace_all("_", " ") |>
+#   tools::toTitleCase()
 
 switch(population,
        
@@ -63,29 +63,30 @@ switch(population,
        }
 )  
 
-pseudolikelihood_names <- c("Mod_Integrated", "Profile", "Integrated")
-
 spline_fitted_models <- log_likelihood_vals |>
   group_by(Pseudolikelihood) |> 
   group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
   set_names(pseudolikelihood_names)
 
 MLE_data <- spline_fitted_models |>
-  sapply(
+  map(
     function(mod) {
-      optimize(
-        function(psi) predict(mod, psi)$y, 
-        lower = 0, 
-        upper = log(length(data)), 
-        maximum = TRUE
-      )}) |> 
-  t() |> 
-  data.frame() |> 
-  rownames_to_column("Pseudolikelihood") |> 
-  dplyr::rename(MLE = maximum,
-                Maximum = objective) |> 
-  mutate(MLE = as.numeric(MLE),
-         MLE_label = c("hat(psi)[m-IL]", "hat(psi)[IL]", "hat(psi)[PL]"))
+      optimize(function(psi) predict(mod, psi)$y, 
+               lower = log_likelihood_vals |> 
+                 select(psi) |> 
+                 min(), 
+               upper = log_likelihood_vals |> 
+                 select(psi) |> 
+                 max(), 
+               maximum = TRUE) |>
+        data.frame() |> 
+        mutate(MLE = as.numeric(maximum),
+               Maximum = as.numeric(objective)) |> 
+        select(MLE, Maximum)
+      }) |> 
+  do.call(rbind, args = _) |> 
+  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |> 
+  rownames_to_column("Pseudolikelihood")
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
   map2(MLE_data$Maximum,

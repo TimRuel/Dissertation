@@ -48,7 +48,8 @@ get_psi_grid <- function(data, step_size, num_std_errors, split = FALSE) {
 
 get_omega_hat <- function(objective_fn, psi_MLE, u_params, tol, return_u = FALSE) {
   
-  u <- LaplacesDemon::rdirichlet(1, u_params)
+  u <- LaplacesDemon::rdirichlet(1, u_params) |> 
+    as.double()
   
   omega_hat <- nloptr::auglag(x0 = rep(1 / length(u), length(u)),
                               fn = function(omega) objective_fn(omega, u),
@@ -91,6 +92,135 @@ get_theta_hat <- function(init_guess, psi, omega_hat) {
 }
 
 ################################################################################
+############################ INTEGRATED LIKELIHOOD ############################# 
+################################################################################
+
+get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, psi_grid_list) {
+  
+  l1 <- psi_grid_list |> 
+    purrr::map(
+      \(psi_grid) psi_grid |> 
+        purrr::accumulate(
+          \(acc, nxt) get_theta_hat(acc, nxt, omega_hat), 
+          .init = omega_hat
+          ) |> 
+        magrittr::extract(-1) |> 
+        purrr::map_dbl(log_likelihood, data)
+      ) |> 
+    purrr::modify_in(1, rev) |> 
+    unlist()
+  
+  return(l1)
+}
+
+get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, num_chunks = 15) {
+  
+  p <- progressor(steps = R)
+  
+  psi_MLE <- entropy(data / sum(data))
+  
+  psi_grid_list <- data |> 
+    get_psi_grid(step_size, num_std_errors, split = TRUE)
+  
+  foreach(
+    
+    i = 1:R,
+    .combine = "rbind",
+    .multicombine = TRUE,
+    .maxcombine = R,
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
+    
+  ) %dofuture% {
+    
+    p()
+    
+    get_omega_hat(neg_log_likelihood, psi_MLE, u_params, tol, return_u = FALSE) |>
+      get_integrated_log_likelihood_vals.aux(data, psi_grid_list)
+  } |> 
+    matrixStats::colLogSumExps() |>
+    (`-`)(log(R))
+}
+
+get_integrated_log_likelihood_sims <- function(data_sims, omega_hat_lists, R = 250, step_size = 0.01, num_std_errors = 4, num_chunks = 15) {
+  
+  p <- progressor(steps = R * length(data_sims))
+  
+  foreach(
+    i = 1:length(data_sims),
+    .combine = "list",
+    .multicombine = TRUE,
+    .maxcombine = length(data_sims),
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
+    
+  ) %:%
+    
+    foreach(
+      j = 1:R,
+      .combine = "rbind",
+      .multicombine = TRUE,
+      .maxcombine = R,
+      .options.future = list(seed = TRUE)
+      
+    ) %dofuture% {
+      
+      p()
+      
+      data <- data_sims[[i]]
+      
+      psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
+      
+      omega_hat <- omega_hat_lists[[i]][j,]
+      
+      omega_hat |>
+        get_integrated_log_likelihood_vals.aux(data, psi_grid_list)
+    } |>
+    map(\(x) x |> 
+          matrixStats::colLogSumExps() |>
+          (`-`)(log(R))
+    )
+}
+
+################################################################################
+######################### MODIFIED INTEGRATED LIKELIHOOD ####################### 
+################################################################################
+
+get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, num_chunks = 15) {
+  
+  p <- progressor(steps = R)
+  
+  psi_MLE <- entropy(data / sum(data))
+  
+  psi_grid_list <- data |> 
+    get_psi_grid(step_size, num_std_errors, split = TRUE)
+  
+  foreach(
+    
+    i = 1:R,
+    .combine = "rbind",
+    .multicombine = TRUE,
+    .maxcombine = R,
+    .options.future = list(seed = TRUE,
+                           chunk.size = num_chunks)
+    
+  ) %dofuture% {
+    
+    p()
+    
+    c(u, omega_hat) %<-% get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+    
+    log_like_u <- log_likelihood(u, data)
+    
+    omega_hat |> 
+      get_integrated_log_likelihood_vals.aux(data, psi_grid_list) |> 
+      (`-`)(log_like_u)
+  } |> 
+    matrixStats::colLogSumExps() |>
+    (`-`)(log(R))
+}
+
+################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
@@ -114,69 +244,5 @@ get_profile_log_likelihood <- function(data, psi_grid_list) {
   
   return(l_p)
 }
-
-################################################################################
-############################ INTEGRATED LIKELIHOOD ############################# 
-################################################################################
-
-get_integrated_log_likelihood <- function(omega_hat, data, psi_grid_list) {
-  
-  l1 <- psi_grid_list |> 
-    purrr::map(
-      \(psi_grid) psi_grid |> 
-        purrr::accumulate(
-          \(acc, nxt) get_theta_hat(acc, nxt, omega_hat), 
-          .init = omega_hat
-          ) |> 
-        magrittr::extract(-1) |> 
-        purrr::map_dbl(log_likelihood, data)
-      ) |> 
-    purrr::modify_in(1, rev) |> 
-    unlist()
-  
-  return(l1)
-}
-
-get_multinomial_entropy_values_IL <- function(omega_hat_list, psi_grid_list, data) {
-  
-  l_bar <- omega_hat_list |>
-    furrr::future_map(\(x) get_multinomial_entropy_values_IL.aux(x, data, psi_grid_list),
-                      .progress = TRUE) |> 
-    unlist() |> 
-    matrix(ncol = psi_grid_list |> 
-             unlist() |> 
-             as.numeric() |> 
-             length(), 
-           byrow = TRUE) |> 
-    colMeans() |> 
-    log()
-  
-  return(l_bar)
-}
-
-################################################################################
-######################## MODIFIED INTEGRATED LIKELIHOOD ########################
-################################################################################
-
-get_multinomial_entropy_values_modified_IL <- function(omega_hat_list, psi_grid_list, L, data) {
-  
-  L_tilde <- omega_hat_list |>
-    furrr::future_map(\(x) get_multinomial_entropy_values_IL.aux(x, data, psi_grid_list),
-                      .progress = TRUE) |> 
-    unlist() |> 
-    matrix(ncol = psi_grid_list |> 
-             unlist() |> 
-             as.numeric() |> 
-             length(),
-           byrow = TRUE)
-  
-  l_bar <- L_tilde |>
-      (`/`)(L) |>
-      colMeans() |>
-      log()
-
-  return(l_bar)
-}
-
 
 
