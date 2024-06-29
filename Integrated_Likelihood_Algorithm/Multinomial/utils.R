@@ -61,7 +61,7 @@ get_omega_hat <- function(objective_fn, psi_MLE, u_params, tol, return_u = FALSE
     
     if (return_u) {
       
-      return(list(u = u, omega_hat = omega_hat))
+      return(rbind(u, omega_hat))
     }
     
     return(omega_hat)
@@ -95,6 +95,56 @@ get_theta_hat <- function(init_guess, psi, omega_hat) {
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
+custom_combine_IL <- function(...) {
+  
+  arglist <- list(...)
+  
+  data <- arglist[[1]]$data
+  
+  preallocations <- matrix(data = NA, nrow = length(arglist), ncol = length(data))
+  
+  for (result in arglist) {preallocations[result$i,] <- result$preallocations}
+  
+  return(list(data = data, preallocations = preallocations))
+}
+
+get_IL_preallocations <- function(data_sims, u_params, R, tol) {
+  
+  p <- progressr::progressor(steps = R * length(data_sims))
+  
+  IL_preallocations <-
+    
+    foreach(
+      data = data_sims,
+      .combine = "list",
+      .multicombine = TRUE,
+      .maxcombine = length(data_sims),
+      .options.future = list(seed = TRUE,
+                             chunk.size = num_chunks)
+      
+    ) %:%
+    
+    foreach(
+      i = 1:R,
+      .combine = custom_combine_IL,
+      .multicombine = TRUE,
+      .maxcombine = R,
+      .options.future = list(seed = TRUE)
+      
+    ) %dofuture% {
+      
+      p()
+      
+      psi_MLE <- entropy(data / sum(data))
+      
+      omega_hat <- get_omega_hat(neg_log_likelihood, psi_MLE, u_params, tol, return_u = FALSE)
+      
+      return(list(data = data, preallocations = omega_hat, i = i))
+    }
+  
+  return(IL_preallocations)
+}
+
 get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, psi_grid_list) {
   
   l1 <- psi_grid_list |> 
@@ -115,7 +165,7 @@ get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, psi_grid_lis
 
 get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, num_chunks = 15) {
   
-  p <- progressor(steps = R)
+  p <- progressr::progressor(steps = R)
   
   psi_MLE <- entropy(data / sum(data))
   
@@ -144,7 +194,7 @@ get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, 
 
 get_integrated_log_likelihood_sims <- function(data_sims, omega_hat_lists, R = 250, step_size = 0.01, num_std_errors = 4, num_chunks = 15) {
   
-  p <- progressor(steps = R * length(data_sims))
+  p <- progressr::progressor(steps = R * length(data_sims))
   
   foreach(
     i = 1:length(data_sims),
@@ -186,9 +236,61 @@ get_integrated_log_likelihood_sims <- function(data_sims, omega_hat_lists, R = 2
 ######################### MODIFIED INTEGRATED LIKELIHOOD ####################### 
 ################################################################################
 
+custom_combine_mod_IL <- function(...) {
+  
+  arglist <- list(...)
+  
+  preallocations <- list()
+  
+  for (result in arglist) {preallocations[[result$i]] <- result$preallocations}
+
+  data <- arglist[[1]]$data
+
+  return(list(data = data, preallocations = preallocations))
+}
+
+get_mod_IL_preallocations <- function(data_sims, Q, alpha, R, tol) {
+  
+  p <- progressr::progressor(steps = R * length(data_sims))
+  
+  mod_IL_preallocations <- 
+    
+    foreach(
+      data = data_sims,
+      .combine = "list",
+      .multicombine = TRUE,
+      .maxcombine = num_sims,
+      .options.future = list(seed = TRUE,
+                             chunk.size = num_chunks)
+      
+    ) %:%
+    
+    foreach(
+      i = 1:R,
+      .combine = custom_combine_mod_IL,
+      .multicombine = TRUE,
+      .maxcombine = R,
+      .options.future = list(seed = TRUE)
+      
+    ) %dofuture% {
+      
+      p()
+      
+      psi_MLE <- entropy(data / sum(data))
+      
+      u_params <- data + alpha
+      
+      preallocations <- get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+      
+      return(list(data = data, preallocations = preallocations, i = i))
+    }
+  
+  return(mod_IL_preallocations)
+}
+
 get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, num_chunks = 15) {
   
-  p <- progressor(steps = R)
+  p <- progressr::progressor(steps = R)
   
   psi_MLE <- entropy(data / sum(data))
   

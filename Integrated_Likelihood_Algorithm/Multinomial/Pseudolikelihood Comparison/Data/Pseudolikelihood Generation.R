@@ -11,9 +11,10 @@ handlers("cli")
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-# num_cores <- as.numeric(Sys.getenv("SLURM_NPROCS"))
-num_cores <- availableCores() |> 
+num_cores <- Sys.getenv("SLURM_NPROCS") |> 
   as.numeric()
+# num_cores <- availableCores() |> 
+#   as.numeric()
 
 # population <- "Desert Rodents"
 population <- "Birds in Balrath Woods"
@@ -41,7 +42,7 @@ set.seed(38497283)
 
 m <- length(data)
 
-step_size <- 0.0001
+step_size <- 0.001
 
 num_std_errors <- 4
 
@@ -94,12 +95,8 @@ plan(sequential)
 psi_grid_list <- data |> 
   get_psi_grid(step_size, num_std_errors, split = TRUE)
 
-tic()
-
 profile_log_likelihood_vals <- data |> 
   get_profile_log_likelihood(psi_grid_list)
-
-toc()
 
 ################################################################################
 ################################### STORAGE #################################### 
