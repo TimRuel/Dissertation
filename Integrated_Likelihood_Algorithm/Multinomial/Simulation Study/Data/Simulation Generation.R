@@ -21,10 +21,10 @@ num_cores <- availableCores() |>
   as.numeric()
 
 IL_preallocations_file_path <- file.choose()
-omega_hat_lists_IL <- readRDS(IL_preallocations_file_path)
+IL_preallocations <- readRDS(IL_preallocations_file_path)
 
 mod_IL_preallocations_file_path <- file.choose()
-test <- readRDS(mod_IL_preallocations_file_path)
+omega_hat_lists_mod_IL <- readRDS(mod_IL_preallocations_file_path)
 
 # c(u_lists_mod_IL, omega_hat_lists_mod_IL) %<-% 
 
@@ -75,12 +75,10 @@ seed <- IL_preallocations_file_path |>
 
 set.seed(seed)
 
-# num_sims <- IL_preallocations_file_path |>  
-#   str_remove("^.*numsims=") |> 
-#   str_extract("\\d+") |> 
-#   as.numeric()
-
-num_sims <- 50
+num_sims <- IL_preallocations_file_path |>
+  str_remove("^.*numsims=") |>
+  str_extract("\\d+") |>
+  as.numeric()
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
