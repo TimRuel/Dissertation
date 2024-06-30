@@ -16,17 +16,15 @@ plan(sequential)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-# num_cores <- as.numeric(Sys.getenv("SLURM_NPROCS"))
-num_cores <- availableCores() |> 
-  as.numeric()
+num_cores <- Sys.getenv("SLURM_NPROCS") |> 
+  as.numeric()# num_cores <- availableCores() |> 
+#   as.numeric()
 
 IL_preallocations_file_path <- file.choose()
 IL_preallocations <- readRDS(IL_preallocations_file_path)
 
 mod_IL_preallocations_file_path <- file.choose()
-omega_hat_lists_mod_IL <- readRDS(mod_IL_preallocations_file_path)
-
-# c(u_lists_mod_IL, omega_hat_lists_mod_IL) %<-% 
+mod_IL_preallocations <- readRDS(mod_IL_preallocations_file_path)
 
 population <- IL_preallocations_file_path |>  
   str_remove("^.*/") |> 
@@ -122,7 +120,7 @@ seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 100
+num_sims <- 1000
 
 data_sims <- num_sims |> 
   rmultinom(n, data) |> 
@@ -136,7 +134,7 @@ R <- 250
 
 tol <- 0.0001
 
-num_std_errors <- 3
+num_std_errors <- 4
 
 step_size <- 0.01
 
@@ -226,7 +224,7 @@ seed <- 38497283
 
 set.seed(seed)
 
-num_sims <- 10
+num_sims <- 1000
 
 data_sims <- num_sims |>
   rmultinom(n, data) |>
@@ -234,11 +232,11 @@ data_sims <- num_sims |>
   as.list() |>
   map(as.numeric)
 
-num_std_errors <- 3
+num_std_errors <- 4
 
 step_size <- 0.01
 
-num_chunks <- 15
+num_chunks <- ceiling(R / num_cores)
 
 gen_PL_sims <- function(sims) {
   

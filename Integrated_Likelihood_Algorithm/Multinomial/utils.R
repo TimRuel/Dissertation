@@ -192,22 +192,25 @@ get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, 
     (`-`)(log(R))
 }
 
-get_integrated_log_likelihood_sims <- function(data_sims, omega_hat_lists, R = 250, step_size = 0.01, num_std_errors = 4, num_chunks = 15) {
+get_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, num_chunks = 15) {
   
-  p <- progressr::progressor(steps = R * length(data_sims))
+  R <- preallocations[[1]]$preallocations |> 
+    nrow()
+  
+  p <- progressr::progressor(steps = R * length(preallocations))
   
   foreach(
-    i = 1:length(data_sims),
+    preallocation = preallocations,
     .combine = "list",
     .multicombine = TRUE,
-    .maxcombine = length(data_sims),
+    .maxcombine = length(preallocations),
     .options.future = list(seed = TRUE,
                            chunk.size = num_chunks)
     
   ) %:%
     
     foreach(
-      j = 1:R,
+      i = 1:R,
       .combine = "rbind",
       .multicombine = TRUE,
       .maxcombine = R,
@@ -217,14 +220,13 @@ get_integrated_log_likelihood_sims <- function(data_sims, omega_hat_lists, R = 2
       
       p()
       
-      data <- data_sims[[i]]
+      data <- preallocation$data
       
       psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
       
-      omega_hat <- omega_hat_lists[[i]][j,]
+      omega_hat <- preallocation$preallocations[i,]
       
-      omega_hat |>
-        get_integrated_log_likelihood_vals.aux(data, psi_grid_list)
+      get_integrated_log_likelihood_vals.aux(omega_hat, data, psi_grid_list)
     } |>
     map(\(x) x |> 
           matrixStats::colLogSumExps() |>
@@ -320,6 +322,57 @@ get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_e
   } |> 
     matrixStats::colLogSumExps() |>
     (`-`)(log(R))
+}
+
+get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, num_chunks = 15) {
+  
+  R <- preallocations[[1]]$preallocations |> 
+    length()
+  
+  p <- progressr::progressor(steps = R * length(preallocations))
+  
+  mod_integrated_log_likelihood_sims <-
+    
+    foreach(
+      preallocation = preallocations,
+      .combine = "list",
+      .multicombine = TRUE,
+      .maxcombine = num_sims,
+      .options.future = list(seed = TRUE,
+                             chunk.size = num_chunks)
+      
+    ) %:%
+    
+    foreach(
+      i = 1:R,
+      .combine = "rbind",
+      .multicombine = TRUE,
+      .maxcombine = R,
+      .options.future = list(seed = TRUE)
+      
+    ) %dofuture% {
+      
+      p()
+      
+      data <- preallocation$data
+      
+      psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
+      
+      psi_MLE <- entropy(data / sum(data))
+      
+      u <- preallocation$preallocations[[i]]["u",]
+      
+      omega_hat <- preallocation$preallocations[[i]]["omega_hat",]
+      
+      log_like_u <- log_likelihood(u, data)
+      
+      omega_hat |>
+        get_integrated_log_likelihood(data, psi_grid_list) |>
+        (`-`)(log_like_u)
+    } |>
+    map(\(x) x |>
+          matrixStats::colLogSumExps() |>
+          (`-`)(log(R)))
 }
 
 ################################################################################
