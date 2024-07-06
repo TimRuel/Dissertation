@@ -1,29 +1,23 @@
-library(dplyr)
-library(purrr)
-library(stringr)
+library(tidyverse)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-multinomial_entropy_sims_IL_file_path <- file.choose()
+integrated_log_likelihood_sims_file_path <- file.choose()
 
-multinomial_entropy_sims_IL <- readRDS(multinomial_entropy_sims_IL_file_path)
+integrated_log_likelihood_sims <- readRDS(integrated_log_likelihood_sims_file_path)
 
-multinomial_entropy_sims_mod_IL_file_path <- file.choose()
+mod_integrated_log_likelihood_sims_file_path <- file.choose()
 
-multinomial_entropy_sims_mod_IL <- readRDS(multinomial_entropy_sims_mod_IL_file_path)
+mod_integrated_log_likelihood_sims <- readRDS(mod_integrated_log_likelihood_sims_file_path)
 
-multinomial_entropy_sims_PL_file_path <- file.choose()
+profile_log_likelihood_sims_file_path <- file.choose()
 
-multinomial_entropy_sims_PL <- readRDS(multinomial_entropy_sims_PL_file_path)
+profile_log_likelihood_sims <- readRDS(profile_log_likelihood_sims_file_path)
 
-# population <- multinomial_entropy_sims_IL_file_path |>
-#   str_remove("^.*/") |>
-#   str_remove("_IL.*$") |>
-#   str_replace_all("_", " ") |>
-#   tools::toTitleCase()
+# population <- gsub(".*/Simulations/(.*)/Integrated Likelihood/.*", "\\1", integrated_log_likelihood_sims_file_path)
 
-population <- gsub(".*/Simulations/(.*)/Integrated Likelihood/.*", "\\1", multinomial_entropy_sims_IL_file_path)
+population <- str_extract(integrated_log_likelihood_sims_file_path, "(?<=Simulations\\\\)[^\\\\]+")
 
 switch(population,
        
@@ -55,14 +49,14 @@ n <- sum(data)
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-seed_IL <- multinomial_entropy_sims_IL_file_path |>  
+seed_IL <- integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*seed=") |> 
   str_extract("\\d+") |> 
   as.numeric()
 
 set.seed(seed_IL)
 
-num_sims_IL <- multinomial_entropy_sims_IL_file_path |>  
+num_sims_IL <- integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*numsims=") |> 
   str_extract("\\d+") |> 
   as.numeric()
@@ -73,12 +67,12 @@ data_sims_IL <- num_sims_IL |>
   as.list() |> 
   map(as.numeric)
 
-step_size_IL <- multinomial_entropy_sims_IL_file_path |>  
+step_size_IL <- integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*stepsize=") |> 
   str_extract("\\d+\\.\\d+") |> 
   as.numeric()
 
-num_std_errors_IL <- multinomial_entropy_sims_IL_file_path |>  
+num_std_errors_IL <- integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*numse=") |> 
   str_extract("\\d+") |> 
   as.numeric()
@@ -90,14 +84,14 @@ psi_grid_list_IL <- data_sims_IL |>
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-seed_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+seed_mod_IL <- mod_integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*seed=") |> 
   str_extract("\\d+") |> 
   as.numeric()
 
 set.seed(seed_mod_IL)
 
-num_sims_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+num_sims_mod_IL <- mod_integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*numsims=") |> 
   str_extract("\\d+") |> 
   as.numeric()
@@ -108,12 +102,12 @@ data_sims_mod_IL <- num_sims_mod_IL |>
   as.list() |> 
   map(as.numeric)
 
-step_size_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+step_size_mod_IL <- mod_integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*stepsize=") |> 
   str_extract("\\d+\\.\\d+") |> 
   as.numeric()
 
-num_std_errors_mod_IL <- multinomial_entropy_sims_mod_IL_file_path |>  
+num_std_errors_mod_IL <- mod_integrated_log_likelihood_sims_file_path |>  
   str_remove("^.*numse=") |> 
   str_extract("\\d+") |> 
   as.numeric()
@@ -125,14 +119,14 @@ psi_grid_list_mod_IL <- data_sims_mod_IL |>
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-seed_PL <- multinomial_entropy_sims_PL_file_path |>  
+seed_PL <- profile_log_likelihood_sims_file_path |>  
   str_remove("^.*seed=") |> 
   str_extract("\\d+") |> 
   as.numeric()
 
 set.seed(seed_PL)
 
-num_sims_PL <- multinomial_entropy_sims_PL_file_path |>  
+num_sims_PL <- profile_log_likelihood_sims_file_path |>  
   str_remove("^.*numsims=") |> 
   str_extract("\\d+") |> 
   as.numeric()
@@ -143,12 +137,12 @@ data_sims_PL <- num_sims_PL |>
   as.list() |> 
   map(as.numeric)
 
-step_size_PL <- multinomial_entropy_sims_PL_file_path |>  
+step_size_PL <- profile_log_likelihood_sims_file_path |>  
   str_remove("^.*stepsize=") |> 
   str_extract("\\d+\\.\\d+") |> 
   as.numeric()
 
-num_std_errors_PL <- multinomial_entropy_sims_PL_file_path |>  
+num_std_errors_PL <- profile_log_likelihood_sims_file_path |>  
   str_remove("^.*numse=") |> 
   str_extract("\\d+") |> 
   as.numeric()
@@ -160,9 +154,9 @@ psi_grid_list_PL <- data_sims_PL |>
 ################################## SYNTHESIS ################################### 
 ################################################################################
 
-multinomial_entropy_sims_lists <- list("Integrated" = multinomial_entropy_sims_IL,
-                                       "Mod_Integrated" = multinomial_entropy_sims_mod_IL,
-                                       "Profile" = multinomial_entropy_sims_PL)
+multinomial_entropy_sims_lists <- list("Integrated" = integrated_log_likelihood_sims,
+                                       "Mod_Integrated" = mod_integrated_log_likelihood_sims,
+                                       "Profile" = profile_log_likelihood_sims)
 
 psi_grid_lists <- list("Integrated" = psi_grid_list_IL,
                        "Mod_Integrated" = psi_grid_list_mod_IL,
@@ -279,15 +273,3 @@ multinomial_entropy_sim_results <- MLE_data_list |>
   tibble::rownames_to_column("Metric")
 
 saveRDS(multinomial_entropy_sim_results, paste0("Results/", multinomial_entropy_sim_results_file_path))
-
-
-
-
-
-
-
-
-
-
-
-
