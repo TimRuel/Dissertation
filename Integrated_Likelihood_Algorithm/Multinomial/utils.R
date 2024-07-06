@@ -80,13 +80,19 @@ get_theta_hat <- function(init_guess, psi, omega_hat) {
   heq <- function(theta) c(sum(theta) - 1, entropy(theta) - psi)
   heqjac <- function(theta) nloptr::nl.jacobian(theta, heq)
   
-  theta_hat <- nloptr::auglag(x0 = init_guess,
-                              fn = fn,
-                              gr = gr,
-                              heq = heq,
-                              heqjac = heqjac,
-                              lower = rep(0, length(omega_hat)),
-                              localsolver = "LBFGS")$par
+  tictoc::tic()
+  
+  out <- nloptr::auglag(x0 = init_guess,
+                        fn = fn,
+                        gr = gr,
+                        heq = heq,
+                        heqjac = heqjac,
+                        lower = rep(0, length(omega_hat)),
+                        localsolver = "LBFGS")
+  
+  if (out$convergence < 0) return(init_guess)
+  
+  theta_hat <- out$par
   
   return(theta_hat)
 }
@@ -312,7 +318,11 @@ get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_e
     
     p()
     
-    c(u, omega_hat) %<-% get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+    mat <- get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+    
+    u <- mat["u",]
+    
+    omega_hat <- mat["omega_hat",]
     
     log_like_u <- log_likelihood(u, data)
     
@@ -337,7 +347,7 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0
       preallocation = preallocations,
       .combine = "list",
       .multicombine = TRUE,
-      .maxcombine = num_sims,
+      .maxcombine = length(preallocations),
       .options.future = list(seed = TRUE,
                              chunk.size = num_chunks)
       
@@ -367,7 +377,7 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0
       log_like_u <- log_likelihood(u, data)
       
       omega_hat |>
-        get_integrated_log_likelihood(data, psi_grid_list) |>
+        get_integrated_log_likelihood_vals.aux(data, psi_grid_list) |>
         (`-`)(log_like_u)
     } |>
     map(\(x) x |>

@@ -16,8 +16,8 @@ num_cores <- Sys.getenv("SLURM_NPROCS") |>
 # num_cores <- availableCores() |> 
 #   as.numeric()
 
-# population <- "Desert Rodents"
-population <- "Birds in Balrath Woods"
+population <- "Desert Rodents"
+# population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,
