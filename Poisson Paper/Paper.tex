@@ -27,16 +27,6 @@
   \usepackage[]{microtype}
   \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
-\makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class
-  \IfFileExists{parskip.sty}{%
-    \usepackage{parskip}
-  }{% else
-    \setlength{\parindent}{0pt}
-    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
-}{% if KOMA class
-  \KOMAoptions{parskip=half}}
-\makeatother
 \usepackage{xcolor}
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \setcounter{secnumdepth}{5}
@@ -178,21 +168,57 @@ likelihood, Weighted sum, Zero score expectation parameter
 
 \section{Introduction}\label{sec-intro}
 
+Suppose the random variables \(N_i\), \(i = 1, ..., m,\) each have
+independent Poisson distributions such that \(\text{E}(N_i) = \theta_i\)
+and
+\(\theta = (\theta_1, ..., \theta_m) \in \Theta \subset \mathbb{R}^m_+\).
+The purpose of this paper is to consider likelihood-based inference for
+a real-valued parameter of interest \(\psi = g(\theta)\), where
+\(g: \Theta \to \Psi\) is a known twice continuously differentiable
+function.
+
+The log-likelihood function of the model is given by
+
+\begin{equation}\phantomsection\label{eq-1}{
+\ell(\theta) = \sum_{i=1}^m \big[N_i \log(\theta_i) - \theta_i\big].
+}\end{equation} Note that this is a function of the full
+\(m\)-dimensional vector parameter \(\theta\), but the parameter of
+interest \(\psi\) is just a scalar. This reduction in dimension induces
+a nuisance parameter \(\lambda\) in the model that typically must be
+eliminated from the log-likelihood function before inference regarding
+\(\psi\) can be conducted. The standard procedure for doing so involves
+choosing some method with which to summarize \(\ell(\theta)\) over its
+possible values while holding \(\psi\) fixed in place. In the general
+case where both \(\psi\) and \(\lambda\) are defined implicitly
+(i.e.~\(\psi\) isn't just equal to one of the components of \(\theta\)),
+this effectively reduces \(\ell(\theta)\) to a simple function of
+\(\psi\) alone, having replaced each dimension of \(\theta\) that
+depends on \(\lambda\) with a static summary of its range of values. We
+call this new function a pseudo-log-likelihood function for \(\psi\) and
+denote it as \(\ell(\psi)\).
+
+Perhaps the most straightforward method of summarization we can use to
+construct \(\ell(\psi)\) is to maximize \(\ell(\theta)\) over all
+possible of values of \(\theta\) for a fixed value of \(\psi\). This
+yields what is known as the \emph{profile} log-likelihood function,
+formally defined as \begin{equation}\phantomsection\label{eq-2}{
+\ell_p(\psi) = \sup_{\theta \in \Theta: \> g(\theta) = \psi} \ell(\theta).
+}\end{equation}
+
 Suppose we are interested in estimating the weighted sum of a group of
 Poisson means corresponding to \(n\) independent populations, where
-\(n\) is a known positive integer. Let \(X_i\) denote the Poisson random
-variable modeling the \(i\)th population with associated parameter
-\(\text{E}(X_i) = \text{V}(X_i) = \theta_i\), \(i = 1, ..., n\). Note
-that the maximum likelihood estimate (MLE) for \(\theta_i\) is simply
-\(\hat{\theta}_i = x_i\), the observed value of \(X_i\). Consider the
-weighted sum \[Y = \sum_{i=1}^n w_iX_i,\] where each \(w_i\) is a known
-constant greater than zero. The purpose of this paper is to consider
-likelihood- and pseudolikelihood-based inference for the real-valued
-parameter of interest
-\[\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.\] In particular,
-we will analyze the performance of point and inverval estimates for
-\(\psi\) based on the integrated likelihood function and a proposed
-modification to it. Similar estimates obtained from the profile
+\(n\) is a known positive integer. Note that the maximum likelihood
+estimate (MLE) for \(\theta_i\) is simply \(\hat{\theta}_i = x_i\), the
+observed value of \(X_i\). Consider the weighted sum
+\[Y = \sum_{i=1}^n w_iX_i,\] where each \(w_i\) is a known constant
+greater than zero.
+
+The purpose of this paper is to consider likelihood- and
+pseudolikelihood-based inference for the real-valued parameter of
+interest \[\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.\] In
+particular, we will analyze the performance of point and inverval
+estimates for \(\psi\) based on the integrated likelihood function and a
+proposed modification to it. Similar estimates obtained from the profile
 likelihood will be used as a benchmark.
 
 
