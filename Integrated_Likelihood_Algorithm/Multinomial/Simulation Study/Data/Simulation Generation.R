@@ -226,3 +226,26 @@ profile_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_numse={
 saveRDS(profile_log_likelihood_sims, profile_log_likelihood_sims_file_path)
 
 pushover("Profile Likelihood Sims Done!")
+
+
+# filepaths = list.files("Simulations/Desert Rodents/Modified Integrated Likelihood",
+#                        pattern = "^mod_IL.*.Rda") |> 
+#   sort()
+# 
+# sims_list <- list()
+# 
+# for (path in filepaths) {
+#   
+#   temp <- readRDS(paste0("Simulations/Desert Rodents/Modified Integrated Likelihood/", path))
+#   
+#   sims_list <- c(sims_list, temp)
+# }
+# 
+# saveRDS(sims_list, "Simulations/Desert Rodents/Modified Integrated Likelihood/mod_IL_sims_seed=38497283_Q=nll_numsims=1000_R=250_numse=4_stepsize=0.01.Rda")
+
+
+
+
+
+
+
