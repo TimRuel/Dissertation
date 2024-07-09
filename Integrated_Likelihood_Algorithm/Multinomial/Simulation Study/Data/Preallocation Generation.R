@@ -21,7 +21,7 @@ num_cores <- Sys.getenv("SLURM_NPROCS") |>
 # population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
-populations <- c("Birds in Killarney Woodlands", "Birds in Balrath Woods")
+populations <- c("Desert Rodents", "Birds in Killarney Woodlands", "Birds in Balrath Woods")
 
 for (population in populations) {
   
@@ -50,47 +50,44 @@ for (population in populations) {
   ################################################################################
   ############################ INTEGRATED LIKELIHOOD ############################# 
   ################################################################################
-  
-  if (population == "Birds in Killarney Woodlands") {
     
-    plan(sequential)
-    
-    seed <- 38497283
-    
-    set.seed(seed)
-    
-    num_sims <- 1000
-    
-    data_sims <- num_sims |> 
-      rmultinom(n, data) |> 
-      data.frame() |> 
-      as.list() |> 
-      map(as.numeric)
-    
-    alpha <- 1/2
-    
-    u_params <- rep(alpha, m)
-    
-    R <- 250
-    
-    tol <- 0.0001
-    
-    num_chunks <- ceiling(R / num_cores)
-    
-    plan(multisession, workers = num_cores)
-    
-    IL_preallocations <- get_IL_preallocations(data_sims, u_params, R, tol) 
-    
-    IL_preallocations_file_path <- population |> 
-      tolower() |> 
-      str_replace_all(" ", "_") |> 
-      glue::glue("_IL_preallocations_seed={seed}_numsims={num_sims}_R={R}_tol={tol}.Rda") |> 
-      paste0("Preallocations/Integrated Likelihood/", ... = _)
-    
-    saveRDS(IL_preallocations, IL_preallocations_file_path)
-    
-    pushover(paste(population, "Integrated Likelihood Preallocation Finished"))
-  }
+  # plan(sequential)
+  # 
+  # seed <- 38497283
+  # 
+  # set.seed(seed)
+  # 
+  # num_sims <- 1000
+  # 
+  # data_sims <- num_sims |> 
+  #   rmultinom(n, data) |> 
+  #   data.frame() |> 
+  #   as.list() |> 
+  #   map(as.numeric)
+  # 
+  # alpha <- 1/2
+  # 
+  # u_params <- rep(alpha, m)
+  # 
+  # R <- 250
+  # 
+  # tol <- 0.0001
+  # 
+  # num_chunks <- ceiling(R / num_cores)
+  # 
+  # plan(multisession, workers = num_cores)
+  # 
+  # IL_preallocations <- get_IL_preallocations(data_sims, u_params, R, tol) 
+  # 
+  # IL_preallocations_file_path <- population |> 
+  #   tolower() |> 
+  #   str_replace_all(" ", "_") |> 
+  #   glue::glue("_IL_preallocations_seed={seed}_numsims={num_sims}_R={R}_tol={tol}.Rda") |> 
+  #   paste0("Preallocations/Integrated Likelihood/", ... = _)
+  # 
+  # saveRDS(IL_preallocations, IL_preallocations_file_path)
+  # 
+  # pushover(paste(population, "Integrated Likelihood Preallocation Finished"))
   
   ################################################################################
   ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -114,8 +111,8 @@ for (population in populations) {
   
   tol <- 0.0001
   
-  Q_name <- "euclidean_distance"
-  # Q_name <- "neg_log_likelihood"
+  # Q_name <- "euclidean_distance"
+  Q_name <- "neg_log_likelihood"
   
   Q <- Q_name |>
     get()

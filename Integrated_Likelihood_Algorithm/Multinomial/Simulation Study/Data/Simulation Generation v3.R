@@ -16,10 +16,10 @@ plan(sequential)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-# num_cores <- Sys.getenv("SLURM_NPROCS") |> 
-#   as.numeric()
-num_cores <- availableCores(method = "system") |>
+num_cores <- Sys.getenv("SLURM_NPROCS") |>
   as.numeric()
+# num_cores <- availableCores(method = "system") |>
+#   as.numeric()
 
 IL_preallocations_file_path <- file.choose()
 IL_preallocations <- readRDS(IL_preallocations_file_path)
@@ -94,7 +94,7 @@ num_std_errors <- 4
 
 step_size <- 0.01
 
-# num_chunks <- ceiling(R * num_sims / num_cores)
+num_chunks <- ceiling(R * num_sims / num_cores)
 
 plan(multisession, workers = num_cores)
 
@@ -149,17 +149,17 @@ num_std_errors <- 4
 
 step_size <- 0.01
 
-# num_chunks <- ceiling(R * num_sims / num_cores)
+num_chunks <- ceiling(R * 100 / num_cores)
 
 Q_name <- sub(".*Q=(.*?)_seed.*", "\\1", mod_IL_preallocations_file_path)
 
 plan(multisession, workers = num_cores)
 
-for (i in 1:50) {
+for (i in 1:10) {
   
-  batch <- (20*i - 19):(20*i)
+  batch <- (100*i - 99):(100*i)
   
-  mod_integrated_log_likelihood_sims_batch <- get_mod_integrated_log_likelihood_sims(mod_IL_preallocations[batch], step_size, num_std_errors)
+  mod_integrated_log_likelihood_sims_batch <- get_mod_integrated_log_likelihood_sims(mod_IL_preallocations[batch], step_size, num_std_errors, num_chunks)
   
   mod_integrated_log_likelihood_sims_batch_file_path <- "seed={seed}_Q={Q_name}_numsims={num_sims}_R={R}_numse={num_std_errors}_stepsize={step_size}_batch={i}.Rda" |> 
     glue::glue() |> 

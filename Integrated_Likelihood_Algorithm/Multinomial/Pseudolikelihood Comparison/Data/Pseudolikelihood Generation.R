@@ -4,6 +4,7 @@ library(zeallot)
 library(purrr)
 library(dplyr)
 library(progressr)
+library(tictoc)
 
 handlers(global = TRUE)
 handlers("cli")
@@ -50,10 +51,6 @@ R <- 250
 
 tol <- 0.0001
 
-# num_chunks <- ceiling(R / num_cores)
-
-num_chunks <- 15
-
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
@@ -64,6 +61,10 @@ alpha <- 1/2
 
 u_params <- rep(alpha, m)
 
+# num_chunks <- ceiling(R / num_cores)
+
+num_chunks <- 15
+
 integrated_log_likelihood_vals <- data |> 
   get_integrated_log_likelihood_vals(step_size, num_std_errors, u_params, R, tol, num_chunks)
 
@@ -71,20 +72,34 @@ integrated_log_likelihood_vals <- data |>
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-plan(multisession, workers = num_cores)
-
 alpha <- 1/2
 
 u_params <- data + alpha
 
-Q_name <- "euclidean_distance"
-# Q_name <- "neg_log_likelihood"
+# Q_name <- "euclidean_distance"
+Q_name <- "neg_log_likelihood"
 
 Q <- Q_name |>
   get()
 
-mod_integrated_log_likelihood_vals <- data |> 
-  get_mod_integrated_log_likelihood_vals(Q, step_size, num_std_errors, u_params, R, tol, num_chunks)
+num_chunks <- ceiling(R / num_cores)
+
+# num_chunks <- 15
+
+plan(multisession, workers = num_cores)
+
+tic()
+
+mod_integrated_log_likelihood_vals <- get_mod_integrated_log_likelihood_vals(data,
+                                                                             Q, 
+                                                                             step_size, 
+                                                                             num_std_errors, 
+                                                                             u_params, 
+                                                                             R, 
+                                                                             tol, 
+                                                                             num_chunks)
+
+toc()
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
