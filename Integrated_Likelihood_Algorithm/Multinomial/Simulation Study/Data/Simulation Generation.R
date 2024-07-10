@@ -79,12 +79,6 @@ num_sims <- IL_preallocations_file_path |>
   str_extract("\\d+") |>
   as.numeric()
 
-data_sims <- num_sims |> 
-  rmultinom(n, data) |> 
-  data.frame() |> 
-  as.list() |> 
-  map(as.numeric)
-
 R <- IL_preallocations_file_path |>  
   str_remove("^.*R=") |> 
   str_extract("\\d+") |> 
@@ -92,13 +86,13 @@ R <- IL_preallocations_file_path |>
 
 step_size <- 0.01
 
-num_std_errors <- 4
+num_std_errors <- 5
 
 num_chunks <- ceiling(R * num_sims / num_cores)
 
 plan(multisession, workers = num_cores)
 
-integrated_log_likelihood_sims <- get_integrated_log_likelihood_sims(data_sims, omega_hat_lists_IL, R, step_size, num_std_errors, num_chunks)
+integrated_log_likelihood_sims <- get_integrated_log_likelihood_sims(IL_preallocations, step_size, num_std_errors, num_chunks)
   
 integrated_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_R={R}_tol={tol}_numse={num_std_errors}_stepsize={step_size}.Rda" |> 
   glue::glue() |> 
@@ -140,13 +134,13 @@ R <- mod_IL_preallocations_file_path |>
   str_extract("\\d+") |> 
   as.numeric()
 
-num_std_errors <- 4
+num_std_errors <- 5
 
 step_size <- 0.01
 
 Q_name <- sub(".*Q=(.*?)_seed.*", "\\1", mod_IL_preallocations_file_path)
 
-num_chunks <- floor(R * num_sims/ num_cores)
+num_chunks <- ceiling(R * num_sims/ num_cores)
 
 plan(multisession, workers = num_cores)
 
