@@ -31,9 +31,12 @@ mod_IL_preallocations_file_paths <- list.files(path = "Preallocations/Modified I
                                                pattern = "*.Rda",
                                                full.names = TRUE,
                                                recursive = FALSE) |> 
+  keep(~ grepl("Q=nll", .)) |> 
   rev()
 
 for (i in 1:3) {
+  
+  plan(sequential)
   
   IL_preallocations_file_path <- IL_preallocations_file_paths[i]
   IL_preallocations <- readRDS(IL_preallocations_file_path)
@@ -73,8 +76,6 @@ for (i in 1:3) {
   ############################ INTEGRATED LIKELIHOOD ############################# 
   ################################################################################
   
-  plan(sequential)
-  
   seed <- IL_preallocations_file_path |>  
     str_remove("^.*seed=") |> 
     str_extract("\\d+") |> 
@@ -92,15 +93,15 @@ for (i in 1:3) {
     str_extract("\\d+") |> 
     as.numeric()
   
-  num_std_errors <- 4
+  num_std_errors <- 5
   
   step_size <- 0.01
   
-  num_chunks <- ceiling(R * num_sims / num_cores)
+  chunk_size <- ceiling(R * num_sims / num_cores) %/% 10
   
   plan(multisession, workers = num_cores)
   
-  integrated_log_likelihood_sims <- get_integrated_log_likelihood_sims(IL_preallocations, step_size, num_std_errors, num_chunks)
+  integrated_log_likelihood_sims <- get_integrated_log_likelihood_sims(IL_preallocations, step_size, num_std_errors, chunk_size)
   
   integrated_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_R={R}_numse={num_std_errors}_stepsize={step_size}.Rda" |> 
     glue::glue() |> 
@@ -136,15 +137,15 @@ for (i in 1:3) {
     str_extract("\\d+") |> 
     as.numeric()
   
-  num_std_errors <- 4
+  num_std_errors <- 5
   
   step_size <- 0.01
   
-  num_chunks <- ceiling(R * num_sims / num_cores)
+  chunk_size <- ceiling(R * num_sims / num_cores) %/% 10
   
   plan(multisession, workers = num_cores)
   
-  mod_integrated_log_likelihood_sims <- get_mod_integrated_log_likelihood_sims(mod_IL_preallocations, step_size, num_std_errors, num_chunks)
+  mod_integrated_log_likelihood_sims <- get_mod_integrated_log_likelihood_sims(mod_IL_preallocations, step_size, num_std_errors, chunk_size)
   
   Q_name <- sub(".*Q=(.*?)_seed.*", "\\1", mod_IL_preallocations_file_path)
   
@@ -163,65 +164,65 @@ for (i in 1:3) {
   ############################## PROFILE LIKELIHOOD ############################## 
   ################################################################################
   
-  plan(sequential)
-  
-  handlers(global = TRUE)
-  handlers("progress")
-  
-  seed <- 38497283
-  
-  set.seed(seed)
-  
-  num_sims <- 1000
-  
-  data_sims <- num_sims |>
-    rmultinom(n, data) |>
-    data.frame() |>
-    as.list() |>
-    map(as.numeric)
-  
-  num_std_errors <- 4
-  
-  step_size <- 0.01
-  
-  num_chunks <- ceiling(num_sims / num_cores)
-  
-  gen_PL_sims <- function(sims) {
-    
-    p <- progressor(along = sims)
-    
-    foreach(
-      
-      data = sims,
-      .combine = "list",
-      .multicombine = TRUE,
-      .maxcombine = num_sims,
-      .options.future = list(seed = TRUE,
-                             chunk.size = num_chunks)
-      
-    ) %dofuture% {
-      
-      p()
-      
-      psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
-      
-      get_profile_log_likelihood(data, psi_grid_list)
-    }
-  }
-  
-  plan(multisession, workers = num_cores)
-  
-  profile_log_likelihood_sims <- gen_PL_sims(data_sims)
-  
-  profile_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_numse={num_std_errors}_stepsize={step_size}.Rda" |> 
-    glue::glue() |> 
-    paste0("Simulations/",
-           population,
-           "/Profile Likelihood/PL_sims_",
-           ... = _)
-  
-  saveRDS(profile_log_likelihood_sims, profile_log_likelihood_sims_file_path)
-  
-  pushover("Profile Likelihood Sims Done!")
+  # plan(sequential)
+  # 
+  # handlers(global = TRUE)
+  # handlers("progress")
+  # 
+  # seed <- 38497283
+  # 
+  # set.seed(seed)
+  # 
+  # num_sims <- 1000
+  # 
+  # data_sims <- num_sims |>
+  #   rmultinom(n, data) |>
+  #   data.frame() |>
+  #   as.list() |>
+  #   map(as.numeric)
+  # 
+  # num_std_errors <- 4
+  # 
+  # step_size <- 0.01
+  # 
+  # chunk_size <- ceiling(num_sims / num_cores)
+  # 
+  # gen_PL_sims <- function(sims) {
+  #   
+  #   p <- progressor(along = sims)
+  #   
+  #   foreach(
+  #     
+  #     data = sims,
+  #     .combine = "list",
+  #     .multicombine = TRUE,
+  #     .maxcombine = num_sims,
+  #     .options.future = list(seed = TRUE,
+  #                            chunk.size = chunk_size)
+  #     
+  #   ) %dofuture% {
+  #     
+  #     p()
+  #     
+  #     psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
+  #     
+  #     get_profile_log_likelihood(data, psi_grid_list)
+  #   }
+  # }
+  # 
+  # plan(multisession, workers = num_cores)
+  # 
+  # profile_log_likelihood_sims <- gen_PL_sims(data_sims)
+  # 
+  # profile_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_numse={num_std_errors}_stepsize={step_size}.Rda" |> 
+  #   glue::glue() |> 
+  #   paste0("Simulations/",
+  #          population,
+  #          "/Profile Likelihood/PL_sims_",
+  #          ... = _)
+  # 
+  # saveRDS(profile_log_likelihood_sims, profile_log_likelihood_sims_file_path)
+  # 
+  # pushover("Profile Likelihood Sims Done!")
 }
 

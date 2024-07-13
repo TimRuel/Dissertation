@@ -126,7 +126,7 @@ get_IL_preallocations <- function(data_sims, u_params, R, tol) {
       .multicombine = TRUE,
       .maxcombine = length(data_sims),
       .options.future = list(seed = TRUE,
-                             chunk.size = num_chunks)
+                             chunk.size = chunk_size)
       
     ) %:%
     
@@ -169,7 +169,7 @@ get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, psi_grid_lis
   return(l1)
 }
 
-get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, num_chunks = 15) {
+get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
   
   p <- progressr::progressor(steps = R)
   
@@ -185,7 +185,7 @@ get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, 
     .multicombine = TRUE,
     .maxcombine = R,
     .options.future = list(seed = TRUE,
-                           chunk.size = num_chunks)
+                           chunk.size = chunk_size)
     
   ) %dofuture% {
     
@@ -198,7 +198,7 @@ get_integrated_log_likelihood_vals <- function(data, step_size, num_std_errors, 
     (`-`)(log(R))
 }
 
-get_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, num_chunks = 15) {
+get_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, chunk_size) {
   
   R <- preallocations[[1]]$preallocations |> 
     nrow()
@@ -211,7 +211,7 @@ get_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01,
     .multicombine = TRUE,
     .maxcombine = length(preallocations),
     .options.future = list(seed = TRUE,
-                           chunk.size = num_chunks)
+                           chunk.size = chunk_size)
     
   ) %:%
     
@@ -269,7 +269,7 @@ get_mod_IL_preallocations <- function(data_sims, Q, alpha, R, tol) {
       .multicombine = TRUE,
       .maxcombine = num_sims,
       .options.future = list(seed = TRUE,
-                             chunk.size = num_chunks)
+                             chunk.size = chunk_size)
       
     ) %:%
     
@@ -296,7 +296,7 @@ get_mod_IL_preallocations <- function(data_sims, Q, alpha, R, tol) {
   return(mod_IL_preallocations)
 }
 
-get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, num_chunks = 15) {
+get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
   
   p <- progressr::progressor(steps = R)
   
@@ -312,7 +312,7 @@ get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_e
     .multicombine = TRUE,
     .maxcombine = R,
     .options.future = list(seed = TRUE,
-                           chunk.size = num_chunks)
+                           chunk.size = chunk_size)
     
   ) %dofuture% {
     
@@ -334,7 +334,7 @@ get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_e
     (`-`)(log(R))
 }
 
-get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, num_chunks = 15) {
+get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, chunk_size) {
   
   R <- preallocations[[1]]$preallocations |> 
     length()
@@ -349,7 +349,7 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0
       .multicombine = TRUE,
       .maxcombine = length(preallocations),
       .options.future = list(seed = TRUE,
-                             chunk.size = num_chunks)
+                             chunk.size = chunk_size)
       
     ) %:%
     
