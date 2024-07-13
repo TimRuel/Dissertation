@@ -33,12 +33,19 @@ The log-likelihood function of the model is given by
 $$
 \ell(\theta) = \sum_{i=1}^m \big[N_i \log(\theta_i) - \theta_i\big].
 $${#eq-1}
-Note that while $\ell$ is a function of the full $m$-dimensional vector parameter $\theta$, $\psi$ is just a scalar. This reduction in dimension induces a nuisance parameter $\lambda$ in the model that typically must be eliminated from the log-likelihood function before inference regarding $\psi$ can be conducted. The standard procedure for doing so involves choosing some method with which to summarize $\ell(\theta)$ over its possible values while holding $\psi$ fixed in place. In the general case where both $\psi$ and $\lambda$ are defined implicitly (i.e. $\psi$ isn't just equal to one of the components of $\theta$), this effectively reduces $\ell(\theta)$ to a simple function of $\psi$ alone, having replaced each dimension of $\theta$ that depends on $\lambda$ with a static summary of its range of values. We call this new function a pseudo-log-likelihood function for $\psi$ and denote it as $\ell(\psi)$.
+Note that while $\ell$ is a function of the full $m$-dimensional vector parameter $\theta$, $\psi$ is just a scalar. This decrease in dimension induces a nuisance parameter $\lambda$ in the model that typically must be eliminated from the log-likelihood function before inference regarding $\psi$ can be conducted.^[Intuitively, we can think of $\lambda$ as representing the portion of $\theta$ that remains in the other $m-1$ dimensions of $\Theta$.] In general, $\psi$ may be defined as any function of $\theta$ satisfying the requirements mentioned above, meaning it need not simply be equal to one of the components of $\theta$. Consequently, it is not always possible to find a closed form expression for $\lambda$; in such cases, we call $\psi$ and $\lambda$ *implicit* parameters. 
+
+The standard procedure for eliminating $\lambda$ from the log-likelihood function involves choosing some method with which to summarize $\ell(\theta)$ over its possible values while holding $\psi$ fixed in place. This effectively reduces $\ell(\theta)$ to a simpler function depending on $\psi$ alone, having replaced each dimension of $\theta$ that depends on $\lambda$ with a static summary of the values in its parameter space. We call this new function a pseudo-log-likelihood function for $\psi$ and denote its generic form as $\ell(\psi)$. As we encounter specific types of pseudo-log-likelihoods, we will introduce more specialized notation as needed. Note that while it usually has properties resembling one, $\ell(\psi)$ is not itself considered a genuine log-likelihood function, and there will always be some degree of information contained within the data lost as a result of the nuisance parameter's elimination.
 
 Perhaps the most straightforward method of summarization we can use to construct $\ell(\psi)$ is to maximize $\ell(\theta)$ over all possible of values of $\theta$ for a fixed value of $\psi$. This yields what is known as the *profile* log-likelihood function, formally defined as 
 $$
 \ell_p(\psi) = \sup_{\theta \in \Theta: \> g(\theta) = \psi} \ell(\theta).
-$${#eq-2}
+$${#eq-2} 
+
+In the case where an explicit nuisance parameter exists, @eq-2 is equivalent to replacing $\lambda$ with its conditional maximum likelihood estimate given $\psi$:
+$$
+\ell_p(\psi) = \ell(\psi, \hat{\lambda}_{\psi}).
+$${#eq-2} 
 
 ## Integrated Likelihood Functions
 
@@ -49,7 +56,6 @@ We now turn our attention to the task of using the ZSE parameterization to const
 ## Inference for the Weighted Sum of Poisson Means
 
 ## Examples
-
 
 Suppose we are interested in estimating the weighted sum of a group of Poisson means corresponding to $n$ independent populations, where $n$ is a known positive integer.  Note that the maximum likelihood estimate (MLE) for $\theta_i$ is simply $\hat{\theta}_i = x_i$, the observed value of $X_i$. Consider the weighted sum $$Y = \sum_{i=1}^n w_iX_i,$$ where each $w_i$ is a known constant greater than zero. 
 
