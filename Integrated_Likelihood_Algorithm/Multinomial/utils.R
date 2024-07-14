@@ -114,7 +114,7 @@ custom_combine_IL <- function(...) {
   return(list(data = data, preallocations = preallocations))
 }
 
-get_IL_preallocations <- function(data_sims, u_params, R, tol) {
+get_IL_preallocations <- function(data_sims, u_params, R, tol, chunk_size) {
   
   p <- progressr::progressor(steps = R * length(data_sims))
   
@@ -257,7 +257,7 @@ custom_combine_mod_IL <- function(...) {
   return(list(data = data, preallocations = preallocations))
 }
 
-get_mod_IL_preallocations <- function(data_sims, Q, alpha, R, tol) {
+get_mod_IL_preallocations <- function(data_sims, Q, alpha, R, tol, chunk_size) {
   
   p <- progressr::progressor(steps = R * length(data_sims))
   
