@@ -13,13 +13,21 @@ log_likelihood_vals_file_path <- file.choose()
 
 pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
-log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |> 
+log_likelihood_vals <- log_likelihood_vals |> 
   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
                       names_to = "Pseudolikelihood",
                       values_to = "loglikelihood") |> 
   mutate(Pseudolikelihood = Pseudolikelihood |> 
            as_factor() |> 
            fct_inorder())
+
+# log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |> 
+#   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
+#                       names_to = "Pseudolikelihood",
+#                       values_to = "loglikelihood") |> 
+#   mutate(Pseudolikelihood = Pseudolikelihood |> 
+#            as_factor() |> 
+#            fct_inorder())
 
 population <- log_likelihood_vals_file_path |>
   str_remove("^.*/") |>
@@ -104,7 +112,7 @@ log_likelihood_vals |>
   theme_minimal() +
   theme(axis.line = element_line())
 
-c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% map2(
+c(stat_fn_IL, stat_fn_mod_IL, stat_fn_PL) %<-% map2(
   pseudo_log_likelihood_curves,
   pseudolikelihood_names,
   function(curve, pseudolikelihood_name) {
@@ -160,7 +168,7 @@ conf_ints <- pseudo_log_likelihood_curves |>
            uniroot(function(psi) curve(psi) + crit,
                    interval = c(0, MLE))$root,
            
-           error = function(e) return(0)
+           error = function(e) return(NA)
            ) |> 
            round(3)
          

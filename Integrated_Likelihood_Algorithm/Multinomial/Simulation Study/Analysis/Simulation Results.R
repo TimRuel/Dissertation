@@ -15,9 +15,9 @@ profile_log_likelihood_sims_file_path <- file.choose()
 
 profile_log_likelihood_sims <- readRDS(profile_log_likelihood_sims_file_path)
 
-population <- gsub(".*/Simulations/(.*)/Integrated Likelihood/.*", "\\1", integrated_log_likelihood_sims_file_path)
+# population <- gsub(".*/Simulations/(.*)/Integrated Likelihood/.*", "\\1", integrated_log_likelihood_sims_file_path)
 
-# population <- str_extract(integrated_log_likelihood_sims_file_path, "(?<=Simulations\\\\)[^\\\\]+")
+population <- str_extract(integrated_log_likelihood_sims_file_path, "(?<=Simulations\\\\)[^\\\\]+")
 
 switch(population,
        
@@ -219,7 +219,7 @@ conf_ints_list <- pseudo_log_likelihood_curves_list |>
                     uniroot(function(psi) curve(psi) + crit,
                             interval = c(0, MLE))$root,
                     
-                    error = function(e) return(0)
+                    error = function(e) return(NA)
                     ) |>
                     round(3)
                   
@@ -259,7 +259,6 @@ multinomial_entropy_sim_results <- MLE_data_list |>
                   Upper = conf_ints$Upper,
                   psi_0 = psi_0,
                   Covered = psi_0 |> between(Lower, Upper)) |> 
-           drop_na() |> 
            summarise(Bias = mean(MLE - psi_0),
                      SD = sqrt(mean((MLE - mean(MLE))^2)),
                      RMSE = sqrt(mean((MLE - psi_0)^2)),

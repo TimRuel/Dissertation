@@ -12,13 +12,13 @@ handlers("cli")
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../utils.R")
 
-num_cores <- Sys.getenv("SLURM_NPROCS") |> 
-  as.numeric()
-# num_cores <- availableCores() |> 
+# num_cores <- Sys.getenv("SLURM_NPROCS") |> 
 #   as.numeric()
+num_cores <- availableCores() |>
+  as.numeric()
 
-population <- "Desert Rodents"
-# population <- "Birds in Balrath Woods"
+# population <- "Desert Rodents"
+population <- "Birds in Balrath Woods"
 # population <- "Birds in Killarney Woodlands"
 
 switch(population,
@@ -39,13 +39,27 @@ switch(population,
          }
        )  
 
+n <- sum(data)
+
+num_sims <- 1000
+
 set.seed(38497283)
+
+data_sims <- num_sims |>
+  rmultinom(n, data) |>
+  data.frame() |>
+  as.list() |>
+  map(as.numeric)
+
+K <- 47
+
+data <- data_sims[[K]]
 
 m <- length(data)
 
-step_size <- 0.001
+step_size <- 0.01
 
-num_std_errors <- 4
+num_std_errors <- 6
 
 R <- 250
 
@@ -61,12 +75,15 @@ alpha <- 1/2
 
 u_params <- rep(alpha, m)
 
-# num_chunks <- ceiling(R / num_cores)
+chunk_size <- ceiling(R / num_cores) %/% 5
 
-num_chunks <- 15
-
-integrated_log_likelihood_vals <- data |> 
-  get_integrated_log_likelihood_vals(step_size, num_std_errors, u_params, R, tol, num_chunks)
+integrated_log_likelihood_vals <- get_integrated_log_likelihood_vals(data,
+                                                                     step_size, 
+                                                                     num_std_errors,
+                                                                     u_params, 
+                                                                     R, 
+                                                                     tol, 
+                                                                     chunk_size)
 
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -82,13 +99,9 @@ Q_name <- "neg_log_likelihood"
 Q <- Q_name |>
   get()
 
-num_chunks <- ceiling(R / num_cores)
-
-# num_chunks <- 15
+chunk_size <- ceiling(R / num_cores) %/% 5
 
 plan(multisession, workers = num_cores)
-
-tic()
 
 mod_integrated_log_likelihood_vals <- get_mod_integrated_log_likelihood_vals(data,
                                                                              Q, 
@@ -97,9 +110,7 @@ mod_integrated_log_likelihood_vals <- get_mod_integrated_log_likelihood_vals(dat
                                                                              u_params, 
                                                                              R, 
                                                                              tol, 
-                                                                             num_chunks)
-
-toc()
+                                                                             chunk_size)
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -130,5 +141,5 @@ log_likelihood_vals_file_path <- population |>
   chartr(" ", "_", x = _) |> 
   glue::glue("_R={R}_step_size={step_size}.Rda")
 
-saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
+# saveRDS(log_likelihood_vals, paste0("Pseudolikelihoods/", log_likelihood_vals_file_path))
 
