@@ -90,7 +90,7 @@ R <- IL_preallocations_file_path |>
   str_extract("\\d+") |> 
   as.numeric()
 
-num_std_errors <- 5
+num_std_errors <- 6
 
 step_size <- 0.01
 
@@ -104,17 +104,42 @@ for (i in 1:10) {
   
   integrated_log_likelihood_sims_batch <- get_integrated_log_likelihood_sims(IL_preallocations[batch], step_size, num_std_errors, chunk_size)
   
-  integrated_log_likelihood_sims_batch_file_path <- "seed={seed}_numsims={num_sims}_R={R}_numse={num_std_errors}_stepsize={step_size}_batch={i}.Rda" |> 
+  integrated_log_likelihood_sims_file_path <- "seed={seed}_numsims={num_sims}_R={R}_numse={num_std_errors}_stepsize={step_size}" |> 
     glue::glue() |> 
     paste0("Simulations/",
            population,
            "/Integrated Likelihood/IL_sims_",
            ... = _)
   
+  integrated_log_likelihood_sims_batch_file_path <- integrated_log_likelihood_sims_file_path |> 
+    paste0("_batch=",
+           sprintf("%02d", i),
+           ".Rda")
+  
   saveRDS(integrated_log_likelihood_sims_batch, integrated_log_likelihood_sims_batch_file_path)
   
   pushover(paste0("Integrated Likelihood Sims Batch ", i, " Done!"))
 }
+
+filepaths <- list.files(paste0("Simulations/",
+                               population,
+                               "/Integrated Likelihood"),
+                        pattern = ".*batch=.*") |>
+  sort()
+
+sims_list <- list()
+
+for (path in filepaths) {
+  
+  temp <- readRDS(paste0("Simulations/",
+                         population,
+                         "/Integrated Likelihood/",
+                         path))
+  
+  sims_list <- c(sims_list, temp)
+}
+
+saveRDS(sims_list, paste0(integrated_log_likelihood_sims_file_path, ".Rda"))
 
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
@@ -145,7 +170,7 @@ R <- mod_IL_preallocations_file_path |>
   str_extract("\\d+") |> 
   as.numeric()
 
-num_std_errors <- 5
+num_std_errors <- 6
 
 step_size <- 0.01
 
@@ -161,17 +186,42 @@ for (i in 1:10) {
   
   mod_integrated_log_likelihood_sims_batch <- get_mod_integrated_log_likelihood_sims(mod_IL_preallocations[batch], step_size, num_std_errors, chunk_size)
   
-  mod_integrated_log_likelihood_sims_batch_file_path <- "seed={seed}_Q={Q_name}_numsims={num_sims}_R={R}_numse={num_std_errors}_stepsize={step_size}_batch={i}.Rda" |> 
+  mod_integrated_log_likelihood_sims_file_path <- "seed={seed}_Q={Q_name}_numsims={num_sims}_R={R}_numse={num_std_errors}_stepsize={step_size}" |> 
     glue::glue() |> 
     paste0("Simulations/",
            population,
            "/Modified Integrated Likelihood/mod_IL_sims_",
            ... = _)
   
+  mod_integrated_log_likelihood_sims_batch_file_path <- mod_integrated_log_likelihood_sims_file_path |> 
+    paste0("_batch=",
+           sprintf("%02d", i),
+           ".Rda")
+  
   saveRDS(mod_integrated_log_likelihood_sims_batch, mod_integrated_log_likelihood_sims_batch_file_path)
   
   pushover(paste0("Modified Integrated Likelihood Sims Batch ", i, " Done!"))
 }
+
+filepaths <- list.files(paste0("Simulations/",
+                               population,
+                               "/Modified Integrated Likelihood"),
+                        pattern = ".*batch=.*") |>
+  sort()
+
+sims_list <- list()
+
+for (path in filepaths) {
+  
+  temp <- readRDS(paste0("Simulations/",
+                         population,
+                         "/Modified Integrated Likelihood/",
+                         path))
+  
+  sims_list <- c(sims_list, temp)
+}
+
+saveRDS(sims_list, paste0(mod_integrated_log_likelihood_sims_file_path, ".Rda"))
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
