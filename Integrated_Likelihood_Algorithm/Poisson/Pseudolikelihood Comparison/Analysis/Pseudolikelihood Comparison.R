@@ -14,6 +14,10 @@ source("../Data/Data Generation.R")
 print("Choose your pseudolikelihood data file.")
 log_likelihood_vals_file_path <- file.choose()
 
+step_size <- 0.01
+
+num_std_errors <- 5
+
 psi_grid <- data |> 
   get_psi_grid(weights, step_size, num_std_errors, split = FALSE)
 
