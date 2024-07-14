@@ -33,7 +33,7 @@ The log-likelihood function of the model is given by
 $$
 \ell(\theta) = \sum_{i=1}^m \big[N_i \log(\theta_i) - \theta_i\big].
 $${#eq-1}
-Note that while $\ell$ is a function of the full $m$-dimensional vector parameter $\theta$, $\psi$ is just a scalar. This decrease in dimension induces a nuisance parameter $\lambda$ in the model that typically must be eliminated from the log-likelihood function before inference regarding $\psi$ can be conducted.^[Intuitively, we can think of $\lambda$ as representing the portion of $\theta$ that remains in the other $m-1$ dimensions of $\Theta$.] In general, $\psi$ may be defined as any function of $\theta$ satisfying the requirements mentioned above, meaning it need not simply be equal to one of the components of $\theta$. Consequently, it is not always possible to find a closed form expression for $\lambda$; in such cases, we call $\psi$ and $\lambda$ *implicit* parameters. 
+Note that while $\ell$ is a function of the full $m$-dimensional vector parameter $\theta$, $\psi$ is just a scalar. This decrease in dimension induces a nuisance parameter $\lambda$ in the model that typically must be eliminated from the log-likelihood function before inference regarding $\psi$ can be conducted.^[Intuitively, we can think of $\lambda$ as representing the portion of $\theta$ that remains in the other $m-1$ dimensions of $\Theta$ that are not occupied by $\psi$.] Furthermore, $\psi$ need not explicitly be equal to one of the components of $\theta$ but instead may be defined as any function $g$ of $\theta$ satisfying the requirements mentioned above. We refer to $\psi$ and $\lambda$ as being *implicit* parameters in such cases. Note that in general a closed form expression for an implicit nuisance parameter will not exist.
 
 The standard procedure for eliminating $\lambda$ from the log-likelihood function involves choosing some method with which to summarize $\ell(\theta)$ over its possible values while holding $\psi$ fixed in place. This effectively reduces $\ell(\theta)$ to a simpler function depending on $\psi$ alone, having replaced each dimension of $\theta$ that depends on $\lambda$ with a static summary of the values in its parameter space. We call this new function a pseudo-log-likelihood function for $\psi$ and denote its generic form as $\ell(\psi)$. As we encounter specific types of pseudo-log-likelihoods, we will introduce more specialized notation as needed. Note that while it usually has properties resembling one, $\ell(\psi)$ is not itself considered a genuine log-likelihood function, and there will always be some degree of information contained within the data lost as a result of the nuisance parameter's elimination.
 
@@ -45,7 +45,7 @@ $${#eq-2}
 In the case where an explicit nuisance parameter exists, @eq-2 is equivalent to replacing $\lambda$ with its conditional maximum likelihood estimate given $\psi$:
 $$
 \ell_p(\psi) = \ell(\psi, \hat{\lambda}_{\psi}).
-$${#eq-2} 
+$${#eq-3} 
 
 ## Integrated Likelihood Functions
 
