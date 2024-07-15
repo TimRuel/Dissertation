@@ -1,10 +1,17 @@
+---
+format:
+  html:
+    embed-resources: true
+---
+
+```{r include=FALSE}
 library(kableExtra)
 library(tidyverse)
 library(purrr)
 library(gdata)
+```
 
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-
+```{r include=FALSE}
 desert_rodents_sim_results <- readRDS("Results/desert_rodents_sim_results.Rda") |> 
   dplyr::rename("Desert Rodents (Integrated)" = "Integrated", 
                 "Desert Rodents (Mod_Integrated)" = "Mod_Integrated",
@@ -19,7 +26,9 @@ birds_in_killarney_woodlands_sim_results <- readRDS("Results/birds_in_killarney_
   dplyr::rename("Birds in Killarney Woodlands (Integrated)" = "Integrated", 
                 "Birds in Killarney Woodlands (Mod_Integrated)" = "Mod_Integrated",
                 "Birds in Killarney Woodlands (Profile)" = "Profile") 
+```
 
+```{r include=FALSE}
 ruel_sim_results_df <- list(desert_rodents_sim_results,
                             birds_in_balrath_woods_sim_results,
                             birds_in_killarney_woodlands_sim_results) |>
@@ -49,7 +58,11 @@ severini_sim_results_df <- data.frame(c("Bias", "SD", "RMSE", "Coverage", "Lengt
              "Birds in Killarney Woodlands (Profile)")) |> 
   add_column(Author = "Severini", 
              .after = "Metric")
+```
 
+## Table 1
+
+```{r echo=FALSE}
 sim_results_df1 <- ruel_sim_results_df |> 
   interleave(severini_sim_results_df) 
   
@@ -70,12 +83,12 @@ sim_results_df1 |>
   column_spec(1, bold = TRUE, color = "white", background = "#666") |> 
   column_spec(2, bold = TRUE) |> 
   column_spec(c(4, 7, 10), color = rep(c("black", "grey"), 5)) |>
-  collapse_rows(columns = 1, valign = "top") |> 
-  footnote(general = "Each simulation was based on 1000 Monte Carlo replications.
-                      The nominal coverage probability of the confidence intervals was 95%.",
-           general_title = "",
-           footnote_as_chunk = FALSE)
+  collapse_rows(columns = 1, valign = "top") 
+```
 
+## Table 2
+
+```{r echo=FALSE}
 sim_results_df2 <- ruel_sim_results_df |> 
   rbind(severini_sim_results_df) |> 
   mutate(across(where(is.numeric), \(x) round(x, 3)))
@@ -98,12 +111,12 @@ sim_results_df2 |>
   column_spec(c(3, 6, 9), color = rep(c("black", "grey"), each = 5)) |>
   # row_spec(6:10, color = "black") |>
   pack_rows(index = c("Ruel" = 5, "Severini" = 5),
-            label_row_css = "background-color: #666; color: #fff;") |> 
-  footnote(general = "Each simulation was based on 1000 Monte Carlo replications.
-                      The nominal coverage probability of the confidence intervals was 95%.",
-           general_title = "",
-           footnote_as_chunk = FALSE)
+            label_row_css = "background-color: #666; color: #fff;")
+```
 
+## Table 3
+
+```{r echo=FALSE}
 sim_results_df3 <- sim_results_df1 |> 
   pivot_longer(where(is.numeric) | where(is.logical)) |>
   mutate(Likelihood = ifelse(grepl("Integrated", name), 
@@ -134,11 +147,8 @@ sim_results_df3 |>
   column_spec(c(3, 5, 7), color = c(rep("black", 5), rep("grey", 5), rep("black", 5))) |> 
   # column_spec(c(4, 6), color = c(rep("red", 5), rep("grey", 5), rep("black", 5))) |>
   pack_rows(index = c("Integrated" = 5, "Modified Integrated" = 5, "Profile" = 5),
-            label_row_css = "background-color: #666; color: #fff;") |> 
-  footnote(general = "Each simulation was based on 1000 Monte Carlo replications.
-                      The nominal coverage probability of the confidence intervals was 95%.",
-           general_title = "",
-           footnote_as_chunk = FALSE) 
+            label_row_css = "background-color: #666; color: #fff;") 
+```
 
 
 

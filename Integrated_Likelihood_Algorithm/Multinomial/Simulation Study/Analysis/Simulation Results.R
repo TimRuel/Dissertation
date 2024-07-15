@@ -15,9 +15,9 @@ profile_log_likelihood_sims_file_path <- file.choose()
 
 profile_log_likelihood_sims <- readRDS(profile_log_likelihood_sims_file_path)
 
-population <- gsub(".*/Simulations/(.*)/Integrated Likelihood/.*", "\\1", integrated_log_likelihood_sims_file_path)
+# population <- gsub(".*/Simulations/(.*)/Integrated Likelihood/.*", "\\1", integrated_log_likelihood_sims_file_path)
 
-# population <- str_extract(integrated_log_likelihood_sims_file_path, "(?<=Simulations\\\\)[^\\\\]+")
+population <- str_extract(integrated_log_likelihood_sims_file_path, "(?<=Simulations\\\\)[^\\\\]+")
 
 switch(population,
        
