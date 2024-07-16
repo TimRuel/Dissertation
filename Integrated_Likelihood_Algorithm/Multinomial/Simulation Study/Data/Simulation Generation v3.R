@@ -98,7 +98,7 @@ chunk_size <- ceiling(R * num_sims / num_cores) %/% 10
 
 plan(multisession, workers = num_cores)
 
-for (i in 1:10) {
+for (i in 9:10) {
   
   batch <- (100*i - 99):(100*i)
   
