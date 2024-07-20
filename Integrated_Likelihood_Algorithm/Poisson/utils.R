@@ -231,6 +231,152 @@ get_integrated_log_likelihood_sims <- function(preallocations, weights, step_siz
 }
 
 ################################################################################
+######################### MODIFIED INTEGRATED LIKELIHOOD ####################### 
+################################################################################
+
+custom_combine_mod_IL <- function(...) {
+  
+  arglist <- list(...)
+  
+  preallocations <- list()
+  
+  for (result in arglist) {preallocations[[result$i]] <- result$preallocations}
+  
+  data <- arglist[[1]]$data
+  
+  return(list(data = data, preallocations = preallocations))
+}
+
+get_mod_IL_preallocations <- function(data_sims, weights, Q, prior, R, tol, chunk_size) {
+  
+  p <- progressr::progressor(steps = R * length(data_sims))
+  
+  mod_IL_preallocations <- 
+    
+    foreach(
+      data = data_sims,
+      .combine = "list",
+      .multicombine = TRUE,
+      .maxcombine = num_sims,
+      .options.future = list(seed = TRUE,
+                             chunk.size = chunk_size)
+      
+    ) %:%
+    
+    foreach(
+      i = 1:R,
+      .combine = custom_combine_mod_IL,
+      .multicombine = TRUE,
+      .maxcombine = R,
+      .options.future = list(seed = TRUE)
+      
+    ) %dofuture% {
+      
+      p()
+      
+      psi_MLE <- weighted_sum(data, weights)
+      
+      u_params <- list(alpha = data + prior$alpha,
+                       beta = 1 + prior$beta)
+      
+      preallocations <- get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+      
+      return(list(data = data, preallocations = preallocations, i = i))
+    }
+  
+  return(mod_IL_preallocations)
+}
+
+get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
+  
+  p <- progressr::progressor(steps = R)
+  
+  psi_MLE <- entropy(data / sum(data))
+  
+  psi_grid_list <- data |> 
+    get_psi_grid(step_size, num_std_errors, split = TRUE)
+  
+  foreach(
+    
+    i = 1:R,
+    .combine = "rbind",
+    .multicombine = TRUE,
+    .maxcombine = R,
+    .options.future = list(seed = TRUE,
+                           chunk.size = chunk_size)
+    
+  ) %dofuture% {
+    
+    p()
+    
+    mat <- get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+    
+    u <- mat["u",]
+    
+    omega_hat <- mat["omega_hat",]
+    
+    log_like_u <- log_likelihood(u, data)
+    
+    omega_hat |> 
+      get_integrated_log_likelihood_vals.aux(data, psi_grid_list) |> 
+      (`-`)(log_like_u)
+  } |> 
+    matrixStats::colLogSumExps() |>
+    (`-`)(log(R))
+}
+
+get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, chunk_size) {
+  
+  R <- preallocations[[1]]$preallocations |> 
+    length()
+  
+  p <- progressr::progressor(steps = R * length(preallocations))
+  
+  mod_integrated_log_likelihood_sims <-
+    
+    foreach(
+      preallocation = preallocations,
+      .combine = "list",
+      .multicombine = TRUE,
+      .maxcombine = length(preallocations),
+      .options.future = list(seed = TRUE,
+                             chunk.size = chunk_size)
+      
+    ) %:%
+    
+    foreach(
+      i = 1:R,
+      .combine = "rbind",
+      .multicombine = TRUE,
+      .maxcombine = R,
+      .options.future = list(seed = TRUE)
+      
+    ) %dofuture% {
+      
+      p()
+      
+      data <- preallocation$data
+      
+      psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
+      
+      psi_MLE <- entropy(data / sum(data))
+      
+      u <- preallocation$preallocations[[i]]["u",]
+      
+      omega_hat <- preallocation$preallocations[[i]]["omega_hat",]
+      
+      log_like_u <- log_likelihood(u, data)
+      
+      omega_hat |>
+        get_integrated_log_likelihood_vals.aux(data, psi_grid_list) |>
+        (`-`)(log_like_u)
+    } |>
+    map(\(x) x |>
+          matrixStats::colLogSumExps() |>
+          (`-`)(log(R)))
+}
+
+################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
