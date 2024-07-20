@@ -3,19 +3,26 @@ library(doFuture)
 library(zeallot)
 library(purrr)
 library(dplyr)
+library(progressr)
+library(tictoc)
+
+handlers(global = TRUE)
+handlers("cli")
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 source("Data Generation.R")
 
-step_size <- 0.5
+# num_cores <- Sys.getenv("SLURM_NPROCS") |> 
+#   as.numeric()
+num_cores <- availableCores() |>
+  as.numeric()
+
+step_size <- 0.01
 
 num_std_errors <- 3
 
-psi_grid_list <- data |> 
-  get_psi_grid(weights, step_size, num_std_errors, split = TRUE)
-
-R <- 20
+R <- 250
 
 tol <- 0.0001
 
@@ -23,88 +30,58 @@ tol <- 0.0001
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-plan(multisession, workers = future::availableCores())
+plan(sequential)
 
 alpha <- 1/2
 
 beta <- 1/2
 
-omega_hat_list <- foreach(
-  
-  i = 1:R, 
-  .combine = "list", 
-  .multicombine = TRUE, 
-  .maxcombine = R,
-  .options.future = list(seed = TRUE)
-  
-  ) %dofuture% {
-    
-    neg_log_likelihood |> 
-      get_omega_hat(psi_MLE, weights, alpha, beta, tol)
-    }
+u_params <- list(alpha = alpha, beta = beta)
 
-integrated_log_likelihood_vals <- foreach(
-  
-  omega_hat = omega_hat_list,
-  .combine = "rbind",
-  .multicombine = TRUE,
-  .maxcombine = R,
-  .options.future = list(seed = TRUE)
-  
-  ) %dofuture% {
-    
-    omega_hat |> 
-      get_integrated_log_likelihood(data, weights, psi_grid_list)
-    } |> 
-  matrixStats::colLogSumExps() |> 
-  (`-`)(log(length(omega_hat_list)))
+chunk_size <- ceiling(R / num_cores) %/% 5
+
+plan(multisession, workers = num_cores)
+
+integrated_log_likelihood_vals <- get_integrated_log_likelihood_vals(data,
+                                                                     weights,
+                                                                     step_size, 
+                                                                     num_std_errors,
+                                                                     u_params, 
+                                                                     R, 
+                                                                     tol, 
+                                                                     chunk_size)
   
 ################################################################################
 ######################## MODIFIED INTEGRATED LIKELIHOOD ########################
 ################################################################################
 
-plan(multisession, workers = future::availableCores())
+plan(sequential)
 
 alpha <- data + 1/2
 
 beta <- 1 + 1/2
 
-c(u_list, omega_hat_list) %<-% transpose(
-  
-  foreach(
-    
-    i = 1:R, 
-    .combine = "list", 
-    .multicombine = TRUE,
-    .maxcombine = R,
-    .options.future = list(seed = TRUE)
-    
-    ) %dofuture% {
-      
-      euclidean_distance |> 
-        get_omega_hat(psi_MLE, weights, alpha, beta, tol, return_u = TRUE)
-      }
-  )
+u_params(alpha = alpha, beta = beta)
 
-l2 <- u_list |> 
-  map_dbl(\(u) log_likelihood(u, data)) 
+# Q_name <- "euclidean_distance"
+Q_name <- "neg_log_likelihood"
 
-mod_integrated_log_likelihood_vals <- foreach(
-  
-  omega_hat = omega_hat_list,
-  .combine = "rbind",
-  .multicombine = TRUE,
-  .maxcombine = R,
-  .options.future = list(seed = TRUE)
-  
-  ) %dofuture% {
-  
-  omega_hat |> 
-    get_integrated_log_likelihood(data, weights, psi_grid_list)
-    } |> 
-  (`-`)(l2) |>
-  matrixStats::colLogSumExps() |> 
-  (`-`)(log(length(omega_hat_list)))
+Q <- Q_name |>
+  get()
+
+chunk_size <- ceiling(R / num_cores) %/% 5
+
+plan(multisession, workers = num_cores)
+
+mod_integrated_log_likelihood_vals <- get_mod_integrated_log_likelihood_vals(data,
+                                                                             weights,
+                                                                             Q, 
+                                                                             step_size, 
+                                                                             num_std_errors, 
+                                                                             u_params, 
+                                                                             R, 
+                                                                             tol, 
+                                                                             chunk_size)
 
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
@@ -112,25 +89,25 @@ mod_integrated_log_likelihood_vals <- foreach(
 
 plan(sequential)
 
-profile_log_likelihood_vals <- data |> 
-  get_profile_log_likelihood(weights, psi_grid_list)
+psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
+
+profile_log_likelihood_vals <- get_profile_log_likelihood(data, weights, psi_grid_list)
 
 ################################################################################
 ################################### STORAGE #################################### 
 ################################################################################
 
-psi_grid <- data |> 
-  get_psi_grid(weights, step_size, num_std_errors, split = FALSE)
+psi_grid <- get_psi_grid(data, weights, step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
                                   Integrated = integrated_log_likelihood_vals,
+                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
                                   Profile = profile_log_likelihood_vals)
 
 log_likelihood_vals_file_path <- population_params_file_path |> 
   str_extract("Population\\s[A-Za-z0-9]+") |> 
   paste0("Pseudolikelihoods/", . = _, "/log_likelihood_vals_") |> 
-  glue::glue("R={R}_stepsize={step_size}_numse={num_std_errors}.Rda")
+  glue::glue("R={R}_Q={Q_name}_stepsize={step_size}_numse={num_std_errors}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 

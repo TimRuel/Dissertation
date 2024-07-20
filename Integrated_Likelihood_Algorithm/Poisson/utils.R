@@ -218,11 +218,11 @@ get_integrated_log_likelihood_sims <- function(preallocations, weights, step_siz
       
       data <- preallocation$data
       
-      psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
+      psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
       
       omega_hat <- preallocation$preallocations[i,]
       
-      get_integrated_log_likelihood_vals.aux(omega_hat, data, psi_grid_list)
+      get_integrated_log_likelihood_vals.aux(omega_hat, data, weights, psi_grid_list)
     } |>
     map(\(x) x |> 
           matrixStats::colLogSumExps() |>
@@ -287,14 +287,13 @@ get_mod_IL_preallocations <- function(data_sims, weights, Q, prior, R, tol, chun
   return(mod_IL_preallocations)
 }
 
-get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
+get_mod_integrated_log_likelihood_vals <- function(data, weights, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
   
   p <- progressr::progressor(steps = R)
   
-  psi_MLE <- entropy(data / sum(data))
+  psi_MLE <- weighted_sum(data, weights)
   
-  psi_grid_list <- data |> 
-    get_psi_grid(step_size, num_std_errors, split = TRUE)
+  psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
   
   foreach(
     
@@ -309,7 +308,7 @@ get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_e
     
     p()
     
-    mat <- get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+    mat <- get_omega_hat(Q, psi_MLE, weights, u_params, tol, return_u = TRUE)
     
     u <- mat["u",]
     
@@ -318,14 +317,14 @@ get_mod_integrated_log_likelihood_vals <- function(data, Q, step_size, num_std_e
     log_like_u <- log_likelihood(u, data)
     
     omega_hat |> 
-      get_integrated_log_likelihood_vals.aux(data, psi_grid_list) |> 
+      get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list) |> 
       (`-`)(log_like_u)
   } |> 
     matrixStats::colLogSumExps() |>
     (`-`)(log(R))
 }
 
-get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0.01, num_std_errors = 4, chunk_size) {
+get_mod_integrated_log_likelihood_sims <- function(preallocations, weights, step_size = 0.01, num_std_errors = 4, chunk_size) {
   
   R <- preallocations[[1]]$preallocations |> 
     length()
@@ -357,9 +356,9 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0
       
       data <- preallocation$data
       
-      psi_grid_list <- get_psi_grid(data, step_size, num_std_errors, split = TRUE)
+      psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
       
-      psi_MLE <- entropy(data / sum(data))
+      psi_MLE <- weighted_sum(data, weights)
       
       u <- preallocation$preallocations[[i]]["u",]
       
@@ -368,7 +367,7 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, step_size = 0
       log_like_u <- log_likelihood(u, data)
       
       omega_hat |>
-        get_integrated_log_likelihood_vals.aux(data, psi_grid_list) |>
+        get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list) |>
         (`-`)(log_like_u)
     } |>
     map(\(x) x |>
