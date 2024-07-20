@@ -41,20 +41,6 @@ switch(population,
 
 n <- sum(data)
 
-num_sims <- 1000
-
-set.seed(38497283)
-
-data_sims <- num_sims |>
-  rmultinom(n, data) |>
-  data.frame() |>
-  as.list() |>
-  map(as.numeric)
-
-K <- 47
-
-data <- data_sims[[K]]
-
 m <- length(data)
 
 step_size <- 0.01
