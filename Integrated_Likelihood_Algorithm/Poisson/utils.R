@@ -181,7 +181,7 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
     
     p()
     
-    get_omega_hat(neg_log_likelihood, weights, psi_MLE, u_params, tol, return_u = FALSE) |>
+    get_omega_hat(neg_log_likelihood, psi_MLE, weights, u_params, tol, return_u = FALSE) |>
       get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list)
   } |> 
     matrixStats::colLogSumExps() |>
