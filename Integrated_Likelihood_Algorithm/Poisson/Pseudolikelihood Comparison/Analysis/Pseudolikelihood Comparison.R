@@ -14,21 +14,24 @@ source("../Data/Data Generation.R")
 print("Choose your pseudolikelihood data file.")
 log_likelihood_vals_file_path <- file.choose()
 
-step_size <- 0.01
+step_size <- log_likelihood_vals_file_path |>  
+  str_remove("^.*stepsize=") |> 
+  str_extract("\\d+\\.\\d+") |> 
+  as.numeric()
 
-num_std_errors <- 5
+num_std_errors <- log_likelihood_vals_file_path |>  
+  str_remove("^.*numse=") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
 
-psi_grid <- data |> 
-  get_psi_grid(weights, step_size, num_std_errors, split = FALSE)
+pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
-pseudolikelihood_names <- c("Mod_Integrated", "Profile", "Integrated")
-
-log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |> 
-  pivot_longer(cols = pseudolikelihood_names,
-               names_to = "Pseudolikelihood",
-               values_to = "loglikelihood") |> 
-  mutate(Pseudolikelihood = Pseudolikelihood |> 
-           as_factor() |> 
+log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
+  tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
+                      names_to = "Pseudolikelihood",
+                      values_to = "loglikelihood") |>
+  mutate(Pseudolikelihood = Pseudolikelihood |>
+           as_factor() |>
            fct_inorder())
 
 spline_fitted_models <- log_likelihood_vals |>
@@ -37,21 +40,24 @@ spline_fitted_models <- log_likelihood_vals |>
   set_names(pseudolikelihood_names)
 
 MLE_data <- spline_fitted_models |>
-  sapply(
+  map(
     function(mod) {
-      optimize(
-        function(psi) predict(mod, psi)$y, 
-        lower = psi_grid |> head(1), 
-        upper = psi_grid |> tail(1), 
-        maximum = TRUE
-      )}) |> 
-  t() |> 
-  data.frame() |> 
-  rownames_to_column("Pseudolikelihood") |> 
-  rename(MLE = maximum,
-         Maximum = objective) |> 
-  mutate(MLE = as.numeric(MLE),
-         MLE_label = c("hat(psi)[m-IL]", "hat(psi)[IL]", "hat(psi)[PL]"))
+      optimize(function(psi) predict(mod, psi)$y, 
+               lower = log_likelihood_vals |> 
+                 select(psi) |> 
+                 min(), 
+               upper = log_likelihood_vals |> 
+                 select(psi) |> 
+                 max(), 
+               maximum = TRUE) |>
+        data.frame() |> 
+        mutate(MLE = as.numeric(maximum),
+               Maximum = as.numeric(objective)) |> 
+        select(MLE, Maximum)
+    }) |> 
+  do.call(rbind, args = _) |> 
+  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |> 
+  rownames_to_column("Pseudolikelihood")
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
   map2(MLE_data$Maximum,
@@ -69,6 +75,8 @@ log_likelihood_vals |>
 
 crit <- qchisq(0.95, 1) / 2
 
+psi_grid <- get_psi_grid(data, weights, step_size, num_std_errors, split = FALSE)
+
 conf_ints <- pseudo_log_likelihood_curves |> 
   map2(MLE_data$MLE,
        function(curve, MLE) {
@@ -78,22 +86,22 @@ conf_ints <- pseudo_log_likelihood_curves |>
            uniroot(function(psi) curve(psi) + crit,
                    interval = c(0, MLE))$root,
            
-           error = function(e) return(0)
-           ) |> 
+           error = function(e) return(NA)
+         ) |> 
            round(3)
          
          upper_bound <- tryCatch(
-
+           
            uniroot(function(psi) curve(psi) + crit,
                    interval = c(MLE, psi_grid |> tail(1)))$root,
-
-           error = function(e) return(Inf)
-           ) |>
+           
+           error = function(e) return(NA)
+         ) |>
            round(3)
          
          return(c(lower_bound, upper_bound))
-         }
-       )
+       }
+  )
 
 MLE_data |> 
   select(Pseudolikelihood, MLE) |> 
@@ -124,7 +132,7 @@ c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% map2(
                              linewidth = 1,
                              # hjust = 0.1,
                              show.legend = FALSE,
-                             xlim = c(0, psi_grid |> tail(1)))
+                             xlim = c(psi_grid |> head(1), psi_grid |> tail(1)))
     return(stat_fn)
   }
 )
@@ -171,5 +179,9 @@ ggplot() +
   xlab(expression(psi)) +
   theme_minimal() +
   theme(axis.line = element_line())
+
+
+
+
 
 

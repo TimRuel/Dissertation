@@ -41,18 +41,27 @@ get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE
   return(psi_grid)
 }
 
-get_omega_hat <- function(objective_fn, psi_MLE, weights, u_params, tol, return_u = FALSE) {
+get_omega_hat <- function(objective_fn, data, weights, u_params, tol, return_u = FALSE) {
+  
+  psi_MLE <- weighted_sum(data, weights)
   
   alpha <- u_params$alpha
   
   beta <- u_params$beta
   
-  u <- rgamma(length(weights), alpha, beta)
+  u <- rgamma(length(data), alpha, beta)
   
-  omega_hat <- nloptr::auglag(x0 = rep(psi_MLE / length(weights), length(weights)),
-                              fn = function(omega) objective_fn(omega, u),
-                              heq = function(omega) weighted_sum(omega, weights) - psi_MLE,
-                              lower = rep(0, length(weights)),
+  f <- function(omega) objective_fn(omega, u)
+  f.gr <- function(omega) nloptr::nl.grad(omega, f)
+  fcon <- function(omega) weighted_sum(omega, weights) - psi_MLE
+  fcon.jac <- function(omega) nloptr::nl.jacobian(omega, fcon)
+  
+  omega_hat <- nloptr::auglag(x0 = data + 1/2,
+                              fn = f,
+                              gr = f.gr,
+                              heq = fcon,
+                              heqjac = fcon.jac,
+                              lower = rep(1e-6, length(data)),
                               localsolver = "LBFGS")$par
   
   if (abs(weighted_sum(omega_hat, weights) - psi_MLE) < tol) {
@@ -66,23 +75,23 @@ get_omega_hat <- function(objective_fn, psi_MLE, weights, u_params, tol, return_
   }
   
   else {
-    get_omega_hat(objective_fn, psi_MLE, weights, u_params, tol, return_u)
+    get_omega_hat(objective_fn, data, weights, u_params, tol, return_u)
   }
 }
 
 get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
   
-  fn <- function(theta) neg_log_likelihood(theta, omega_hat)
-  gr <- function(theta) nloptr::nl.grad(theta, fn)
-  heq <- function(theta) weighted_sum(theta, weights) - psi
-  heqjac <- function(theta) nloptr::nl.jacobian(theta, heq)
+  f <- function(theta) neg_log_likelihood(theta, omega_hat)
+  f.gr <- function(theta) nloptr::nl.grad(theta, f)
+  fcon <- function(theta) weighted_sum(theta, weights) - psi
+  fcon.jac <- function(theta) nloptr::nl.jacobian(theta, fcon)
   
   theta_hat <- nloptr::auglag(x0 = init_guess,
-                              fn = fn,
-                              gr = gr,
-                              heq = heq,
-                              heqjac = heqjac,
-                              lower = rep(0, length(omega_hat)),
+                              fn = f,
+                              gr = f.gr,
+                              heq = fcon,
+                              heqjac = fcon.jac,
+                              lower = rep(1e-6, length(omega_hat)),
                               localsolver = "LBFGS")$par
   
   return(theta_hat)
@@ -132,9 +141,7 @@ get_IL_preallocations <- function(data_sims, weights, u_params, R, tol, chunk_si
       
       p()
       
-      psi_MLE <- weighted_sum(data, weights)
-      
-      omega_hat <- get_omega_hat(neg_log_likelihood, psi_MLE, weights, u_params, tol, return_u = FALSE)
+      omega_hat <- get_omega_hat(neg_log_likelihood, data, weights, u_params, tol, return_u = FALSE)
       
       return(list(data = data, preallocations = omega_hat, i = i))
     }
@@ -164,8 +171,6 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
   
   p <- progressr::progressor(steps = R)
   
-  psi_MLE <- weighted_sum(data, weights)
-  
   psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
   
   foreach(
@@ -181,7 +186,7 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
     
     p()
     
-    get_omega_hat(neg_log_likelihood, psi_MLE, weights, u_params, tol, return_u = FALSE) |>
+    get_omega_hat(neg_log_likelihood, data, weights, u_params, tol, return_u = FALSE) |>
       get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list)
   } |> 
     matrixStats::colLogSumExps() |>
@@ -274,12 +279,10 @@ get_mod_IL_preallocations <- function(data_sims, weights, Q, prior, R, tol, chun
       
       p()
       
-      psi_MLE <- weighted_sum(data, weights)
-      
       u_params <- list(alpha = data + prior$alpha,
                        beta = 1 + prior$beta)
       
-      preallocations <- get_omega_hat(Q, psi_MLE, u_params, tol, return_u = TRUE)
+      preallocations <- get_omega_hat(Q, data, u_params, tol, return_u = TRUE)
       
       return(list(data = data, preallocations = preallocations, i = i))
     }
@@ -290,8 +293,6 @@ get_mod_IL_preallocations <- function(data_sims, weights, Q, prior, R, tol, chun
 get_mod_integrated_log_likelihood_vals <- function(data, weights, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
   
   p <- progressr::progressor(steps = R)
-  
-  psi_MLE <- weighted_sum(data, weights)
   
   psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
   
@@ -308,7 +309,7 @@ get_mod_integrated_log_likelihood_vals <- function(data, weights, Q, step_size, 
     
     p()
     
-    mat <- get_omega_hat(Q, psi_MLE, weights, u_params, tol, return_u = TRUE)
+    mat <- get_omega_hat(Q, data, weights, u_params, tol, return_u = TRUE)
     
     u <- mat["u",]
     
@@ -324,7 +325,7 @@ get_mod_integrated_log_likelihood_vals <- function(data, weights, Q, step_size, 
     (`-`)(log(R))
 }
 
-get_mod_integrated_log_likelihood_sims <- function(preallocations, weights, step_size = 0.01, num_std_errors = 4, chunk_size) {
+get_mod_integrated_log_likelihood_sims <- function(preallocations, weights, step_size, num_std_errors, chunk_size) {
   
   R <- preallocations[[1]]$preallocations |> 
     length()
@@ -357,8 +358,6 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, weights, step
       data <- preallocation$data
       
       psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
-      
-      psi_MLE <- weighted_sum(data, weights)
       
       u <- preallocation$preallocations[[i]]["u",]
       

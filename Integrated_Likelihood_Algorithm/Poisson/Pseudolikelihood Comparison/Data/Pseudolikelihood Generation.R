@@ -3,6 +3,7 @@ library(doFuture)
 library(zeallot)
 library(purrr)
 library(dplyr)
+library(stringr)
 library(progressr)
 library(tictoc)
 
@@ -13,10 +14,12 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 source("Data Generation.R")
 
-# num_cores <- Sys.getenv("SLURM_NPROCS") |> 
-#   as.numeric()
-num_cores <- availableCores() |>
+num_cores <- Sys.getenv("SLURM_NPROCS") |>
   as.numeric()
+# num_cores <- availableCores() |>
+#   as.numeric()
+# num_cores <- parallel::detectCores() |>
+#   as.numeric()
 
 step_size <- 0.01
 
@@ -32,13 +35,15 @@ tol <- 0.0001
 
 plan(sequential)
 
+set.seed(seed)
+
 alpha <- 1/2
 
 beta <- 1/2
 
 u_params <- list(alpha = alpha, beta = beta)
 
-chunk_size <- ceiling(R / num_cores) %/% 5
+chunk_size <- ceiling(R / num_cores)
 
 plan(multisession, workers = num_cores)
 
@@ -57,11 +62,13 @@ integrated_log_likelihood_vals <- get_integrated_log_likelihood_vals(data,
 
 plan(sequential)
 
+set.seed(seed)
+
 alpha <- data + 1/2
 
 beta <- 1 + 1/2
 
-u_params(alpha = alpha, beta = beta)
+u_params <- list(alpha = alpha, beta = beta)
 
 # Q_name <- "euclidean_distance"
 Q_name <- "neg_log_likelihood"
@@ -69,7 +76,7 @@ Q_name <- "neg_log_likelihood"
 Q <- Q_name |>
   get()
 
-chunk_size <- ceiling(R / num_cores) %/% 5
+chunk_size <- ceiling(R / num_cores)
 
 plan(multisession, workers = num_cores)
 
@@ -104,10 +111,16 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Mod_Integrated = mod_integrated_log_likelihood_vals,
                                   Profile = profile_log_likelihood_vals)
 
+Q_name <- Q_name |> 
+  strsplit("_") |> 
+  pluck(1) |> 
+  substr(1, 1) |> 
+  paste(collapse = "")
+
 log_likelihood_vals_file_path <- population_params_file_path |> 
   str_extract("Population\\s[A-Za-z0-9]+") |> 
   paste0("Pseudolikelihoods/", . = _, "/log_likelihood_vals_") |> 
-  glue::glue("R={R}_Q={Q_name}_stepsize={step_size}_numse={num_std_errors}.Rda")
+  glue::glue("R={R}_Q={Q_name}__seed={seed}_stepsize={step_size}_numse={num_std_errors}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
