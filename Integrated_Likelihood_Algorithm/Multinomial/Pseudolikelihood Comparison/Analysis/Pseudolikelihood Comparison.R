@@ -13,21 +13,13 @@ log_likelihood_vals_file_path <- file.choose()
 
 pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
-log_likelihood_vals <- log_likelihood_vals |> 
+log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
                       names_to = "Pseudolikelihood",
-                      values_to = "loglikelihood") |> 
-  mutate(Pseudolikelihood = Pseudolikelihood |> 
-           as_factor() |> 
+                      values_to = "loglikelihood") |>
+  mutate(Pseudolikelihood = Pseudolikelihood |>
+           as_factor() |>
            fct_inorder())
-
-# log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |> 
-#   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
-#                       names_to = "Pseudolikelihood",
-#                       values_to = "loglikelihood") |> 
-#   mutate(Pseudolikelihood = Pseudolikelihood |> 
-#            as_factor() |> 
-#            fct_inorder())
 
 population <- log_likelihood_vals_file_path |>
   str_remove("^.*/") |>
