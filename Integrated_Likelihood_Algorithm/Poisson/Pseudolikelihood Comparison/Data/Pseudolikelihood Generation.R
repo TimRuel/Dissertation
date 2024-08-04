@@ -43,7 +43,8 @@ beta <- 1/2
 
 u_params <- list(alpha = alpha, beta = beta)
 
-chunk_size <- ceiling(R / num_cores)
+# chunk_size <- ceiling(R / num_cores)
+chunk_size <- floor(R / num_cores)
 
 plan(multisession, workers = num_cores)
 
@@ -64,7 +65,9 @@ plan(sequential)
 
 set.seed(seed)
 
-alpha <- data + 1/2
+alpha <- data |> 
+  map_dbl(mean) |>
+  (`+`)(1/2)
 
 beta <- 1 + 1/2
 
@@ -76,7 +79,8 @@ Q_name <- "neg_log_likelihood"
 Q <- Q_name |>
   get()
 
-chunk_size <- ceiling(R / num_cores)
+# chunk_size <- ceiling(R / num_cores)
+chunk_size <- floor(R / num_cores)
 
 plan(multisession, workers = num_cores)
 

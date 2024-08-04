@@ -70,7 +70,7 @@ get_omega_hat <- function(objective_fn, data, weights, u_params, tol, return_u =
   
   init_guess <- data |> 
     map_dbl(mean) |>
-    (`+`)(1/2)
+    (`+`)(rnorm(length(data), sd = 1/weights))
   
   omega_hat <- nloptr::auglag(x0 = init_guess,
                               fn = f,
