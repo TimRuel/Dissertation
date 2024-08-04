@@ -2,8 +2,15 @@
 #################################### GENERAL ###################################
 ################################################################################
 
-log_likelihood <- function(theta, data) sum(data * log(theta) - theta, na.rm = TRUE)
-
+log_likelihood <- function(theta, data) {
+  
+  data |> 
+    map_dbl(sum) |> 
+    (`*`)(log(theta)) |> 
+    (`-`)(map_dbl(data, length)*theta) |> 
+    sum(na.rm = TRUE)
+}
+  
 neg_log_likelihood <- function(theta, data) -log_likelihood(theta, data)
 
 likelihood <- function(theta, data) exp(log_likelihood(theta, data))
@@ -14,9 +21,12 @@ euclidean_distance <- function(omega, u) sqrt(sum((omega - u)^2))
 
 get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE) {
   
-  psi_MLE <- weighted_sum(data, weights)
+  psi_MLE <- data |> 
+    map_dbl(mean) |> 
+    weighted_sum(weights)
   
-  psi_MLE_SE <- data |>  
+  psi_MLE_SE <- data |> 
+    map_dbl(\(x) sum(x) / length(x)^2) |> 
     (`*`)(weights^2) |> 
     sum() |> 
     sqrt()
@@ -43,7 +53,9 @@ get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE
 
 get_omega_hat <- function(objective_fn, data, weights, u_params, tol, return_u = FALSE) {
   
-  psi_MLE <- weighted_sum(data, weights)
+  psi_MLE <- data |> 
+    map_dbl(mean) |> 
+    weighted_sum(weights)
   
   alpha <- u_params$alpha
   
@@ -56,7 +68,11 @@ get_omega_hat <- function(objective_fn, data, weights, u_params, tol, return_u =
   fcon <- function(omega) weighted_sum(omega, weights) - psi_MLE
   fcon.jac <- function(omega) nloptr::nl.jacobian(omega, fcon)
   
-  omega_hat <- nloptr::auglag(x0 = data + 1/2,
+  init_guess <- data |> 
+    map_dbl(mean) |>
+    (`+`)(1/2)
+  
+  omega_hat <- nloptr::auglag(x0 = init_guess,
                               fn = f,
                               gr = f.gr,
                               heq = fcon,

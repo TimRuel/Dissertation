@@ -14,12 +14,12 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 source("Data Generation.R")
 
-num_cores <- Sys.getenv("SLURM_NPROCS") |>
-  as.numeric()
+# num_cores <- Sys.getenv("SLURM_NPROCS") |>
+#   as.numeric()
 # num_cores <- availableCores() |>
 #   as.numeric()
-# num_cores <- parallel::detectCores() |>
-#   as.numeric()
+num_cores <- parallel::detectCores() |>
+  as.numeric()
 
 step_size <- 0.01
 
@@ -27,7 +27,7 @@ num_std_errors <- 3
 
 R <- 250
 
-tol <- 0.0001
+tol <- 0.001
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
