@@ -51,48 +51,66 @@ get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE
   return(psi_grid)
 }
 
-get_omega_hat <- function(objective_fn, data, weights, u_params, tol, return_u = FALSE) {
+# get_omega_hat <- function(objective_fn, data, weights, u_params, tol, return_u = FALSE) {
+#   
+#   psi_MLE <- data |> 
+#     map_dbl(mean) |> 
+#     weighted_sum(weights)
+#   
+#   alpha <- u_params$alpha
+#   
+#   beta <- u_params$beta
+#   
+#   u <- rgamma(length(data), alpha, beta)
+#   
+#   f <- function(omega) objective_fn(omega, u)
+#   f.gr <- function(omega) nloptr::nl.grad(omega, f)
+#   fcon <- function(omega) weighted_sum(omega, weights) - psi_MLE
+#   fcon.jac <- function(omega) nloptr::nl.jacobian(omega, fcon)
+#   
+#   init_guess <- data |> 
+#     map_dbl(mean) |>
+#     (`+`)(rnorm(length(data), sd = psi_MLE/weights)) |> 
+#     abs()
+#   
+#   omega_hat <- nloptr::auglag(x0 = init_guess,
+#                               fn = f,
+#                               gr = f.gr,
+#                               heq = fcon,
+#                               heqjac = fcon.jac,
+#                               lower = rep(1e-6, length(data)),
+#                               localsolver = "LBFGS")$par
+#   
+#   if (abs(weighted_sum(omega_hat, weights) - psi_MLE) < tol) {
+#     
+#     if (return_u) {
+#       
+#       return(rbind(u, omega_hat))
+#     }
+#     
+#     return(omega_hat)
+#   }
+#   
+#   else {
+#     get_omega_hat(objective_fn, data, weights, u_params, tol, return_u)
+#   }
+# }
+
+get_omega_hat <- function(data, weights) {
   
-  psi_MLE <- data |> 
-    map_dbl(mean) |> 
-    weighted_sum(weights)
-  
-  alpha <- u_params$alpha
-  
-  beta <- u_params$beta
-  
-  u <- rgamma(length(data), alpha, beta)
-  
-  f <- function(omega) objective_fn(omega, u)
-  f.gr <- function(omega) nloptr::nl.grad(omega, f)
-  fcon <- function(omega) weighted_sum(omega, weights) - psi_MLE
-  fcon.jac <- function(omega) nloptr::nl.jacobian(omega, fcon)
-  
-  init_guess <- data |> 
-    map_dbl(mean) |>
-    (`+`)(rnorm(length(data), sd = 1/weights))
-  
-  omega_hat <- nloptr::auglag(x0 = init_guess,
-                              fn = f,
-                              gr = f.gr,
-                              heq = fcon,
-                              heqjac = fcon.jac,
-                              lower = rep(1e-6, length(data)),
-                              localsolver = "LBFGS")$par
-  
-  if (abs(weighted_sum(omega_hat, weights) - psi_MLE) < tol) {
+    psi_MLE <- data |>
+      map_dbl(mean) |>
+      weighted_sum(weights)
     
-    if (return_u) {
-      
-      return(rbind(u, omega_hat))
-    }
+    remainder_index <- sample(length(data), 1)
+    
+    omega_hat_minus_one <- runif(length(data) - 1, 0, psi_MLE / weights[-remainder_index])
+    
+    remainder <- (psi_MLE - weighted_sum(omega_hat_minus_one, weights[-remainder_index])) / weights[remainder_index]
+    
+    omega_hat <- append(omega_hat_minus_one, remainder, after = remainder_index - 1)
     
     return(omega_hat)
-  }
-  
-  else {
-    get_omega_hat(objective_fn, data, weights, u_params, tol, return_u)
-  }
 }
 
 get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
@@ -202,7 +220,7 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
     
     p()
     
-    get_omega_hat(neg_log_likelihood, data, weights, u_params, tol, return_u = FALSE) |>
+    get_omega_hat(data, weights) |>
       get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list)
   } |> 
     matrixStats::colLogSumExps() |>
@@ -401,7 +419,7 @@ get_profile_log_likelihood <- function(data, weights, psi_grid_list) {
       \(x) purrr::accumulate(
         x,
         \(acc, nxt) get_theta_hat(acc, nxt, data, weights), 
-        .init = data
+        .init = map_dbl(data, mean)
       ) |> 
         magrittr::extract(-1) |> 
         sapply(log_likelihood, data)
