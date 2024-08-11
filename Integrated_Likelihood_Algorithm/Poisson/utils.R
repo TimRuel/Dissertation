@@ -96,21 +96,39 @@ get_psi_grid <- function(data, weights, step_size, num_std_errors, split = FALSE
 #   }
 # }
 
-get_omega_hat <- function(data, weights) {
+# get_omega_hat <- function(data, weights) {
+#   
+#     psi_MLE <- data |>
+#       map_dbl(mean) |>
+#       weighted_sum(weights)
+#     
+#     remainder_index <- sample(length(data), 1)
+#     
+#     omega_hat_minus_one <- runif(length(data) - 1, 0, psi_MLE / weights[-remainder_index])
+#     
+#     remainder <- (psi_MLE - weighted_sum(omega_hat_minus_one, weights[-remainder_index])) / weights[remainder_index]
+#     
+#     omega_hat <- append(omega_hat_minus_one, remainder, after = remainder_index - 1)
+#     
+#     return(omega_hat)
+# }
+
+get_omega_hat <- function(data, weights, dist, dist_params, return_u = FALSE) {
   
-    psi_MLE <- data |>
-      map_dbl(mean) |>
-      weighted_sum(weights)
-    
-    remainder_index <- sample(length(data), 1)
-    
-    omega_hat_minus_one <- runif(length(data) - 1, 0, psi_MLE / weights[-remainder_index])
-    
-    remainder <- (psi_MLE - weighted_sum(omega_hat_minus_one, weights[-remainder_index])) / weights[remainder_index]
-    
-    omega_hat <- append(omega_hat_minus_one, remainder, after = remainder_index - 1)
-    
-    return(omega_hat)
+  psi_MLE <- data |>
+    map_dbl(mean) |>
+    weighted_sum(weights)
+  
+  u <- data |> 
+    length() |> 
+    c(dist_params) |> 
+    do.call(dist, args = _)
+  
+  omega_hat <- u / sum(u) * psi_MLE
+  
+  if (return_u) return(rbind(u, omega_hat))
+
+  return(omega_hat)
 }
 
 get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
@@ -201,7 +219,7 @@ get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, weights, psi
   return(l1)
 }
 
-get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
+get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
   
   p <- progressr::progressor(steps = R)
   
@@ -220,7 +238,7 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
     
     p()
     
-    get_omega_hat(data, weights) |>
+    get_omega_hat(data, weights, dist, dist_params) |>
       get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list)
   } |> 
     matrixStats::colLogSumExps() |>
@@ -324,7 +342,46 @@ get_mod_IL_preallocations <- function(data_sims, weights, Q, prior, R, tol, chun
   return(mod_IL_preallocations)
 }
 
-get_mod_integrated_log_likelihood_vals <- function(data, weights, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
+# get_mod_integrated_log_likelihood_vals <- function(data, weights, Q, step_size, num_std_errors, u_params, R = 250, tol = 0.0001, chunk_size) {
+#   
+#   p <- progressr::progressor(steps = R)
+#   
+#   psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
+#   
+#   foreach(
+#     
+#     i = 1:R,
+#     .combine = "rbind",
+#     .multicombine = TRUE,
+#     .maxcombine = R,
+#     .options.future = list(seed = TRUE,
+#                            chunk.size = chunk_size)
+#     
+#   ) %dofuture% {
+#     
+#     p()
+#     
+#     alpha <- u_params$alpha
+#     
+#     beta <- u_params$beta
+#     
+#     mat <- get_omega_hat(Q, data, weights, u_params, tol, return_u = TRUE)
+#     
+#     u <- mat["u",]
+#     
+#     omega_hat <- mat["omega_hat",]
+#     
+#     log_like_u <- log_likelihood(u, data)
+#     
+#     omega_hat |> 
+#       get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list) |> 
+#       (`-`)(log_like_u)
+#   } |> 
+#     matrixStats::colLogSumExps() |>
+#     (`-`)(log(R))
+# }
+
+get_mod_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
   
   p <- progressr::progressor(steps = R)
   
@@ -343,7 +400,7 @@ get_mod_integrated_log_likelihood_vals <- function(data, weights, Q, step_size, 
     
     p()
     
-    mat <- get_omega_hat(Q, data, weights, u_params, tol, return_u = TRUE)
+    mat <- get_omega_hat(data, weights, dist, dist_params, return_u = TRUE)
     
     u <- mat["u",]
     

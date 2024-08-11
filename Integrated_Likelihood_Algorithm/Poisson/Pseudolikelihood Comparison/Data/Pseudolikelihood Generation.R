@@ -37,11 +37,9 @@ plan(sequential)
 
 set.seed(seed)
 
-alpha <- 1/2
+dist <- runif
 
-beta <- 1/2
-
-u_params <- list(alpha = alpha, beta = beta)
+dist_params <- list(min = 0, max = 100)
 
 # chunk_size <- ceiling(R / num_cores)
 chunk_size <- floor(R / num_cores)
@@ -52,9 +50,9 @@ integrated_log_likelihood_vals <- get_integrated_log_likelihood_vals(data,
                                                                      weights,
                                                                      step_size, 
                                                                      num_std_errors,
-                                                                     u_params, 
+                                                                     dist,
+                                                                     dist_params, 
                                                                      R, 
-                                                                     tol, 
                                                                      chunk_size)
   
 ################################################################################
@@ -71,13 +69,15 @@ alpha <- data |>
 
 beta <- 1 + 1/2
 
-u_params <- list(alpha = alpha, beta = beta)
+dist <- rgamma
+
+dist_params <- list(shape = alpha, rate = beta)
 
 # Q_name <- "euclidean_distance"
-Q_name <- "neg_log_likelihood"
-
-Q <- Q_name |>
-  get()
+# Q_name <- "neg_log_likelihood"
+# 
+# Q <- Q_name |>
+#   get()
 
 # chunk_size <- ceiling(R / num_cores)
 chunk_size <- floor(R / num_cores)
@@ -86,12 +86,11 @@ plan(multisession, workers = num_cores)
 
 mod_integrated_log_likelihood_vals <- get_mod_integrated_log_likelihood_vals(data,
                                                                              weights,
-                                                                             Q, 
                                                                              step_size, 
                                                                              num_std_errors, 
-                                                                             u_params, 
+                                                                             dist,
+                                                                             dist_params, 
                                                                              R, 
-                                                                             tol, 
                                                                              chunk_size)
 
 ################################################################################
