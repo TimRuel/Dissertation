@@ -56,8 +56,7 @@ MLE_data <- spline_fitted_models |>
         select(MLE, Maximum)
     }) |> 
   do.call(rbind, args = _) |> 
-  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[PL]", "hat(psi)[IL2]")) |> 
-  # mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |> 
+  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |>
   rownames_to_column("Pseudolikelihood")
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
@@ -173,11 +172,11 @@ ggplot() +
                             show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     limits = c(28, 29.5)) +
-                     # limits = x_range) +
+                     # limits = c(28, 29.5)) +
+                     limits = x_range) +
   scale_y_continuous(expand = c(0, 0),
-                     limits = c(-0.025, 0)) +
-                     # limits = c(y_min, 0)) +
+                     # limits = c(-0.025, 0)) +
+                     limits = c(y_min, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
   theme_minimal() +
