@@ -21,7 +21,7 @@ source("Data Generation.R")
 num_cores <- parallel::detectCores() |>
   as.numeric()
 
-step_size <- 0.05
+step_size <- 0.01
 
 num_std_errors <- 3
 
