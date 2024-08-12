@@ -1,10 +1,10 @@
 seed <- 98403864
 
-d <- 20
+d <- 10
 
-n <- 30
+n <- 10
 
-theta_0_range <- c(10, 50)
+theta_0_range <- c(1, 10)
 
 theta_0_sum <- FALSE
 

@@ -36,7 +36,7 @@ log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
 
 spline_fitted_models <- log_likelihood_vals |>
   group_by(Pseudolikelihood) |> 
-  group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
+  group_map(~ smooth.spline(.x$psi, .x$loglikelihood, spar = 1)) |> 
   set_names(pseudolikelihood_names)
 
 MLE_data <- spline_fitted_models |>
@@ -172,11 +172,11 @@ ggplot() +
                             show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     # limits = c(28, 29.5)) +
-                     limits = x_range) +
+                     limits = c(31.5, 32.5)) +
+                     # limits = x_range) +
   scale_y_continuous(expand = c(0, 0),
-                     # limits = c(-0.025, 0)) +
-                     limits = c(y_min, 0)) +
+                     limits = c(-0.025, 0)) +
+                     # limits = c(y_min, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
   theme_minimal() +
