@@ -124,7 +124,9 @@ get_omega_hat <- function(data, weights, dist, dist_params, return_u = FALSE) {
     c(dist_params) |> 
     do.call(dist, args = _)
   
-  omega_hat <- u / sum(u) * psi_MLE
+  omega_hat <- u |> 
+    (`/`)(sum(u * weights)) |> 
+    (`*`)(psi_MLE)
   
   if (return_u) return(rbind(u, omega_hat))
 
