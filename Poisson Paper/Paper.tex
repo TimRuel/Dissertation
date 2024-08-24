@@ -241,28 +241,21 @@ model described in the introduction. We will
 \section{Inference for the Weighted Sum of Poisson
 Means}\label{inference-for-the-weighted-sum-of-poisson-means}
 
-Consider the task of estimating the weighted sum of a set of Poisson
-means corresponding to \(n\) distinct populations, where \(n\) is a
-known positive integer. Let \(\theta_i\) denote the mean of population
-\(i\), and suppose we have drawn an independent sample of size \(m_i\)
-from each population, where \(X_{ij}\) represents the \(j\)th count from
-the \(i\)th sample. Then we have
-
+Consider a set of Poisson means corresponding to \(n\) distinct
+populations, where \(n\) is a known positive integer. Let \(\theta_i\)
+denote the mean of population \(i\), and suppose we have drawn an
+independent sample of size \(m_i\) from each population, where
+\(X_{ij}\) represents the \(j\)th count from the \(i\)th sample. Then we
+have
 \[X_{ij} \sim \text{Poisson}(\theta_i), \> \> i = 1, ..., n; \> \> j = 1, ..., m_i.\]
+
+Consider the weighted sum \[Y = \sum_{i=1}^n w_iX_i,\] where each
+\(w_i\) is a known constant greater than zero. Let us take for our
+parameter of interest the expectation of this weighted sum, so that
+\[\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.\]
 
 The maximum likelihood estimate (MLE) for \(\theta_i\) is simply the
 sample mean \(\hat{\theta}_i = \frac{1}{m_i}\sum_{j=1}^{m_i}X_{ij}\).
-
-Consider the weighted sum \[Y = \sum_{i=1}^n w_iX_i,\] where each
-\(w_i\) is a known constant greater than zero.
-
-The purpose of this paper is to consider likelihood- and
-pseudolikelihood-based inference for the real-valued parameter of
-interest \[\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.\] In
-particular, we will analyze the performance of point and inverval
-estimates for \(\psi\) based on the integrated likelihood function and a
-proposed modification to it. Similar estimates obtained from the profile
-likelihood will be used as a benchmark.
 
 
 \renewcommand\refname{Examples}
