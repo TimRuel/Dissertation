@@ -36,26 +36,26 @@ log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
 
 spline_fitted_models <- log_likelihood_vals |>
   group_by(Pseudolikelihood) |> 
-  group_map(~ smooth.spline(.x$psi, .x$loglikelihood, spar = 1)) |> 
+  group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
   set_names(pseudolikelihood_names)
 
 MLE_data <- spline_fitted_models |>
   map(
     function(mod) {
-      optimize(function(psi) predict(mod, psi)$y, 
-               lower = log_likelihood_vals |> 
-                 select(psi) |> 
-                 min(), 
-               upper = log_likelihood_vals |> 
-                 select(psi) |> 
-                 max(), 
+      optimize(function(psi) predict(mod, psi)$y,
+               lower = log_likelihood_vals |>
+                 select(psi) |>
+                 min(),
+               upper = log_likelihood_vals |>
+                 select(psi) |>
+                 max(),
                maximum = TRUE) |>
-        data.frame() |> 
+        data.frame() |>
         mutate(MLE = as.numeric(maximum),
-               Maximum = as.numeric(objective)) |> 
+               Maximum = as.numeric(objective)) |>
         select(MLE, Maximum)
-    }) |> 
-  do.call(rbind, args = _) |> 
+    }) |>
+  do.call(rbind, args = _) |>
   mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |>
   rownames_to_column("Pseudolikelihood")
 
@@ -120,11 +120,11 @@ MLE_data |>
       align = "c") |> 
   kable_styling(bootstrap_options = c("striped", "hover")) 
 
-c(stat_fn_mod_IL, stat_fn_IL, stat_fn_PL) %<-% map2(
+c(stat_fn_IL, stat_fn_mod_IL, stat_fn_PL) %<-% map2(
   pseudo_log_likelihood_curves,
   pseudolikelihood_names,
   function(curve, pseudolikelihood_name) {
-    
+
     stat_fn <- stat_function(fun = curve,
                              geom = "line",
                              # label = pseudolikelihood_name,
@@ -155,7 +155,6 @@ MLE_data <- MLE_data |>
 ggplot() +
   stat_fn_PL +
   stat_fn_IL + 
-  stat_fn_mod_IL +
   geom_hline(yintercept = 0,
              linetype = 5) +
   geom_vline(aes(xintercept = MLE,
@@ -172,11 +171,11 @@ ggplot() +
                             show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
-                     limits = c(31.5, 32.5)) +
-                     # limits = x_range) +
+                     # limits = c(31.5, 32.5)) +
+                     limits = x_range) +
   scale_y_continuous(expand = c(0, 0),
-                     limits = c(-0.025, 0)) +
-                     # limits = c(y_min, 0)) +
+                     # limits = c(-0.025, 0)) +
+                     limits = c(y_min, 0)) +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
   theme_minimal() +

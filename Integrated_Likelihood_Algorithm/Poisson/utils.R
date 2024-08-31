@@ -145,10 +145,55 @@ get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
                               gr = f.gr,
                               heq = fcon,
                               heqjac = fcon.jac,
-                              lower = rep(1e-6, length(omega_hat)),
+                              lower = rep(1e-10, length(omega_hat)),
                               localsolver = "LBFGS")$par
   
   return(theta_hat)
+}
+
+# get_theta_hat_list <- function(init_guess, data, weights, psi_grid_list) {
+# 
+#   psi_grid_list |>
+#     purrr::map(
+#       \(x) {
+#         p <- progressr::progressor(along = x)
+#         purrr::accumulate(
+#           x,
+#           \(acc, nxt) {
+#             p()
+#             get_theta_hat(acc, nxt, data, weights)
+#             },
+#           .init = init_guess
+#           )
+#         } |>
+#         magrittr::extract(-1)
+#       ) |>
+#     purrr::modify_in(1, rev) |>
+#     unlist(recursive = FALSE)
+#   }
+
+get_theta_hat_list <- function(init_guess, data, weights, psi_grid_list) {
+  
+  p <- progressr::progressor(steps = 2*length(psi_grid_list[[1]]))
+  
+  foreach(
+    
+    psi_grid = psi_grid_list,
+    .options.future = list(seed = TRUE)
+    
+  ) %dofuture% {
+    
+    psi_grid |> purrr::accumulate(
+      \(acc, nxt) {
+        p()
+        get_theta_hat(acc, nxt, data, weights)
+        },
+      .init = init_guess
+      ) |> 
+      magrittr::extract(-1) 
+  } |> 
+    purrr::modify_in(1, rev) |>
+    unlist(recursive = FALSE)
 }
 
 ################################################################################
@@ -203,29 +248,84 @@ get_IL_preallocations <- function(data_sims, weights, u_params, R, tol, chunk_si
   return(IL_preallocations)
 }
 
-get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, weights, psi_grid_list) {
+# get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, weights, psi_grid_list) {
+# 
+#   psi_grid_list |>
+#     purrr::map(
+#       \(psi_grid) psi_grid |>
+#         purrr::accumulate(
+#           \(acc, nxt) get_theta_hat(acc, nxt, omega_hat, weights),
+#           .init = omega_hat
+#         ) |>
+#         magrittr::extract(-1) |>
+#         purrr::map_dbl(log_likelihood, data)
+#     ) |>
+#     purrr::modify_in(1, rev) |>
+#     unlist()
+#   }
+# 
+# get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, weights, psi_grid_list) {
+#   
+#   init_guess <- data |> 
+#     map_dbl(mean) |> 
+#     (`+`)(0.5)
+#   
+#   out <- get_theta_hat_list(init_guess, omega_hat, weights, psi_grid_list) |> 
+#     sapply(log_likelihood, data)
+#   
+#   return(out)
+# }
+# 
+# get_integrated_log_likelihood_vals.aux <- function(omega_hat, data, weights, profile_theta_hat_matrix, num_workers) {
+#   
+#   psi_grid <- profile_theta_hat_matrix |> 
+#     rownames() |> 
+#     as.double()
+#   
+#   chunk_size <- ceiling(length(psi_grid) / num_workers)
+#   
+#   p <- progressr::progressor(along = psi_grid)
+#   
+#   foreach(
+#     
+#     psi = psi_grid,
+#     .combine = "c",
+#     .multicombine = TRUE,
+#     .maxcombine = length(psi_grid),
+#     .options.future = list(seed = TRUE,
+#                            chunk.size = chunk_size)
+#     
+#   ) %dofuture% {
+#     
+#     p()
+#     
+#     profile_theta_hat_matrix[as.character(psi),] |> 
+#       get_theta_hat(psi, omega_hat, weights) |> 
+#       log_likelihood(data)
+#   }
+# }
+
+custom_combine <- function(...) {
   
-  l1 <- psi_grid_list |> 
-    purrr::map(
-      \(psi_grid) psi_grid |> 
-        purrr::accumulate(
-          \(acc, nxt) get_theta_hat(acc, nxt, omega_hat, weights), 
-          .init = omega_hat
-        ) |> 
-        magrittr::extract(-1) |> 
-        purrr::map_dbl(log_likelihood, data)
-    ) |> 
-    purrr::modify_in(1, rev) |> 
+  vals <- list(...) |>    
+    purrr::modify_in(1, rev) |>
     unlist()
   
-  return(l1)
+  return(vals)
 }
 
 get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
-  
-  p <- progressr::progressor(steps = R)
-  
+
   psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
+  
+  p <- progressr::progressor(steps = 2 * length(psi_grid_list[[1]]) * R)
+  
+  init_guess <- data |> 
+    map_dbl(mean) |> 
+    (`+`)(0.5)
+  
+  omega_hat <- R |> 
+    replicate(get_omega_hat(data, weights, dist, dist_params), simplify = FALSE) 
   
   foreach(
     
@@ -236,16 +336,30 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
     .options.future = list(seed = TRUE,
                            chunk.size = chunk_size)
     
-  ) %dofuture% {
+  ) %:%
     
-    p()
-    
-    get_omega_hat(data, weights, dist, dist_params) |>
-      get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list)
-  } |> 
+    foreach(
+      
+      psi_grid = psi_grid_list,
+      .combine = custom_combine,
+      .options.future = list(seed = TRUE)
+      
+    )  %dofuture% {
+      
+      psi_grid |> 
+        purrr::accumulate(
+          \(acc, nxt) {
+            p()
+            get_theta_hat(acc, nxt, omega_hat[[i]], weights)
+            },
+          .init = init_guess
+          ) |> 
+        magrittr::extract(-1) |> 
+        purrr::map_dbl(log_likelihood, data)
+      } |>
     matrixStats::colLogSumExps() |>
     (`-`)(log(R))
-}
+  }
 
 get_integrated_log_likelihood_sims <- function(preallocations, weights, step_size, num_std_errors, chunk_size) {
   
@@ -385,9 +499,16 @@ get_mod_IL_preallocations <- function(data_sims, weights, Q, prior, R, tol, chun
 
 get_mod_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
   
-  p <- progressr::progressor(steps = R)
-  
   psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
+  
+  p <- progressr::progressor(steps = 2 * length(psi_grid_list[[1]]) * R)
+  
+  init_guess <- data |> 
+    map_dbl(mean) |> 
+    (`+`)(0.5)
+  
+  omega_hat_list <- R |> 
+    replicate(get_omega_hat(data, weights, dist, dist_params, return_u = TRUE), simplify = FALSE) 
   
   foreach(
     
@@ -398,25 +519,72 @@ get_mod_integrated_log_likelihood_vals <- function(data, weights, step_size, num
     .options.future = list(seed = TRUE,
                            chunk.size = chunk_size)
     
-  ) %dofuture% {
+  ) %:%
     
-    p()
-    
-    mat <- get_omega_hat(data, weights, dist, dist_params, return_u = TRUE)
-    
-    u <- mat["u",]
-    
-    omega_hat <- mat["omega_hat",]
-    
-    log_like_u <- log_likelihood(u, data)
-    
-    omega_hat |> 
-      get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list) |> 
-      (`-`)(log_like_u)
-  } |> 
+    foreach(
+      
+      psi_grid = psi_grid_list,
+      .combine = custom_combine,
+      .options.future = list(seed = TRUE)
+      
+    )  %dofuture% {
+      
+      u <- omega_hat_list[[i]]["u",]
+      
+      omega_hat <- omega_hat_list[[i]]["omega_hat",]
+      
+      log_like_u <- log_likelihood(u, data)
+      
+      psi_grid |> 
+        purrr::accumulate(
+          \(acc, nxt) {
+            p()
+            get_theta_hat(acc, nxt, omega_hat, weights)
+            },
+          .init = init_guess
+        ) |> 
+        magrittr::extract(-1) |> 
+        purrr::map_dbl(log_likelihood, data) |> 
+        (`-`)(log_like_u)
+    } |>
     matrixStats::colLogSumExps() |>
     (`-`)(log(R))
 }
+
+# get_mod_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
+#   
+#   p <- progressr::progressor(steps = R)
+#   
+#   psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
+#   
+#   foreach(
+#     
+#     i = 1:R,
+#     .combine = "rbind",
+#     .multicombine = TRUE,
+#     .maxcombine = R,
+#     .options.future = list(seed = TRUE,
+#                            chunk.size = chunk_size)
+#     
+#   ) %dofuture% {
+#     
+#     p()
+#     
+#     mat <- get_omega_hat(data, weights, dist, dist_params, return_u = TRUE)
+#     
+#     u <- mat["u",]
+#     
+#     omega_hat <- mat["omega_hat",]
+#     
+#     log_like_u <- log_likelihood(u, data)
+#     
+#     omega_hat |> 
+#       get_integrated_log_likelihood_vals.aux(data, weights, psi_grid_list) |> 
+#       (`-`)(log_like_u)
+#   } |> 
+#     matrixStats::colLogSumExps() |>
+#     (`-`)(log(R))
+# }
 
 get_mod_integrated_log_likelihood_sims <- function(preallocations, weights, step_size, num_std_errors, chunk_size) {
   
@@ -471,20 +639,52 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, weights, step
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
+# get_profile_log_likelihood <- function(data, weights, psi_grid_list) {
+#   
+#   l_p <- psi_grid_list |> 
+#     purrr::map(
+#       \(x) purrr::accumulate(
+#         x,
+#         \(acc, nxt) get_theta_hat(acc, nxt, data, weights), 
+#         .init = map_dbl(data, mean)
+#       ) |> 
+#         magrittr::extract(-1) |> 
+#         sapply(log_likelihood, data)
+#     ) |>
+#     purrr::modify_in(1, rev) |>
+#     unlist()
+#   
+#   return(l_p)
+# }
+
 get_profile_log_likelihood <- function(data, weights, psi_grid_list) {
   
-  l_p <- psi_grid_list |> 
-    purrr::map(
-      \(x) purrr::accumulate(
-        x,
-        \(acc, nxt) get_theta_hat(acc, nxt, data, weights), 
-        .init = map_dbl(data, mean)
-      ) |> 
-        magrittr::extract(-1) |> 
-        sapply(log_likelihood, data)
-    ) |>
-    purrr::modify_in(1, rev) |>
-    unlist()
+  init_guess <- data |> 
+    map_dbl(mean) |> 
+    (`+`)(0.5)
   
+  p <- progressr::progressor(steps = 2*length(psi_grid_list[[1]]))
+  
+  l_p <- foreach(
+    
+    psi_grid = psi_grid_list,
+    .options.future = list(seed = TRUE)
+    
+    ) %dofuture% {
+      
+      psi_grid |> purrr::accumulate(
+        \(acc, nxt) {
+          p()
+          get_theta_hat(acc, nxt, data, weights)
+          },
+        .init = init_guess
+        ) |> 
+        magrittr::extract(-1) |> 
+        purrr::map_dbl(log_likelihood, data)
+      } |> 
+    purrr::modify_in(1, rev) |>
+    unlist(recursive = FALSE)
+
   return(l_p)
 }
+
