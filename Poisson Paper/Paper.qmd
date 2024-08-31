@@ -26,12 +26,12 @@ indent: true
 
 ## Introduction {#sec-intro}
 
-Suppose the random variables $N_i$, $i = 1, ..., m,$ each have independent Poisson distributions such that $\text{E}(N_i) = \theta_i$ and $\theta = (\theta_1, ..., \theta_m) \in \Theta \subset \mathbb{R}^m_+$. The purpose of this paper is to consider likelihood-based inference for a real-valued parameter of interest $\psi = g(\theta)$, where $g: \Theta \to \Psi$ is a known twice continuously differentiable function.
+Consider a vector $\theta = (\theta_1, ..., \theta_n)$ in which each component represents the mean of a distinct Poisson process. We may obtain a sample of values from each process through repeated measurements of the number of events it generates over a fixed period of time. Suppose we have done so, and let $X_{ij}$ represent the $j$th count from the $i$th sample, so that $X_{ij} \sim \text{Poisson}(\theta_i)$ for $i = 1, ..., n$ and  $j = 1, ..., m_i.$ The purpose of this paper is to consider likelihood-based inference for a real-valued parameter of interest $\psi = g(\theta)$, where $\theta \in \Theta \subset \mathbb{R}^m_+$ is unknown and $g: \Theta \to \Psi$ is a known twice continuously differentiable function.
 
 The log-likelihood function of the model is given by 
 
 $$
-\ell(\theta) = \sum_{i=1}^m \big[N_i \log(\theta_i) - \theta_i\big].
+\ell(\theta) = \sum_{i=1}^n \big[X_i \log(\theta_i) - \theta_i\big].
 $${#eq-1}
 Note that while $\ell$ is a function of the full $m$-dimensional vector parameter $\theta$, $\psi$ is just a scalar. This decrease in dimension induces a nuisance parameter $\lambda$ in the model that typically must be eliminated from the log-likelihood function before inference regarding $\psi$ can be conducted.^[Intuitively, we can think of $\lambda$ as representing the portion of $\theta$ that remains in the other $m-1$ dimensions of $\Theta$ that are not occupied by $\psi$.] Furthermore, $\psi$ need not explicitly be equal to one of the components of $\theta$ but instead may be defined as any function $g$ of $\theta$ satisfying the requirements mentioned above. We refer to $\psi$ and $\lambda$ as being *implicit* parameters in such cases. Note that in general a closed form expression for an implicit nuisance parameter will not exist.
 
@@ -57,7 +57,7 @@ We now turn our attention to the task of using the ZSE parameterization to const
 
 Consider a set of Poisson means corresponding to $n$ distinct populations, where $n$ is a known positive integer. Let $\theta_i$ denote the mean of population $i$, and suppose we have drawn an independent sample of size $m_i$ from each population, where $X_{ij}$ represents the $j$th count from the $i$th sample. Then we have $$X_{ij} \sim \text{Poisson}(\theta_i), \> \> i = 1, ..., n; \> \> j = 1, ..., m_i.$$
 
-Consider the weighted sum $$Y = \sum_{i=1}^n w_iX_i,$$ where each $w_i$ is a known constant greater than zero. Let us take for our parameter of interest the expectation of this weighted sum, so that $$\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.$$ 
+Consider the weighted sum $$Y = \sum_{i=1}^n w_iX_i,$$ where each $w_i$ is a known constant greater than zero. Suppose we take for our parameter of interest the expected value of this weighted sum, so that $$\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.$$ 
 
 The maximum likelihood estimate (MLE) for $\theta_i$ is simply the sample mean $\hat{\theta}_i = \frac{1}{m_i}\sum_{j=1}^{m_i}X_{ij}$.
 
