@@ -26,26 +26,74 @@ indent: true
 
 ## Introduction {#sec-intro}
 
-Consider a vector $\theta = (\theta_1, ..., \theta_n)$ in which each component represents the mean of a distinct Poisson process. We may obtain a sample of values from each process through repeated measurements of the number of events it generates over a fixed period of time. Suppose we have done so, and let $X_{ij}$ represent the $j$th count from the $i$th sample, so that $X_{ij} \sim \text{Poisson}(\theta_i)$ for $i = 1, ..., n$ and  $j = 1, ..., m_i.$ The purpose of this paper is to consider likelihood-based inference for a real-valued parameter of interest $\psi = g(\theta)$, where $\theta \in \Theta \subset \mathbb{R}^m_+$ is unknown and $g: \Theta \to \Psi$ is a known twice continuously differentiable function.
+Consider a vector $\theta = (\theta_1, ..., \theta_n)$ in which each component represents the mean of a distinct Poisson process. The purpose of this paper is to discuss the task of conducting likelihood-based inference for a real-valued parameter of interest $\psi = \tau(\theta)$, where $\theta \in \Theta \subset \mathbb{R}^m_+$ is unknown and $\tau: \Theta \to \Psi$ is a known twice continuously differentiable function. In particular, we will examine the utility of the integrated likelihood function as a tool for estimating $\psi$, using the performance of the more easily calculated profile likelihood as a benchmark.
 
-The log-likelihood function of the model is given by 
-
+We may obtain a sample of values from each Poisson process through repeated measurements of the number of events it generates over a fixed period of time. Suppose we have done so, and let $X_{ij}$ represent the $j$th count from the $i$th sample, so that $X_{ij} \sim \text{Poisson}(\theta_i)$ for $i = 1, ..., n$ and $j = 1, ..., m_i.$  The probability mass function (pmf) for a single observation $X_{ij} = x_{ij}$ is 
 $$
-\ell(\theta) = \sum_{i=1}^n \big[X_i \log(\theta_i) - \theta_i\big].
+p(x_{ij}; \> \theta_i) = \frac{e^{-\theta_i} \theta_i ^ {x_{ij}}}{x_{ij}!}, \> \> x_{ij} = 0, 1, 2, ... ; \> \> \theta_i > 0.
 $${#eq-1}
-Note that while $\ell$ is a function of the full $m$-dimensional vector parameter $\theta$, $\psi$ is just a scalar. This decrease in dimension induces a nuisance parameter $\lambda$ in the model that typically must be eliminated from the log-likelihood function before inference regarding $\psi$ can be conducted.^[Intuitively, we can think of $\lambda$ as representing the portion of $\theta$ that remains in the other $m-1$ dimensions of $\Theta$ that are not occupied by $\psi$.] Furthermore, $\psi$ need not explicitly be equal to one of the components of $\theta$ but instead may be defined as any function $g$ of $\theta$ satisfying the requirements mentioned above. We refer to $\psi$ and $\lambda$ as being *implicit* parameters in such cases. Note that in general a closed form expression for an implicit nuisance parameter will not exist.
+
+Denote the vector of counts from the $i$th process by $X_{i\bullet} = (X_{i1}, ..., X_{im_i})$, its associated mean by $\bar{X}_{i \bullet} = \frac{1}{m_i} \sum_{j = 1}^{m_i} X_{ij}$, and assume that all of the counts both within and between samples are measured independently. The likelihood function for an individual component $\theta_i$ based on the data $X_{i\bullet} = x_{i\bullet}$ is then equal to the product of the individual probabilities of the observed counts. That is,
+$$
+\begin{aligned}
+L(\theta_i; x_{i\bullet}) &= \prod_{j=1}^{m_i} p(x_{ij}; \theta_i) \\
+                          &= \prod_{j=1}^{m_i} \frac{e^{-\theta_i} \theta_i ^ {x_{ij}}}{x_{ij}!} \\
+                          &= \Bigg(\prod_{j=1}^{m_i} e^{-\theta_i}\Bigg) \Bigg(\prod_{j=1}^{m_i}\theta_i^{x_{ij}}\Bigg) \Bigg(\prod_{j=1}^{m_i} x_{ij}!\Bigg)^{-1} \\
+                          &= \bigg(e^{-\sum_{j=1}^{m_i}\theta_i}\bigg) \bigg(\theta_i^{\sum_{j=1}^{m_i}x_{ij}}\bigg) \Bigg(\prod_{j=1}^{m_i} x_{ij}!\Bigg)^{-1} \\
+                          &= e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}}\Bigg(\prod_{j=1}^{m_i} x_{ij}!\Bigg)^{-1}.
+\end{aligned}
+$${#eq-2}
+
+We regard $L$ as being a function of the parameter $\theta_i$ for fixed $x_{i\bullet}$. Since $L$ is only useful to the extent that it informs our understanding of the value of $\theta_i$, we are free to replace it with any other function differing from it by just a (nonzero) multiplicative term that is constant with respect to $\theta_i$, provided that the result still satisfies the necessary regularity conditions, as this will not change any conclusions regarding $\theta_i$ that we draw from it. Hence, we may safely discard the term in parentheses on the final line of @eq-2 as it does not depend on $\theta_i$ and instead simply write 
+$$
+L(\theta_i; x_{i\bullet}) = e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}}.
+$${#eq-3}
+
+The product of the likelihood functions for each component of $\theta$ then forms the basis of the likelihood function for $\theta$ itself:
+$$
+\begin{aligned}
+L(\theta; x_{1\bullet}, ..., x_{n\bullet}) &= \prod_{i=1}^n L(\theta_i; x_{i\bullet}) \\
+                                           &= \prod_{i=1}^n e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}} \\
+                                           &= \Bigg(\prod_{i=1}^n e^{-m_i\theta_i}\Bigg) \Bigg(\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}}\Bigg) \\
+                                           &= e^{-\sum_{i=1}^n m_i\theta_i}\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}}.
+\end{aligned}
+$${#eq-4}
+It will be more convenient to work with the log-likelihood function, given by 
+$$
+\begin{aligned}
+\ell(\theta) &= \log L(\theta) \\
+             &= \log \Bigg(e^{-\sum_{i=1}^n m_i\theta_i}\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}} \Bigg) \\
+             &= \log \Big(e^{-\sum_{i=1}^n m_i\theta_i}\Big) + \log \Bigg(\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}} \Bigg) \\
+             &= -\sum_{i=1}^n m_i\theta_i + \sum_{i=1}^n m_i\bar{x}_{i\bullet} \log\theta_i \\
+             &= \sum_{i=1}^n m_i\big(\bar{x}_{i\bullet} \log\theta_i - \theta_i \big).
+\end{aligned}
+$${#eq-4}
+
+The maximum likelihood estimate (MLE) for $\theta_i$ is simply the sample mean $\hat{\theta}_i = \frac{1}{m_i}\sum_{j=1}^{m_i}X_{ij}$.
+
+It is common to encounter situations in which the question at hand would be better answered by knowing not the value of the full parameter of our statistical model but rather a real-valued function of it. That is, instead of estimating $\theta$ 
+
+scalar parameter $\psi$ taking values in a set $\Psi \subset \mathbb{R}$ such that $\psi = g(\theta)$, where $g: \Theta \to \Psi$ has two continuous derivatives.
+
+
+Note that while $\ell$ is a function of the $n$-dimensional $\theta$, $\psi$ is just a scalar. This decrease in dimension implies the existence of an $(n-1)$-dimensional nuisance parameter $\lambda$ in the model that hinders or outright precludes inference regarding $\psi$ and consequently must be eliminated from the log-likelihood function before proceeding. Furthermore, $\psi$ need not explicitly be equal to one of the components of $\theta$ but instead may be defined as the output of any function $g$ taking $\theta$ as input and satisfying the requirements mentioned above.
+
+
+
+
+We refer to $\psi$ and $\lambda$ as being *implicit* parameters in such cases. In general, so it is rare in practice to encounter a situation in which a closed form expression for a nuisance parameter exists.
 
 The standard procedure for eliminating $\lambda$ from the log-likelihood function involves choosing some method with which to summarize $\ell(\theta)$ over its possible values while holding $\psi$ fixed in place. This effectively reduces $\ell(\theta)$ to a simpler function depending on $\psi$ alone, having replaced each dimension of $\theta$ that depends on $\lambda$ with a static summary of the values in its parameter space. We call this new function a pseudo-log-likelihood function for $\psi$ and denote its generic form as $\ell(\psi)$. As we encounter specific types of pseudo-log-likelihoods, we will introduce more specialized notation as needed. Note that while it usually has properties resembling one, $\ell(\psi)$ is not itself considered a genuine log-likelihood function, and there will always be some degree of information contained within the data lost as a result of the nuisance parameter's elimination.
 
 Perhaps the most straightforward method of summarization we can use to construct $\ell(\psi)$ is to maximize $\ell(\theta)$ over all possible of values of $\theta$ for a fixed value of $\psi$. This yields what is known as the *profile* log-likelihood function, formally defined as 
 $$
 \ell_p(\psi) = \sup_{\theta \in \Theta: \> g(\theta) = \psi} \ell(\theta).
-$${#eq-2} 
+$$ 
 
 In the case where an explicit nuisance parameter exists, @eq-2 is equivalent to replacing $\lambda$ with its conditional maximum likelihood estimate given $\psi$:
 $$
 \ell_p(\psi) = \ell(\psi, \hat{\lambda}_{\psi}).
-$${#eq-3} 
+$$
 
 ## Integrated Likelihood Functions
 
@@ -54,8 +102,6 @@ $${#eq-3}
 We now turn our attention to the task of using the ZSE parameterization to construct an integrated likelihood that can be used to make inferences regarding a parameter of interest derived from the Poisson model described in the introduction. We will 
 
 ## Inference for the Weighted Sum of Poisson Means
-
-Consider a set of Poisson means corresponding to $n$ distinct populations, where $n$ is a known positive integer. Let $\theta_i$ denote the mean of population $i$, and suppose we have drawn an independent sample of size $m_i$ from each population, where $X_{ij}$ represents the $j$th count from the $i$th sample. Then we have $$X_{ij} \sim \text{Poisson}(\theta_i), \> \> i = 1, ..., n; \> \> j = 1, ..., m_i.$$
 
 Consider the weighted sum $$Y = \sum_{i=1}^n w_iX_i,$$ where each $w_i$ is a known constant greater than zero. Suppose we take for our parameter of interest the expected value of this weighted sum, so that $$\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.$$ 
 
