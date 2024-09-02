@@ -49,37 +49,47 @@ $$
 L(\theta_i; x_{i\bullet}) = e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}}.
 $${#eq-3}
 
-The product of the likelihood functions for each component of $\theta$ then forms the basis of the likelihood function for $\theta$ itself:
+It will generally be more convenient to work with the log-likelihood function, which is given by 
 $$
 \begin{aligned}
-L(\theta; x_{1\bullet}, ..., x_{n\bullet}) &= \prod_{i=1}^n L(\theta_i; x_{i\bullet}) \\
-                                           &= \prod_{i=1}^n e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}} \\
-                                           &= \Bigg(\prod_{i=1}^n e^{-m_i\theta_i}\Bigg) \Bigg(\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}}\Bigg) \\
-                                           &= e^{-\sum_{i=1}^n m_i\theta_i}\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}}.
+\ell(\theta_i; x_{i\bullet}) &= \log L(\theta_i; x_{i\bullet}) \\
+                           &= \log \Big(e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}}\Big) \\
+                           &= -m_i\theta_i + m_i \bar{x}_{i\bullet} \log \theta_i \\
+                           &=  m_i\big(\bar{x}_{i\bullet} \log\theta_i - \theta_i \big).
 \end{aligned}
 $${#eq-4}
-It will be more convenient to work with the log-likelihood function, given by 
+The sum of the log-likelihood functions for each component of $\theta$ then forms the basis of the log-likelihood function for $\theta$ itself:
 $$
 \begin{aligned}
-\ell(\theta) &= \log L(\theta) \\
-             &= \log \Bigg(e^{-\sum_{i=1}^n m_i\theta_i}\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}} \Bigg) \\
-             &= \log \Big(e^{-\sum_{i=1}^n m_i\theta_i}\Big) + \log \Bigg(\prod_{i=1}^n \theta_i^{m_i\bar{x}_{i\bullet}} \Bigg) \\
-             &= -\sum_{i=1}^n m_i\theta_i + \sum_{i=1}^n m_i\bar{x}_{i\bullet} \log\theta_i \\
-             &= \sum_{i=1}^n m_i\big(\bar{x}_{i\bullet} \log\theta_i - \theta_i \big).
+\ell(\theta; x_{1\bullet}, ..., x_{n\bullet}) &= \log L(\theta; x_{1\bullet}, ..., x_{n\bullet}) \\
+                                              &= \log \Bigg(\prod_{i=1}^n L(\theta_i; x_{i\bullet})\Bigg) \\
+                                              &= \sum_{i=1}^n \log L(\theta_i; x_{i\bullet}) \\
+                                              &= \sum_{i=1}^n \ell(\theta_i; x_{i\bullet}) \\
+                                              &= \sum_{i=1}^n m_i\big(\bar{x}_{i\bullet} \log\theta_i - \theta_i \big).
 \end{aligned}
-$${#eq-4}
+$${#eq-5}
 
-The maximum likelihood estimate (MLE) for $\theta_i$ is simply the sample mean $\hat{\theta}_i = \frac{1}{m_i}\sum_{j=1}^{m_i}X_{ij}$.
+The maximum likelihood estimate (MLE) for a parameter $\theta$ of an arbitrary statistical model is defined in general as the value $\hat{\theta}$ satisfying $$\hat{\theta} \equiv\arg\sup_{\theta \in \Theta} \ell(\theta),$$ provided the model meets a few regularity conditions that guarantee the MLE exists and is unique. These requirements are always satisfied for any member of the exponential family of models, to which the Poisson distribution belongs, and so we may speak freely of the MLEs for Poisson parameters without fretting over the matter of their existence and uniqueness (or lack thereof). 
 
-It is common to encounter situations in which the question at hand would be better answered by knowing not the value of the full parameter of our statistical model but rather a real-valued function of it. That is, instead of estimating $\theta$ 
+Returning to our working example, we can derive the MLE for $\theta_i$ by differentiating @eq-4 with respect to $\theta_i$, setting the result equal to 0, and solving for $\theta_i$. Doing so reveals that the MLE is simply the mean of the sample of data $X_{i\bullet}$:
+$$
+\hat{\theta}_i = \bar{X}_{i\bullet}.
+$${#eq-5}
+Similarly, the MLE for the full parameter $\theta$ is just the vector of MLEs for its individual components:
+$$
+\hat{\theta} \equiv (\hat{\theta}_1, ..., \hat{\theta}_n) = (\bar{X}_{1\bullet}, ..., \bar{X}_{n\bullet}).
+$${#eq-6}
 
-scalar parameter $\psi$ taking values in a set $\Psi \subset \mathbb{R}$ such that $\psi = g(\theta)$, where $g: \Theta \to \Psi$ has two continuous derivatives.
+We typically tailor our statistical models to suit the needs of the specific questions we have in mind. In practice however, it is common to encounter situations in which the question at hand can only be answered through knowledge of a function of the model's parameter rather than the parameter itself. In the case of our Poisson model, we can imagine a scenario in which we are not interested in estimating $\theta \in \Theta$ but rather a new parameter $\psi = \tau(\theta)$, where $\tau: \Theta \to \Psi$ is a known function. We refer to $\psi$ as a *parameter of interest* and $\tau$ as its associated *interest function*. Scalar parameters of interest tend to be the norm, so we will focus our attention on real-valued interest functions only (i.e. $\Psi \subseteq \mathbb{R}$). We will also assume $\tau$ has at least two continuous derivatives.
 
+Natural choices of estimators for $\psi$ are those that can be found using the *plug-in principle*, whereby estimates for $\theta$ are passed as arguments to $\tau$, essentially "plugging" them into the mapping $\tau(\cdot)$. Performing this procedure with the MLE for $\theta$ yields the MLE for $\psi$:
+$$
+\hat{\psi} = \tau(\hat{\theta}).
+$${#eq-7}
 
-Note that while $\ell$ is a function of the $n$-dimensional $\theta$, $\psi$ is just a scalar. This decrease in dimension implies the existence of an $(n-1)$-dimensional nuisance parameter $\lambda$ in the model that hinders or outright precludes inference regarding $\psi$ and consequently must be eliminated from the log-likelihood function before proceeding. Furthermore, $\psi$ need not explicitly be equal to one of the components of $\theta$ but instead may be defined as the output of any function $g$ taking $\theta$ as input and satisfying the requirements mentioned above.
+The difference in dimension between the $n$-dimensional $\theta$ and scalar $\psi$ implies the existence of an $(n-1)$-dimensional *nuisance parameter* $\lambda$ in the model. As their name suggests, nuisance parameters generally tend either to hinder or outright preclude inference regarding $\psi$, and typically must be eliminated from the log-likelihood function altogether before proceeding. This is easier said than done however.
 
-
-
+Furthermore, $\psi$ need not explicitly be equal to one of the components of $\theta$ but instead may be defined as the output of any function $g$ taking $\theta$ as input and satisfying the requirements mentioned above.
 
 We refer to $\psi$ and $\lambda$ as being *implicit* parameters in such cases. In general, so it is rare in practice to encounter a situation in which a closed form expression for a nuisance parameter exists.
 
@@ -104,8 +114,6 @@ We now turn our attention to the task of using the ZSE parameterization to const
 ## Inference for the Weighted Sum of Poisson Means
 
 Consider the weighted sum $$Y = \sum_{i=1}^n w_iX_i,$$ where each $w_i$ is a known constant greater than zero. Suppose we take for our parameter of interest the expected value of this weighted sum, so that $$\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.$$ 
-
-The maximum likelihood estimate (MLE) for $\theta_i$ is simply the sample mean $\hat{\theta}_i = \frac{1}{m_i}\sum_{j=1}^{m_i}X_{ij}$.
 
 ## Examples
 
