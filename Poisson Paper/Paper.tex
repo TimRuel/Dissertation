@@ -172,13 +172,10 @@ Consider a vector \(\theta = (\theta_1, ..., \theta_n)\) in which each
 component represents the mean of a distinct Poisson process. The purpose
 of this paper is to discuss the task of conducting likelihood-based
 inference for a real-valued parameter of interest
-\(\psi = \tau(\theta)\), where
-\(\theta \in \Theta \subset \mathbb{R}^m_+\) is unknown and
-\(\tau: \Theta \to \Psi\) is a known twice continuously differentiable
-function. In particular, we will examine the utility of the integrated
-likelihood function as a tool for estimating \(\psi\), using the
-performance of the more easily calculated profile likelihood as a
-benchmark.
+\(\psi = \tau(\theta)\). In particular, we will examine the utility of
+the integrated likelihood function as a tool for obtaining interval and
+point estimates for \(\psi\), using the performance of the more easily
+calculated profile likelihood as a benchmark.
 
 We may obtain a sample of values from each Poisson process through
 repeated measurements of the number of events it generates over a fixed
@@ -191,14 +188,14 @@ observation \(X_{ij} = x_{ij}\) is
 p(x_{ij}; \> \theta_i) = \frac{e^{-\theta_i} \theta_i ^ {x_{ij}}}{x_{ij}!}, \> \> x_{ij} = 0, 1, 2, ... ; \> \> \theta_i > 0.
 }\end{equation}
 
-Denote the vector of counts from the \(i\)th process by
+Denote the sample of counts from the \(i\)th process by the vector
 \(X_{i\bullet} = (X_{i1}, ..., X_{im_i})\), its associated mean by
 \(\bar{X}_{i \bullet} = \frac{1}{m_i} \sum_{j = 1}^{m_i} X_{ij}\), and
 assume that all of the counts both within and between samples are
 measured independently. The likelihood function for an individual
 component \(\theta_i\) based on the data \(X_{i\bullet} = x_{i\bullet}\)
 is then equal to the product of the individual probabilities of the
-observed counts. That is, \begin{equation}\phantomsection\label{eq-2}{
+observed counts, i.e. \begin{equation}\phantomsection\label{eq-2}{
 \begin{aligned}
 L(\theta_i; x_{i\bullet}) &= \prod_{j=1}^{m_i} p(x_{ij}; \theta_i) \\
                           &= \prod_{j=1}^{m_i} \frac{e^{-\theta_i} \theta_i ^ {x_{ij}}}{x_{ij}!} \\
@@ -208,10 +205,9 @@ L(\theta_i; x_{i\bullet}) &= \prod_{j=1}^{m_i} p(x_{ij}; \theta_i) \\
 \end{aligned}
 }\end{equation}
 
-We regard \(L\) as being a function of the parameter \(\theta_i\) for
-fixed \(x_{i\bullet}\). Since \(L\) is only useful to the extent that it
-informs our understanding of the value of \(\theta_i\), we are free to
-replace it with any other function differing from it by just a (nonzero)
+Since \(L\) is only useful to the extent that it informs our
+understanding of the value of \(\theta_i\), we are free to replace it
+with any other function differing from it by just a (nonzero)
 multiplicative term that is constant with respect to \(\theta_i\),
 provided that the result still satisfies the necessary regularity
 conditions, as this will not change any conclusions regarding
@@ -243,106 +239,115 @@ function for \(\theta\) itself:
 \end{aligned}
 }\end{equation}
 
-The maximum likelihood estimate (MLE) for a parameter \(\theta\) of an
-arbitrary statistical model is defined in general as the value
-\(\hat{\theta}\) satisfying
-\[\hat{\theta} \equiv\arg\sup_{\theta \in \Theta} \ell(\theta),\]
-provided the model meets a few regularity conditions that guarantee the
-MLE exists and is unique. These requirements are always satisfied for
-any member of the exponential family of models, to which the Poisson
-distribution belongs, and so we may speak freely of the MLEs for Poisson
-parameters without fretting over the matter of their existence and
-uniqueness (or lack thereof).
-
-Returning to our working example, we can derive the MLE for \(\theta_i\)
-by differentiating Equation~\ref{eq-4} with respect to \(\theta_i\),
-setting the result equal to 0, and solving for \(\theta_i\). Doing so
-reveals that the MLE is simply the mean of the sample of data
-\(X_{i\bullet}\): \begin{equation}\phantomsection\label{eq-5}{
+We can derive the maximum likelihood estimate (MLE) for \(\theta_i\) by
+differentiating Equation~\ref{eq-4} with respect to \(\theta_i\),
+setting the result equal to 0, and solving for \(\theta_i\). This gives
+the nice result that the MLE is simply equal to the mean of the sample
+of data \(X_{i\bullet}\). That is,
+\begin{equation}\phantomsection\label{eq-6}{
 \hat{\theta}_i = \bar{X}_{i\bullet}.
 }\end{equation} Similarly, the MLE for the full parameter \(\theta\) is
 just the vector of MLEs for its individual components:
-\begin{equation}\phantomsection\label{eq-6}{
+\begin{equation}\phantomsection\label{eq-7}{
 \hat{\theta} \equiv (\hat{\theta}_1, ..., \hat{\theta}_n) = (\bar{X}_{1\bullet}, ..., \bar{X}_{n\bullet}).
 }\end{equation}
 
-We typically tailor our statistical models to suit the needs of the
-specific questions we have in mind. In practice however, it is common to
-encounter situations in which the question at hand can only be answered
-through knowledge of a function of the model's parameter rather than the
-parameter itself. In the case of our Poisson model, we can imagine a
-scenario in which we are not interested in estimating
-\(\theta \in \Theta\) but rather a new parameter
-\(\psi = \tau(\theta)\), where \(\tau: \Theta \to \Psi\) is a known
-function. We refer to \(\psi\) as a \emph{parameter of interest} and
-\(\tau\) as its associated \emph{interest function}. Scalar parameters
-of interest tend to be the norm, so we will focus our attention on
-real-valued interest functions only
-(i.e.~\(\Psi \subseteq \mathbb{R}\)). We will also assume \(\tau\) has
-at least two continuous derivatives.
+\section{Pseudolikelihoods}\label{pseudolikelihoods}
 
-Natural choices of estimators for \(\psi\) are those that can be found
-using the \emph{plug-in principle}, whereby estimates for \(\theta\) are
-passed as arguments to \(\tau\), essentially ``plugging'' them into the
-mapping \(\tau(\cdot)\). Performing this procedure with the MLE for
-\(\theta\) yields the MLE for \(\psi\):
-\begin{equation}\phantomsection\label{eq-7}{
-\hat{\psi} = \tau(\hat{\theta}).
+Let \(\Theta \subseteq \mathbb{R}^n_+\) represent the space of possible
+values for \(\theta\), and suppose we have a real-valued parameter of
+interest \(\psi = \tau(\theta)\), where \(\tau: \Theta \to \Psi\) is a
+known twice continuously differentiable function.
+
+The natural solution to the obstacle nuisance parameters pose to making
+inferences on the parameter of interest is to find a method for
+eliminating them from the likelihood function altogether. The result of
+this elimination is what is known as a pseudolikelihood function.
+
+In general, a \emph{pseudolikelihood function} for \(\psi\) is a
+function of the data and \(\psi\) only, having properties resembling
+that of a genuine likelihood function. If we let
+\(\Theta(\psi) = \{\theta \in \Theta: \> \tau(\theta) = \psi \},\) then
+associated with each \(\psi \in \Psi\) is the set of likelihoods
+\(\mathcal{L}_{\psi} = \{L(\theta): \> \theta \in \Theta(\psi)\}.\)
+
+Any summary of the values in \(\mathcal{L}_{\psi}\) that does not depend
+on \(\lambda\) theoretically constitutes a pseudolikehood function for
+\(\psi\). There exist a variety of methods to obtain this summary but
+among the most popular are profiling (maximization), conditioning, and
+integration, each with respect to the nuisance parameter. None of these
+summaries come without a cost though, meaning some information about
+\(\psi\) is almost certainly sacrificed whenever a nuisance parameter is
+eliminated from a likelihood. One measure of a good pseudolikelihood,
+therefore, is how well it is able to retain information about \(\psi\)
+without becoming overly complex in its computation.
+
+For the purposes of this paper, we will limit the scope of our
+discussion to just two types of pseudolikelihoods, the profile and the
+integrated likelihood.
+
+\subsection{The Profile Likelihood}\label{the-profile-likelihood}
+
+Perhaps the most straightforward method we can use to construct a
+pseudo-likelihood (or equivalently, a pseudo-log-likelihood) function
+for \(\psi\) is to find the maximum of \(\ell(\theta)\) over all
+possible of values of \(\theta\) for each value of \(\psi\). This yields
+what is known as the \emph{profile} log-likelihood function, formally
+defined as \begin{equation}\phantomsection\label{eq-8}{
+\ell_p(\psi) = \sup_{\theta \in \Theta: \> \tau(\theta) = \psi} \ell(\theta), \> \> \psi \in \Psi.
+}\end{equation} In the case where an explicit nuisance parameter
+\(\lambda\) exists so that \(\theta\) may be written as
+\(\theta = (\psi, \lambda)\), Equation~\ref{eq-8} is equivalent to
+replacing \(\lambda\) with \(\hat{\lambda}_{\psi}\), its conditional MLE
+given \(\psi\): \begin{equation}\phantomsection\label{eq-9}{
+\ell_p(\psi) = \ell(\psi, \hat{\lambda}_{\psi}).
+}\end{equation} Historically, the efficiency with which the profile is
+capable of producing accurate estimates relative to its ease of
+computation has made it the method of choice for statisticians when
+performing likelihood-based inference regarding a parameter of interest.
+Examples of profile-based statistics are the MLE for \(\psi\), i.e.,
+\begin{equation}\phantomsection\label{eq-10}{
+\hat{\psi} = \underset{\psi \in \Psi}{\arg\sup} \> \ell_p(\psi),
+}\end{equation} and the signed likelihood ratio statistic for \(\psi\),
+given by \begin{equation}\phantomsection\label{eq-10}{
+R_{\psi} = \text{sgn}(\hat{\psi} - \psi)(2(\ell_p(\hat{\psi}) - \ell_p(\psi)))^{\frac{1}{2}}.
 }\end{equation}
 
-The difference in dimension between the \(n\)-dimensional \(\theta\) and
-scalar \(\psi\) implies the existence of an \((n-1)\)-dimensional
-\emph{nuisance parameter} \(\lambda\) in the model. As their name
-suggests, nuisance parameters generally tend either to hinder or
-outright preclude inference regarding \(\psi\), and typically must be
-eliminated from the log-likelihood function altogether before
-proceeding. This is easier said than done however.
+\subsection{The Integrated Likelihood}\label{the-integrated-likelihood}
 
-Furthermore, \(\psi\) need not explicitly be equal to one of the
-components of \(\theta\) but instead may be defined as the output of any
-function \(g\) taking \(\theta\) as input and satisfying the
-requirements mentioned above.
+The \emph{integrated likelihood} for \(\psi\) seeks to summarize
+\(\mathcal{L}_{\psi}\) by its average value with respect to some weight
+function \(\pi\) over \(\Theta(\psi)\). From a theoretical standpoint,
+this is preferable to the maximization procedure found in the profile
+likelihood as it more naturally incorporates the uncertainty we have in
+the value of the nuisance parameter into the result. Formally, the
+integrated likelihood function is defined as
+\begin{equation}\phantomsection\label{eq-11}{
+\bar{L}(\psi) = \int_{\Lambda}L(\psi, \lambda)\pi(\lambda|\psi)d\lambda,
+}\end{equation} where \(\pi(\lambda|\psi)\) is a nonnegative function on
+\(\Lambda\). \(\pi(\lambda|\psi)\) is sometimes called a conditional
+prior density for \(\lambda\) given \(\psi\), though it need not satisfy
+the requirements of a genuine density function.
 
-We refer to \(\psi\) and \(\lambda\) as being \emph{implicit} parameters
-in such cases. In general, so it is rare in practice to encounter a
-situation in which a closed form expression for a nuisance parameter
-exists.
+Note the similarity in form between the integral in \textbf{?@eq-IL1}
+and the expression for the normalizing constant of a posterior
+distribution: \[\int_{\Theta} L(\theta; X)\pi(\theta) d\theta.\] This
+similarity lends credence to the idea that Bayesian techniques used to
+obtain empirical approximations to posterior distributions, such as
+Markov Chain Monte Carlo, could also be used to approximate an
+integrated likelihood function, with the result being useful for
+Bayesian and frequentist inference alike.
 
-The standard procedure for eliminating \(\lambda\) from the
-log-likelihood function involves choosing some method with which to
-summarize \(\ell(\theta)\) over its possible values while holding
-\(\psi\) fixed in place. This effectively reduces \(\ell(\theta)\) to a
-simpler function depending on \(\psi\) alone, having replaced each
-dimension of \(\theta\) that depends on \(\lambda\) with a static
-summary of the values in its parameter space. We call this new function
-a pseudo-log-likelihood function for \(\psi\) and denote its generic
-form as \(\ell(\psi)\). As we encounter specific types of
-pseudo-log-likelihoods, we will introduce more specialized notation as
-needed. Note that while it usually has properties resembling one,
-\(\ell(\psi)\) is not itself considered a genuine log-likelihood
-function, and there will always be some degree of information contained
-within the data lost as a result of the nuisance parameter's
-elimination.
-
-Perhaps the most straightforward method of summarization we can use to
-construct \(\ell(\psi)\) is to maximize \(\ell(\theta)\) over all
-possible of values of \(\theta\) for a fixed value of \(\psi\). This
-yields what is known as the \emph{profile} log-likelihood function,
-formally defined as \[
-\ell_p(\psi) = \sup_{\theta \in \Theta: \> g(\theta) = \psi} \ell(\theta).
-\]
-
-In the case where an explicit nuisance parameter exists,
-Equation~\ref{eq-2} is equivalent to replacing \(\lambda\) with its
-conditional maximum likelihood estimate given \(\psi\): \[
-\ell_p(\psi) = \ell(\psi, \hat{\lambda}_{\psi}).
-\]
-
-\section{Integrated Likelihood
-Functions}\label{integrated-likelihood-functions}
-
-\section{Application to Poisson
-Models}\label{application-to-poisson-models}
+In general, the selection of the weight function plays an important role
+in the properties of the resulting integrated likelihood. In the next
+chapter, we will discuss a re-parameterization of the nuisance parameter
+developed by \citet{severini2007} that makes the integrated likelihood
+relatively insensitive to the exact weight function chosen. Using this
+new parameterization, we have great flexibility in choosing our weight
+function; as long as it does not depend on the parameter of interest,
+the integrated likelihood that is produced will enjoy many desirable
+frequency properties.\\
+\#\# Application to Poisson Models
 
 We now turn our attention to the task of using the ZSE parameterization
 to construct an integrated likelihood that can be used to make
