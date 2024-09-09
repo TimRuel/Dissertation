@@ -80,19 +80,15 @@ $${#eq-7}
 
 ## Pseudolikelihoods
 
-Let $\Theta \subseteq \mathbb{R}^n_+$ represent the space of possible values for $\theta$, and suppose we have a real-valued parameter of interest $\psi = \tau(\theta)$, where $\tau: \Theta \to \Psi$ is a known twice continuously differentiable function. 
+Let $\Theta \subseteq \mathbb{R}^n_+$ represent the space of possible values for $\theta$ and suppose we have a real-valued *parameter of interest* $\psi = \tau(\theta)$, where $\tau: \Theta \to \Psi$ is a known function with at least two continuous derivatives. Though it is not strictly necessary, in order to align with the tendency of researchers to focus on one-dimensional summaries of vector quantities we will assume for our purposes that $\psi$ is a scalar, i.e. $\Psi \subseteq \mathbb{R}$.
 
-The natural solution to the obstacle nuisance parameters pose to making inferences on the parameter of interest is to find a method for eliminating them from the likelihood function altogether. The result of this elimination is what is known as a pseudolikelihood function.
+This reduced dimension of $\Psi$ relative to $\Theta$ implies the existence of a *nuisance parameter* $\lambda \in \Lambda \subseteq \mathbb{R}^{n-1}$. As its name suggests, $\lambda$ tends to obfuscate or outright preclude inference regarding $\psi$ and usually must be eliminated from the likelihood before proceeding. The product of this elimination is what is known as a *pseudolikelihood function*. In general, a pseudolikelihood function for $\psi$ is defined as being any function of the data and $\psi$ only, having properties resembling that of a genuine likelihood function.
 
-In general, a *pseudolikelihood function* for $\psi$ is a function of the data and $\psi$ only, having properties resembling that of a genuine likelihood function. If we let $\Theta(\psi) = \{\theta \in \Theta: \> \tau(\theta) = \psi \},$ then associated with each $\psi \in \Psi$ is the set of likelihoods $\mathcal{L}_{\psi} = \{L(\theta): \> \theta \in \Theta(\psi)\}.$ 
-
-Any summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$ theoretically constitutes a pseudolikehood function for $\psi$. There exist a variety of methods to obtain this summary but among the most popular are profiling (maximization), conditioning, and integration, each with respect to the nuisance parameter. None of these summaries come without a cost though, meaning some information about $\psi$ is almost certainly sacrificed whenever a nuisance parameter is eliminated from a likelihood. One measure of a good pseudolikelihood, therefore, is how well it is able to retain information about $\psi$ without becoming overly complex in its computation. 
-
-For the purposes of this paper, we will limit the scope of our discussion to just two types of pseudolikelihoods, the profile and the integrated likelihood.
+If we let $\Theta_{\psi} = \{\theta \in \Theta: \> \tau(\theta) = \psi \},$ then associated with each $\psi \in \Psi$ is the set of likelihood values $\mathcal{L}_{\psi} = \{L(\theta): \> \theta \in \Theta_{\psi}\}.$ Any summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$ theoretically constitutes a pseudolikehood function for $\psi$. There exist a variety of methods to obtain this summary, but among the most popular are profiling (i.e. maximization), conditioning, and integration, each with respect to the nuisance parameter. These summaries come at a cost, however; eliminating a model's nuisance parameter from its likelihood almost always sacrifices some information about its parameter of interest. One measure of a good pseudolikelihood, therefore, is the balance it strikes between the amount of information it retains about $\psi$ and its computational tractability. In this paper we will limit the scope of our discussion to just two types of pseudolikelihoods, the profile and the integrated likelihood.
 
 ### The Profile Likelihood
 
-Perhaps the most straightforward method we can use to construct a pseudo-likelihood (or equivalently, a pseudo-log-likelihood) function for $\psi$ is to find the maximum of $\ell(\theta)$ over all possible of values of $\theta$ for each value of $\psi$. This yields what is known as the *profile* log-likelihood function, formally defined as 
+The most straightforward method we can use to construct a pseudolikelihood (or equivalently, a pseudo-log-likelihood) function for $\psi$ is usually to find the maximum of $\ell(\theta)$ over all possible of values of $\theta$ for each value of $\psi$. This yields what is known as the *profile* log-likelihood function, formally defined as 
 $$
 \ell_p(\psi) = \sup_{\theta \in \Theta: \> \tau(\theta) = \psi} \ell(\theta), \> \> \psi \in \Psi.
 $${#eq-8}
@@ -100,7 +96,8 @@ In the case where an explicit nuisance parameter $\lambda$ exists so that $\thet
 $$
 \ell_p(\psi) = \ell(\psi, \hat{\lambda}_{\psi}).
 $${#eq-9}
-Historically, the efficiency with which the profile is capable of producing accurate estimates relative to its ease of computation has made it the method of choice for statisticians when performing likelihood-based inference regarding a parameter of interest. Examples of profile-based statistics are the MLE for $\psi$, i.e.,
+
+Historically, the efficiency with which the profile is capable of producing accurate estimates of $\psi$ relative to its ease of computation has made it the method of choice for statisticians when performing likelihood-based inference regarding a parameter of interest. Examples of profile-based statistics are the MLE for $\psi$, i.e.,
 $$
 \hat{\psi} = \underset{\psi \in \Psi}{\arg\sup} \> \ell_p(\psi),
 $${#eq-10}
@@ -111,15 +108,12 @@ $${#eq-10}
 
 ### The Integrated Likelihood
 
-The *integrated likelihood* for $\psi$ seeks to summarize $\mathcal{L}_{\psi}$ by its average value with respect to some weight function $\pi$ over $\Theta(\psi)$. From a theoretical standpoint, this is preferable to the maximization procedure found in the profile likelihood as it more naturally incorporates the uncertainty we have in the value of the nuisance parameter into the result. Formally, the integrated likelihood function is defined as 
+The *integrated likelihood* for $\psi$ seeks to summarize $\mathcal{L}_{\psi}$ by its average value with respect to some weight function $\pi$ on $\Theta_{\psi}$. From a theoretical standpoint, this is preferable to the maximization procedure found in the profile likelihood as it more naturally incorporates the uncertainty we have in the value of the nuisance parameter into the result. Formally, the integrated likelihood function is defined as 
 $$
-\bar{L}(\psi) = \int_{\Lambda}L(\psi, \lambda)\pi(\lambda|\psi)d\lambda,
+\bar{L}(\psi) = \int_{\Theta_{\psi}}L(\theta)\pi(\theta; \psi)d\theta.
 $${#eq-11} 
-where $\pi(\lambda|\psi)$ is a nonnegative function on $\Lambda$. $\pi(\lambda|\psi)$ is sometimes called a conditional prior density for $\lambda$ given $\psi$, though it need not satisfy the requirements of a genuine density function.
 
-Note the similarity in form between the integral in @eq-IL1 and the expression for the normalizing constant of a posterior distribution: $$\int_{\Theta} L(\theta; X)\pi(\theta) d\theta.$$ This similarity lends credence to the idea that Bayesian techniques used to obtain empirical approximations to posterior distributions, such as Markov Chain Monte Carlo, could also be used to approximate an integrated likelihood function, with the result being useful for Bayesian and frequentist inference alike.
-
-In general, the selection of the weight function plays an important role in the properties of the resulting integrated likelihood. In the next chapter, we will discuss a re-parameterization of the nuisance parameter developed by @severini2007 that makes the integrated likelihood relatively insensitive to the exact weight function chosen. Using this new parameterization, we have great flexibility in choosing our weight function; as long as it does not depend on the parameter of interest, the integrated likelihood that is produced will enjoy many desirable frequency properties.
+It is up to the researcher to choose the weight function $\pi(\cdot; \psi)$, which plays an important role in the properties of the resulting integrated likelihood. Severini (2007) developed a method for re-parameterizing $\lambda$ that makes the integrated likelihood relatively insensitive to the exact weight function chosen. Using this new parameterization, we have great flexibility in choosing our weight function; as long as it does not depend on the parameter of interest, the integrated likelihood that is produced will enjoy many desirable frequency properties.
 
 ## Application to Poisson Models
 
