@@ -82,9 +82,11 @@ $${#eq-7}
 
 Let $\Theta \subseteq \mathbb{R}^n_+$ represent the space of possible values for $\theta$ and suppose we have a real-valued *parameter of interest* $\psi = \tau(\theta)$, where $\tau: \Theta \to \Psi$ is a known function with at least two continuous derivatives. Though it is not strictly necessary, in order to align with the tendency of researchers to focus on one-dimensional summaries of vector quantities we will assume for our purposes that $\psi$ is a scalar, i.e. $\Psi \subseteq \mathbb{R}$.
 
-This reduced dimension of $\Psi$ relative to $\Theta$ implies the existence of a *nuisance parameter* $\lambda \in \Lambda \subseteq \mathbb{R}^{n-1}$. As its name suggests, $\lambda$ tends to obfuscate or outright preclude inference regarding $\psi$ and usually must be eliminated from the likelihood before proceeding. The product of this elimination is what is known as a *pseudolikelihood function*. In general, a pseudolikelihood function for $\psi$ is defined as being any function of the data and $\psi$ only, having properties resembling that of a genuine likelihood function.
+This reduced dimension of $\Psi$ relative to $\Theta$ implies the existence of a *nuisance parameter* $\lambda \in \Lambda \subseteq \mathbb{R}^{n-1}$. As its name suggests, $\lambda$ tends to obfuscate or outright preclude inference regarding $\psi$ and typically must be eliminated from the likelihood before proceeding. The product of this elimination is called a *pseudolikelihood function*. Any function of the data and $\psi$ alone could theoretically be considered a pseudolikelihood, though  course in practice some are more useful than others. 
 
-If we let $\Theta_{\psi} = \{\theta \in \Theta: \> \tau(\theta) = \psi \},$ then associated with each $\psi \in \Psi$ is the set of likelihood values $\mathcal{L}_{\psi} = \{L(\theta): \> \theta \in \Theta_{\psi}\}.$ Any summary of the values in $\mathcal{L}_{\psi}$ that does not depend on $\lambda$ theoretically constitutes a pseudolikehood function for $\psi$. There exist a variety of methods to obtain this summary, but among the most popular are profiling (i.e. maximization), conditioning, and integration, each with respect to the nuisance parameter. These summaries come at a cost, however; eliminating a model's nuisance parameter from its likelihood almost always sacrifices some information about its parameter of interest. One measure of a good pseudolikelihood, therefore, is the balance it strikes between the amount of information it retains about $\psi$ and its computational tractability. In this paper we will limit the scope of our discussion to just two types of pseudolikelihoods, the profile and the integrated likelihood.
+If we let $\Theta_{\psi} = \{\theta \in \Theta: \> \tau(\theta) = \psi \},$ then associated with each $\psi \in \Psi$ is the set of likelihood values $\mathcal{L}_{\psi} = \{L(\theta): \> \theta \in \Theta_{\psi}\}.$ For a given value of $\psi$, there may exist multiple corresponding values of $\lambda$.
+
+We can construct pseudolikelihoods for $\psi$ through clever choices by which to summarize $\mathcal{L}_{\psi}$ over all possible values of $\lambda$. Among the most popular methods of summary are profiling (i.e. maximization), conditioning, and integration, each with respect to the nuisance parameter. These summaries do come at a cost, however; eliminating a model's nuisance parameter from its likelihood almost always sacrifices some information about its parameter of interest as well. One measure of a good pseudolikelihood, therefore, is the balance it strikes between the amount of information it retains about $\psi$ and the ease with which it can be computed.
 
 ### The Profile Likelihood
 
@@ -108,7 +110,7 @@ $${#eq-10}
 
 ### The Integrated Likelihood
 
-The *integrated likelihood* for $\psi$ seeks to summarize $\mathcal{L}_{\psi}$ by its average value with respect to some weight function $\pi$ on $\Theta_{\psi}$. From a theoretical standpoint, this is preferable to the maximization procedure found in the profile likelihood as it more naturally incorporates the uncertainty we have in the value of the nuisance parameter into the result. Formally, the integrated likelihood function is defined as 
+The *integrated likelihood* for $\psi$ seeks to summarize $\mathcal{L}_{\psi}$ by its average value with respect to some weight function $\pi$ over the space $\Theta_{\psi}$. From a theoretical standpoint, this is preferable to the maximization procedure found in the profile likelihood as it naturally incorporates our uncertainty regarding the nuisance parameter's true value into the resulting pseudolikelihood. The general form of an integrated likelihood function is given
 $$
 \bar{L}(\psi) = \int_{\Theta_{\psi}}L(\theta)\pi(\theta; \psi)d\theta.
 $${#eq-11} 
@@ -119,11 +121,17 @@ It is up to the researcher to choose the weight function $\pi(\cdot; \psi)$, whi
 
 We now turn our attention to the task of using the ZSE parameterization to construct an integrated likelihood that can be used to make inferences regarding a parameter of interest derived from the Poisson model described in the introduction. We will 
 
-## Inference for the Weighted Sum of Poisson Means
+## Estimating the Weighted Sum of Poisson Means
 
 Consider the weighted sum $$Y = \sum_{i=1}^n w_iX_i,$$ where each $w_i$ is a known constant greater than zero. Suppose we take for our parameter of interest the expected value of this weighted sum, so that $$\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.$$ 
 
-## Examples
+### Examples
+
+## Zero-Inflated Poisson Regression
+
+A sample of count data is called *zero-inflated* when it contains an excess amount of zero-valued observations. A common tactic to account for this excess is to model the data using a mixture of two distributions. The first is a simple Bernoulli process that generates zeros and the other is one that generates counts, some of which may also be zeros. When this count-generating process is governed by a Poisson distribution, we call the resulting mixture a zero-inflated Poisson (ZIP) model.
+
+Let $X \sim \text{Poisson}(\mu)$ and 
 
 
 
