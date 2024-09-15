@@ -366,14 +366,39 @@ Regression}\label{zero-inflated-poisson-regression}
 
 A sample of count data is called \emph{zero-inflated} when it contains
 an excess amount of zero-valued observations. A common tactic to account
-for this excess is to model the data using a mixture of two
-distributions. The first is a simple Bernoulli process that generates
-zeros and the other is one that generates counts, some of which may also
-be zeros. When this count-generating process is governed by a Poisson
-distribution, we call the resulting mixture a zero-inflated Poisson
-(ZIP) model.
+for this excess is to model the data using a mixture of two processes,
+one that generates zeros and another that generates counts, some of
+which may also be zeros. When this count-generating process follows a
+Poisson distribution, we call the resulting mixture a zero-inflated
+Poisson (ZIP) model.
 
-Let \(X \sim \text{Poisson}(\mu)\) and
+Let \(U \sim \text{Bernoulli}(1 - \pi)\) and
+\(V \sim \text{Poisson}(\mu)\) Suppose \(U\) and \(V\) are independent
+and let \(W = UV\). Then \(W \sim \text{ZIP}(\mu, \pi)\). Note that
+\(W = 0\) when either \(U = 0\) or \(V = 0\) so that \[
+\begin{aligned}
+\mathbb{P}(W = 0) &= \mathbb{P}(U = 0 \cup V = 0) \\
+                  &= \mathbb{P}(U = 0) + \mathbb{P}(V = 0) - \mathbb{P}(U = 0 \cap V = 0) \\
+                  &= \mathbb{P}(U = 0) + \mathbb{P}(V = 0) - \mathbb{P}(U = 0)\mathbb{P}(V = 0) \\
+                  &= \pi + e^{-\mu} - \pi e^{-\mu} \\ 
+                  &= \pi + (1 - \pi)e^{-\mu}.
+\end{aligned}
+\] In order for \(W\) to take on a value \(w > 0\), we must have
+\(U = 1\) and \(V = w\). That is, \[
+\begin{aligned}
+\mathbb{P}(W = w) &= \mathbb{P}(U = 1 \cap V = w) \\
+                  &= \mathbb{P}(U = 1)\mathbb{P}(V = w) \\
+                  &= (1-\pi)\frac{e^{-\mu}\mu^w}{w!}, \> \> w = 1, 2, ...
+\end{aligned}
+\] Thus, the full probability mass function for a ZIP random variable is
+given by \[
+\mathbb{P}(W = w) = \begin{cases}
+               \pi + (1 - \pi)e^{-\mu}, &w =0 \\
+               (1-\pi)\frac{e^{-\mu}\mu^w}{w!}, & w = 1, 2, ...
+            \end{cases}
+\]
+
+\includegraphics{Paper_files/figure-pdf/unnamed-chunk-1-1.pdf}
 
 
   \bibliography{bibliography.bib}
