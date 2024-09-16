@@ -2,6 +2,8 @@
 print("Choose your population parameters R script.")
 population_params_file_path <- file.choose() 
 
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
 source(population_params_file_path)
 source("../../utils.R")
 
