@@ -133,7 +133,7 @@ get_omega_hat <- function(data, weights, dist, dist_params, return_u = FALSE) {
   return(omega_hat)
 }
 
-get_theta_hat <- function(m, psi, omega_hat, weights) {
+get_theta_hat <- function(psi, m, omega_hat, weights) {
   
   objective <- function(lambda) abs(psi - sum(weights * ((m * omega_hat) / (m + lambda * weights))))
   
@@ -340,7 +340,10 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
   p <- progressr::progressor(steps = 2 * length(psi_grid_list[[1]]) * R)
   
   omega_hat <- R |> 
-    replicate(get_omega_hat(data, weights, dist, dist_params), simplify = FALSE) 
+    replicate(get_omega_hat(data, weights, dist, dist_params), simplify = FALSE)
+  
+  m <- data |> 
+    map_dbl(length)
   
   foreach(
     
@@ -362,14 +365,12 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
     )  %dofuture% {
       
       psi_grid |> 
-        purrr::accumulate(
-          \(acc, nxt) {
+        purrr::map(
+          \(psi) {
             p()
-            get_theta_hat(acc, nxt, omega_hat[[i]], weights)
-          },
-          .init = init_guess
+            get_theta_hat(psi, m, omega_hat[[i]], weights)
+          }
         ) |> 
-        magrittr::extract(-1) |> 
         purrr::map_dbl(log_likelihood, data)
     } |>
     matrixStats::colLogSumExps() |>
