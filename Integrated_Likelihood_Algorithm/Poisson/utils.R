@@ -133,19 +133,20 @@ get_omega_hat <- function(data, weights, dist, dist_params, return_u = FALSE) {
   return(omega_hat)
 }
 
-get_theta_hat <- function(psi, m, omega_hat, weights) {
+get_lambda <- function(init_guess, psi, m, omega_hat, weights) {
   
   objective <- function(lambda) abs(psi - sum(weights * ((m * omega_hat) / (m + lambda * weights))))
   
-  lambda <- nlm(objective, 0)$estimate
+  lambda <- nlm(f = objective, 
+                p = init_guess,
+                fscale = 0,
+                iterlim = 1000)$estimate
   
-  theta_hat <- (m * omega_hat) / (m + lambda * weights)
-  
-  return(theta_hat)
+  return(lambda)
 }
-  
-  
 
+get_theta_hat <- function(lambda, m, omega_hat, weights) (m * omega_hat) / (m + lambda * weights)
+  
 # get_theta_hat <- function(init_guess, psi, omega_hat, weights) {
 #   
 #   f <- function(theta) neg_log_likelihood(theta, omega_hat)
@@ -335,47 +336,44 @@ custom_combine <- function(...) {
 
 get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
   
-  psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
+  psi_grid <- get_psi_grid(data, weights, step_size, num_std_errors, split = FALSE)
   
-  p <- progressr::progressor(steps = 2 * length(psi_grid_list[[1]]) * R)
+  omega_hat_list <- data |> 
+    get_omega_hat(weights, dist, dist_params) |> 
+    replicate(R, expr = _, simplify = FALSE)
   
-  omega_hat <- R |> 
-    replicate(get_omega_hat(data, weights, dist, dist_params), simplify = FALSE)
+  p <- progressr::progressor(along = omega_hat_list)
   
   m <- data |> 
     map_dbl(length)
   
   foreach(
     
-    i = 1:R,
+    omega_hat = omega_hat_list,
     .combine = "rbind",
     .multicombine = TRUE,
     .maxcombine = R,
     .options.future = list(seed = TRUE,
                            chunk.size = chunk_size)
     
-  ) %:%
+  ) %dofuture% {
     
-    foreach(
-      
-      psi_grid = psi_grid_list,
-      .combine = custom_combine,
-      .options.future = list(seed = TRUE)
-      
-    )  %dofuture% {
-      
-      psi_grid |> 
-        purrr::map(
-          \(psi) {
-            p()
-            get_theta_hat(psi, m, omega_hat[[i]], weights)
-          }
-        ) |> 
-        purrr::map_dbl(log_likelihood, data)
+    p()
+    
+    psi_grid |>
+      purrr::accumulate(
+        \(acc, nxt) get_lambda(acc, nxt, m, omega_hat, weights),
+        .init = 0) |>
+      magrittr::extract(-1) |>
+      purrr::map_dbl(\(lambda) {
+        lambda |>
+          get_theta_hat(m, omega_hat, weights) |> 
+          log_likelihood(data)
+        })
     } |>
     matrixStats::colLogSumExps() |>
     (`-`)(log(R))
-}
+  }
 
 # get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
 # 
@@ -720,34 +718,39 @@ get_mod_integrated_log_likelihood_sims <- function(preallocations, weights, step
 #   return(l_p)
 # }
 
-get_profile_log_likelihood <- function(data, weights, psi_grid_list) {
+get_profile_log_likelihood <- function(data, weights, step_size, num_std_errors) {
   
-  init_guess <- data |> 
-    map_dbl(mean) |> 
-    (`+`)(0.5)
+  psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
   
-  p <- progressr::progressor(steps = 2*length(psi_grid_list[[1]]))
+  theta_mle <- data |> 
+    map_dbl(mean)
   
-  l_p <- foreach(
+  m <- data |> 
+    map_dbl(length)
+  
+  p <- progressr::progressor(along = psi_grid_list)
+  
+  foreach(
     
     psi_grid = psi_grid_list,
     .options.future = list(seed = TRUE)
     
     ) %dofuture% {
       
-      psi_grid |> purrr::accumulate(
-        \(acc, nxt) {
-          p()
-          get_theta_hat(acc, nxt, data, weights)
-          },
-        .init = init_guess
-        ) |> 
+      p()
+      
+      psi_grid |> 
+        purrr::accumulate(
+          \(acc, nxt) get_lambda(acc, nxt, m, theta_mle, weights),
+          .init = 0) |> 
         magrittr::extract(-1) |> 
-        purrr::map_dbl(log_likelihood, data)
+        purrr::map_dbl(\(lambda) {
+          lambda |>
+            get_theta_hat(m, theta_mle, weights) |> 
+            log_likelihood(data)
+          })
       } |> 
     purrr::modify_in(1, rev) |>
     unlist(recursive = FALSE)
-
-  return(l_p)
-}
+  }
 

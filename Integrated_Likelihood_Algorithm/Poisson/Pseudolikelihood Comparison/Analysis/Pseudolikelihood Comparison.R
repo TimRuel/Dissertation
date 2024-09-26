@@ -24,15 +24,25 @@ num_std_errors <- log_likelihood_vals_file_path |>
   str_extract("\\d+") |> 
   as.numeric()
 
-pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
+# pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
+pseudolikelihood_names <- c("Integrated", "Profile")
 
-log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
+log_likelihood_vals <- log_likelihood_vals |>
   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
                       names_to = "Pseudolikelihood",
                       values_to = "loglikelihood") |>
   mutate(Pseudolikelihood = Pseudolikelihood |>
            as_factor() |>
            fct_inorder())
+
+
+# log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
+#   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
+#                       names_to = "Pseudolikelihood",
+#                       values_to = "loglikelihood") |>
+#   mutate(Pseudolikelihood = Pseudolikelihood |>
+#            as_factor() |>
+#            fct_inorder())
 
 spline_fitted_models <- log_likelihood_vals |>
   group_by(Pseudolikelihood) |> 
@@ -56,7 +66,8 @@ MLE_data <- spline_fitted_models |>
         select(MLE, Maximum)
     }) |>
   do.call(rbind, args = _) |>
-  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |>
+  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[PL]")) |>
+  # mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |>
   rownames_to_column("Pseudolikelihood")
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
@@ -70,6 +81,9 @@ log_likelihood_vals |>
   ylab("Log-Likelihood") +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
+  scale_x_continuous(expand = c(0, 0),
+                     # limits = c(31.5, 32.5)) +
+                     limits = c(14, 14.5)) +
   theme_minimal() +
   theme(axis.line = element_line())
 
@@ -120,7 +134,8 @@ MLE_data |>
       align = "c") |> 
   kable_styling(bootstrap_options = c("striped", "hover")) 
 
-c(stat_fn_IL, stat_fn_mod_IL, stat_fn_PL) %<-% map2(
+# c(stat_fn_IL, stat_fn_mod_IL, stat_fn_PL) %<-% map2(
+c(stat_fn_IL, stat_fn_PL) %<-% map2(
   pseudo_log_likelihood_curves,
   pseudolikelihood_names,
   function(curve, pseudolikelihood_name) {

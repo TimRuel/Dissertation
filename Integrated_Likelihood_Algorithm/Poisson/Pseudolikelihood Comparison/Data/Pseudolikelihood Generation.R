@@ -18,11 +18,11 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # num_cores <- Sys.getenv("SLURM_NPROCS") |>
 #   as.numeric()
-# num_cores <- availableCores() |>
-#   as.numeric()
-
-num_cores <- parallel::detectCores() |>
+num_cores <- availableCores() |>
   as.numeric()
+
+# num_cores <- parallel::detectCores() |>
+#   as.numeric()
 
 step_size <- 0.01
 
@@ -46,7 +46,7 @@ chunk_size <- 5
 
 tic()
 
-plan(multisession, workers = num_cores)
+plan(multisession, workers = 50)
 
 integrated_log_likelihood_vals <- get_integrated_log_likelihood_vals(data,
                                                                      weights,
@@ -104,11 +104,9 @@ toc()
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-plan(sequential)
+plan(multisession, workers = 2)
 
-psi_grid_list <- get_psi_grid(data, weights, step_size, num_std_errors, split = TRUE)
-
-profile_log_likelihood_vals <- get_profile_log_likelihood(data, weights, psi_grid_list)
+profile_log_likelihood_vals <- get_profile_log_likelihood(data, weights, step_size, num_std_errors)
 
 ################################################################################
 ################################### STORAGE #################################### 
@@ -118,7 +116,7 @@ psi_grid <- get_psi_grid(data, weights, step_size, num_std_errors, split = FALSE
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = integrated_log_likelihood_vals,
-                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
+                                  # Mod_Integrated = mod_integrated_log_likelihood_vals,
                                   Profile = profile_log_likelihood_vals)
 
 log_likelihood_vals_file_path <- population_params_file_path |> 
