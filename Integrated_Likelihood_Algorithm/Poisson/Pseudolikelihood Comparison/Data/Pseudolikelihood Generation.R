@@ -87,7 +87,7 @@ chunk_size <- 5
 
 tic()
 
-plan(multisession, workers = num_cores)
+plan(multisession, workers = 50)
 
 mod_integrated_log_likelihood_vals <- get_mod_integrated_log_likelihood_vals(data,
                                                                              weights,
@@ -116,7 +116,7 @@ psi_grid <- get_psi_grid(data, weights, step_size, num_std_errors, split = FALSE
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = integrated_log_likelihood_vals,
-                                  # Mod_Integrated = mod_integrated_log_likelihood_vals,
+                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
                                   Profile = profile_log_likelihood_vals)
 
 log_likelihood_vals_file_path <- population_params_file_path |> 

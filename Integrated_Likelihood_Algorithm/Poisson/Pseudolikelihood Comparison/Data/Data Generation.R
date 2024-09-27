@@ -9,14 +9,14 @@ source("../../utils.R")
 
 set.seed(seed)
          
-theta_0 <- d |> 
+theta_0 <- n |> 
  c(theta_0_range) |> 
  as.list() |> 
  do.call(runif, args = _) |> 
  (\(x) if (theta_0_sum) x / sum(x) * theta_0_sum else x)() 
 
-data <- n |> 
- map2(
+data <- m |> 
+ purrr::map2(
    theta_0,
    \(x, y) rpois(x, y) |> 
      as.numeric())
