@@ -70,12 +70,12 @@ log_likelihood_vals |>
   ylab("Log-Likelihood") +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
-  # scale_x_continuous(expand = c(0, 0),
-  #                    # limits = c(31.5, 32.5)) +
-  #                    limits = c(14, 14.5)) +
-  # scale_y_continuous(expand = c(0, 0),
-  #                    # limits = c(31.5, 32.5)) +
-  #                    limits = c(-20, -15)) +
+  scale_x_continuous(expand = c(0, 0),
+                     # limits = c(31.5, 32.5)) +
+                     limits = c(15, 16)) +
+  scale_y_continuous(expand = c(0, 0),
+                     # limits = c(-0.025, 0)) +
+                     limits = c(0, 1)) +
   theme_minimal() +
   theme(axis.line = element_line())
 

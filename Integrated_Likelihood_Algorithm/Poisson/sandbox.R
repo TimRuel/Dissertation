@@ -1,127 +1,94 @@
 
-source("Data Generation.R")
-
 dist <- runif
 
 dist_params <- list(min = 0, max = 100)
 
 omega_hat <- get_omega_hat(data, weights, dist, dist_params)
 
-m <- data |> 
-  map_dbl(length)
-
-psi_MLE <- data |>
-  map_dbl(mean) |>
-  weighted_sum(weights)
-
-psi <- 12.5
-
-fun <- function(lambda, m_i, omega_hat, alpha_i, psi) abs(psi - sum(alpha_i * ((m_i * omega_hat) / (m_i + lambda * alpha_i))))
-
-fun1 <- function(x) fun(x, m_i = m, omega_hat = omega_hat, alpha_i = weights, psi = psi)
-
-out <- nlm(fun1, 0)
-
-lambda <- out$estimate
-
-fun1(lambda)
-
-theta_hat <- (m * omega_hat) / (m + lambda * weights)
-
-get_theta <- function(data, weights, dist, dist_params, psi, return_u = FALSE) {
-  
-  u <- data |> 
-    length() |> 
-    c(dist_params) |> 
-    do.call(dist, args = _)
-  
-  omega_hat <- u |> 
-    (`/`)(sum(u * weights)) |> 
-    (`*`)(psi)
-  
-  if (return_u) return(rbind(u, omega_hat))
-  
-  return(omega_hat)
-}
-
-Q <- function(theta) log_likelihood(theta, omega_hat)
-
-theta1 <- get_theta(data, weights, dist, dist_params, psi)
-
-Q(theta1)
-
-weighted_sum(theta_hat, weights)
-
-theta_hat <- get_theta_hat(m, psi, omega_hat, weights)
+lambdas <- psi_grid |> 
+  map_dbl(\(psi) get_lambda(50, psi, m, omega_hat, weights))
 
 
-psi_grid |> 
-  purrr::map(\(psi) get_theta_hat(psi, m, omega_hat, weights)) |> 
-  purrr::map_dbl(\(theta) weighted_sum(theta, weights))
 
-psi <- 1.7
+hist(lambdas)
 
-objective <- function(lambda) abs(psi - sum(weights * ((m * omega_hat) / (m + lambda * weights))))
+weighted_sum(omega_hat, weights)
 
-out <- nlm(objective, 0, fscale = 0, iterlim = 1000)
-
-lambda <- out$estimate
-
-lambda <- psi_grid |>
+lambdas <- psi_grid |>
   purrr::accumulate(
-    \(acc, nxt) {
-      get_lambda(acc, nxt, m, omega_hat, weights)
-    },
-    .init = 7) |>
+    \(acc, nxt) get_lambda(acc, nxt, m, omega_hat, weights),
+    .init = 50) |>
   magrittr::extract(-1)
 
-l <- lambda |> 
-  purrr::map_dbl(\(lambda) {
-    lambda |>
-      get_theta_hat(m, omega_hat, weights) |> 
-      log_likelihood(data)
-  })
+plot(psi_grid, lambdas)
 
-plot(psi_grid, l)
+omega_hat_list <- data |> 
+  get_omega_hat(weights, dist, dist_params, return_u = FALSE) |> 
+  replicate(R, expr = _, simplify = FALSE)
 
-R <- 2
+plan(multisession, workers = 50)
 
-omega_hat_list <- R |> 
-  replicate(get_omega_hat(data, weights, dist, dist_params), simplify = FALSE)
-
-l <- list()
-
-tic()
-
-for (i in 1:R) {
+lambda_mat <- foreach(
   
-  l[[i]] <- psi_grid |>
+  omega_hat = omega_hat_list,
+  .combine = "rbind",
+  .multicombine = TRUE,
+  .maxcombine = R,
+  .options.future = list(seed = TRUE,
+                         chunk.size = chunk_size)
+  
+) %dofuture% {
+  
+  psi_grid |>
     purrr::accumulate(
-      \(acc, nxt) {
-        lambda <- get_lambda(acc, nxt, m, omega_hat_list[[i]], weights)
-        return(lambda)
-      },
-      .init = 0) |>
-    magrittr::extract(-1) |>
-    purrr::map_dbl(\(lambda) {
-      lambda |>
-        get_theta_hat(m, omega_hat_list[[i]], weights) |> 
-        log_likelihood(data)
-    })
-  print(i)
+      \(acc, nxt) get_lambda(acc, nxt, m, omega_hat, weights),
+      .init = sum(omega_hat)
+      ) |> 
+    magrittr::extract(-1) 
 }
 
-toc()
+A <- 1520
 
-integrated_log_likelihood_vals <- do.call(rbind, l) |>
-  matrixStats::colLogSumExps() |>
-  (`-`)(log(R))
+B <- 1530
 
+plot(psi_grid[A:B], colMeans(lambda_mat)[A:B])
 
-library(doFuture)
-plan(multisession)
+hist(lambda_mat[,1524])
 
-y <- foreach(x = 1:4, y = 1:10) %dofuture% {
-  z <- x + y
-  slow_sqrt(z)
+xx <- lambda_mat[,1524] |> 
+  unname() |> 
+  map_dbl(\(lambda) {
+    
+    get_theta_hat(lambda, m, omega_hat, weights) |> 
+      log_likelihood(data)
+    }) 
+
+for (i in 1520:1530) {
+  
+  hist(code_mat[,i])
 }
+
+hist(xx)
+
+x <- lambda_list |> 
+  map_dbl(mean)
+
+plot(psi_grid, x)
+
+lambda_list <- lapply(seq_len(ncol(lambda_mat)), function(i) unname(lambda_mat)[,i])
+
+y <- get_lambda(-1.75, 15.35, m, omega_hat_list[[17]], weights)
+
+get_theta_hat(y, m, omega_hat_list[[17]], weights) |> weighted_sum(weights)
+
+
+test <- function(lambda) get_theta_hat(lambda, m, omega_hat, weights)
+
+
+curve(test(x), from = -1000, 1 , xlab="x", ylab="y")
+
+# package Rsolnp
+
+
+
+

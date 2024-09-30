@@ -44,6 +44,8 @@ dist_params <- list(min = 0, max = 100)
 
 chunk_size <- 5
 
+init_guess <- 10
+
 tic()
 
 plan(multisession, workers = 50)
@@ -84,6 +86,8 @@ dist <- rgamma
 dist_params <- list(shape = alpha_posterior, rate = beta_posterior)
 
 chunk_size <- 5
+
+init_guess <- 10
 
 tic()
 
