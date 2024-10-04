@@ -44,8 +44,6 @@ dist_params <- list(min = 0, max = 100)
 
 chunk_size <- 5
 
-init_guess <- 10
-
 tic()
 
 plan(multisession, workers = 50)
@@ -69,9 +67,9 @@ plan(sequential)
 
 set.seed(seed)
 
-alpha_prior <- 1/2
+alpha_prior <- 10
 
-beta_prior <- 1/2
+beta_prior <- 10
 
 alpha_posterior <- data |> 
   map_dbl(sum) |>
@@ -86,8 +84,6 @@ dist <- rgamma
 dist_params <- list(shape = alpha_posterior, rate = beta_posterior)
 
 chunk_size <- 5
-
-init_guess <- 10
 
 tic()
 
@@ -108,9 +104,16 @@ toc()
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
+tic()
+
 plan(multisession, workers = 2)
 
-profile_log_likelihood_vals <- get_profile_log_likelihood(data, weights, step_size, num_std_errors)
+profile_log_likelihood_vals <- get_profile_log_likelihood(data, 
+                                                          weights, 
+                                                          step_size, 
+                                                          num_std_errors)
+
+toc()
 
 ################################################################################
 ################################### STORAGE #################################### 
