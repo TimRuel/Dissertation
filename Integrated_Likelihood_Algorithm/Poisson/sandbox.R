@@ -3,7 +3,20 @@ dist <- runif
 
 dist_params <- list(min = 0, max = 100)
 
-omega_hat <- get_omega_hat(data, weights, dist, dist_params)
+omega_hat <- get_omega_hat(data, weights, dist, dist_params, return_u = TRUE)
+
+psi_MLE <- data |>
+  map_dbl(mean) |>
+  weighted_sum(weights)
+
+u <- omega_hat["u",]
+
+u - ((weighted_sum(u, weights) - psi_MLE) / sum(weights^2)) * weights
+
+
+weighted_sum(a, weights)
+
+
 
 lambdas <- psi_grid |> 
   map_dbl(\(psi) get_lambda(50, psi, m, omega_hat, weights))
@@ -407,9 +420,15 @@ data1 |>
   ggplot() +
   geom_point(aes(x = psi, y = cv))
 
+w_star_sum <- mod_integrated_log_likelihood_vals$L_ratio |> 
+  sweep(2, colSums(mod_integrated_log_likelihood_vals$L_ratio), FUN = '/') |>
+  apply(2, \(x) x^2) |> 
+  colSums()
+
 data2 <- tibble(psi = psi_grid,
                 variance = mod_integrated_log_likelihood_vals$s_squared,
                 cv = mod_integrated_log_likelihood_vals$cv,
+                w_star_sum = w_star_sum,
                 index = seq_along(psi_grid)) 
 
 
@@ -423,6 +442,74 @@ data2 |>
   ggplot() +
   geom_point(aes(x = psi, y = cv))
 
-sum((mod_integrated_log_likelihood_vals$L_ratio / sum(mod_integrated_log_likelihood_vals$L_ratio))^2)
+data2 |> 
+  ggplot() +
+  geom_point(aes(x = psi, y = w_star_sum))
 
-sum((integrated_log_likelihood_vals$L_ratio / sum(integrated_log_likelihood_vals$L_ratio))^2)
+#############################################################################################################################
+#############################################################################################################################
+#############################################################################################################################
+
+omega_hat_mat <- get_omega_hat(data, weights, dist, dist_params, return_u = TRUE)
+u <- omega_hat_mat["u",]
+omega_hat <- omega_hat_mat["omega_hat",]
+log_like_u <- log_likelihood(u, data)
+
+init_guess <- 0
+
+psi_grid |>
+  purrr::accumulate(
+    \(acc, nxt) get_lambda(acc, nxt, m, omega_hat, weights),
+    .init = init_guess) |>
+  magrittr::extract(-1) |>
+  purrr::map_dbl(\(lambda) {
+    lambda |>
+      get_theta_hat(m, omega_hat, weights) |> 
+      log_likelihood(data) |> 
+      (`-`)(log_like_u)
+  })
+
+omega_hat_list <- data |> 
+  get_omega_hat(weights, dist, dist_params, return_u = TRUE) |> 
+  replicate(R, expr = _, simplify = FALSE)
+
+likelihood1 <- function(theta, data) exp(log_likelihood(theta, data)) #* 0.2
+
+vlikelihood <- Vectorize(likelihood1, vectorize.args="theta")
+
+beta <- 0.5
+
+alpha <- data[[3]] * beta + 1
+
+f <- function(x, shape, rate) dgamma(x, shape = shape, rate = rate) * gamma(0.3)
+
+vf <- Vectorize(f, vectorize.args="x")
+
+ggplot() +
+  stat_function(fun = vlikelihood,
+                args = list(data = data[[3]]),
+                xlim = c(0, 15),
+                color = "red") +
+  stat_function(fun = vf, 
+                args = list(shape = alpha, rate = beta),
+                xlim = c(0, 15), 
+                color = "blue") +
+  geom_vline(xintercept = 2)
+
+
+f1 <- function(x, shape, rate) dgamma(x, shape = shape, rate = rate) 
+
+vf1 <- Vectorize(f1, vectorize.args="x")
+
+
+ggplot() +
+  stat_function(fun = vf1,
+                args = list(shape = 2, rate = 2),
+                xlim = c(0, 30))
+
+
+
+
+
+
+

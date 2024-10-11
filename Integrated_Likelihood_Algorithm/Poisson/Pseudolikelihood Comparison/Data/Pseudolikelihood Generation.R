@@ -18,11 +18,12 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # num_cores <- Sys.getenv("SLURM_NPROCS") |>
 #   as.numeric()
-num_cores <- availableCores() |>
-  as.numeric()
 
-# num_cores <- parallel::detectCores() |>
+# num_cores <- availableCores() |>
 #   as.numeric()
+
+num_cores <- parallel::detectCores() |>
+  as.numeric()
 
 step_size <- 0.01
 
@@ -38,15 +39,31 @@ plan(sequential)
 
 set.seed(seed)
 
-dist <- runif
+alpha_prior <- 10
 
-dist_params <- list(min = 0, max = 100)
+beta_prior <- 10
+
+alpha_posterior <- data |>
+  map_dbl(sum) |>
+  (`+`)(alpha_prior)
+
+beta_posterior <- data |>
+  map_dbl(length) |>
+  (`+`)(beta_prior)
+
+dist <- rgamma
+
+dist_params <- list(shape = alpha_posterior, rate = beta_posterior)
+
+# dist <- runif
+# 
+# dist_params <- list(min = 0, max = 100)
 
 chunk_size <- 5
 
 tic()
 
-plan(multisession, workers = 50)
+plan(multisession, workers = I(50))
 
 integrated_log_likelihood_vals <- get_integrated_log_likelihood_vals(data,
                                                                      weights,
@@ -87,7 +104,7 @@ chunk_size <- 5
 
 tic()
 
-plan(multisession, workers = 50)
+plan(multisession, workers = I(50))
 
 mod_integrated_log_likelihood_vals <- get_mod_integrated_log_likelihood_vals(data,
                                                                              weights,
@@ -106,7 +123,7 @@ toc()
 
 tic()
 
-plan(multisession, workers = 2)
+plan(multisession, workers = I(2))
 
 profile_log_likelihood_vals <- get_profile_log_likelihood(data, 
                                                           weights, 
@@ -122,8 +139,8 @@ toc()
 psi_grid <- get_psi_grid(data, weights, step_size, num_std_errors, split = FALSE)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Integrated = integrated_log_likelihood_vals,
-                                  Mod_Integrated = mod_integrated_log_likelihood_vals,
+                                  Integrated = integrated_log_likelihood_vals$vals,
+                                  Mod_Integrated = mod_integrated_log_likelihood_vals$vals,
                                   Profile = profile_log_likelihood_vals)
 
 log_likelihood_vals_file_path <- population_params_file_path |> 

@@ -419,10 +419,16 @@ get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std
   
   cv <- s / I_hat / sqrt(R)
   
+  w_star_squared_sum <- L_ratio |> 
+    sweep(2, colSums(L_ratio), FUN = '/') |>
+    apply(2, \(x) x^2) |> 
+    colSums()
+  
   return(list(vals = log_I_hat, 
               L_ratio = L_ratio,
               s_squared = s_squared,
-              cv = cv))
+              cv = cv,
+              w_star_squared_sum = w_star_squared_sum))
   }
 
 # get_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {
@@ -665,10 +671,16 @@ get_mod_integrated_log_likelihood_vals <- function(data, weights, step_size, num
   
   cv <- s / I_hat / sqrt(R)
   
+  w_star_squared_sum <- L_ratio |> 
+    sweep(2, colSums(L_ratio), FUN = '/') |>
+    apply(2, \(x) x^2) |> 
+    colSums()
+  
   return(list(vals = log_I_hat, 
               L_ratio = L_ratio,
               s_squared = s_squared,
-              cv = cv))
+              cv = cv,
+              w_star_squared_sum = w_star_squared_sum))
 }
 
 # get_mod_integrated_log_likelihood_vals <- function(data, weights, step_size, num_std_errors, dist, dist_params, R = 250, chunk_size) {

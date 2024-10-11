@@ -21,7 +21,7 @@ data <- m |>
    \(x, y) rpois(x, y) |> 
      as.numeric())
 
-weights <- d |>
+weights <- n |>
  c(weights_range) |>
  as.list() |>
  do.call(runif, args = _) |>
