@@ -400,6 +400,113 @@ given by \[
 
 \includegraphics{Paper_files/figure-pdf/unnamed-chunk-1-1.pdf}
 
+\section{Importance Sampling}\label{importance-sampling}
+
+Let \(p(\theta)\) denote a prior distribution for a parameter
+\(\theta \in \Theta \subseteq \mathbb{R}^d\) and \(L(\theta; X)\) the
+likelihood function of our model based on data \(X\). The posterior
+distribution for \(\theta\) is given by
+\(\pi(\theta | X) = cL(\theta;X)p(\theta)\), where
+\(c = \big(\int_{\Theta} L(\theta;X) p(\theta) d\theta\big)^{-1} < \infty.\)
+Suppose we have another function \(f(\theta) >0\) for all
+\(\theta \in \Theta\) and we are interested in estimating the
+expectation of this function with respect to the distribution of \(p\).
+Call this value \(\mu\). Then we have \[
+\begin{aligned}
+\mu &= \text{E}_p\big(f(\theta)\big) \\
+    &= \int_{\Theta} f(\theta)p(\theta) d\theta \\
+    &= \int_{\Theta} \frac{f(\theta)}{c L(\theta;X)} c L(\theta;X) p(\theta) d\theta \\
+    &= \int_{\Theta} \frac{f(\theta)}{c L(\theta;X)} \pi(\theta | X) d\theta \\
+    &= \text{E}_{\pi}\Bigg(\frac{f(\theta)}{c L(\theta;X)}\Bigg).
+\end{aligned}
+\]
+
+The \emph{importance sampling estimator} for \(\mu\) is \[
+\hat{\mu}_{\pi} = \frac{1}{R} \sum_{i=1}^R \frac{f(\theta_i)}{c L(\theta_i;X)}, \> \> \theta_i \sim \pi.
+\] Note that \(\hat{\mu}_{\pi}\) is unbiased, i.e.~ \[
+\begin{aligned}
+\text{E}_{\pi}(\hat{\mu}_{\pi}) &= \text{E}_{\pi}\Bigg(\frac{1}{R} \sum_{i=1}^R \frac{f(\theta_i)}{c L(\theta_i;X)}\Bigg) \\
+                                &= \frac{1}{R} \sum_{i=1}^R\text{E}_{\pi}\Bigg(\frac{f(\theta_i)}{c L(\theta_i;X)}\Bigg) \\
+                                &= \frac{1}{R} \sum_{i=1}^R \mu \\
+                                &= \frac{1}{R} R\mu \\
+                                &= \mu,
+\end{aligned}
+\]
+
+and by the law of large numbers converges in distribution to \(\mu\),
+i.e. \[
+\hat{\mu}_{\pi} \to \mu \> \text{ as } \> R \to \infty.
+\]
+
+The variance of \(\hat{\mu}_{\pi}\) is given by \[
+\begin{aligned}
+\text{Var}_{\pi}(\hat{\mu}_{\pi}) &= \text{Var}_{\pi}\Bigg(\frac{1}{R} \sum_{i=1}^R \frac{f(\theta_i)}{c L(\theta_i;X)}\Bigg) \\
+                                  &= \frac{1}{R^2} \sum_{i=1}^R \text{Var}_{\pi}\Bigg(\frac{f(\theta_i)}{c L(\theta_i;X)}\Bigg) \\
+                                  &= \frac{1}{R^2} \sum_{i=1}^R \text{Var}_{\pi}\Bigg(\frac{f(\theta)}{c L(\theta;X)}\Bigg) \\
+                                  &= \frac{1}{R^2} R \cdot  \text{Var}_{\pi}\Bigg(\frac{f(\theta)}{c L(\theta;X)}\Bigg) \\
+                                  &= \frac{1}{R} \text{Var}_{\pi}\Bigg(\frac{f(\theta)}{c L(\theta;X)}\Bigg) \\
+                                  &= \frac{1}{R} \Bigg\{ \text{E}_{\pi}\Bigg[\bigg(\frac{f(\theta)}{c L(\theta;X)}\bigg)^2\Bigg] - \Bigg[\text{E}_{\pi}\bigg(\frac{f(\theta)}{c L(\theta;X)}\bigg)\Bigg]^2\Bigg\} \\
+                                  &= \frac{1}{R} \Bigg\{ \int_{\Theta} \bigg(\frac{f(\theta)}{c L(\theta;X)}\bigg)^2 \pi(\theta | X) d\theta - \mu^2\Bigg\} \\
+                                  &= \frac{1}{R} \Bigg\{ \int_{\Theta} \frac{f(\theta)^2}{c^2L(\theta;X)^2} cL(\theta;X)p(\theta) d\theta - \mu^2\Bigg\} \\
+                                  &= \frac{1}{R} \Bigg\{ \int_{\Theta} \frac{f(\theta)^2 p(\theta)}{cL(\theta;X)} d\theta - \mu^2\Bigg\} \\
+                                  &= \frac{1}{R} \Bigg\{ \int_{\Theta} \frac{f(\theta)^2 p(\theta)^2}{cL(\theta;X)p(\theta)} d\theta - \mu^2\Bigg\} \\
+                                  &= \frac{1}{R} \Bigg\{ \int_{\Theta} \frac{\big(f(\theta) p(\theta)\big)^2}{\pi(\theta | X)} d\theta - \mu^2\Bigg\} \\
+                                  &= \frac{\sigma_{\pi}^2}{R},
+\end{aligned}
+\] where \[
+\sigma_{\pi}^2 = \int_{\Theta} \frac{\big(f(\theta) p(\theta)\big)^2}{\pi(\theta | X)} d\theta - \mu^2.
+\] Some clever rearranging and substituting allows us to rewrite it as
+\[
+\begin{aligned}
+\sigma_{\pi}^2 &= \int_{\Theta} \frac{\big(f(\theta) p(\theta)\big)^2}{\pi(\theta | X)} d\theta - \mu^2 \\
+               &= \int_{\Theta} \frac{\big(f(\theta) p(\theta)\big)^2}{\pi(\theta | X)} d\theta - 2\mu^2 + \mu^2 \\
+               &= \int_{\Theta} \frac{\big(f(\theta) p(\theta)\big)^2}{\pi(\theta | X)} d\theta - 2\mu \int_{\Theta} f(\theta)p(\theta) d\theta  + \mu^2 \int_{\Theta} \pi(\theta | X) d\theta \\
+               &= \int_{\Theta} \Bigg(\frac{\big(f(\theta) p(\theta)\big)^2}{\pi(\theta | X)} - 2\mu f(\theta)p(\theta) + \mu^2 \pi(\theta | X)\Bigg) d\theta \\
+               &= \int_{\Theta} \frac{\big(f(\theta) p(\theta)\big)^2 - 2\mu f(\theta)p(\theta)\pi(\theta|X) + \mu^2 \pi(\theta | X)^2}{\pi(\theta | X)}d\theta \\
+               &= \int_{\Theta} \frac{\big(f(\theta)p(\theta) - \mu \pi(\theta | X)\big)^2}{\pi(\theta | X)}d\theta.
+\end{aligned}
+\]
+
+We can also write \[
+\begin{aligned}
+\sigma_{\pi}^2 &= \int_{\Theta} \frac{\big(f(\theta)p(\theta) - \mu \pi(\theta | X)\big)^2}{\pi(\theta | X)}d\theta \\
+               &= \int_{\Theta} \Bigg(\frac{f(\theta)p(\theta) - \mu \pi(\theta | X)}{\pi(\theta | X)}\Bigg)^2 \pi(\theta | X) d\theta \\
+               &= \text{E}_{\pi} \Bigg[\bigg(\frac{f(\theta)p(\theta) - \mu \pi(\theta | X)}{\pi(\theta | X)}\bigg)^2 \Bigg].
+\end{aligned}
+\]
+
+Because the \(\theta_i\) are sampled from \(\pi\), the natural variance
+estimate is
+
+\[
+\hat{\sigma}^2_{\pi} = \frac{1}{R} \sum_{i=1}^R \Bigg(\frac{f(\theta_i)}{c L(\theta_i;X)} - \hat{\mu}_{\pi} \Bigg)^2 = \frac{1}{R} \sum_{i=1}^R (w_if(\theta_i) - \hat{\mu}_{\pi})^2,
+\]
+
+where \(w_i = \frac{1}{cL(\theta_i; X)}\).
+
+\[
+\begin{aligned}
+\sigma^2_{\pi} + \mu &= \int_{\Theta} \frac{\big(f(\theta)p(\theta)\big)^2}{\pi(\theta | X)} d\theta \\
+                     &= \int_{\Theta} \frac{\big(f(\theta)p(\theta)\big)^2}{cL(\theta; X)p(\theta)} d\theta \\ 
+                     &= \int_{\Theta} \frac{f(\theta)^2}{cL(\theta; X)} p(\theta) d\theta \\
+                     &= \text{E}_p\Bigg(\frac{f(\theta)^2}{cL(\theta; X)} \Bigg) \\
+                     &= \text{E}_{\pi}\Bigg(\frac{f(\theta)^2}{c^2L(\theta; X)^2} \Bigg).
+\end{aligned}
+\]
+
+\subsection{Self-normalized importance
+sampling}\label{self-normalized-importance-sampling}
+
+\(\pi(\theta | X) = cL(\theta;X)p(\theta)\), \(c > 0\) unknown.
+
+\(p_u(\theta) = a p(\theta)\), \(a > 0\) unknown.
+
+\(p_u(\theta) = b p(\theta)\), \(a > 0\) unknown.
+
+\[
+\tilde{\mu}_{\pi} = \frac{}{}
+\]
+
 
   \bibliography{bibliography.bib}
 
