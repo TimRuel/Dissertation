@@ -5,7 +5,7 @@ population_params_file_path <- file.choose()
 # setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 source(population_params_file_path)
-source("../../utils.R")
+source("../../utils2.R")
 
 set.seed(seed)
          
@@ -15,11 +15,9 @@ theta_0 <- n |>
  do.call(runif, args = _) |> 
  (\(x) if (theta_0_sum) x / sum(x) * theta_0_sum else x)() 
 
-data <- m |> 
- purrr::map2(
-   theta_0,
-   \(x, y) rpois(x, y) |> 
-     as.numeric())
+data <- n |> 
+  rpois(theta_0) |> 
+  as.numeric()
 
 weights <- n |>
  c(weights_range) |>

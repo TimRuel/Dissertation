@@ -2,8 +2,6 @@ seed <- 23974630
 
 n <- 18
 
-m <- 1
-
 theta_0_range <- 0:1
 
 theta_0_sum <- 10

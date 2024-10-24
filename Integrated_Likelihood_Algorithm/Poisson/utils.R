@@ -4,16 +4,30 @@
 
 log_likelihood <- function(theta, data) {
   
-  data |> 
-    map_dbl(sum) |> 
-    (`*`)(log(theta)) |> 
-    (`-`)(map_dbl(data, length)*theta) |> 
+  theta |>
+    map2_dbl(data, \(x, y) dpois(y, x, log = TRUE)) |>
     sum(na.rm = TRUE)
 }
 
-neg_log_likelihood <- function(theta, data) -log_likelihood(theta, data)
+likelihood <- function(theta, data) {
 
-likelihood <- function(theta, data) exp(log_likelihood(theta, data))
+  theta |>
+    map2_dbl(data, \(x, y) dpois(y, x)) |>
+    prod()
+}
+
+# log_likelihood <- function(theta, data) {
+#   
+#   data |> 
+#     map_dbl(sum) |> 
+#     (`*`)(log(theta)) |> 
+#     (`-`)(map_dbl(data, length)*theta) |> 
+#     sum(na.rm = TRUE)
+# }
+# 
+# likelihood <- function(theta, data) exp(log_likelihood(theta, data))
+
+neg_log_likelihood <- function(theta, data) -log_likelihood(theta, data)
 
 weighted_sum <- function(theta, weights) sum(theta * weights, na.rm = TRUE)
 

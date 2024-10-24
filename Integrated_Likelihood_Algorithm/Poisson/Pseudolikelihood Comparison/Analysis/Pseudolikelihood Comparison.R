@@ -24,9 +24,19 @@ num_std_errors <- log_likelihood_vals_file_path |>
   str_extract("\\d+") |> 
   as.numeric()
 
-pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
+# pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
-log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
+pseudolikelihood_names <- c("Integrated", "Profile")
+
+# log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
+#   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
+#                       names_to = "Pseudolikelihood",
+#                       values_to = "loglikelihood") |>
+#   mutate(Pseudolikelihood = Pseudolikelihood |>
+#            as_factor() |>
+#            fct_inorder())
+
+log_likelihood_vals <- log_likelihood_vals |>
   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
                       names_to = "Pseudolikelihood",
                       values_to = "loglikelihood") |>
@@ -56,7 +66,8 @@ MLE_data <- spline_fitted_models |>
         select(MLE, Maximum)
     }) |>
   do.call(rbind, args = _) |>
-  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |>
+  mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[PL]")) |>
+  # mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |>
   rownames_to_column("Pseudolikelihood")
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
@@ -126,7 +137,8 @@ MLE_data |>
       align = "c") |> 
   kable_styling(bootstrap_options = c("striped", "hover")) 
 
-c(stat_fn_IL, stat_fn_mod_IL, stat_fn_PL) %<-% map2(
+c(stat_fn_IL, stat_fn_PL) %<-% map2(
+# c(stat_fn_IL, stat_fn_mod_IL, stat_fn_PL) %<-% map2(
   pseudo_log_likelihood_curves,
   pseudolikelihood_names,
   function(curve, pseudolikelihood_name) {
@@ -156,12 +168,12 @@ y_min <- pseudo_log_likelihood_curves |>
 
 MLE_data <- MLE_data |> 
   add_row(Pseudolikelihood = "Truth",
-          MLE = weighted_sum(theta_0, weights),
+          MLE = dot_product(theta_0, weights),
           MLE_label = "psi[0]") 
 
 ggplot() +
   stat_fn_IL +
-  stat_fn_mod_IL +
+  # stat_fn_mod_IL +
   stat_fn_PL +
   geom_hline(yintercept = 0,
              linetype = 5) +
