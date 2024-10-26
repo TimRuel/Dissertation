@@ -71,6 +71,7 @@
 \addtolength{\textwidth}{1in}%
 \addtolength{\textheight}{1.7in}%
 \addtolength{\topmargin}{-1in}%
+\usepackage{bbm}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -184,7 +185,7 @@ the \(j\)th count from the \(i\)th sample, so that
 \(X_{ij} \sim \text{Poisson}(\theta_i)\) for \(i = 1, ..., n\) and
 \(j = 1, ..., m_i.\) The probability mass function (pmf) for a single
 observation \(X_{ij} = x_{ij}\) is
-\begin{equation}\phantomsection\label{eq-1}{
+\begin{equation}\phantomsection\label{eq-1-1}{
 p(x_{ij}; \> \theta_i) = \frac{e^{-\theta_i} \theta_i ^ {x_{ij}}}{x_{ij}!}, \> \> x_{ij} = 0, 1, 2, ... ; \> \> \theta_i > 0.
 }\end{equation}
 
@@ -195,7 +196,7 @@ assume that all of the counts both within and between samples are
 measured independently. The likelihood function for an individual
 component \(\theta_i\) based on the data \(X_{i\bullet} = x_{i\bullet}\)
 is then equal to the product of the individual probabilities of the
-observed counts, i.e. \begin{equation}\phantomsection\label{eq-2}{
+observed counts, i.e. \begin{equation}\phantomsection\label{eq-1-2}{
 \begin{aligned}
 L(\theta_i; x_{i\bullet}) &= \prod_{j=1}^{m_i} p(x_{ij}; \theta_i) \\
                           &= \prod_{j=1}^{m_i} \frac{e^{-\theta_i} \theta_i ^ {x_{ij}}}{x_{ij}!} \\
@@ -212,14 +213,15 @@ multiplicative term that is constant with respect to \(\theta_i\),
 provided that the result still satisfies the necessary regularity
 conditions, as this will not change any conclusions regarding
 \(\theta_i\) that we draw from it. Hence, we may safely discard the term
-in parentheses on the final line of Equation~\ref{eq-2} as it does not
+in parentheses on the final line of Equation~\ref{eq-1-2} as it does not
 depend on \(\theta_i\) and instead simply write
-\begin{equation}\phantomsection\label{eq-3}{
+\begin{equation}\phantomsection\label{eq-1-3}{
 L(\theta_i; x_{i\bullet}) = e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}}.
 }\end{equation}
 
 It will generally be more convenient to work with the log-likelihood
-function, which is given by \begin{equation}\phantomsection\label{eq-4}{
+function, which is given by
+\begin{equation}\phantomsection\label{eq-1-4}{
 \begin{aligned}
 \ell(\theta_i; x_{i\bullet}) &= \log L(\theta_i; x_{i\bullet}) \\
                            &= \log \Big(e^{-m_i\theta_i}\theta_i^{m_i\bar{x}_{i\bullet}}\Big) \\
@@ -229,7 +231,7 @@ function, which is given by \begin{equation}\phantomsection\label{eq-4}{
 }\end{equation} The sum of the log-likelihood functions for each
 component of \(\theta\) then forms the basis of the log-likelihood
 function for \(\theta\) itself:
-\begin{equation}\phantomsection\label{eq-5}{
+\begin{equation}\phantomsection\label{eq-1-5}{
 \begin{aligned}
 \ell(\theta; x_{1\bullet}, ..., x_{n\bullet}) &= \log L(\theta; x_{1\bullet}, ..., x_{n\bullet}) \\
                                               &= \log \Bigg(\prod_{i=1}^n L(\theta_i; x_{i\bullet})\Bigg) \\
@@ -240,15 +242,15 @@ function for \(\theta\) itself:
 }\end{equation}
 
 We can derive the maximum likelihood estimate (MLE) for \(\theta_i\) by
-differentiating Equation~\ref{eq-4} with respect to \(\theta_i\),
+differentiating Equation~\ref{eq-1-4} with respect to \(\theta_i\),
 setting the result equal to 0, and solving for \(\theta_i\). This gives
 the nice result that the MLE is simply equal to the mean of the sample
 of data \(X_{i\bullet}\). That is,
-\begin{equation}\phantomsection\label{eq-6}{
+\begin{equation}\phantomsection\label{eq-1-6}{
 \hat{\theta}_i = \bar{X}_{i\bullet}.
 }\end{equation} Similarly, the MLE for the full parameter \(\theta\) is
 just the vector of MLEs for its individual components:
-\begin{equation}\phantomsection\label{eq-7}{
+\begin{equation}\phantomsection\label{eq-1-7}{
 \hat{\theta} \equiv (\hat{\theta}_1, ..., \hat{\theta}_n) = (\bar{X}_{1\bullet}, ..., \bar{X}_{n\bullet}).
 }\end{equation}
 
@@ -271,9 +273,7 @@ regarding \(\psi\) and typically must be eliminated from the likelihood
 before proceeding. The product of this elimination is called a
 \emph{pseudolikelihood function}. Any function of the data and \(\psi\)
 alone could theoretically be considered a pseudolikelihood, though
-course in practice some are more useful than others.
-
-If we let
+course in practice some are more useful than others. If we let
 \(\Theta_{\psi} = \{\theta \in \Theta: \> \tau(\theta) = \psi \},\) then
 associated with each \(\psi \in \Psi\) is the set of likelihood values
 \(\mathcal{L}_{\psi} = \{L(\theta): \> \theta \in \Theta_{\psi}\}.\) For
@@ -298,13 +298,13 @@ pseudolikelihood (or equivalently, a pseudo-log-likelihood) function for
 \(\psi\) is usually to find the maximum of \(\ell(\theta)\) over all
 possible of values of \(\theta\) for each value of \(\psi\). This yields
 what is known as the \emph{profile} log-likelihood function, formally
-defined as \begin{equation}\phantomsection\label{eq-8}{
+defined as \begin{equation}\phantomsection\label{eq-2-1-1}{
 \ell_p(\psi) = \sup_{\theta \in \Theta: \> \tau(\theta) = \psi} \ell(\theta), \> \> \psi \in \Psi.
 }\end{equation} In the case where an explicit nuisance parameter
 \(\lambda\) exists so that \(\theta\) may be written as
-\(\theta = (\psi, \lambda)\), Equation~\ref{eq-8} is equivalent to
+\(\theta = (\psi, \lambda)\), Equation~\ref{eq-2-1-1} is equivalent to
 replacing \(\lambda\) with \(\hat{\lambda}_{\psi}\), its conditional MLE
-given \(\psi\): \begin{equation}\phantomsection\label{eq-9}{
+given \(\psi\): \begin{equation}\phantomsection\label{eq-2-1-2}{
 \ell_p(\psi) = \ell(\psi, \hat{\lambda}_{\psi}).
 }\end{equation}
 
@@ -313,10 +313,10 @@ producing accurate estimates of \(\psi\) relative to its ease of
 computation has made it the method of choice for statisticians when
 performing likelihood-based inference regarding a parameter of interest.
 Examples of profile-based statistics are the MLE for \(\psi\), i.e.,
-\begin{equation}\phantomsection\label{eq-10}{
+\begin{equation}\phantomsection\label{eq-2-1-3}{
 \hat{\psi} = \underset{\psi \in \Psi}{\arg\sup} \> \ell_p(\psi),
 }\end{equation} and the signed likelihood ratio statistic for \(\psi\),
-given by \begin{equation}\phantomsection\label{eq-10}{
+given by \begin{equation}\phantomsection\label{eq-2-1-4}{
 R_{\psi} = \text{sgn}(\hat{\psi} - \psi)(2(\ell_p(\hat{\psi}) - \ell_p(\psi)))^{\frac{1}{2}}.
 }\end{equation}
 
@@ -329,7 +329,7 @@ standpoint, this is preferable to the maximization procedure found in
 the profile likelihood as it naturally incorporates our uncertainty
 regarding the nuisance parameter's true value into the resulting
 pseudolikelihood. The general form of an integrated likelihood function
-is given \begin{equation}\phantomsection\label{eq-11}{
+is given \begin{equation}\phantomsection\label{eq-2-2-1}{
 \bar{L}(\psi) = \int_{\Theta_{\psi}}L(\theta)\pi(\theta; \psi)d\theta.
 }\end{equation}
 
@@ -354,10 +354,14 @@ model described in the introduction. We will
 \section{Estimating the Weighted Sum of Poisson
 Means}\label{estimating-the-weighted-sum-of-poisson-means}
 
-Consider the weighted sum \[Y = \sum_{i=1}^n w_iX_i,\] where each
-\(w_i\) is a known constant greater than zero. Suppose we take for our
-parameter of interest the expected value of this weighted sum, so that
-\[\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.\]
+Consider the weighted sum \begin{equation}\phantomsection\label{eq-3-1}{
+Y = \sum_{i=1}^n w_iX_i,
+}\end{equation} where each \(w_i\) is a known constant greater than
+zero. Suppose we take for our parameter of interest the expected value
+of this weighted sum, so that
+\begin{equation}\phantomsection\label{eq-3-2}{
+\psi \equiv \text{E}(Y) = \sum_{i=1}^n w_i\theta_i.
+}\end{equation}
 
 \subsection{Examples}\label{examples}
 
@@ -372,33 +376,155 @@ which may also be zeros. When this count-generating process follows a
 Poisson distribution, we call the resulting mixture a zero-inflated
 Poisson (ZIP) model.
 
+\includegraphics{Paper_files/figure-pdf/unnamed-chunk-1-1.pdf}
+
 Let \(U \sim \text{Bernoulli}(1 - \pi)\) and
 \(V \sim \text{Poisson}(\mu)\) Suppose \(U\) and \(V\) are independent
-and let \(W = UV\). Then \(W \sim \text{ZIP}(\mu, \pi)\). Note that
-\(W = 0\) when either \(U = 0\) or \(V = 0\) so that \[
+and let \(Y = UV\). Then \(Y \sim \text{ZIP}(\mu, \pi)\). To derive its
+distribution, we begin by recognizing that \(Y = 0\) when either
+\(U = 0\) or \(V = 0\) so that
+\begin{equation}\phantomsection\label{eq-4-1-1}{
 \begin{aligned}
-\mathbb{P}(W = 0) &= \mathbb{P}(U = 0 \cup V = 0) \\
+\mathbb{P}(Y = 0) &= \mathbb{P}(U = 0 \cup V = 0) \\
                   &= \mathbb{P}(U = 0) + \mathbb{P}(V = 0) - \mathbb{P}(U = 0 \cap V = 0) \\
                   &= \mathbb{P}(U = 0) + \mathbb{P}(V = 0) - \mathbb{P}(U = 0)\mathbb{P}(V = 0) \\
                   &= \pi + e^{-\mu} - \pi e^{-\mu} \\ 
                   &= \pi + (1 - \pi)e^{-\mu}.
 \end{aligned}
-\] In order for \(W\) to take on a value \(w > 0\), we must have
-\(U = 1\) and \(V = w\). That is, \[
+}\end{equation} In order for \(Y\) to take on a value \(y > 0\), we must
+have \(U = 1\) and \(V = y\). That is,
+\begin{equation}\phantomsection\label{eq-4-1-2}{
 \begin{aligned}
-\mathbb{P}(W = w) &= \mathbb{P}(U = 1 \cap V = w) \\
-                  &= \mathbb{P}(U = 1)\mathbb{P}(V = w) \\
-                  &= (1-\pi)\frac{e^{-\mu}\mu^w}{w!}, \> \> w = 1, 2, ...
+\mathbb{P}(Y = y) &= \mathbb{P}(U = 1 \cap V = y) \\
+                  &= \mathbb{P}(U = 1)\mathbb{P}(V = y) \\
+                  &= (1-\pi)\frac{e^{-\mu}\mu^y}{y!}, \> \> y = 1, 2, ...
 \end{aligned}
-\] Thus, the full probability mass function for a ZIP random variable is
-given by \[
-\mathbb{P}(W = w) = \begin{cases}
-               \pi + (1 - \pi)e^{-\mu}, &w =0 \\
-               (1-\pi)\frac{e^{-\mu}\mu^w}{w!}, & w = 1, 2, ...
+}\end{equation} Thus, the full probability mass function (pmf) for a ZIP
+random variable is given by
+\begin{equation}\phantomsection\label{eq-4-1-3}{
+\mathbb{P}(Y = y) = \begin{cases}
+               \pi + (1 - \pi)e^{-\mu}, &y =0 \\
+               (1-\pi)\frac{e^{-\mu}\mu^y}{y!}, & y = 1, 2, ...
             \end{cases}
-\]
+}\end{equation} Alternatively, we may write
+\begin{equation}\phantomsection\label{eq-4-1-4}{
+\mathbb{P}(Y = y) = \Big(\pi + (1 - \pi)e^{-\mu}\Big)^{\mathbbm{1}_{y = 0}}\Bigg(   (1-\pi)\frac{e^{-\mu}\mu^y}{y!}\Bigg)^{1 - {\mathbbm{1}_{y = 0}}}, \> \> y = 0, 1, 2, ...,
+}\end{equation} where \(\mathbbm{1}_{y = 0}\) denotes an indicator
+function that assumes the value one when \(y = 0\) and zero otherwise.
 
-\includegraphics{Paper_files/figure-pdf/unnamed-chunk-1-1.pdf}
+Suppose we observe multiple counts \(Y_1, ..., Y_n\) generated
+independently from \(Y\).\footnote{Recall that the parameter of a
+  generic Poisson random variable is defined relative to a fixed length
+  of time during which observations may be recorded and added to the
+  running total. By assuming that all counts come from the same
+  ZIP-distributed random variable, we are implicitly assuming that each
+  count was recorded over the same period of time and thus are on equal
+  footing with one another.} The likelihood function for \(\mu\) and
+\(\pi\) based on an individual observation \(Y_i = y_i\) is simply equal
+to the pmf for \(Y\) evaluated at \(y_i\). That is,
+\begin{equation}\phantomsection\label{eq-4-1-5}{
+L(\mu, \pi; y_i) = \Big(\pi + (1 - \pi)e^{-\mu}\Big)^{\mathbbm{1}_{y_i = 0}}\Bigg(   (1-\pi)\frac{e^{-\mu}\mu^{y_i}}{y_i!}\Bigg)^{1 - {\mathbbm{1}_{y_i = 0}}}, \> \> \mu > 0, \> \> \pi \in [0, 1].
+}\end{equation} We can safely ignore any multiplicative constant in
+\(L\) without influencing our inferences regarding \(\mu\) and \(\pi\).
+In particular, we can discard the term
+\(\Big(\frac{1}{y_i!}\Big)^{1 - {\mathbbm{1}_{y_i = 0}}}\) as it depends
+only on the observation \(y_i\) and is constant with respect to the
+model parameters. Hence, we may write
+\begin{equation}\phantomsection\label{eq-4-1-6}{
+L(\mu, \pi; y_i) = \Big(\pi + (1 - \pi)e^{-\mu}\Big)^{\mathbbm{1}_{y_i = 0}}\Big(   (1-\pi)e^{-\mu}\mu^{y_i}\Big)^{1 - {\mathbbm{1}_{y_i = 0}}}, \> \> \mu > 0, \> \> \pi \in [0, 1].
+}\end{equation}
+
+From this we may derive the corresponding log-likelihood function:
+\begin{equation}\phantomsection\label{eq-4-1-7}{
+\begin{aligned}
+\ell(\mu, \pi; y_i) &= \log L(\mu, \pi; y_i) \\
+                    &= \log\Bigg\{\Big(\pi + (1 - \pi)e^{-\mu}\Big)^{\mathbbm{1}_{y_i = 0}}\Big(   (1-\pi)e^{-\mu}\mu^{y_i}\Big)^{1 - {\mathbbm{1}_{y_i = 0}}} \Bigg\} \\
+                    &= \log \Bigg\{\Big(\pi + (1 - \pi)e^{-\mu}\Big)^{\mathbbm{1}_{y_i = 0}} \Bigg\} + \log \Bigg\{ \Big(   (1-\pi)e^{-\mu}\mu^{y_i}\Big)^{1 - {\mathbbm{1}_{y_i = 0}}} \Bigg\} \\
+                    &= \mathbbm{1}_{y_i = 0} \log\Big(\pi + (1 - \pi)e^{-\mu}\Big) + \big(1- \mathbbm{1}_{y_i = 0}\big)\log\Big((1-\pi)e^{-\mu}\mu^{y_i}\Big) \\
+                    &= \mathbbm{1}_{y_i = 0} \log\Big(\pi + (1 - \pi)e^{-\mu}\Big) + \big(1- \mathbbm{1}_{y_i = 0}\big)\Big(\log(1-\pi) - \mu + y_i \log \mu\Big).
+\end{aligned}
+}\end{equation} The log-likelihood for the full sample
+\(y_{\bullet} \equiv (y_1, ..., y_n)\) is then obtained by summing over
+the index variable \(i\) as follows:
+\begin{equation}\phantomsection\label{eq-4-1-8}{
+\fontsize{12pt}{12pt}\selectfont
+\begin{aligned}
+\ell(\mu, \pi; y_{\bullet}) &= \sum_{i=1}^n \ell(\mu, \pi; y_i) \\
+                            &= \sum_{i=1}^n \bigg[\mathbbm{1}_{y_i = 0} \log\Big(\pi + (1 - \pi)e^{-\mu}\Big) + \big(1- \mathbbm{1}_{y_i = 0}\big)\Big(\log(1-\pi) - \mu + y_i \log \mu\Big)\bigg] \\
+                            &= \sum_{i=1}^n \mathbbm{1}_{y_i = 0} \log\Big(\pi + (1 - \pi)e^{-\mu}\Big) + \sum_{i=1}^n\big(1- \mathbbm{1}_{y_i = 0}\big)\Big(\log(1-\pi) - \mu + y_i \log \mu\Big) \\
+                            &= \log\Big(\pi + (1 - \pi)e^{-\mu}\Big) \underbrace{\sum_{i=1}^n \mathbbm{1}_{y_i = 0}}_{\text{A}} + \big(\log(1-\pi) - \mu\big)\underbrace{\sum_{i=1}^n (1-\mathbbm{1}_{y_i = 0})}_{\text{B}} + \log \mu \underbrace{\sum_{i=1}^n (1-\mathbbm{1}_{y_i = 0}) y_i}_{\text{C}}.
+\end{aligned}
+}\end{equation}
+
+The summation in A is counting the number of zero counts in the sample.
+Let \(\bar{\pi}\) represent the proportion of these observed zero counts
+in the sample so that \begin{equation}\phantomsection\label{eq-4-1-9}{
+n\bar{\pi} \equiv \sum_{i=1}^n \mathbbm{1}_{y_i = 0}.
+}\end{equation} Similarly, the summation in B is counting the number of
+nonzero counts in the sample. Since \(1-\bar{\pi}\) represents the
+proportion of the observed nonzero counts, it follows that
+\begin{equation}\phantomsection\label{eq-4-1-10}{
+n(1-\bar{\pi}) \equiv \sum_{i=1}^n (1-\mathbbm{1}_{y_i = 0}).
+}\end{equation} Finally, consider the summation in C. Whenever
+\(y_i = 0\), \((1-\mathbbm{1}_{y_i = 0})y_i = (1-1)\cdot 0 = 0 = y_i\).
+Whenever \(y_i > 0\), \((1-\mathbbm{1}_{y_i = 0})y_i = (1-0)y_i = y_i.\)
+It follows that \((1-\mathbbm{1}_{y_i = 0})y_i = y_i\) for all values of
+\(y_i\). Hence, the summation is simply adding all the observed counts
+in the sample. Let \(\bar{y}\) denote the sample mean so that
+\begin{equation}\phantomsection\label{eq-4-1-11}{
+n \bar{y} \equiv \sum_{i=1}^n y_i = \sum_{i=1}^n (1-\mathbbm{1}_{y_i = 0})y_i
+}\end{equation} Substituting these three expressions on the left in
+Equation~\ref{eq-4-1-9}, Equation~\ref{eq-4-1-10}, and
+Equation~\ref{eq-4-1-11} for their corresponding summations in the final
+line of Equation~\ref{eq-4-1-8}, we arrive at
+\begin{equation}\phantomsection\label{eq-4-1-12}{
+\ell(\mu, \pi; y_{\bullet}) = n \bar{\pi}\log\Big(\pi + (1 - \pi)e^{-\mu}\Big) +  n(1-\bar{\pi})\big(\log(1-\pi) - \mu\big) + n\bar{y}\log \mu.
+}\end{equation}
+
+Let \(\hat{\pi}_{\mu}\) denote the maximum likelihood estimator of
+\(\pi\) for a fixed value of \(\mu\). Under suitable regularity
+conditions, easily satisfied in this case since the Poisson distribution
+belongs to the well-behaved exponential family of distributions,
+\(\hat{\pi}_{\mu}\) will be the unique value of \(\pi\) (as a function
+of \(\mu\) and the data) that solves the critical point equation.
+\begin{equation}\phantomsection\label{eq-4-1-13}{
+\frac{\partial \ell(\mu, \pi)}{\partial\pi}\Bigg|_{\pi = \hat{\pi}_{\mu}} \equiv 0.
+}\end{equation} To find it, we start by differentiating both sides of
+Equation~\ref{eq-4-1-12}:
+\begin{equation}\phantomsection\label{eq-4-1-13}{
+\frac{\partial \ell(\mu, \pi)}{\partial\pi} = \frac{n \bar{\pi}}{\pi + (1-\pi)e^{-\mu}}(1 - e^{-\mu}) - \frac{n(1 - \bar{\pi})}{1 - \pi}
+                                            = n \Bigg[\frac{\bar{\pi}(1 - e^{-\mu})}{\pi + (1-\pi)e^{-\mu}} - \frac{1 - \bar{\pi}}{1 - \pi} \Bigg].
+}\end{equation} Evaluating at \(\pi = \hat{\pi}_{\mu}\) and plugging the
+result into Equation~\ref{eq-4-1-12}, we have \[
+\begin{aligned}
+&n \Bigg[\frac{\bar{\pi}(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} - \frac{1 - \bar{\pi}}{1 - \hat{\pi}_{\mu}} \Bigg] = 0 \\
+&\implies \frac{\bar{\pi}(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} = \frac{1 - \bar{\pi}}{1 - \hat{\pi}_{\mu}}  \\
+&\implies \frac{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} = \frac{1 - \bar{\pi}}{\bar{\pi}} \\
+&\implies \frac{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} \\
+&\implies \frac{\hat{\pi}_{\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} + \frac{(1-\hat{\pi}_{\mu})e^{-\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} \\
+&\implies \frac{\hat{\pi}_{\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} - \frac{e^{-\mu}}{1 - e^{-\mu}} \\
+&\implies \frac{\hat{\pi}_{\mu}}{1 - \hat{\pi}_{\mu}} = \frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} \\
+&\implies \frac{\hat{\pi}_{\mu}}{1 - \hat{\pi}_{\mu}} = \frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} + 1} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) + (1 - e^{-\mu})} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{(\frac{\bar{\pi}}{1 - \bar{\pi}} + 1)(1 - e^{-\mu})} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{1}{1 - \bar{\pi}}(1 - e^{-\mu})} \\
+&\implies \hat{\pi}_{\mu} = \frac{\bar{\pi}(1 - e^{-\mu}) - (1 - \bar{\pi})e^{-\mu}}{1 - e^{-\mu}} \\
+&\implies \hat{\pi}_{\mu} = \frac{\bar{\pi} - e^{-\mu}}{1 - e^{-\mu}} \\
+\end{aligned}
+\] \$\$ a / (1-a) * (1 - b) - b \textbackslash{}
+
+1 / (1 - a) * (1-b) \textbackslash{}
+
+a - b / (1-b) * (1-a) \textbackslash{}
+
+{[}a(1-b) - b(1-a){]} / (1-b) \textbackslash{}
+
+{[}a - ab -b + ab{]} / (1-b)
+
+a- b / (1 - b)
+
+\$\$
 
 \section{Importance Sampling}\label{importance-sampling}
 
