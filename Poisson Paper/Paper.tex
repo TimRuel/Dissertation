@@ -31,14 +31,28 @@
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \setcounter{secnumdepth}{5}
 % Make \paragraph and \subparagraph free-standing
+\makeatletter
 \ifx\paragraph\undefined\else
   \let\oldparagraph\paragraph
-  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
 \fi
 \ifx\subparagraph\undefined\else
   \let\oldsubparagraph\subparagraph
-  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
 \fi
+\makeatother
 
 
 \providecommand{\tightlist}{%
@@ -113,6 +127,7 @@
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
+
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -134,6 +149,7 @@ likelihood, Weighted sum, Zero score expectation parameter},
   citecolor={Blue},
   urlcolor={Blue},
   pdfcreator={LaTeX via pandoc}}
+
 
 
 \begin{document}
@@ -167,6 +183,7 @@ likelihood, Weighted sum, Zero score expectation parameter
 \newpage
 \spacingset{1.9} % DON'T change the spacing!
 
+
 \section{Introduction}\label{sec-intro}
 
 Consider a vector \(\theta = (\theta_1, ..., \theta_n)\) in which each
@@ -196,7 +213,7 @@ assume that all of the counts both within and between samples are
 measured independently. The likelihood function for an individual
 component \(\theta_i\) based on the data \(X_{i\bullet} = x_{i\bullet}\)
 is then equal to the product of the individual probabilities of the
-observed counts, i.e. \begin{equation}\phantomsection\label{eq-1-2}{
+observed counts, i.e.~\begin{equation}\phantomsection\label{eq-1-2}{
 \begin{aligned}
 L(\theta_i; x_{i\bullet}) &= \prod_{j=1}^{m_i} p(x_{ij}; \theta_i) \\
                           &= \prod_{j=1}^{m_i} \frac{e^{-\theta_i} \theta_i ^ {x_{ij}}}{x_{ij}!} \\
@@ -262,8 +279,8 @@ of interest} \(\psi = \tau(\theta)\), where \(\tau: \Theta \to \Psi\) is
 a known function with at least two continuous derivatives. Though it is
 not strictly necessary, in order to align with the tendency of
 researchers to focus on one-dimensional summaries of vector quantities
-we will assume for our purposes that \(\psi\) is a scalar,
-i.e.~\(\Psi \subseteq \mathbb{R}\).
+we will assume for our purposes that \(\psi\) is a scalar, i.e.
+\(\Psi \subseteq \mathbb{R}\).
 
 This reduced dimension of \(\Psi\) relative to \(\Theta\) implies the
 existence of a \emph{nuisance parameter}
@@ -283,7 +300,7 @@ of \(\lambda\).
 We can construct pseudolikelihoods for \(\psi\) through clever choices
 by which to summarize \(\mathcal{L}_{\psi}\) over all possible values of
 \(\lambda\). Among the most popular methods of summary are profiling
-(i.e.~maximization), conditioning, and integration, each with respect to
+(i.e. maximization), conditioning, and integration, each with respect to
 the nuisance parameter. These summaries do come at a cost, however;
 eliminating a model's nuisance parameter from its likelihood almost
 always sacrifices some information about its parameter of interest as
@@ -481,8 +498,8 @@ line of Equation~\ref{eq-4-1-8}, we arrive at
 \ell(\mu, \pi; y_{\bullet}) = n \bar{\pi}\log\Big(\pi + (1 - \pi)e^{-\mu}\Big) +  n(1-\bar{\pi})\big(\log(1-\pi) - \mu\big) + n\bar{y}\log \mu.
 }\end{equation}
 
-Let \(\hat{\pi}_{\mu}\) denote the maximum likelihood estimator of
-\(\pi\) for a fixed value of \(\mu\). Under suitable regularity
+Let \(\hat{\pi}_{\mu}\) denote the partial maximum likelihood estimator
+of \(\pi\) for a given value of \(\mu\). Under suitable regularity
 conditions, easily satisfied in this case since the Poisson distribution
 belongs to the well-behaved exponential family of distributions,
 \(\hat{\pi}_{\mu}\) will be the unique value of \(\pi\) (as a function
@@ -490,41 +507,44 @@ of \(\mu\) and the data) that solves the critical point equation.
 \begin{equation}\phantomsection\label{eq-4-1-13}{
 \frac{\partial \ell(\mu, \pi)}{\partial\pi}\Bigg|_{\pi = \hat{\pi}_{\mu}} \equiv 0.
 }\end{equation} To find it, we start by differentiating both sides of
-Equation~\ref{eq-4-1-12}:
-\begin{equation}\phantomsection\label{eq-4-1-13}{
+Equation~\ref{eq-4-1-12}: \[
 \frac{\partial \ell(\mu, \pi)}{\partial\pi} = \frac{n \bar{\pi}}{\pi + (1-\pi)e^{-\mu}}(1 - e^{-\mu}) - \frac{n(1 - \bar{\pi})}{1 - \pi}
                                             = n \Bigg[\frac{\bar{\pi}(1 - e^{-\mu})}{\pi + (1-\pi)e^{-\mu}} - \frac{1 - \bar{\pi}}{1 - \pi} \Bigg].
-}\end{equation} Evaluating at \(\pi = \hat{\pi}_{\mu}\) and plugging the
-result into Equation~\ref{eq-4-1-12}, we have \[
-\begin{aligned}
-&n \Bigg[\frac{\bar{\pi}(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} - \frac{1 - \bar{\pi}}{1 - \hat{\pi}_{\mu}} \Bigg] = 0 \\
-&\implies \frac{\bar{\pi}(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} = \frac{1 - \bar{\pi}}{1 - \hat{\pi}_{\mu}}  \\
-&\implies \frac{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} = \frac{1 - \bar{\pi}}{\bar{\pi}} \\
-&\implies \frac{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} \\
-&\implies \frac{\hat{\pi}_{\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} + \frac{(1-\hat{\pi}_{\mu})e^{-\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} \\
-&\implies \frac{\hat{\pi}_{\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} - \frac{e^{-\mu}}{1 - e^{-\mu}} \\
-&\implies \frac{\hat{\pi}_{\mu}}{1 - \hat{\pi}_{\mu}} = \frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} \\
-&\implies \frac{\hat{\pi}_{\mu}}{1 - \hat{\pi}_{\mu}} = \frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} \\
-&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} + 1} \\
-&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) + (1 - e^{-\mu})} \\
-&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{(\frac{\bar{\pi}}{1 - \bar{\pi}} + 1)(1 - e^{-\mu})} \\
-&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{1}{1 - \bar{\pi}}(1 - e^{-\mu})} \\
-&\implies \hat{\pi}_{\mu} = \frac{\bar{\pi}(1 - e^{-\mu}) - (1 - \bar{\pi})e^{-\mu}}{1 - e^{-\mu}} \\
-&\implies \hat{\pi}_{\mu} = \frac{\bar{\pi} - e^{-\mu}}{1 - e^{-\mu}} \\
-\end{aligned}
-\] \$\$ a / (1-a) * (1 - b) - b \textbackslash{}
+\] Evaluating at \(\pi = \hat{\pi}_{\mu}\) and plugging the result into
+Equation~\ref{eq-4-1-12}, we have
+\begin{equation}\phantomsection\label{eq-4-1-14}{
+n \Bigg[\frac{\bar{\pi}(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} - \frac{1 - \bar{\pi}}{1 - \hat{\pi}_{\mu}} \Bigg] = 0. 
+}\end{equation} When we solve for \(\hat{\pi}_{\mu}\) (see the appendix
+for the full derivation), we get
+\begin{equation}\phantomsection\label{eq-4-1-15}{
+\hat{\pi}_{\mu} = \frac{\bar{\pi} - e^{-\mu}}{1 - e^{-\mu}}.
+}\end{equation} This formula for \(\hat{\pi}_{\mu}\) leads to a negative
+estimate of \(\pi\) when \(\bar{\pi} < e^{-\mu}\), which is clearly
+undesirable since \(\pi\) is meant to be interpreted as a probability.
+To correct it, we can modify \(\hat{\pi}_{\mu}\) slightly by setting it
+equal to the value in the interval \([0,1]\) that maximizes \(\ell\)
+whenever \(\bar{\pi} < e^{-\mu}\). Since \(\pi\) represents the
+probability of excess zero counts in the sample, and this situation can
+only occur when the observed proportion of zero counts
+(i.e.~\(\bar{\pi}\)) in the sample is less than what we would expect if
+our Poisson variable had no zero-inflation at all\footnote{Recall that
+  \(e^{-\mu}\) is the probability of observing a zero under a
+  non-zero-inflated Poisson random variable with rate parameter \(\mu\).},
+it is unsurprising that this value turns out simply to be zero (see the
+appendix for a formal proof). Hence, our full formula for the
+partial-MLE of \(\pi\) given a particular value of \(\mu\) is as
+follows: \[
+\hat{\pi}_{\mu} = \begin{cases}
+                  \frac{\bar{\pi} - e^{-\mu}}{1 - e^{-\mu}}, & \bar{\pi} \geq e^{-\mu} \\
+                  0, & \bar{\pi} < e^{-\mu}
+            \end{cases}
+\]
 
-1 / (1 - a) * (1-b) \textbackslash{}
-
-a - b / (1-b) * (1-a) \textbackslash{}
-
-{[}a(1-b) - b(1-a){]} / (1-b) \textbackslash{}
-
-{[}a - ab -b + ab{]} / (1-b)
-
-a- b / (1 - b)
-
-\$\$
+As we hinted at above, the condition that \(\bar{\pi} \geq e^{-\mu}\)
+could be considered a bellwether for zero-inflation, as it indicates an
+empirical excess of zero counts relative to what we would expect for a
+non-zero-inflated random variable. We refer to the condition that
+\(\bar{\pi} \geq e^{-\mu}\) as the \emph{zero-inflated condition}.
 
 \section{Importance Sampling}\label{importance-sampling}
 
@@ -549,7 +569,7 @@ Call this value \(\mu\). Then we have \[
 
 The \emph{importance sampling estimator} for \(\mu\) is \[
 \hat{\mu}_{\pi} = \frac{1}{R} \sum_{i=1}^R \frac{f(\theta_i)}{c L(\theta_i;X)}, \> \> \theta_i \sim \pi.
-\] Note that \(\hat{\mu}_{\pi}\) is unbiased, i.e.~ \[
+\] Note that \(\hat{\mu}_{\pi}\) is unbiased, i.e.~\[
 \begin{aligned}
 \text{E}_{\pi}(\hat{\mu}_{\pi}) &= \text{E}_{\pi}\Bigg(\frac{1}{R} \sum_{i=1}^R \frac{f(\theta_i)}{c L(\theta_i;X)}\Bigg) \\
                                 &= \frac{1}{R} \sum_{i=1}^R\text{E}_{\pi}\Bigg(\frac{f(\theta_i)}{c L(\theta_i;X)}\Bigg) \\
@@ -633,8 +653,39 @@ sampling}\label{self-normalized-importance-sampling}
 \tilde{\mu}_{\pi} = \frac{}{}
 \]
 
+\section{Appendix}\label{appendix}
+
+\textbf{Claim}: \(\pi + (1-\pi)e^{-\mu} \geq e^{-\mu}\) for all
+\(\pi \in [0,1]\).
+
+\textbf{Proof}:
+
+\$\$
+
+\$\$
+
+\[
+\begin{aligned}
+&n \Bigg[\frac{\bar{\pi}(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} - \frac{1 - \bar{\pi}}{1 - \hat{\pi}_{\mu}} \Bigg] = 0 \\
+&\implies \frac{\bar{\pi}(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} = \frac{1 - \bar{\pi}}{1 - \hat{\pi}_{\mu}}  \\
+&\implies \frac{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})}{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}} = \frac{1 - \bar{\pi}}{\bar{\pi}} \\
+&\implies \frac{\hat{\pi}_{\mu} + (1-\hat{\pi}_{\mu})e^{-\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} \\
+&\implies \frac{\hat{\pi}_{\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} + \frac{(1-\hat{\pi}_{\mu})e^{-\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} \\
+&\implies \frac{\hat{\pi}_{\mu}}{(1 - \hat{\pi}_{\mu})(1 - e^{-\mu})} = \frac{\bar{\pi}}{1 - \bar{\pi}} - \frac{e^{-\mu}}{1 - e^{-\mu}} \\
+&\implies \frac{\hat{\pi}_{\mu}}{1 - \hat{\pi}_{\mu}} = \frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} \\
+&\implies \frac{\hat{\pi}_{\mu}}{1 - \hat{\pi}_{\mu}} = \frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu} + 1} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) + (1 - e^{-\mu})} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{(\frac{\bar{\pi}}{1 - \bar{\pi}} + 1)(1 - e^{-\mu})} \\
+&\implies \hat{\pi}_{\mu} = \frac{\frac{\bar{\pi}}{1 - \bar{\pi}}(1 - e^{-\mu}) - e^{-\mu}}{\frac{1}{1 - \bar{\pi}}(1 - e^{-\mu})} \\
+&\implies \hat{\pi}_{\mu} = \frac{\bar{\pi}(1 - e^{-\mu}) - (1 - \bar{\pi})e^{-\mu}}{1 - e^{-\mu}} \\
+&\implies \hat{\pi}_{\mu} = \frac{\bar{\pi} - e^{-\mu}}{1 - e^{-\mu}} \\
+\end{aligned}
+\]
+
 
   \bibliography{bibliography.bib}
+
 
 
 \end{document}
