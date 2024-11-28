@@ -36,11 +36,11 @@ set.seed(seed)
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-step_size <- 0.01
+step_size <- 0.001
 
-num_std_errors <- 10
+num_std_errors <- 4
 
-x_h <- 20.95197
+x_h <- 59
 
 profile_log_likelihood_vals <- get_profile_log_likelihood(x, 
                                                           y, 
@@ -60,7 +60,6 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
 log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_xh={as.character(x_h)}_stepsize={step_size}_numse={num_std_errors}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
-
 
 plot(psi_grid, profile_log_likelihood_vals)
 

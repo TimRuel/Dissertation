@@ -30,10 +30,10 @@ num_std_errors <- log_likelihood_vals_file_path |>
   str_extract("\\d+") |> 
   as.numeric()
 
-# x_h <- log_likelihood_vals_file_path |>  
-#   str_remove("^.*xh=") |> 
-#   str_extract("\\d+") |> 
-#   as.numeric()
+x_h <- log_likelihood_vals_file_path |>
+  str_remove("^.*xh=") |>
+  str_extract("-?\\d+(\\.\\d+)?") |>
+  as.numeric()
 
 # pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
@@ -144,7 +144,7 @@ MSE <- n / (n - 2) * sigma_squared_hat
 
 x_bar <- mean(x)
 
-s <- sqrt(MSE * (1/n + (x_j - x_bar)^2 / sum((x - x_bar)^2)))
+s <- sqrt(MSE * (1/n + (x_h - x_bar)^2 / sum((x - x_bar)^2)))
 
 psi_MLE <- g(alpha_hat, beta_hat, x_h)
 
