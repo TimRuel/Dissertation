@@ -129,6 +129,16 @@ get_theta_hat <- function(init_guess, psi, omega_hat, x, x_h) {
   return(theta_hat)
 }
 
+################################################################################
+############################ INTEGRATED LIKELIHOOD ############################# 
+################################################################################
+
+
+
+################################################################################
+############################## PROFILE LIKELIHOOD ############################## 
+################################################################################
+
 get_profile_log_likelihood <- function(x, y, x_h, step_size, num_std_errors) {
   
   psi_grid <- get_psi_grid(x, y, x_h, step_size, num_std_errors, split = FALSE)
@@ -150,27 +160,4 @@ get_profile_log_likelihood <- function(x, y, x_h, step_size, num_std_errors) {
     magrittr::extract(-1) |> 
     magrittr::extract(-1) |> 
     purrr::map_dbl(\(theta) log_likelihood(theta[1], theta[2], theta[3], x, y))
-  
-  # p <- progressr::progressor(along = psi_grid_list)
-  # 
-  # foreach(
-  #   
-  #   psi_grid = psi_grid_list,
-  #   .options.future = list(seed = TRUE)
-  #   
-  # ) %dofuture% {
-  #   
-  #   p()
-  #   
-  #   psi_grid |> purrr::accumulate(
-  #     \(acc, nxt) {
-  #       get_theta_hat(acc, nxt, theta_MLE, x, x_h)
-  #     },
-  #     .init = theta_MLE
-  #   ) |> 
-  #     magrittr::extract(-1) |> 
-  #     purrr::map_dbl(\(theta) log_likelihood(theta[1], theta[2], theta[3], x, y))
-  # } |> 
-  #   purrr::modify_in(1, rev) |>
-  #   unlist(recursive = FALSE)
 }
