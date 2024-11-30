@@ -118,7 +118,7 @@ Q <- function(u, psi_hat, weights) u / dot_product(u, weights) * psi_hat
 
 get_omega_hat_list <- function(u_list, psi_hat, weights) purrr::map(u_list, \(u) Q(u, psi_hat, weights))
 
-get_theta_hat <- function(lambda, omega_hat, weights) omega_hat / (1 + lambda * weights)
+get_theta_hat <- function(lambda, omega_hat, weights) omega_hat / (1 - lambda * weights)
 
 get_lambda <- function(init_lambda, psi, omega_hat, weights) {
   
