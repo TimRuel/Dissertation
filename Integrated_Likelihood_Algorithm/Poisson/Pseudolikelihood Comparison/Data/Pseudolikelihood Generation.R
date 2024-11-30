@@ -222,15 +222,15 @@ log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = integrated_likelihood_vanilla_MC$l_bar,
                                   Profile = profile_log_likelihood_vals)
 
-log_likelihood_vals_file_path <- population_params_file_path |> 
-  sub(".*Pseudolikelihoods\\\\(.*)\\parameters\\.R", "\\1", x = _) |> 
-  paste0("Pseudolikelihoods\\\\", . = _, "\\log_likelihood_vals_") |> 
-  glue::glue("R={R}_seed={seed}_stepsize={step_size}_numse={num_std_errors}.Rda")
-
 # log_likelihood_vals_file_path <- population_params_file_path |> 
-#   sub(".*Pseudolikelihoods\\(.*)\\parameters\\.R", "\\1", x = _) |> 
-#   paste0("Pseudolikelihoods\\", . = _, "\\log_likelihood_vals_") |> 
+#   sub(".*Pseudolikelihoods\\\\(.*)\\parameters\\.R", "\\1", x = _) |> 
+#   paste0("Pseudolikelihoods\\\\", . = _, "\\log_likelihood_vals_") |> 
 #   glue::glue("R={R}_seed={seed}_stepsize={step_size}_numse={num_std_errors}.Rda")
+
+log_likelihood_vals_file_path <- population_params_file_path |>
+  sub(".*Pseudolikelihoods/(.*)/parameters.R", "\\1", x = _) |>
+  paste0("Pseudolikelihoods/", . = _, "/log_likelihood_vals_") |>
+  glue::glue("R={R}_seed={seed}_stepsize={step_size}_numse={num_std_errors}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
