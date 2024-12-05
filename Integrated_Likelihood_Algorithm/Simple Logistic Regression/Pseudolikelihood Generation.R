@@ -139,8 +139,8 @@ log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
 plot(psi_grid, profile_log_likelihood_vals)
-# 
-# plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
+
+plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
 
 
 
