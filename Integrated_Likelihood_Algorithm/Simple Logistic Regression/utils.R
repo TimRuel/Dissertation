@@ -29,6 +29,66 @@ get_beta_MLE <- function(x, y) {
     unname()
 }
 
+# get_var_beta_MLE <- function(x, y) {
+#   
+#   beta_MLE <- get_beta_MLE(x, y)
+#   
+#   linear_predictor <- get_linear_predictor(beta_MLE, x)
+#   
+#   sigma <- sigmoid::sigmoid(linear_predictor)
+#   
+#   g00 <- -sum(sigma * (1 - sigma))
+#   
+#   g01 <- -sum(x * sigma * (1 - sigma))
+#   
+#   g10 <- g01
+#   
+#   g11 <- -sum(x^2 * sigma * (1 - sigma))
+#   
+#   -1 / c(g00, g01, g10, g11) |> 
+#     matrix(nrow = 2,
+#            byrow = TRUE)
+# }
+
+get_cov_beta_MLE <- function(x, y) {
+  
+  fit <- glm(y ~ x, family = "binomial")
+  
+  summary(fit)$cov.unscaled
+}
+
+get_SE_estimated_logit_mean_response <- function(x, y, x_h) {
+  
+  cov_beta_MLE <- get_cov_beta_MLE(x, y)
+  
+  X_h <- matrix(c(1, x_h))
+  
+  sqrt(t(X_h) %*% cov_beta_MLE %*% X_h)[1]
+}
+
+get_CI_logit_mean_response <- function(x, y, x_h, alpha) {
+  
+  beta_MLE <- get_beta_MLE(x, y)
+  
+  estimated_logit_mean_response <- get_linear_predictor(beta_MLE, x_h)
+  
+  SE_estimated_logit_mean_response <- get_SE_estimated_logit_mean_response(x, y, x_h)
+  
+  critical_value <- qnorm(1 - alpha / 2)
+  
+  MoE <- critical_value * SE_estimated_logit_mean_response
+  
+  estimated_logit_mean_response + c(-1, 1) * MoE
+}
+
+get_CI_mean_response <- function(x, y, x_h, alpha){
+  
+  CI_logit_mean_response <- get_CI_logit_mean_response(x, y, x_h, alpha)
+  
+  sigmoid::sigmoid(CI_logit_mean_response) |> 
+    round(3)
+}
+
 get_psi_hat <- function(x, y, x_h) {
   
   beta_MLE <- get_beta_MLE(x, y)
@@ -38,7 +98,7 @@ get_psi_hat <- function(x, y, x_h) {
 
 get_psi_grid <- function(step_size, x = NULL, y = NULL, x_h = NULL, split = FALSE) {
   
-  psi_grid <- seq(0.2, 0.8, step_size)
+  psi_grid <- seq(0 + step_size, 1 - step_size, step_size)
   
   if (split) {
     

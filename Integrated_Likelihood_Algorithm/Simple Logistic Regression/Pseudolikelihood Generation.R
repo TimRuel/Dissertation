@@ -80,7 +80,7 @@ num_std_errors <- 4
 
 R <- 250
 
-x_h <- 0.89805755
+x_h <- -0.84166470
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
@@ -141,11 +141,3 @@ saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 plot(psi_grid, profile_log_likelihood_vals)
 
 plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
-
-
-
-
-
-
-
-

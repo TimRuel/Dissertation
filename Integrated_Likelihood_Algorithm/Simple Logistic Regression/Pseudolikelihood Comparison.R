@@ -136,30 +136,16 @@ conf_ints <- pseudo_log_likelihood_curves |>
        }
   )
 
-# alpha_hat <- get_alpha_hat(x, y)
-# 
-# beta_hat <- get_beta_hat(x, y)
-# 
-# sigma_squared_hat <- get_sigma_squared_hat(x, y)
-# 
-# MSE <- n / (n - 2) * sigma_squared_hat
-# 
-# x_bar <- mean(x)
-# 
-# s <- sqrt(MSE * (1/n + (x_h - x_bar)^2 / sum((x - x_bar)^2)))
-# 
-# psi_MLE <- g(alpha_hat, beta_hat, x_h)
-# 
-# crit2 <- qt(1 - 0.05 / 2, n - 2)
-# 
-# MoE <- crit2 * s
-# 
-# conf_ints$Classical <- round(psi_MLE + c(-1, 1) * MoE, 3)
+psi_MLE <- get_psi_hat(x, y, x_h)
 
-# MLE_data <- MLE_data |> 
-#   add_row(Source = "Classical",
-#           MLE = psi_MLE,
-#           MLE_label = "hat(psi)")
+alpha <- 0.05
+
+conf_ints$Classical <- get_CI_mean_response(x, y, x_h, alpha)
+
+MLE_data <- MLE_data |>
+  add_row(Source = "Classical",
+          MLE = psi_MLE,
+          MLE_label = "hat(psi)")
 
 MLE_data |> 
   select(Source, MLE) |> 
@@ -171,12 +157,15 @@ MLE_data |>
            map(diff) |> 
            as.numeric()) |> 
   arrange(length) |> 
+  add_row(Source = "Truth",
+          MLE = get_logistic_mean_response(c(beta_0, beta_1), x_h)) |> 
   kbl(col.names = c("Source", 
                     "MLE",
                     "95% Confidence Interval",
                     "CI Length"),   
       align = "c") |> 
-  kable_styling(bootstrap_options = c("striped", "hover")) 
+  kable_styling(bootstrap_options = c("striped", "hover")) |> 
+  row_spec(4, color = "green", bold = TRUE)
 
 # stat_fn_PL <- map2(
 c(stat_fn_IL, stat_fn_PL) %<-% map2(
@@ -208,7 +197,7 @@ y_min <- pseudo_log_likelihood_curves |>
 
 MLE_data <- MLE_data |> 
   add_row(Source = "Truth",
-          MLE = get_psi_hat(x, y, x_h),
+          MLE = get_logistic_mean_response(c(beta_0, beta_1), x_h),
           MLE_label = "psi[0]")
 
 ggplot() +
@@ -243,13 +232,13 @@ ggplot() +
            ymax = Inf,
            fill = "green",
            alpha = 0.5) +
-  # annotate("rect", 
-  #          xmin = conf_ints$Classical[1], 
-  #          xmax = conf_ints$Classical[2], 
-  #          ymin = -Inf,
-  #          ymax = Inf,
-  #          fill = "red",
-  #          alpha = 0.2) +
+  annotate("rect",
+           xmin = conf_ints$Classical[1],
+           xmax = conf_ints$Classical[2],
+           ymin = -Inf,
+           ymax = Inf,
+           fill = "red",
+           alpha = 0.2) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
                      limits = psi_range) +
