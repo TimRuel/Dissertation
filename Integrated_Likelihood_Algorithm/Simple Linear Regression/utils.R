@@ -24,7 +24,7 @@ likelihood <- function(alpha, beta, sigma_squared, x, y) exp(log_likelihood(alph
 
 neg_log_likelihood <- function(alpha, beta, sigma_squared, x, y) -log_likelihood(alpha, beta, sigma_squared, x, y)
 
-g <- function(alpha, beta, x_h) alpha + beta * x_h
+get_mean_response <- function(alpha, beta, x_h) alpha + beta * x_h
 
 get_alpha_hat <- function(x, y) {
   
@@ -52,7 +52,7 @@ get_sigma_squared_hat <- function(x, y) {
   
   beta_hat <- get_beta_hat(x, y)
   
-  mean((y - alpha_hat - beta_hat *x)^2)
+  mean((y - alpha_hat - beta_hat * x)^2)
 }
 
 get_psi_hat <- function(x, y, x_h) {
@@ -61,7 +61,7 @@ get_psi_hat <- function(x, y, x_h) {
   
   beta_hat <- get_beta_hat(x, y)
   
-  g(alpha_hat, beta_hat, x_h)
+  get_mean_response(alpha_hat, beta_hat, x_h)
 }
 
 get_psi_hat_se <- function(x, y, x_h) {
