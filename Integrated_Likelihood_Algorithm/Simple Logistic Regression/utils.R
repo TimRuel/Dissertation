@@ -5,16 +5,16 @@ library(tidyverse)
 
 get_linear_predictor <- function(beta, x) beta[1] + beta[2] * x
 
-log_likelihood <- function(beta, x, y) {
+log_likelihood <- function(beta, data) {
   
-  linear_predictor <- get_linear_predictor(beta, x)
+  linear_predictor <- get_linear_predictor(beta, data$x)
   
-  sum(y * linear_predictor - log(1 + exp(linear_predictor)))
+  sum(data$y * linear_predictor - log(1 + exp(linear_predictor)))
 }
 
-likelihood <- function(beta, x, y) exp(log_likelihood(beta, x, y))
+likelihood <- function(beta, data) exp(log_likelihood(beta, data))
 
-neg_log_likelihood <- function(beta, x, y) -log_likelihood(beta, x, y)
+neg_log_likelihood <- function(beta, data) -log_likelihood(beta, data)
 
 get_logistic_mean_response <- function(beta, x) {
   
@@ -22,9 +22,9 @@ get_logistic_mean_response <- function(beta, x) {
     sigmoid::sigmoid()
 }
 
-get_beta_MLE <- function(x, y) {
+get_beta_MLE <- function(data) {
   
-  glm(y ~ x, family = "binomial") |> 
+  glm(y ~ x, data = data, family = binomial(link = logit)) |> 
     coef() |> 
     unname()
 }
@@ -52,7 +52,7 @@ get_beta_MLE <- function(x, y) {
 
 get_cov_beta_MLE <- function(x, y) {
   
-  fit <- glm(y ~ x, family = "binomial")
+  fit <- glm(y ~ x, data = data, family = binomial(link = logit))
   
   summary(fit)$cov.unscaled
 }
