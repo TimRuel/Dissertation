@@ -15,12 +15,10 @@ X <- rep(1, n) |>
          ncol = p, 
          byrow = FALSE)
 
-sigma_squared_0 <- 0.1
+Y <- rbinom(n, 1, plogis(X %*% Beta_0))
 
-eps <- rnorm(n, 0, sqrt(sigma_squared_0)) |> 
-  matrix(ncol = 1)
+data <- X[,-1] |> 
+  data.frame(Y = Y)
 
-Y <- X %*% Beta_0 + eps
-
-X_h <- X[4,] |> 
+X_h <- X[4,][-1] |> 
   matrix()

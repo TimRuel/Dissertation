@@ -4,79 +4,74 @@
 library(tidyverse)
 library(pipeR)
 
-log_likelihood <- function(Beta, sigma_squared, X, Y) {
+get_logistic_regression_model <- function(data) glm(Y ~ ., data = data, family = binomial(link = logit))
+
+log_likelihood <- function(model) logLik(model)[1]
+
+likelihood <- function(model) exp(log_likelihood(model))
+
+neg_log_likelihood <- function(model) -log_likelihood(model)
+
+get_Beta_MLE <- function(model) {
   
-  n <- nrow(Y)
-  
-  SS <- sum((Y - X %*% Beta)^2)
-  
-  -n / 2 * log(sigma_squared) - SS / (2 * sigma_squared)
+  model |> 
+    coef() |> 
+    unname() |> 
+    matrix()
 }
 
-likelihood <- function(Beta, sigma_squared, X, Y) exp(log_likelihood(Beta, sigma_squared, X, Y))
-
-neg_log_likelihood <- function(Beta, sigma_squared, X, Y) -log_likelihood(Beta, sigma_squared, X, Y)
-
-get_Beta_MLE <- function(X, Y) solve(t(X) %*% X) %*% t(X) %*% Y
-
-get_Y_hat <- function(X_h, b) {
+get_Y_hat <- function(model, X_h) {
   
-  t(X_h) %*% b |> 
-    c()
+  X_h |> 
+    t() |> 
+    data.frame() |> 
+    predict(model, newdata = _, type = "link") |> 
+    unname()
 }
 
-get_MSE <- function(X, Y, b) {
+get_SE_Y_hat <- function(model, X_h) {
   
-  e <- Y - X %*% b
-  
-  SSE <- t(e) %*% e |> 
-    c()
-  
-  n <- nrow(X)
-  
-  p <- ncol(X)
-  
-  SSE / (n - p)
+  X_h |> 
+    t() |> 
+    data.frame() |> 
+    predict(model, newdata = _, type = "link", se.fit = TRUE) %>>%
+    (se.fit)
 }
 
-get_SE_Y_hat <- function(X, Y, X_h, b) {
+get_CI_Y_hat <- function(model, X_h, alpha) {
   
-  MSE <- get_MSE(X, Y, b)
+  Y_hat <- get_Y_hat(model, X_h)
   
-  sqrt(MSE * t(X_h) %*% solve(t(X) %*% X) %*% X_h)[1]
-}
-
-get_CI_Y_hat <- function(X, Y, X_h, b, alpha) {
+  SE_Y_hat <- get_SE_Y_hat(model, X_h)
   
-  Y_hat <- get_Y_hat(X_h, b)
-  
-  SE_Y_hat <- get_SE_Y_hat(X, Y, X_h, b)
-  
-  n <- nrow(X)
-  
-  p <- ncol(X)
-  
-  critical_value <- qt(p = 1 - alpha / 2, df = n - p)
+  critical_value <- qnorm(1 - alpha / 2)
   
   MoE <- critical_value * SE_Y_hat
   
   Y_hat + c(-1, 1) * MoE
 }
 
-get_psi_hat <- function(x, y, x_h) {
+get_psi_hat <- function(model, X_h) {
   
-  beta_MLE <- get_beta_MLE(x, y)
-  
-  get_logistic_mean_response(beta_MLE, x_h)
+  X_h |> 
+    t() |> 
+    data.frame() |> 
+    predict(model, newdata = _, type = "response") |> 
+    unname()
 }
 
-get_psi_grid <- function(step_size, x = NULL, y = NULL, x_h = NULL, split = FALSE) {
+get_CI_psi_hat <- function(model, X_h, alpha){
+  
+  model |> 
+    get_CI_Y_hat(X_h, alpha) |>  
+    plogis()
+}
+
+get_psi_grid <- function(step_size, psi_hat = NULL) {
   
   psi_grid <- seq(0 + step_size, 1 - step_size, step_size)
   
-  if (split) {
-    
-    psi_hat <- get_psi_hat(x, y, x_h)
+  if (!is.null(psi_hat)) {
     
     psi_grid_list <- psi_grid |> 
       split(factor(psi_grid > psi_hat)) |> 
@@ -157,35 +152,44 @@ get_log_importance_weights <- function(u_list, MC_params) {
     )
 }
 
-get_omega_hat <- function(u, beta_MLE, x_h) u * get_linear_predictor(beta_MLE, x_h) / get_linear_predictor(u, x_h)
+get_omega_hat <- function(U, model, X_h) U * get_Y_hat(model, X_h) / (t(matrix(c(1, X_h))) %*% U)[1]
 
-get_omega_hat_list <- function(u_list, beta_MLE, x_h) purrr::map(u_list, \(u) get_omega_hat(u, beta_MLE, x_h))
+get_omega_hat_list <- function(U_list, model, X_h) purrr::map(U_list, \(U) get_omega_hat(U, model, X_h))
 
-get_beta_hat <- function(init_guess, psi, omega_hat, x, x_h) {
+get_Beta_hat <- function(psi, omega_hat, model, X_h, N) {
   
-  logistic_mean_response <- get_logistic_mean_response(omega_hat, x)
+  w <- model.matrix(model) %*% omega_hat |> 
+    plogis()
   
-  f <- function(beta) {
-    
-    linear_predictor <- get_linear_predictor(beta, x)
-    
-    -sum(logistic_mean_response * linear_predictor - log(1 + exp(linear_predictor)))
-  }
+  model_data <- model |> 
+    model.frame()
   
-  f.gr <- function(beta) nloptr::nl.grad(beta, f)
-  fcon <- function(beta) get_logistic_mean_response(beta, x_h) - psi
-  fcon.jac <- function(beta) nloptr::nl.jacobian(beta, fcon)
+  X <- model_data |> 
+    select(-Y)
   
-  out <- nloptr::auglag(x0 = init_guess,
-                        fn = f,
-                        gr = f.gr,
-                        heq = fcon,
-                        heqjac = fcon.jac,
-                        localsolver = "LBFGS")
+  Y <- model_data |> 
+    select(Y)
   
-  beta_hat <- out$par
+  N <- 10^3
   
-  return(beta_hat)
+  data <- X |> 
+    sweep(2, X_h) |> 
+    tidyr::uncount(weights = N) |> 
+    mutate(Y = as.integer(N * w) |> 
+             map(\(num_successes) rep(c(1,0), times = c(num_successes, N - num_successes))) |> 
+             unlist())
+  
+  intercept <- log(psi / (1 - psi))
+  
+  fit <- glm(Y ~ . - 1, data = data, family = binomial(link = logit), offset = rep(intercept, length(Y)))
+  
+  beta_hat <- fit |> 
+    coef() |> 
+    unname() |> 
+    matrix()
+  
+  c(intercept - t(beta_hat) %*% X_h, beta_hat) |> 
+    matrix()
 }
 
 accumulate_beta_hats <- function(psi_grid_list, omega_hat, x, x_h, init_guess) {
