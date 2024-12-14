@@ -1,10 +1,10 @@
-seed <- 5463498
+seed <- 39536871
 
 set.seed(seed)
 
-p <- 10
+p <- 25
 
-Beta_0 <- runif(p, -1, 1) |> 
+Beta_0 <- runif(p, -1, 0.1) |> 
   matrix(ncol = 1)
 
 n <- 100

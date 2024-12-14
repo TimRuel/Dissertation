@@ -13,15 +13,6 @@ library(rstudioapi)
 handlers(global = TRUE)
 handlers("cli")
 
-# num_cores <- Sys.getenv("SLURM_NPROCS") |>
-#   as.numeric()
-
-# num_cores <- availableCores() |>
-#   as.numeric()
-
-num_cores <- parallel::detectCores() |>
-  as.numeric()
-
 setwd(dirname(getActiveDocumentContext()$path))
 
 source("utils.R")
@@ -38,35 +29,15 @@ set.seed(seed)
 ################################## PARAMETERS ################################## 
 ################################################################################
 
-alpha_prior <- c(0, 1)
-alpha_rng <- rnorm
-alpha_rng_params <- list(n = 1, mean = alpha_prior[1], sd = alpha_prior[2])
-alpha_density <- dnorm
-alpha_density_params <- list(mean = alpha_prior[1], sd = alpha_prior[2])
-alpha_dist_list <- list(rng = alpha_rng, 
-                        rng_params = alpha_rng_params, 
-                        density = alpha_density, 
-                        density_params = alpha_density_params)
-
-beta_prior <- c(0, 1)
-beta_rng <- rnorm
-beta_rng_params <- list(n = 1, mean = beta_prior[1], sd = beta_prior[2])
-beta_density <- dnorm
-beta_density_params <- list(mean = beta_prior[1], sd = beta_prior[2])
-beta_dist_list <- list(rng = beta_rng, 
-                       rng_params = beta_rng_params, 
-                       density = beta_density, 
-                       density_params = beta_density_params)
-
-sigma_squared_prior <- c(0.1, 0.1)
-sigma_squared_rng <- rinvgamma
-sigma_squared_rng_params <- list(n = 1, shape = sigma_squared_prior[1], rate = sigma_squared_prior[2])
-sigma_squared_density <- dinvgamma
-sigma_squared_density_params <- list(shape = sigma_squared_prior[1], rate = sigma_squared_prior[2])
-sigma_squared_dist_list <- list(rng = sigma_squared_rng, 
-                                rng_params = sigma_squared_rng_params, 
-                                density = sigma_squared_density, 
-                                density_params = sigma_squared_density_params)
+Beta_prior <- c(0, 1)
+Beta_rng <- rnorm
+Beta_rng_params <- list(n = p, mean = Beta_prior[1], sd = Beta_prior[2])
+Beta_density <- dnorm
+Beta_density_params <- list(mean = Beta_prior[1], sd = Beta_prior[2])
+Beta_dist_list <- list(rng = Beta_rng, 
+                       rng_params = Beta_rng_params, 
+                       density = Beta_density, 
+                       density_params = Beta_density_params)
 
 # nominal_rng_params <- list(n = n, shape = alpha_posterior, rate = beta_posterior)
 # 
@@ -80,57 +51,57 @@ sigma_squared_dist_list <- list(rng = sigma_squared_rng,
 # 
 # importance_density_params <- list(shape = importance_rng_shape_vec, rate = importance_rng_rate_vec)
 
-theta_hat_method <- "accumulate"
+h <- 50L
 
-chunk_size <- 5
+X_h <- data |> 
+  select(-Y) |> 
+  slice(h) |>
+  unname() |> 
+  as.matrix() |> 
+  t()
 
-step_size <- 0.01
-
-num_std_errors <- 4
+plogis(get_Y_hat(model, X_h))
 
 R <- 250
 
-x_h <- 20
+N <- 10^7
 
-alpha_hat <- get_alpha_hat(x, y)
+step_size <- 0.01
 
-beta_hat <- get_beta_hat(x, y)
-
-sigma_squared_hat <- get_sigma_squared_hat(x, y)
-
-theta_MLE <- c(alpha_hat, beta_hat, sigma_squared_hat)
-
-# init_guess <- c(rnorm(2), rinvgamma(1, 0.01, 0.01))
-
-init_guess <- c(0, 0, 1)
-
-# init_guess <- theta_MLE
+psi_grid <- get_psi_grid(step_size)
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
 ################################################################################
 
-psi_grid_list <- get_psi_grid(x, y, x_h, step_size, num_std_errors, split = TRUE)
+# num_workers <- Sys.getenv("SLURM_NPROCS") |>
+#   as.numeric()
 
-method = "vanilla_MC"
+# num_workers <- availableCores() |>
+#   as.numeric()
+
+# num_workers <- parallel::detectCores() |>
+#   as.numeric()
+
+num_workers <- 50
+
+chunk_size <- 5
+
+method <- "vanilla_MC"
 
 MC_params <- list(method = method, 
-                  nominal = list(alpha_dist_list,
-                                 beta_dist_list,
-                                 sigma_squared_dist_list))
+                  nominal = Beta_dist_list)
 
 tic()
 
-plan(multisession, workers = I(50))
+plan(multisession, workers = I(num_workers))
 
-log_integrated_likelihood_vanilla_MC <- get_log_integrated_likelihood(x,
-                                                                      y,
-                                                                      x_h, 
-                                                                      psi_grid_list, 
+log_integrated_likelihood_vanilla_MC <- get_log_integrated_likelihood(data,
+                                                                      X_h, 
+                                                                      psi_grid, 
                                                                       R,
+                                                                      N,
                                                                       MC_params,
-                                                                      theta_hat_method,
-                                                                      init_guess,
                                                                       chunk_size)
 
 toc()
@@ -139,23 +110,17 @@ toc()
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-profile_log_likelihood_vals <- get_profile_log_likelihood(x, 
-                                                          y, 
-                                                          x_h,
-                                                          step_size, 
-                                                          num_std_errors)
+profile_log_likelihood_vals <- get_profile_log_likelihood(data, X_h, step_size)
 
 ################################################################################
 ################################### STORAGE #################################### 
 ################################################################################
 
-psi_grid <- get_psi_grid(x, y, x_h, step_size, num_std_errors, split = FALSE)
-
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = log_integrated_likelihood_vanilla_MC$log_L_bar$estimate,
                                   Profile = profile_log_likelihood_vals)
 
-log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={R}_xh={as.character(x_h)}_stepsize={step_size}_numse={num_std_errors}.Rda")
+log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={R}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
