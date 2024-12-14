@@ -2,6 +2,7 @@
 #################################### GENERAL ###################################
 ################################################################################
 library(tidyverse)
+library(pipeR)
 
 get_logistic_regression_model <- function(data) glm(Y ~ ., data = data, family = binomial(link = logit))
 
@@ -290,7 +291,7 @@ get_log_L_tilde <- function(psi_grid, omega_hat, model, X_h, N) {
     )
 }
 
-get_log_L_tilde_mat <- function(psi_grid, omega_hat_list, X_h, N, chunk_size) {
+get_log_L_tilde_mat <- function(psi_grid, omega_hat_list, model, X_h, N, chunk_size) {
   
   p <- progressr::progressor(along = omega_hat_list)
   
@@ -371,7 +372,7 @@ get_log_integrated_likelihood <- function(data,
   
   omega_hat_list <- get_omega_hat_list(U_list, model, X_h)
   
-  log_L_tilde_mat <- get_log_L_tilde_mat(psi_grid, omega_hat_list, X_h, N, chunk_size)
+  log_L_tilde_mat <- get_log_L_tilde_mat(psi_grid, omega_hat_list, model, X_h, N, chunk_size)
   
   log_importance_weights <- get_log_importance_weights(U_list, MC_params)
   
@@ -384,7 +385,7 @@ get_log_integrated_likelihood <- function(data,
               U_list = U_list, 
               MC_params = MC_params,
               model = model, 
-              x_h = x_h,
+              X_h = X_h,
               psi_grid = psi_grid))
 }
 

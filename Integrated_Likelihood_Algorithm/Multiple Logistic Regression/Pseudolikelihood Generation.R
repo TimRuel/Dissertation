@@ -51,6 +51,8 @@ Beta_dist_list <- list(rng = Beta_rng,
 # 
 # importance_density_params <- list(shape = importance_rng_shape_vec, rate = importance_rng_rate_vec)
 
+model <- get_logistic_regression_model(data)
+
 h <- 50L
 
 X_h <- data |> 

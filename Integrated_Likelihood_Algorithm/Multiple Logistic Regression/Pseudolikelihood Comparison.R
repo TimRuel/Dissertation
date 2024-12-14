@@ -110,7 +110,9 @@ log_likelihood_vals |>
   theme_minimal() +
   theme(axis.line = element_line())
 
-crit <- qchisq(0.95, 1) / 2
+alpha <- 0.05
+
+crit <- qchisq(1 - alpha, 1) / 2
 
 psi_grid <- get_psi_grid(step_size)
 
@@ -141,8 +143,6 @@ conf_ints <- pseudo_log_likelihood_curves |>
   )
 
 psi_hat <- get_psi_hat(model, X_h)
-
-alpha <- 0.05
 
 conf_ints$Classical <- get_CI_psi_hat(model, X_h, alpha) |> 
   round(3)
