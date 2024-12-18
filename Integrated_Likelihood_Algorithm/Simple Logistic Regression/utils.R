@@ -258,7 +258,7 @@ get_log_L_tilde <- function(psi_grid_list, omega_hat, x, y, x_h, init_guess, bet
     purrr::map_dbl(\(beta_hat) log_likelihood(beta_hat, x, y))
 }
 
-get_log_L_tilde_mat <- function(psi_grid_list, omega_hat_list, chunk_size, beta_hat_method, init_guess) {
+get_log_L_tilde_mat <- function(psi_grid_list, omega_hat_list, x, y, x_h, chunk_size, beta_hat_method, init_guess) {
   
   p <- progressr::progressor(along = omega_hat_list)
   
