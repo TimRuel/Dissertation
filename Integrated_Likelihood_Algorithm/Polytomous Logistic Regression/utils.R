@@ -185,7 +185,7 @@ get_Beta_hat <- function(psi, omega_hat, X, X_h, init_guess) {
     
     Y_hat <- X %*% Beta
 
-    sum(rowSums(probs * Y_hat) - log(1 + rowSums(exp(Y_hat))))
+    -sum(rowSums(probs * Y_hat) - log(1 + rowSums(exp(Y_hat))))
   }
 
   f.gr <- function(Beta) nloptr::nl.grad(Beta, f)
@@ -212,8 +212,6 @@ get_Beta_hat <- function(psi, omega_hat, X, X_h, init_guess) {
                         heq = fcon,
                         heqjac = fcon.jac,
                         localsolver = "LBFGS")
-  
-  print(out$message)
   
   matrix(out$par,
          nrow = nrow(omega_hat),

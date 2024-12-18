@@ -4,7 +4,7 @@ set.seed(seed)
 
 J <- 4
 
-p <- 2
+p <- 5
 
 n <- 100
 
@@ -49,7 +49,13 @@ U <- MASS::mvrnorm(p, rep(0, J - 1), diag(J - 1))
 
 omega_hat <- get_omega_hat(U, model, X_h)
 
-get_Beta_hat(0.5, omega_hat, X, X_h, Beta_MLE |> c())
+Beta_MLE <- get_Beta_MLE(model)
+
+Beta_hat <- get_Beta_hat(0.5, omega_hat, X, X_h, rep(1, length(omega_hat)))
+
+X_h %*% cbind(0, Beta_hat) |> 
+  LDATS::softmax() |> 
+  get_entropy()
 
 X_h |> 
   t() |> 
