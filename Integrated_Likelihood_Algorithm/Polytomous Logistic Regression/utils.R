@@ -4,6 +4,8 @@
 library(tidyverse)
 library(pipeR)
 
+adj_softmax <- function(x) exp(x) / (1 + sum(exp(x)))
+
 get_multinomial_logistic_model <- function(data) nnet::multinom(Y ~ ., data = data)
 
 get_log_likelihood <- function(model = NULL, b = NULL, data = NULL) {
@@ -12,7 +14,7 @@ get_log_likelihood <- function(model = NULL, b = NULL, data = NULL) {
     stop("If 'model' is not supplied, both 'b' and 'data' must be supplied.")
   }
   
-  log_likelihood <- if (!is.null(model)) {
+  if (!is.null(model)) {
     
     logLik(model)[1]
   } else {
@@ -28,12 +30,10 @@ get_log_likelihood <- function(model = NULL, b = NULL, data = NULL) {
     Y <- data |> 
       pull(Y)
     
-    Y_one_hot_enc <- model.matrix(~ Y)[,-1]
+    Y_one_hot <- model.matrix(~ Y)[,-1]
     
-    sum(rowSums(Y_one_hot_enc * Y_hat) - log(1 + rowSums(exp(Y_hat))))
+    sum(rowSums(Y_one_hot * Y_hat) - log(1 + rowSums(exp(Y_hat))))
   }
-  
-  log_likelihood
 }
 
 get_likelihood <- function(model = NULL, b = NULL, data = NULL) exp(get_log_likelihood(model, b, data))
@@ -45,19 +45,31 @@ get_Beta_MLE <- function(model) {
   model |> 
     coef() |> 
     unname() |> 
-    t()
+    matrix(ncol = length(model$lev) - 1,
+           byrow = TRUE) 
 }
 
-entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
+get_entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
 
-get_psi_hat <- function(model, X_h) {
+get_psi_hat <- function(model = NULL, b = NULL, X_h) {
   
-  X_h |> 
-    t() |> 
-    data.frame() |> 
-    predict(model, newdata = _, type = "probs") |> 
-    unname() |> 
-    entropy()
+  if (!xor(is.null(model), is.null(b))) {
+    stop("You must provide either 'model' or 'b', but not both.")
+  }
+  
+  if (!is.null(model)) {
+    
+    X_h |> 
+      t() |> 
+      data.frame() |> 
+      predict(model, newdata = _, type = "probs") |> 
+      get_entropy()
+  } else {
+    
+    cbind(1, t(X_h)) %*% cbind(0, omega_hat) |> 
+      LDATS::softmax() |> 
+      entropy()
+  }
 }
 
 get_psi_grid <- function(step_size, psi_hat = NULL) {
@@ -146,71 +158,67 @@ get_log_importance_weights <- function(u_list, MC_params) {
     )
 }
 
-get_omega_hat <- function(U, model, X_h) U * get_Y_hat(model, X_h) / (t(matrix(c(1, X_h))) %*% U)[1]
+get_omega_hat <- function(U, model, X_h) {
+  
+  b <- get_Beta_MLE(model)
+  
+  psi_hat_logits <- X_h %*% cbind(0, b)
+  
+  U_logits <- X_h %*% U
+  
+  sweep(U, 2, psi_hat_logits[-1] / U_logits, "*")
+}
 
 get_omega_hat_list <- function(U_list, model, X_h) purrr::map(U_list, \(U) get_omega_hat(U, model, X_h))
 
-# get_Beta_hat1 <- function(psi, omega_hat, model, X_h) {
-#   
-#   X <- model.matrix(model)
-#   
-#   w <- plogis(X %*% omega_hat)
-#   
-#   f <- function(Beta) {
-#     
-#     linear_predictor <- X %*% matrix(Beta)
-#     
-#     -sum(w * linear_predictor - log(1 + exp(linear_predictor)))
-#   }
-#   
-#   f.gr <- function(Beta) nloptr::nl.grad(Beta, f)
-#   
-#   fcon <- function(Beta) t(X_h) %*% matrix(Beta) - log(psi / (1 - psi))
-#   fcon.jac <- function(Beta) nloptr::nl.jacobian(Beta, fcon)
-#   
-#   out <- nloptr::auglag(x0 = rep(0, ncol(X)),
-#                         fn = f,
-#                         gr = f.gr,
-#                         heq = fcon,
-#                         heqjac = fcon.jac,
-#                         localsolver = "LBFGS")
-#   
-#   Beta_hat <- out$par
-#   
-#   Beta_hat
-# }
+get_Beta_hat <- function(psi, omega_hat, X, X_h, init_guess) {
 
-get_Beta_hat <- function(psi, omega_hat, model, X_h, N) {
+  probs <- X %*% omega_hat |> 
+    adj_softmax()
+
+  f <- function(Beta) {
+    
+    Beta <- matrix(Beta,
+                   nrow = nrow(omega_hat),
+                   ncol = ncol(omega_hat),
+                   byrow = FALSE)
+    
+    Y_hat <- X %*% Beta
+
+    sum(rowSums(probs * Y_hat) - log(1 + rowSums(exp(Y_hat))))
+  }
+
+  f.gr <- function(Beta) nloptr::nl.grad(Beta, f)
+
+  fcon <- function(Beta) {
+    
+    Beta <- matrix(Beta,
+                   nrow = nrow(omega_hat),
+                   ncol = ncol(omega_hat),
+                   byrow = FALSE)
+    
+    entropy <- (X_h %*% cbind(0, Beta)) |> 
+      LDATS::softmax() |> 
+      get_entropy()
+      
+    return(entropy - psi)
+  }
   
-  model_data <- model |> 
-    model.frame()
+  fcon.jac <- function(Beta) nloptr::nl.jacobian(Beta, fcon)
+
+  out <- nloptr::auglag(x0 = init_guess,
+                        fn = f,
+                        gr = f.gr,
+                        heq = fcon,
+                        heqjac = fcon.jac,
+                        localsolver = "LBFGS")
   
-  X <- model_data |> 
-    select(-Y)
+  print(out$message)
   
-  Y <- model_data |> 
-    select(Y)
-  
-  frac <- model.matrix(model) %*% omega_hat |> 
-    plogis()
-  
-  data <- X |> 
-    sweep(2, X_h) |> 
-    mutate(successes = round(N * frac),
-           failures = N - round(N * frac),
-           response = cbind(successes, failures))
-  
-  intercept <- log(psi / (1 - psi))
-  
-  fit <- glm(response ~ . - successes - failures - 1, data = data, family = binomial(link = logit), offset = rep(intercept, nrow(Y)))
-  
-  Beta_hat <- fit |> 
-    coef() |> 
-    unname() |> 
-    matrix()
-  
-  c(intercept - t(Beta_hat) %*% X_h, Beta_hat) |> 
-    matrix()
+  matrix(out$par,
+         nrow = nrow(omega_hat),
+         ncol = ncol(omega_hat),
+         byrow = FALSE)
 }
 
 # accumulate_beta_hats <- function(psi_grid_list, omega_hat, x, x_h, init_guess) {
