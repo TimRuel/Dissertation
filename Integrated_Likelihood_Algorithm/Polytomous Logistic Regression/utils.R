@@ -8,37 +8,19 @@ adj_softmax <- function(x) exp(x) / (1 + sum(exp(x)))
 
 get_multinomial_logistic_model <- function(data) nnet::multinom(Y ~ ., data = data)
 
-get_log_likelihood <- function(model = NULL, b = NULL, data = NULL) {
+get_log_likelihood <- function(b, X, Y_one_hot) {
   
-  if (is.null(model) && (is.null(b) || is.null(data))) {
-    stop("If 'model' is not supplied, both 'b' and 'data' must be supplied.")
-  }
+  b <- matrix(b,
+              nrow = ncol(X),
+              ncol = ncol(Y_one_hot),
+              byrow = FALSE)
   
-  if (!is.null(model)) {
-    
-    logLik(model)[1]
-  } else {
-    
-    X <- data |> 
-      select(-Y) |> 
-      as.matrix() |> 
-      unname() |> 
-      (\(z) cbind(1, z))()
-    
-    Y_hat <- X %*% b
-    
-    Y <- data |> 
-      pull(Y)
-    
-    Y_one_hot <- model.matrix(~ Y)[,-1]
-    
-    sum(rowSums(Y_one_hot * Y_hat) - log(1 + rowSums(exp(Y_hat))))
-  }
+  Y_hat <- X %*% b
+  
+  sum(rowSums(Y_one_hot * Y_hat) - log(1 + rowSums(exp(Y_hat))))
 }
 
-get_likelihood <- function(model = NULL, b = NULL, data = NULL) exp(get_log_likelihood(model, b, data))
-
-get_neg_log_likelihood <- function(model = NULL, b = NULL, data = NULL) -get_log_likelihood(model, b, data)
+get_likelihood <- function(b, X, Y_one_hot) exp(get_log_likelihood(b, X, Y_one_hot))
 
 get_Beta_MLE <- function(model) {
   
@@ -59,24 +41,29 @@ get_psi_hat <- function(model = NULL, b = NULL, X_h) {
   
   if (!is.null(model)) {
     
-    X_h |> 
+    X_h[,-1] |> 
       t() |> 
       data.frame() |> 
       predict(model, newdata = _, type = "probs") |> 
       get_entropy()
+    
   } else {
     
-    cbind(1, t(X_h)) %*% cbind(0, omega_hat) |> 
+    X_h %*% cbind(0, omega_hat) |> 
       LDATS::softmax() |> 
       entropy()
   }
 }
 
-get_psi_grid <- function(step_size, psi_hat = NULL) {
+get_psi_grid <- function(step_size, model, X_h = NULL) {
   
-  psi_grid <- seq(0 + step_size, 1 - step_size, step_size)
+  J <- length(model$lev)
   
-  if (!is.null(psi_hat)) {
+  psi_grid <- seq(0, log(J), step_size)
+  
+  if (!is.null(X_h)) {
+    
+    psi_hat <- get_psi_hat(model = model, X_h = X_h)
     
     psi_grid_list <- psi_grid |> 
       split(factor(psi_grid > psi_hat)) |> 
@@ -118,7 +105,6 @@ get_U_list <- function(MC_params, R, simplify = FALSE) {
   MC_params |> 
     get_dist_list() |> 
     dist_sampler() |> 
-    matrix() |> 
     replicate(R, expr = _, simplify = simplify)
 }
 
@@ -158,9 +144,7 @@ get_log_importance_weights <- function(u_list, MC_params) {
     )
 }
 
-get_omega_hat <- function(U, model, X_h) {
-  
-  b <- get_Beta_MLE(model)
+get_omega_hat <- function(U, b, X_h) {
   
   psi_hat_logits <- X_h %*% cbind(0, b)
   
@@ -169,9 +153,9 @@ get_omega_hat <- function(U, model, X_h) {
   sweep(U, 2, psi_hat_logits[-1] / U_logits, "*")
 }
 
-get_omega_hat_list <- function(U_list, model, X_h) purrr::map(U_list, \(U) get_omega_hat(U, model, X_h))
+get_omega_hat_list <- function(U_list, b, X_h) purrr::map(U_list, \(U) get_omega_hat(U, b, X_h))
 
-get_Beta_hat <- function(psi, omega_hat, X, X_h, init_guess) {
+get_Beta_hat <- function(init_guess, psi, omega_hat, X, X_h) {
 
   probs <- X %*% omega_hat |> 
     adj_softmax()
@@ -206,65 +190,35 @@ get_Beta_hat <- function(psi, omega_hat, X, X_h, init_guess) {
   
   fcon.jac <- function(Beta) nloptr::nl.jacobian(Beta, fcon)
 
-  out <- nloptr::auglag(x0 = init_guess,
-                        fn = f,
-                        gr = f.gr,
-                        heq = fcon,
-                        heqjac = fcon.jac,
-                        localsolver = "LBFGS")
-  
-  matrix(out$par,
-         nrow = nrow(omega_hat),
-         ncol = ncol(omega_hat),
-         byrow = FALSE)
+  nloptr::auglag(x0 = init_guess,
+                 fn = f,
+                 gr = f.gr,
+                 heq = fcon,
+                 heqjac = fcon.jac,
+                 localsolver = "LBFGS")$par
 }
 
-# accumulate_beta_hats <- function(psi_grid_list, omega_hat, x, x_h, init_guess) {
-#   
-#   psi_grid_list |>
-#     purrr::map(\(psi_grid) {
-#       psi_grid |> 
-#         purrr::accumulate(
-#           \(acc, nxt) get_beta_hat(acc, nxt, omega_hat, x, x_h),
-#           .init = init_guess) |>
-#         magrittr::extract(-1)
-#     }
-#     ) |> 
-#     purrr::modify_in(1, rev) |> 
-#     unlist(recursive = FALSE)
-# }
+accumulate_Beta_hats <- function(psi_grid, omega_hat, X, X_h, init_guess) {
 
-# map_beta_hats <- function(psi_grid_list, omega_hat, x, x_h, init_guess) {
-#   
-#   psi_grid_list |>
-#     purrr::map(\(psi_grid) {
-#       psi_grid |> 
-#         purrr::map_dbl(\(psi) get_beta_hat(init_guess, psi, omega_hat, x, x_h))
-#     }
-#     ) |> 
-#     purrr::modify_in(1, rev)
-# }
+  psi_grid |>
+    purrr::accumulate(
+      \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X, X_h),
+      .init = init_guess) |>
+    magrittr::extract(-1)
+}
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-get_log_L_tilde <- function(psi_grid, omega_hat, model, X_h, N) {
-  
-  data <- model |> 
-    model.frame()
+get_log_L_tilde <- function(psi_grid, omega_hat, X, Y_one_hot, X_h, init_guess) {
   
   psi_grid |> 
-    purrr::map_dbl(\(psi) {
-      
-      psi |> 
-        get_Beta_hat(omega_hat, model, X_h, N) |> 
-        get_log_likelihood(b = _, data = data)
-    }
-    )
+    accumulate_Beta_hats(omega_hat, X, X_h, init_guess) |> 
+    purrr::map_dbl(\(Beta_hat) get_log_likelihood(b = Beta_hat, X = X, Y_one_hot = Y_one_hot))
 }
 
-get_log_L_tilde_mat <- function(psi_grid, omega_hat_list, model, X_h, N, chunk_size) {
+get_log_L_tilde_mat <- function(psi_grid, omega_hat_list, X, Y_one_hot, X_h, init_guess, chunk_size) {
   
   p <- progressr::progressor(along = omega_hat_list)
   
@@ -281,7 +235,7 @@ get_log_L_tilde_mat <- function(psi_grid, omega_hat_list, model, X_h, N, chunk_s
     
     p()
     
-    get_log_L_tilde(psi_grid, omega_hat, model, X_h, N)
+    get_log_L_tilde(psi_grid, omega_hat, X, Y_one_hot, X_h, init_guess)
   }
 }
 
@@ -335,17 +289,30 @@ get_log_integrated_likelihood <- function(data,
                                           X_h, 
                                           psi_grid, 
                                           R,
-                                          N,
                                           MC_params,
+                                          init_guess,
                                           chunk_size) {
   
-  model <- get_logistic_regression_model(data)
+  X <- data |> 
+    select(-Y) |> 
+    as.matrix() |> 
+    unname() |> 
+    (\(mat) cbind(1, mat))()
+  
+  Y <- data |> 
+    pull(Y)
+  
+  Y_one_hot <- model.matrix( ~ Y)[,-1]
+  
+  model <- get_multinomial_logistic_model(data)
+  
+  Beta_MLE <- get_Beta_MLE(model)
   
   U_list <- get_U_list(MC_params, R)
   
-  omega_hat_list <- get_omega_hat_list(U_list, model, X_h)
+  omega_hat_list <- get_omega_hat_list(U_list, Beta_MLE, X_h)
   
-  log_L_tilde_mat <- get_log_L_tilde_mat(psi_grid, omega_hat_list, model, X_h, N, chunk_size)
+  log_L_tilde_mat <- get_log_L_tilde_mat(psi_grid, omega_hat_list, X, Y_one_hot, X_h, init_guess, chunk_size)
   
   log_importance_weights <- get_log_importance_weights(U_list, MC_params)
   
@@ -366,16 +333,29 @@ get_log_integrated_likelihood <- function(data,
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-get_profile_log_likelihood <- function(data, X_h, step_size) {
+get_log_profile_likelihood <- function(data,
+                                       X_h, 
+                                       psi_grid, 
+                                       init_guess) {
   
-  psi_grid <- get_psi_grid(step_size)
+  X <- data |> 
+    select(-Y) |> 
+    as.matrix() |> 
+    unname() |> 
+    (\(mat) cbind(1, mat))()
   
-  model <- get_logistic_regression_model(data)
+  Y <- data |> 
+    pull(Y)
+  
+  Y_one_hot <- model.matrix( ~ Y)[,-1]
+  
+  model <- get_multinomial_logistic_model(data)
   
   Beta_MLE <- get_Beta_MLE(model)
   
   psi_grid |> 
-    get_log_L_tilde(Beta_MLE, model, X_h, N)
+    accumulate_Beta_hats(Beta_MLE, X, X_h, init_guess) |> 
+    purrr::map_dbl(\(Beta_hat) get_log_likelihood(b = Beta_hat, X = X, Y_one_hot = Y_one_hot))
 }
 
 
