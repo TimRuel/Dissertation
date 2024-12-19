@@ -49,9 +49,9 @@ get_psi_hat <- function(model = NULL, b = NULL, X_h) {
     
   } else {
     
-    X_h %*% cbind(0, omega_hat) |> 
+    X_h %*% cbind(0, b) |> 
       LDATS::softmax() |> 
-      entropy()
+      get_entropy()
   }
 }
 
@@ -229,7 +229,8 @@ get_log_L_tilde_mat <- function(psi_grid, omega_hat_list, X, Y_one_hot, X_h, ini
     .multicombine = TRUE,
     .maxcombine = length(omega_hat_list),
     .options.future = list(seed = TRUE,
-                           chunk.size = chunk_size)
+                           chunk.size = chunk_size),
+    .packages = "nloptr"
     
   ) %dofuture% {
     

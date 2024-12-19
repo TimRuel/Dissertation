@@ -86,9 +86,9 @@ init_guess <- rep(1, length(coef(model)))
 # num_workers <- parallel::detectCores() |>
 #   as.numeric()
 
-num_workers <- 10
+num_workers <- 50
 
-chunk_size <- 25
+chunk_size <- 5
 
 method <- "vanilla_MC"
 
@@ -113,7 +113,7 @@ toc()
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-profile_log_likelihood_vals <- get_profile_log_likelihood(data,
+log_profile_likelihood_vals <- get_log_profile_likelihood(data,
                                                           X_h, 
                                                           psi_grid, 
                                                           init_guess)
@@ -124,7 +124,7 @@ profile_log_likelihood_vals <- get_profile_log_likelihood(data,
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = log_integrated_likelihood_vanilla_MC$log_L_bar$estimate,
-                                  Profile = profile_log_likelihood_vals)
+                                  Profile = log_profile_likelihood_vals)
 
 log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={R}_h={h}_stepsize={step_size}.Rda")
 
