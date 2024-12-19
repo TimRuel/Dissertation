@@ -20,7 +20,3 @@ Y <- rbinom(n, 1, plogis(X %*% Beta_0))
 data <- X[,-1] |> 
   data.frame(Y = Y)
 
-
-
-
-

@@ -163,7 +163,7 @@ MLE_data |>
            as.numeric()) |> 
   arrange(length) |> 
   add_row(Source = "Truth",
-          MLE = plogis(get_Y_hat(model, X_h))) |> 
+          MLE = plogis(cbind(1, t(X_h)) %*% Beta_0)) |> 
   kbl(col.names = c("Source", 
                     "MLE",
                     "95% Confidence Interval",
@@ -202,7 +202,7 @@ y_min <- pseudo_log_likelihood_curves |>
 
 MLE_data <- MLE_data |> 
   add_row(Source = "Truth",
-          MLE = plogis(get_Y_hat(model, X_h)),
+          MLE = plogis(cbind(1, t(X_h)) %*% Beta_0),
           MLE_label = "psi[0]")
 
 ggplot() +
