@@ -3,6 +3,8 @@
 ################################################################################
 library(tidyverse)
 library(pipeR)
+library(accumulate)
+# Rcpp::sourceCpp("accumulate_rcpp.cpp")
 
 adj_softmax <- function(x) exp(x) / (1 + sum(exp(x)))
 
@@ -198,13 +200,21 @@ get_Beta_hat <- function(init_guess, psi, omega_hat, X, X_h) {
                  localsolver = "LBFGS")$par
 }
 
+# accumulate_Beta_hats <- function(psi_grid, omega_hat, X, X_h, init_guess) {
+# 
+#   psi_grid |>
+#     purrr::accumulate(
+#       \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X, X_h),
+#       .init = init_guess) |>
+#     magrittr::extract(-1)
+# }
+
 accumulate_Beta_hats <- function(psi_grid, omega_hat, X, X_h, init_guess) {
 
   psi_grid |>
-    purrr::accumulate(
+    accumulate_rcpp(
       \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X, X_h),
-      .init = init_guess) |>
-    magrittr::extract(-1)
+      init = init_guess)
 }
 
 ################################################################################
@@ -229,13 +239,13 @@ get_log_L_tilde_mat <- function(psi_grid, omega_hat_list, X, Y_one_hot, X_h, ini
     .multicombine = TRUE,
     .maxcombine = length(omega_hat_list),
     .options.future = list(seed = TRUE,
-                           chunk.size = chunk_size),
-    .packages = "nloptr"
+                           chunk.size = chunk_size,
+                           packages = c("nloptr", "accumulate"))
     
   ) %dofuture% {
     
     p()
-    
+
     get_log_L_tilde(psi_grid, omega_hat, X, Y_one_hot, X_h, init_guess)
   }
 }
@@ -358,9 +368,3 @@ get_log_profile_likelihood <- function(data,
     accumulate_Beta_hats(Beta_MLE, X, X_h, init_guess) |> 
     purrr::map_dbl(\(Beta_hat) get_log_likelihood(b = Beta_hat, X = X, Y_one_hot = Y_one_hot))
 }
-
-
-
-
-
-

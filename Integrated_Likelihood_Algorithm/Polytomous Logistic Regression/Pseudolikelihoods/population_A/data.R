@@ -1,3 +1,5 @@
+library(dplyr)
+
 seed <- 54323872
 
 set.seed(seed)
@@ -25,12 +27,3 @@ Y <- apply(probs, 1, function(p) sample(1:J, size = 1, prob = p))
 
 data <- X[,-1] |> 
   data.frame(Y = factor(Y))
-
-h <- 50L
-
-X_h <- data |> 
-  select(-Y) |> 
-  slice(h) |>
-  unname() |> 
-  as.matrix() |> 
-  (\(mat) cbind(1, mat))()

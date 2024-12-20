@@ -65,9 +65,9 @@ X_h <- data |>
   as.matrix() |> 
   (\(mat) cbind(1, mat))()
 
-R <- 250
+R <- 100
 
-step_size <- 0.01
+step_size <- 0.05
 
 psi_grid <- get_psi_grid(step_size, model)
 
@@ -86,9 +86,9 @@ init_guess <- rep(1, length(coef(model)))
 # num_workers <- parallel::detectCores() |>
 #   as.numeric()
 
-num_workers <- 50
+num_workers <- 12
 
-chunk_size <- 5
+chunk_size <- 4
 
 method <- "vanilla_MC"
 
@@ -130,14 +130,28 @@ log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
-plot(psi_grid, profile_log_likelihood_vals)
+plot(psi_grid, log_profile_likelihood_vals)
 
 plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
-
-
-
-
-
-
-
+# 
+# Rcpp::sourceCpp("accumulate_rcpp.cpp")
+# 
+# Beta_MLE <- get_Beta_MLE(model)
+# 
+# U_list <- get_U_list(MC_params, R)
+# 
+# omega_hat_list <- get_omega_hat_list(U_list, Beta_MLE, X_h)
+# 
+# accumulate_Beta_hats(psi_grid, omega_hat, X, X_h, init_guess)
+# 
+# Y_one_hot <- model.matrix( ~ factor(Y))[,-1]
+# 
+# get_log_L_tilde(psi_grid, omega_hat, X, Y_one_hot, X_h, init_guess)
+# 
+# registerDoFuture()
+# plan(multisession)
+# 
+# parallel::clusterEvalQ(plan(), Rcpp::sourceCpp("accumulate_rcpp.cpp"))
+# 
+# get_log_L_tilde_mat(psi_grid, omega_hat_list, X, Y_one_hot, X_h, init_guess, chunk_size)
 
