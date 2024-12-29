@@ -56,7 +56,11 @@ Beta_dist_list <- list(rng = Beta_rng,
 
 model <- get_multinomial_logistic_model(data)
 
-h <- 50L
+X_level <- 1
+
+h <- 1 + 200 * (X_level - 1)
+
+# h <- 30L
 
 X_h <- data |> 
   select(-Y) |> 
@@ -65,11 +69,13 @@ X_h <- data |>
   as.matrix() |> 
   (\(mat) cbind(1, mat))()
 
-R <- 100
+R <- 10
 
-step_size <- 0.05
+step_size <- 0.1
 
-psi_grid <- get_psi_grid(step_size, model)
+num_std_errors <- 1
+
+psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
 
 init_guess <- rep(1, length(coef(model)))
 
@@ -86,9 +92,9 @@ init_guess <- rep(1, length(coef(model)))
 # num_workers <- parallel::detectCores() |>
 #   as.numeric()
 
-num_workers <- 12
+num_workers <- 10
 
-chunk_size <- 4
+chunk_size <- 1
 
 method <- "vanilla_MC"
 

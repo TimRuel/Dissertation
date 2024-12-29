@@ -114,7 +114,7 @@ alpha <- 0.05
 
 crit <- qchisq(1 - alpha, 1) / 2
 
-psi_grid <- get_psi_grid(step_size, model)
+psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
 
 conf_ints <- pseudo_log_likelihood_curves |> 
   map2(MLE_data$MLE,

@@ -57,15 +57,29 @@ get_psi_hat <- function(model = NULL, b = NULL, X_h) {
   }
 }
 
-get_psi_grid <- function(step_size, model, X_h = NULL) {
+get_psi_grid <- function(step_size, num_std_errors, model, X_h, split = FALSE) {
   
   J <- length(model$lev)
   
-  psi_grid <- seq(0, log(J), step_size)
+  psi_hat <- get_psi_hat(model = model, X_h = X_h)
   
-  if (!is.null(X_h)) {
-    
-    psi_hat <- get_psi_hat(model = model, X_h = X_h)
+  probs <- X_h[,-1] |> 
+    t() |> 
+    data.frame() |> 
+    predict(model, newdata = _, type = "probs", se.fit = TRUE)
+  
+  sigma <- probs*diag(J) - matrix(probs) %*% probs
+  
+  psi_hat_SE <- sqrt(sum(matrix(1 + log(probs)) %*% (1 + log(probs)) * sigma, na.rm = TRUE))
+  
+  MoE <- num_std_errors * psi_hat_SE
+  
+  psi_grid <- (psi_hat + MoE*c(-1, 1)) |> 
+    (\(x) c(max(0, x[1]), min(log(J), x[2])))() |> 
+    plyr::round_any(step_size, floor) |> 
+    (\(x) seq(x[1], x[2] + step_size, step_size))()
+  
+  if (split) {
     
     psi_grid_list <- psi_grid |> 
       split(factor(psi_grid > psi_hat)) |> 
@@ -200,22 +214,22 @@ get_Beta_hat <- function(init_guess, psi, omega_hat, X, X_h) {
                  localsolver = "LBFGS")$par
 }
 
-# accumulate_Beta_hats <- function(psi_grid, omega_hat, X, X_h, init_guess) {
-# 
-#   psi_grid |>
-#     purrr::accumulate(
-#       \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X, X_h),
-#       .init = init_guess) |>
-#     magrittr::extract(-1)
-# }
-
 accumulate_Beta_hats <- function(psi_grid, omega_hat, X, X_h, init_guess) {
 
   psi_grid |>
-    accumulate_rcpp(
+    purrr::accumulate(
       \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X, X_h),
-      init = init_guess)
+      .init = init_guess) |>
+    magrittr::extract(-1)
 }
+
+# accumulate_Beta_hats <- function(psi_grid, omega_hat, X, X_h, init_guess) {
+# 
+#   psi_grid |>
+#     accumulate_rcpp(
+#       \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X, X_h),
+#       init = init_guess)
+# }
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
