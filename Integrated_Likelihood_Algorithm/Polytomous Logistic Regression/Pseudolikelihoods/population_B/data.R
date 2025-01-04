@@ -1,29 +1,35 @@
 library(dplyr)
 
-seed <- 54323872
+source("../../utils.R")
+
+seed <- 212532
 
 set.seed(seed)
 
-J <- 3 # number of levels of response variable
+J <- 5 # number of levels of response variable
 
 p <- 3 # number of levels of predictor
 
-m <- 200 # number of observations at each level of predictor
+m <- 50 # number of observations at each level of predictor
 
-Beta_0 <- runif(p, -1, 1) |> 
-  replicate(J - 1, expr = _)
+theta_0 <- seq(0, log(J), length.out = p + 1) |> 
+  (\(x) mapply(c, x[-length(x)], x[-1], SIMPLIFY = FALSE))() |> 
+  map(\(x) get_probability_vector(k = J, target_entropy_range = x, max_iter = 100000))
+
+get_entropy(theta_0[[1]])
+get_entropy(theta_0[[2]])
+get_entropy(theta_0[[3]])
+
+Y <- theta_0 |> 
+  map(\(p) sample(1:J, size = m, prob = p, replace = TRUE)) |> 
+  unlist() |> 
+  factor(levels = 1:J)
 
 X <- 1:p |> 
   rep(each = m) |> 
-  factor() |> 
-  relevel(ref = p) |> 
-  (\(X) model.matrix(~ X))()
+  factor()
 
-logits <- cbind(0, X %*% Beta_0)
+contrasts(X) <- contr.sum
 
-probs <- LDATS::softmax(logits)
-
-Y <- apply(probs, 1, function(p) sample(1:J, size = 1, prob = p))
-
-data <- X[,-1] |> 
-  data.frame(Y = factor(Y))
+data <- data.frame(X = X,
+                   Y = Y)

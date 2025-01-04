@@ -29,17 +29,17 @@ step_size <- log_likelihood_vals_file_path |>
   str_extract("\\d+\\.\\d+") |> 
   as.numeric()
 
-h <- log_likelihood_vals_file_path |>
+X_level <- log_likelihood_vals_file_path |>
   str_remove("^.*h=") |>
   str_extract("-?\\d+(\\.\\d+)?") |>
   as.numeric()
 
-X_h <- data |> 
-  select(-Y) |> 
-  slice(h) |>
-  unname() |> 
-  as.matrix() |> 
-  (\(mat) cbind(1, mat))()
+X_h <- data.frame(X = factor(X_level))
+
+psi_hat <- get_psi_hat(model, X_h)
+
+psi_0 <- theta_0[[X_level]] |> 
+  get_entropy()
 
 # pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
@@ -114,7 +114,7 @@ alpha <- 0.05
 
 crit <- qchisq(1 - alpha, 1) / 2
 
-psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
+psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h, split = FALSE)
 
 conf_ints <- pseudo_log_likelihood_curves |> 
   map2(MLE_data$MLE,
@@ -162,15 +162,17 @@ MLE_data |>
            map(diff) |> 
            as.numeric()) |> 
   arrange(length) |> 
+  add_row(Source = "Classical",
+          MLE = psi_hat) |>
   add_row(Source = "Truth",
-          MLE = get_psi_hat(b = Beta_0, X_h = X_h)) |>
+          MLE = psi_0) |>
   kbl(col.names = c("Source", 
                     "MLE",
                     "95% Confidence Interval",
                     "CI Length"),   
       align = "c") |> 
   kable_styling(bootstrap_options = c("striped", "hover")) |> 
-  row_spec(3, color = "green", bold = TRUE)
+  row_spec(4, color = "green", bold = TRUE)
 
 # stat_fn_PL <- map2(
 c(stat_fn_IL, stat_fn_PL) %<-% map2(
@@ -200,9 +202,12 @@ y_min <- pseudo_log_likelihood_curves |>
   min() |> 
   round()
 
-MLE_data <- MLE_data |>
+label_data <- MLE_data |>
+  add_row(Source = "Classical",
+          MLE = psi_hat,
+          MLE_label = "hat(psi)") |> 
   add_row(Source = "Truth",
-          MLE = get_psi_hat(b = Beta_0, X_h = X_h),
+          MLE = psi_0,
           MLE_label = "psi[0]")
 
 ggplot() +
@@ -213,30 +218,30 @@ ggplot() +
              linetype = 5) +
   geom_vline(aes(xintercept = MLE,
                  color = Source),
-             data = MLE_data,
+             data = label_data,
              show.legend = FALSE) +
   ggrepel::geom_label_repel(aes(x = MLE,
                                 y = y_min / 2,
                                 label = MLE_label,
                                 color = Source),
-                            data = MLE_data,
+                            data = label_data,
                             direction = "y",
                             parse = TRUE,
                             show.legend = FALSE) +
-  annotate("rect", 
-           xmin = conf_ints$Integrated[1], 
-           xmax = conf_ints$Integrated[2], 
-           ymin = -Inf,
-           ymax = Inf,
-           fill = "blue",
-           alpha = 0.5) +
-  annotate("rect", 
-           xmin = conf_ints$Profile[1], 
-           xmax = conf_ints$Profile[2], 
-           ymin = -Inf,
-           ymax = Inf,
-           fill = "green",
-           alpha = 0.5) +
+  # annotate("rect", 
+  #          xmin = conf_ints$Integrated[1], 
+  #          xmax = conf_ints$Integrated[2], 
+  #          ymin = -Inf,
+  #          ymax = Inf,
+  #          fill = "blue",
+  #          alpha = 0.5) +
+  # annotate("rect", 
+  #          xmin = conf_ints$Profile[1], 
+  #          xmax = conf_ints$Profile[2], 
+  #          ymin = -Inf,
+  #          ymax = Inf,
+  #          fill = "green",
+  #          alpha = 0.5) +
   # annotate("rect",
   #          xmin = conf_ints$Classical[1],
   #          xmax = conf_ints$Classical[2],

@@ -58,26 +58,11 @@ model <- get_multinomial_logistic_model(data)
 
 X_level <- 1
 
-h <- 1 + 200 * (X_level - 1)
+X_h <- data.frame(X = factor(X_level))
 
-# h <- 30L
+step_size <- 0.01
 
-X_h <- data |> 
-  select(-Y) |> 
-  slice(h) |>
-  unname() |> 
-  as.matrix() |> 
-  (\(mat) cbind(1, mat))()
-
-R <- 10
-
-step_size <- 0.1
-
-num_std_errors <- 1
-
-psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
-
-init_guess <- rep(1, length(coef(model)))
+num_std_errors <- 2.5
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
@@ -91,6 +76,13 @@ init_guess <- rep(1, length(coef(model)))
 
 # num_workers <- parallel::detectCores() |>
 #   as.numeric()
+
+psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, split = TRUE)
+
+R <- 10
+
+init_guess <- get_Beta_MLE(model) |> 
+  c()
 
 num_workers <- 10
 
@@ -107,7 +99,7 @@ plan(multisession, workers = I(num_workers))
 
 log_integrated_likelihood_vanilla_MC <- get_log_integrated_likelihood(data,
                                                                       X_h, 
-                                                                      psi_grid, 
+                                                                      psi_grid_list, 
                                                                       R,
                                                                       MC_params,
                                                                       init_guess,
@@ -121,18 +113,19 @@ toc()
 
 log_profile_likelihood_vals <- get_log_profile_likelihood(data,
                                                           X_h, 
-                                                          psi_grid, 
-                                                          init_guess)
+                                                          psi_grid_list)
 
 ################################################################################
 ################################### STORAGE #################################### 
 ################################################################################
 
+psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h, split = FALSE)
+
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = log_integrated_likelihood_vanilla_MC$log_L_bar$estimate,
                                   Profile = log_profile_likelihood_vals)
 
-log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={R}_h={h}_stepsize={step_size}.Rda")
+log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={R}_h={X_level}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
