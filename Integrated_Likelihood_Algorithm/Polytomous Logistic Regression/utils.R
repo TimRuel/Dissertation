@@ -102,7 +102,7 @@ get_psi_hat <- function(model, X_h) {
     get_entropy()
 }
 
-get_psi_grid <- function(step_size, num_std_errors, model, X_h, split = FALSE) {
+get_psi_grid <- function(step_size, num_std_errors, model, X_h, burn_in = 4, split = FALSE) {
   
   m <- model |> 
     model.frame() |> 
@@ -132,7 +132,8 @@ get_psi_grid <- function(step_size, num_std_errors, model, X_h, split = FALSE) {
     
     psi_grid_list <- psi_grid |> 
       split(factor(psi_grid > psi_hat)) |> 
-      purrr::modify_in(1, \(x) c(x, tail(x, 1) + step_size / 2) |> rev()) |> 
+      purrr::modify_in(1, \(x) c(x, seq(tail(x, 1), tail(x, 1) + step_size, length.out = burn_in + 2)[-c(1, burn_in + 2)]) |> rev()) |> 
+      purrr::modify_in(2, \(x) c(seq(head(x, 1) - step_size, head(x, 1), length.out = burn_in + 2)[-c(1, burn_in + 2)], x)) |> 
       unname()
     
     return(psi_grid_list)
@@ -284,12 +285,43 @@ accumulate_Beta_hats <- function(psi_grid, omega_hat, X_one_hot, X_h_one_hot, in
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
+handle_near_consecutive <- function(vec, threshold, tol = 1e-8) {
+  n <- length(vec)
+  i <- 1  # Initialize index
+  
+  while (i <= n) {
+    # Detect a streak of near-consecutive values
+    streak_start <- i
+    while (i < n && abs(vec[i] - vec[i + 1]) < tol) {
+      i <- i + 1
+    }
+    streak_end <- i
+    
+    # If there's a streak of two or more values
+    if (streak_end > streak_start) {
+      if (vec[streak_start] < threshold) {
+        # Set all but the last to NA
+        vec[streak_start:(streak_end - 1)] <- NA
+      } else if (vec[streak_start] > threshold) {
+        # Set all but the first to NA
+        vec[(streak_start + 1):streak_end] <- NA
+      }
+    }
+    
+    # Move to the next possible streak
+    i <- streak_end + 1
+  }
+  
+  return(vec)
+}
+
 get_log_L_tilde_mat <- function(psi_grid_list, 
                                 omega_hat_list, 
                                 X_one_hot, 
                                 X_h_one_hot, 
                                 Y_one_hot, 
-                                init_guess, 
+                                init_guess,
+                                burn_in,
                                 chunk_size) {
   
   p <- progressr::progressor(steps = 3 * length(omega_hat_list))
@@ -300,26 +332,35 @@ get_log_L_tilde_mat <- function(psi_grid_list,
     .combine = "rbind",
     .multicombine = TRUE,
     .maxcombine = length(omega_hat_list),
+    .errorhandling = "remove",
     .options.future = list(seed = TRUE,
                            chunk.size = chunk_size,
                            packages = c("nloptr", "accumulate"))
     
   ) %dofuture% {
     
-    p()
-
-    Beta_hats_1 <- psi_grid_list[[1]] |>
-      accumulate_Beta_hats(omega_hat, X_one_hot, X_h_one_hot, init_guess)
-
-    p()
-
-    Beta_hats_2 <- psi_grid_list[[2]] |>
-      accumulate_Beta_hats(omega_hat, X_one_hot, X_h_one_hot, Beta_hats_1[[1]])
-
-    p()
-
-    c(rev(Beta_hats_1[-1]), Beta_hats_2) |>
-      purrr::map_dbl(\(Beta_hat) get_log_likelihood(Beta_hat, X_one_hot, Y_one_hot))
+    tryCatch({
+      
+      p()
+      
+      Beta_hats_1 <- psi_grid_list[[1]] |>
+        accumulate_Beta_hats(omega_hat, X_one_hot, X_h_one_hot, init_guess)
+      
+      p()
+      
+      Beta_hats_2 <- psi_grid_list[[2]] |>
+        accumulate_Beta_hats(omega_hat, X_one_hot, X_h_one_hot, Beta_hats_1[[burn_in]])
+      
+      p()
+      
+      log_L_tilde <- c(rev(Beta_hats_1[-seq_len(burn_in)]), Beta_hats_2[-seq_len(burn_in)]) |>
+        purrr::map_dbl(\(Beta_hat) get_log_likelihood(Beta_hat, X_one_hot, Y_one_hot))
+      
+      log_L_tilde <- log_L_tilde
+      
+    }, 
+    error = function(e) NULL
+    )
   }
 }
 
@@ -359,6 +400,8 @@ get_log_L_bar <- function(log_L_tilde_mat, log_w, MC_params) {
   
   estimate <- matrixStats::colLogSumExps(log_weighted_vals) - log(nrow(log_L_tilde_mat))
   
+  # estimate <- matrixStats::colLogSumExps(log_weighted_vals)
+  
   var_estimate <- matrixStats::colVars(log_weighted_vals)
   
   var_exp_estimate <- matrixStats::colVars(exp(log_weighted_vals))
@@ -371,17 +414,30 @@ get_log_L_bar <- function(log_L_tilde_mat, log_w, MC_params) {
 
 get_log_integrated_likelihood <- function(data,
                                           X_h, 
-                                          psi_grid_list, 
                                           R,
                                           MC_params,
                                           init_guess,
+                                          step_size, 
+                                          num_std_errors,
+                                          burn_in,
                                           chunk_size) {
   
   model <- get_multinomial_logistic_model(data)
   
+  m <- model |> 
+    model.frame() |> 
+    select(starts_with("X")) |> 
+    table() |> 
+    (\(table) table[X_h$X])()
+  
   X_one_hot <- model.matrix(model)
   
-  X_h_one_hot <- X_one_hot[X_h$X,]
+  X_level <- X_h |> 
+    pull(X) |> 
+    as.character() |> 
+    as.numeric()
+  
+  X_h_one_hot <- X_one_hot[1 + m*(X_level - 1),]
   
   Y_one_hot <- data |> 
     pull(Y) |> 
@@ -393,11 +449,15 @@ get_log_integrated_likelihood <- function(data,
   
   omega_hat_list <- get_omega_hat_list(U_list, Beta_MLE, X_h_one_hot)
   
-  log_L_tilde_mat <- get_log_L_tilde_mat(psi_grid_list, omega_hat_list, X_one_hot, X_h_one_hot, Y_one_hot, init_guess, chunk_size)
+  psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, burn_in, split = TRUE)
+  
+  log_L_tilde_mat <- get_log_L_tilde_mat(psi_grid_list, omega_hat_list, X_one_hot, X_h_one_hot, Y_one_hot, init_guess, burn_in, chunk_size)
   
   log_importance_weights <- get_log_importance_weights(U_list, MC_params)
   
   log_L_bar <- get_log_L_bar(log_L_tilde_mat, log_importance_weights, MC_params)
+  
+  log_L_bar$estimate <- handle_near_consecutive(log_L_bar$estimate, max(log_L_bar$estimate))
   
   return(list(log_L_bar = log_L_bar,
               log_L_tilde_mat = log_L_tilde_mat,
@@ -407,6 +467,7 @@ get_log_integrated_likelihood <- function(data,
               MC_params = MC_params,
               model = model, 
               X_h = X_h,
+              R = nrow(log_L_tilde_mat),
               psi_grid_list = psi_grid_list))
 }
 
@@ -416,13 +477,19 @@ get_log_integrated_likelihood <- function(data,
 
 get_log_profile_likelihood <- function(data,
                                        X_h, 
-                                       psi_grid_list) {
+                                       psi_grid_list,
+                                       burn_in) {
   
   model <- get_multinomial_logistic_model(data)
   
   X_one_hot <- model.matrix(model)
   
-  X_h_one_hot <- X_one_hot[X_h$X,]
+  X_level <- X_h |> 
+    pull(X) |> 
+    as.character() |> 
+    as.numeric()
+  
+  X_h_one_hot <- X_one_hot[1 + m*(X_level - 1),]
   
   Y_one_hot <- data |> 
     pull(Y) |> 
@@ -433,9 +500,13 @@ get_log_profile_likelihood <- function(data,
   Beta_hats_1 <- psi_grid_list[[1]] |> 
     accumulate_Beta_hats(Beta_MLE, X_one_hot, X_h_one_hot, c(Beta_MLE))
   
+  print(Beta_hats_1)
+  
   Beta_hats_2 <- psi_grid_list[[2]] |> 
     accumulate_Beta_hats(Beta_MLE, X_one_hot, X_h_one_hot, Beta_hats_1[[1]])
   
-  c(rev(Beta_hats_1[-1]), Beta_hats_2) |> 
+  print(Beta_hats_2)
+  
+  c(rev(Beta_hats_1[-seq_len(burn_in)]), Beta_hats_2[-seq_len(burn_in)]) |> 
     purrr::map_dbl(\(Beta_hat) get_log_likelihood(Beta_hat, X_one_hot, Y_one_hot))
 }

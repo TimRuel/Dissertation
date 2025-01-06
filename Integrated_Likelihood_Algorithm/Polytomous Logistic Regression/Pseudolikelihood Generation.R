@@ -56,13 +56,15 @@ Beta_dist_list <- list(rng = Beta_rng,
 
 model <- get_multinomial_logistic_model(data)
 
-X_level <- 1
+X_level <- 3
 
 X_h <- data.frame(X = factor(X_level))
 
-step_size <- 0.01
+step_size <- 0.05
 
-num_std_errors <- 2.5
+num_std_errors <- 3
+
+burn_in <- 4
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
@@ -77,14 +79,14 @@ num_std_errors <- 2.5
 # num_workers <- parallel::detectCores() |>
 #   as.numeric()
 
-psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, split = TRUE)
+# R <- num_workers * 
 
-R <- 10
+R <- 20
 
 init_guess <- get_Beta_MLE(model) |> 
   c()
 
-num_workers <- 10
+num_workers <- 20
 
 chunk_size <- 1
 
@@ -99,10 +101,12 @@ plan(multisession, workers = I(num_workers))
 
 log_integrated_likelihood_vanilla_MC <- get_log_integrated_likelihood(data,
                                                                       X_h, 
-                                                                      psi_grid_list, 
                                                                       R,
                                                                       MC_params,
                                                                       init_guess,
+                                                                      step_size, 
+                                                                      num_std_errors,
+                                                                      burn_in,
                                                                       chunk_size)
 
 toc()
@@ -111,9 +115,12 @@ toc()
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
+psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, burn_in, split = TRUE)
+
 log_profile_likelihood_vals <- get_log_profile_likelihood(data,
                                                           X_h, 
-                                                          psi_grid_list)
+                                                          psi_grid_list,
+                                                          burn_in)
 
 ################################################################################
 ################################### STORAGE #################################### 
@@ -132,6 +139,14 @@ saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 plot(psi_grid, log_profile_likelihood_vals)
 
 plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
+
+for (i in 1:nrow(log_integrated_likelihood_vanilla_MC$log_L_tilde_mat)) {
+  
+  plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_tilde_mat[i,])
+}
+
+plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_tilde_mat |> matrixStats::colLogSumExps())
+
 # 
 # Rcpp::sourceCpp("accumulate_rcpp.cpp")
 # 

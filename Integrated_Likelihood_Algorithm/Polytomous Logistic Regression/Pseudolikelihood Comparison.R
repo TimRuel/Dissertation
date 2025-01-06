@@ -64,6 +64,7 @@ log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
 #            fct_inorder())
 
 spline_fitted_models <- log_likelihood_vals |>
+  drop_na(loglikelihood) |> 
   group_by(Pseudolikelihood) |> 
   group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
   set_names(pseudolikelihood_names)
@@ -95,6 +96,7 @@ pseudo_log_likelihood_curves <- spline_fitted_models |>
        function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
 
 log_likelihood_vals |> 
+  # filter(Pseudolikelihood == "Integrated") |> 
   ggplot() +
   geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
              size = 0.1) +
