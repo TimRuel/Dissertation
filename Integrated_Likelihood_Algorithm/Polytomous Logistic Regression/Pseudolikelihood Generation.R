@@ -4,6 +4,7 @@ library(zeallot)
 library(purrr)
 library(plyr)
 library(tidyverse)
+library(insight)
 library(invgamma)
 library(stringr)
 library(progressr)
@@ -15,7 +16,7 @@ handlers("cli")
 
 setwd(dirname(getActiveDocumentContext()$path))
 
-source("utils.R")
+# source("utils.R")
 
 population_directory <- selectDirectory(caption = "Select population directory")
 
@@ -56,15 +57,15 @@ Beta_dist_list <- list(rng = Beta_rng,
 
 model <- get_multinomial_logistic_model(data)
 
-X_level <- 3
+X_level <- 2
 
 X_h <- data.frame(X = factor(X_level))
 
-step_size <- 0.05
+step_size <- 0.01
 
 num_std_errors <- 3
 
-burn_in <- 4
+delta <- 0.1
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
@@ -76,17 +77,16 @@ burn_in <- 4
 # num_workers <- availableCores() |>
 #   as.numeric()
 
-# num_workers <- parallel::detectCores() |>
-#   as.numeric()
+num_workers <- parallel::detectCores() |>
+  as.numeric()
 
-# R <- num_workers * 
+R <- num_workers * 5
 
-R <- 20
+Beta_MLE <- get_Beta_MLE(model)
 
-init_guess <- get_Beta_MLE(model) |> 
-  c()
+init_guess <- c(Beta_MLE)
 
-num_workers <- 20
+# num_workers <- 20
 
 chunk_size <- 1
 
@@ -106,7 +106,7 @@ log_integrated_likelihood_vanilla_MC <- get_log_integrated_likelihood(data,
                                                                       init_guess,
                                                                       step_size, 
                                                                       num_std_errors,
-                                                                      burn_in,
+                                                                      delta,
                                                                       chunk_size)
 
 toc()
@@ -115,18 +115,24 @@ toc()
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, burn_in, split = TRUE)
+psi_hat <- get_psi_hat(model, X_h)
+
+psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, split_at = psi_hat)
+
+tic()
 
 log_profile_likelihood_vals <- get_log_profile_likelihood(data,
                                                           X_h, 
                                                           psi_grid_list,
-                                                          burn_in)
+                                                          delta)
+
+toc()
 
 ################################################################################
 ################################### STORAGE #################################### 
 ################################################################################
 
-psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h, split = FALSE)
+psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
 
 log_likelihood_vals <- data.frame(psi = psi_grid,
                                   Integrated = log_integrated_likelihood_vanilla_MC$log_L_bar$estimate,
@@ -138,34 +144,11 @@ saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
 plot(psi_grid, log_profile_likelihood_vals)
 
-plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
+plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate) 
 
 for (i in 1:nrow(log_integrated_likelihood_vanilla_MC$log_L_tilde_mat)) {
   
   plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_tilde_mat[i,])
+  abline(v = psi_hat, col = "green")
 }
-
-plot(psi_grid, log_integrated_likelihood_vanilla_MC$log_L_tilde_mat |> matrixStats::colLogSumExps())
-
-# 
-# Rcpp::sourceCpp("accumulate_rcpp.cpp")
-# 
-# Beta_MLE <- get_Beta_MLE(model)
-# 
-# U_list <- get_U_list(MC_params, R)
-# 
-# omega_hat_list <- get_omega_hat_list(U_list, Beta_MLE, X_h)
-# 
-# accumulate_Beta_hats(psi_grid, omega_hat, X, X_h, init_guess)
-# 
-# Y_one_hot <- model.matrix( ~ factor(Y))[,-1]
-# 
-# get_log_L_tilde(psi_grid, omega_hat, X, Y_one_hot, X_h, init_guess)
-# 
-# registerDoFuture()
-# plan(multisession)
-# 
-# parallel::clusterEvalQ(plan(), Rcpp::sourceCpp("accumulate_rcpp.cpp"))
-# 
-# get_log_L_tilde_mat(psi_grid, omega_hat_list, X, Y_one_hot, X_h, init_guess, chunk_size)
 

@@ -2,34 +2,25 @@ library(dplyr)
 
 source("../../utils.R")
 
-seed <- 3185426
+seed <- 46990395
 
 set.seed(seed)
 
-J <- 5 # number of levels of response variable
+J <- 6 # number of levels of response variable
 
 p <- 3 # number of levels of predictor
 
 m <- 25 # number of observations at each level of predictor
 
-theta_0 <- seq(0, log(J), length.out = p + 1) |> 
-  (\(x) mapply(c, x[-length(x)], x[-1], SIMPLIFY = FALSE))() |> 
-  map(\(x) get_probability_vector(k = J, target_entropy_range = x, epsilon = 0.02, max_iter = 1e6))
+theta_0 <- get_theta_0(J, p, 0.01, 1e6)
 
 get_entropy(theta_0[[1]])
 get_entropy(theta_0[[2]])
 get_entropy(theta_0[[3]])
 
-Y <- theta_0 |> 
-  map(\(p) sample(1:J, size = m, prob = p, replace = TRUE)) |> 
-  unlist() |> 
-  factor(levels = 1:J)
+Y <- get_Y(theta_0, m)
 
-X <- 1:p |> 
-  rep(each = m) |> 
-  factor()
-
-contrasts(X) <- contr.sum
+X <- get_X(p, m, contr.sum)
 
 data <- data.frame(X = X,
                    Y = Y)

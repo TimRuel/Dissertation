@@ -1,6 +1,6 @@
-\name{accumulate-package}
-\alias{accumulate-package}
-\alias{accumulate}
+\name{iterate-package}
+\alias{iterate-package}
+\alias{iterate}
 \docType{package}
 \title{
   A short title line describing what the package does
