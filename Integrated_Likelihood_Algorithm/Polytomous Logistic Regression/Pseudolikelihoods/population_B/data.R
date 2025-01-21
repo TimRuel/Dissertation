@@ -24,3 +24,6 @@ X <- get_X(p, m, contr.sum)
 
 data <- data.frame(X = X,
                    Y = Y)
+
+# Add interactions and/or continuous variables
+

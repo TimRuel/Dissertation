@@ -4,7 +4,7 @@
 library(tidyverse)
 library(pipeR)
 library(iterate)
-# Rcpp::sourceCpp("../../iterate_over.cpp")
+# Rcpp::sourceCpp("../../iterate_while.cpp")
 
 get_entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
 
@@ -91,7 +91,7 @@ get_X <- function(p, m, contrast) {
     rep(each = m) |> 
     factor()
   
-  contrasts(X) <- contr.sum
+  contrasts(X) <- contrast
   
   return(X)
 }
@@ -99,8 +99,7 @@ get_X <- function(p, m, contrast) {
 get_omega_hat_data <- function(omega_hat, X_one_hot, m) {
   
   omega_hat_probs <- X_one_hot %*% cbind(0, omega_hat) |>
-    apply(1, LDATS::softmax) |>
-    t()
+    apply(1, LDATS::softmax)
   
   omega_hat_Y <- omega_hat_probs |> 
     unique() |> 
@@ -174,7 +173,7 @@ get_psi_grid <- function(step_size, num_std_errors, model, X_h, split_at = NULL)
   psi_grid <- (psi_hat + MoE*c(-1, 1)) |> 
     (\(x) c(max(0, x[1]), min(log(J), x[2])))() |> 
     plyr::round_any(step_size, floor) |> 
-    (\(x) seq(x[1], x[2] + step_size, step_size))()
+    (\(x) seq(x[1] + step_size, x[2] + step_size, step_size))()
   
   if (!is.null(split_at)) {
     
@@ -213,11 +212,17 @@ dist_sampler <- function(dist_list) {
     do.call(args = rng_params) 
 }
 
-get_U_list <- function(MC_params, R, simplify = FALSE) {
+get_U <- function(MC_params) {
   
   MC_params |> 
     get_dist_list() |> 
-    dist_sampler() |> 
+    dist_sampler()
+}
+
+get_U_list <- function(MC_params, R, simplify = FALSE) {
+  
+  MC_params |> 
+    get_U() |> 
     replicate(R, expr = _, simplify = simplify)
 }
 
@@ -257,22 +262,80 @@ get_log_importance_weights <- function(U_list, MC_params) {
     )
 }
 
-get_omega_hat <- function(U, b, X_h) {
+# get_omega_hat <- function(U, b, X_h) {
+#   
+#   psi_hat_logits <- X_h %*% cbind(0, b)
+#   
+#   U_logits <- X_h %*% U
+#   
+#   sweep(U, 2, psi_hat_logits[-1] / U_logits, "*")
+# }
+# 
+# get_omega_hat_list <- function(U_list, b, X_h) purrr::map(U_list, \(U) get_omega_hat(U, b, X_h))
+
+get_omega_hat <- function(MC_params, X_one_hot, X_h_one_hot, Y_one_hot, psi_hat, threshold) {
   
-  psi_hat_logits <- X_h %*% cbind(0, b)
+  U <- get_U(MC_params)
   
-  U_logits <- X_h %*% U
+  f <- function(Beta) {
+    
+    Beta <- matrix(Beta,
+                   nrow = nrow(U),
+                   ncol = ncol(U),
+                   byrow = FALSE)
+    
+    entropy <- X_h_one_hot %*% cbind(0, Beta) |>
+      LDATS::softmax() |>
+      get_entropy()
+    
+    return(abs(entropy - psi_hat))
+  }
   
-  sweep(U, 2, psi_hat_logits[-1] / U_logits, "*")
+  f.gr <- function(Beta) nloptr::nl.grad(Beta, f)
+  
+  fcon <- function(Beta) -get_log_likelihood(Beta, X_one_hot, Y_one_hot) - threshold
+  
+  fcon.jac <- function(Beta) nloptr::nl.jacobian(Beta, fcon)
+  
+  omega_hat <- nloptr::auglag(x0 = U,
+                              fn = f,
+                              gr = f.gr,
+                              # heq = fcon1,
+                              # heqjac = fcon1.jac,
+                              hin = fcon,
+                              hinjac = fcon.jac,
+                              localsolver = "LBFGS",
+                              deprecatedBehavior = FALSE)$par
+  
+  if (f(omega_hat) <= 0.01 && fcon(omega_hat) <= 0) {
+    
+    omega_hat <- omega_hat |> 
+      matrix(nrow = nrow(U),
+             ncol = ncol(U),
+             byrow = FALSE)
+    
+    return(omega_hat)
+  }
+  
+  else {
+    
+    get_omega_hat(MC_params, X_one_hot, X_h_one_hot, Y_one_hot, psi_hat, threshold)
+  }
 }
 
-get_omega_hat_list <- function(U_list, b, X_h) purrr::map(U_list, \(U) get_omega_hat(U, b, X_h))
+get_omega_hat_list <- function(MC_params, R, X_one_hot, X_h_one_hot, Y_one_hot, psi_hat, threshold, simplify = FALSE) {
+  
+  MC_params |> 
+    get_omega_hat(X_one_hot, X_h_one_hot, Y_one_hot, psi_hat, threshold) |> 
+    replicate(R, expr = _, simplify = simplify)
+}
 
-get_Beta_hat <- function(init_guess, psi, args) {
+get_Beta_hat <- function(init_guess, 
+                         psi, 
+                         omega_hat, 
+                         X_one_hot, 
+                         X_h_one_hot) {
 
-  omega_hat <- args$omega_hat
-  X_one_hot <- args$X_one_hot
-  X_h_one_hot <- args$X_h_one_hot
 
   probs <- X_one_hot %*% omega_hat |>
     apply(1, adj_softmax) |>
@@ -292,7 +355,7 @@ get_Beta_hat <- function(init_guess, psi, args) {
 
   f.gr <- function(Beta) nloptr::nl.grad(Beta, f)
 
-  fcon1 <- function(Beta) {
+  fcon <- function(Beta) {
 
     Beta <- matrix(Beta,
                    nrow = nrow(omega_hat),
@@ -306,94 +369,43 @@ get_Beta_hat <- function(init_guess, psi, args) {
     return(entropy - psi)
   }
 
-  fcon1.jac <- function(Beta) nloptr::nl.jacobian(Beta, fcon1)
-
-  fcon2 <- function(Beta) {
-    sqrt(sum((Beta - init_guess)^2)) - args$delta  
-  }
-
-  fcon2.jac <- function(Beta) nloptr::nl.jacobian(Beta, fcon2)
+  fcon.jac <- function(Beta) nloptr::nl.jacobian(Beta, fcon)
 
   nloptr::auglag(x0 = init_guess,
                  fn = f,
                  gr = f.gr,
-                 heq = fcon1,
-                 heqjac = fcon1.jac,
-                 hin = fcon2,
-                 hinjac = fcon2.jac,
+                 heq = fcon,
+                 heqjac = fcon.jac,
                  localsolver = "LBFGS",
                  deprecatedBehavior = FALSE)$par
 }
 
-# accumulate_Beta_hats <- function(psi_grid, omega_hat, X_one_hot, X_h_one_hot, init_guess) {
-# 
-#   psi_grid |>
-#     purrr::accumulate(
-#       \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X_one_hot, X_h_one_hot),
-#       .init = init_guess) |>
-#     magrittr::extract(-1)
-# }
-
-# accumulate_Beta_hats <- function(psi_grid, omega_hat, X_one_hot, X_h_one_hot, init_guess) {
-# 
-#   psi_grid |>
-#     accumulate_rcpp(
-#       \(acc, nxt) get_Beta_hat(acc, nxt, omega_hat, X, X_h),
-#       init = init_guess)
-# }
+make_branch_fn <- function(omega_hat, X_one_hot, X_h_one_hot, Y_one_hot) {
+  
+  function(psi) {
+    
+    omega_hat |> 
+      c() |> 
+      get_Beta_hat(psi, omega_hat, X_one_hot, X_h_one_hot) |> 
+      get_log_likelihood(X_one_hot, Y_one_hot)
+  }
+}
 
 ################################################################################
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
-
-handle_near_consecutive <- function(vec, threshold, tol = 1e-8) {
-  n <- length(vec)
-  i <- 1  # Initialize index
-  
-  while (i <= n) {
-    # Detect a streak of near-consecutive values
-    streak_start <- i
-    while (i < n && abs(vec[i] - vec[i + 1]) < tol) {
-      i <- i + 1
-    }
-    streak_end <- i
-    
-    # If there's a streak of two or more values
-    if (streak_end > streak_start) {
-      if (vec[streak_start] < threshold) {
-        # Set all but the last to NA
-        vec[streak_start:(streak_end - 1)] <- NA
-      } else if (vec[streak_start] > threshold) {
-        # Set all but the first to NA
-        vec[(streak_start + 1):streak_end] <- NA
-      }
-    }
-    
-    # Move to the next possible streak
-    i <- streak_end + 1
-  }
-  
-  return(vec)
-}
 
 get_Beta_hat_matrices <- function(omega_hat_list,
                                   X_one_hot,
                                   X_h,
                                   X_h_one_hot,
                                   Y_one_hot,
-                                  delta,
                                   step_size, 
-                                  num_std_errors,
                                   model,
+                                  crit, 
                                   chunk_size) {
 
-  p <- progressr::progressor(steps = 3 * length(omega_hat_list))
-  
-  m <- X_one_hot |> 
-    data.frame() |> 
-    group_by_all() |> 
-    summarize(count = n(), .groups = "drop") |> 
-    pull(count)
+  p <- progressr::progressor(steps = 2 * length(omega_hat_list))
 
   foreach(
 
@@ -412,47 +424,71 @@ get_Beta_hat_matrices <- function(omega_hat_list,
 
       p()
       
-      omega_hat_data <- get_omega_hat_data(omega_hat, X_one_hot, m)
+      branch_fn <- make_branch_fn(omega_hat, X_one_hot, X_h_one_hot, Y_one_hot)
       
-      omega_hat_model <- get_multinomial_logistic_model(omega_hat_data)
+      ga_result <- GA::ga(
+        type = "real-valued",
+        fitness = branch_fn,
+        maxiter = 5,
+        run = 2,
+        lower = 0,
+        upper = log(J))
       
-      omega_hat_Beta_MLE <- get_Beta_MLE(omega_hat_model)
+      p()
       
-      omega_hat_psi_hat <- get_psi_hat(omega_hat_model, X_h)
-      
-      psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, split_at = omega_hat_psi_hat)
-
-      custom_args = list(omega_hat = omega_hat, X_one_hot = X_one_hot, X_h_one_hot = X_h_one_hot, delta = delta)
-      
-      Beta_hat_1 <- get_Beta_hat(omega_hat_Beta_MLE, omega_hat_psi_hat, custom_args)
-
-      Beta_hat_matrix_1 <- iterate_over(psi_grid_list[[1]][-1], Beta_hat_1, get_Beta_hat, custom_args, fill_bottom_to_top = TRUE) |> 
-        rbind(Beta_hat_1) |> 
+      psi_max <- ga_result@solution[1,] |> 
         unname()
-
-      p()
-
-      Beta_hat_matrix_2 <- iterate_over(psi_grid_list[[2]], Beta_hat_1, get_Beta_hat, custom_args, fill_bottom_to_top = FALSE)
-
-      p()
-
-      rbind(Beta_hat_matrix_1, Beta_hat_matrix_2)
+      
+      branch_max <- ga_result@fitnessValue
+      
+      Beta_hat_max <- get_Beta_hat(c(omega_hat), psi_max, omega_hat, X_one_hot, X_h_one_hot)
+      
+      Beta_hat_matrix <- Beta_hat_max |> 
+        matrix(nrow = 1, dimnames = list(psi_max |> plyr::round_any(step_size / 100, floor)))
+      
+      current_psi_val <- psi_max |> 
+        plyr::round_any(step_size, ceiling)
+      
+      current_branch_val <- branch_max
+      
+      stopping_branch_val <- branch_max - crit
+      
+      Beta_hat_matrix <- iterate_while(psi_max = psi_max,
+                                       branch_max = branch_max,
+                                       initial_guess = Beta_hat_max,
+                                       get_Beta_hat = get_Beta_hat,
+                                       get_log_likelihood = get_log_likelihood,
+                                       omega_hat = omega_hat,
+                                       X_one_hot = X_one_hot,
+                                       X_h_one_hot = X_h_one_hot,
+                                       Y_one_hot = Y_one_hot,
+                                       crit = crit,
+                                       step_size = step_size)
+      
+      return(Beta_hat_matrix)
     },
     error = function(e) NULL
     )
   }
 }
 
-get_log_L_tilde_mat <- function(Beta_hat_matrices) {
+get_log_L_tilde_mat <- function(Beta_hat_matrices, X_one_hot, Y_one_hot) {
   
-  Beta_hat_matrices |> 
+  log_likelihood_list <- Beta_hat_matrices |> 
     purrr::compact() |> 
     lapply(\(Beta_hat_matrix) (Beta_hat_matrix |> 
                                  apply(1, \(Beta_hat) (Beta_hat |> 
-                                                         get_log_likelihood(X_one_hot, Y_one_hot))))) |> 
-    unlist() |> 
-    matrix(ncol = nrow(Beta_hat_matrices[[1]]),
-           byrow = TRUE)
+                                                         get_log_likelihood(X_one_hot, Y_one_hot))))) 
+  
+  all_labels <- unique(unlist(lapply(log_likelihood_list, names)))
+  
+  aligned_vectors <- lapply(log_likelihood_list, function(vec) {
+    full_vec <- setNames(rep(NA, length(all_labels)), all_labels)  # Create a full vector with NAs
+    full_vec[names(vec)] <- vec  # Fill in existing values
+    return(full_vec)
+  })
+  
+  do.call(rbind, aligned_vectors)
 }
 
 get_log_L_bar <- function(log_L_tilde_mat, log_w, MC_params) {
@@ -489,13 +525,11 @@ get_log_L_bar <- function(log_L_tilde_mat, log_w, MC_params) {
       # }
     )
   
-  estimate <- matrixStats::colLogSumExps(log_weighted_vals)
+  estimate <- matrixStats::colLogSumExps(log_weighted_vals, na.rm = TRUE)
   
-  # estimate <- matrixStats::colLogSumExps(log_weighted_vals)
+  var_estimate <- matrixStats::colVars(log_weighted_vals, na.rm = TRUE)
   
-  var_estimate <- matrixStats::colVars(log_weighted_vals)
-  
-  var_exp_estimate <- matrixStats::colVars(exp(log_weighted_vals))
+  var_exp_estimate <- matrixStats::colVars(exp(log_weighted_vals), na.rm = TRUE)
   
   return(list(log_weighted_vals = log_weighted_vals,
               estimate = estimate, 
@@ -507,10 +541,9 @@ get_log_integrated_likelihood <- function(data,
                                           X_h, 
                                           R,
                                           MC_params,
-                                          init_guess,
                                           step_size, 
-                                          num_std_errors,
-                                          delta,
+                                          threshold,
+                                          alpha,
                                           chunk_size) {
   
   model <- get_multinomial_logistic_model(data)
@@ -534,39 +567,40 @@ get_log_integrated_likelihood <- function(data,
     pull(Y) |> 
     (\(Y) model.matrix(~ Y)[,-1])()
   
-  Beta_MLE <- get_Beta_MLE(model)
+  psi_hat <- get_psi_hat(model, X_h)
   
-  U_list <- get_U_list(MC_params, R)
+  omega_hat_list <- get_omega_hat_list(MC_params, R, X_one_hot, X_h_one_hot, Y_one_hot, psi_hat, threshold)
   
-  omega_hat_list <- get_omega_hat_list(U_list, Beta_MLE, X_h_one_hot)
-  
-  psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
+  crit <- qchisq(1 - alpha, 1) / 2
   
   Beta_hat_matrices <- get_Beta_hat_matrices(omega_hat_list,
                                              X_one_hot,
                                              X_h,
                                              X_h_one_hot,
                                              Y_one_hot,
-                                             delta,
                                              step_size, 
-                                             num_std_errors,
                                              model,
+                                             crit, 
                                              chunk_size)
   
-  log_L_tilde_mat <- get_log_L_tilde_mat(Beta_hat_matrices)
+  log_L_tilde_mat <- get_log_L_tilde_mat(Beta_hat_matrices, X_one_hot, Y_one_hot)
   
-  log_importance_weights <- get_log_importance_weights(U_list, MC_params)
+  # log_importance_weights <- get_log_importance_weights(U_list, MC_params)
+  
+  log_importance_weights <- 0
   
   log_L_bar <- get_log_L_bar(log_L_tilde_mat, log_importance_weights, MC_params)
   
-  # log_L_bar$estimate <- handle_near_consecutive(log_L_bar$estimate, max(log_L_bar$estimate))
+  psi_grid <- log_L_tilde_mat |> 
+    colnames() |> 
+    as.numeric()
   
   return(list(log_L_bar = log_L_bar,
               Beta_hat_matrices = Beta_hat_matrices,
               log_L_tilde_mat = log_L_tilde_mat,
               log_importance_weights = log_importance_weights,
               omega_hat_list = omega_hat_list,
-              U_list = U_list, 
+              # U_list = U_list, 
               MC_params = MC_params,
               model = model, 
               X_h = X_h,
@@ -580,8 +614,7 @@ get_log_integrated_likelihood <- function(data,
 
 get_log_profile_likelihood <- function(data,
                                        X_h, 
-                                       psi_grid_list,
-                                       delta) {
+                                       psi_grid_list) {
   
   model <- get_multinomial_logistic_model(data)
   
@@ -600,7 +633,7 @@ get_log_profile_likelihood <- function(data,
   
   Beta_MLE <- get_Beta_MLE(model)
   
-  custom_args = list(omega_hat = Beta_MLE, X_one_hot = X_one_hot, X_h_one_hot = X_h_one_hot, delta = delta)
+  custom_args = list(omega_hat = Beta_MLE, X_one_hot = X_one_hot, X_h_one_hot = X_h_one_hot, use_GA = FALSE)
   
   init_guess <- c(Beta_MLE)
   

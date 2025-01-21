@@ -116,7 +116,7 @@ alpha <- 0.05
 
 crit <- qchisq(1 - alpha, 1) / 2
 
-psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h, split = FALSE)
+psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
 
 conf_ints <- pseudo_log_likelihood_curves |> 
   map2(MLE_data$MLE,
@@ -232,7 +232,7 @@ ggplot() +
                             show.legend = FALSE) +
   annotate("rect",
            xmin = conf_ints$Integrated[1],
-           xmax = conf_ints$Integrated[2],
+           xmax = min(conf_ints$Integrated[2], psi_range[2]),
            ymin = -Inf,
            ymax = Inf,
            fill = "blue",
