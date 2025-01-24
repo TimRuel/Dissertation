@@ -4,7 +4,10 @@
 library(tidyverse)
 library(pipeR)
 library(iterate)
+library(Rcpp)
+library(nloptr)
 # Rcpp::sourceCpp("../../iterate_while.cpp")
+# sourceCpp("../../get_Beta_hat.cpp")
 
 get_entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
 
@@ -336,7 +339,6 @@ get_Beta_hat <- function(init_guess,
                          X_one_hot, 
                          X_h_one_hot) {
 
-
   probs <- X_one_hot %*% omega_hat |>
     apply(1, adj_softmax) |>
     t()
@@ -403,7 +405,9 @@ get_Beta_hat_matrices <- function(omega_hat_list,
                                   step_size, 
                                   model,
                                   crit, 
-                                  chunk_size) {
+                                  chunk_size,
+                                  noise_sd,
+                                  verbose) {
 
   p <- progressr::progressor(steps = 2 * length(omega_hat_list))
 
@@ -426,32 +430,18 @@ get_Beta_hat_matrices <- function(omega_hat_list,
       
       branch_fn <- make_branch_fn(omega_hat, X_one_hot, X_h_one_hot, Y_one_hot)
       
-      ga_result <- GA::ga(
-        type = "real-valued",
-        fitness = branch_fn,
-        maxiter = 5,
-        run = 2,
-        lower = 0,
-        upper = log(J))
+      optim_result <- optimize(branch_fn, 
+                               interval = c(0, log(ncol(omega_hat) + 1)), 
+                               maximum = TRUE, 
+                               tol = step_size)
       
       p()
       
-      psi_max <- ga_result@solution[1,] |> 
-        unname()
+      psi_max <- optim_result$maximum
       
-      branch_max <- ga_result@fitnessValue
+      branch_max <- optim_result$objective
       
       Beta_hat_max <- get_Beta_hat(c(omega_hat), psi_max, omega_hat, X_one_hot, X_h_one_hot)
-      
-      Beta_hat_matrix <- Beta_hat_max |> 
-        matrix(nrow = 1, dimnames = list(psi_max |> plyr::round_any(step_size / 100, floor)))
-      
-      current_psi_val <- psi_max |> 
-        plyr::round_any(step_size, ceiling)
-      
-      current_branch_val <- branch_max
-      
-      stopping_branch_val <- branch_max - crit
       
       Beta_hat_matrix <- iterate_while(psi_max = psi_max,
                                        branch_max = branch_max,
@@ -463,7 +453,9 @@ get_Beta_hat_matrices <- function(omega_hat_list,
                                        X_h_one_hot = X_h_one_hot,
                                        Y_one_hot = Y_one_hot,
                                        crit = crit,
-                                       step_size = step_size)
+                                       step_size = step_size,
+                                       noise_sd = noise_sd,
+                                       verbose = verbose)
       
       return(Beta_hat_matrix)
     },
@@ -472,7 +464,7 @@ get_Beta_hat_matrices <- function(omega_hat_list,
   }
 }
 
-get_log_L_tilde_mat <- function(Beta_hat_matrices, X_one_hot, Y_one_hot) {
+get_log_L_tilde_mat <- function(Beta_hat_matrices, X_one_hot, Y_one_hot, prop) {
   
   log_likelihood_list <- Beta_hat_matrices |> 
     purrr::compact() |> 
@@ -480,7 +472,7 @@ get_log_L_tilde_mat <- function(Beta_hat_matrices, X_one_hot, Y_one_hot) {
                                  apply(1, \(Beta_hat) (Beta_hat |> 
                                                          get_log_likelihood(X_one_hot, Y_one_hot))))) 
   
-  all_labels <- unique(unlist(lapply(log_likelihood_list, names)))
+  all_labels <- unique(unlist(lapply(log_likelihood_list, names))) |> sort()
   
   aligned_vectors <- lapply(log_likelihood_list, function(vec) {
     full_vec <- setNames(rep(NA, length(all_labels)), all_labels)  # Create a full vector with NAs
@@ -488,7 +480,11 @@ get_log_L_tilde_mat <- function(Beta_hat_matrices, X_one_hot, Y_one_hot) {
     return(full_vec)
   })
   
-  do.call(rbind, aligned_vectors)
+  log_L_tilde_mat <- do.call(rbind, aligned_vectors)
+  
+  psi_vals_to_keep <- colSums(!is.na(log_L_tilde_mat)) >= prop * nrow(log_L_tilde_mat)
+  
+  log_L_tilde_mat[, psi_vals_to_keep]
 }
 
 get_log_L_bar <- function(log_L_tilde_mat, log_w, MC_params) {
@@ -544,7 +540,10 @@ get_log_integrated_likelihood <- function(data,
                                           step_size, 
                                           threshold,
                                           alpha,
-                                          chunk_size) {
+                                          prop,
+                                          chunk_size,
+                                          noise_sd,
+                                          verbose) {
   
   model <- get_multinomial_logistic_model(data)
   
@@ -581,9 +580,11 @@ get_log_integrated_likelihood <- function(data,
                                              step_size, 
                                              model,
                                              crit, 
-                                             chunk_size)
+                                             chunk_size,
+                                             noise_sd,
+                                             verbose)
   
-  log_L_tilde_mat <- get_log_L_tilde_mat(Beta_hat_matrices, X_one_hot, Y_one_hot)
+  log_L_tilde_mat <- get_log_L_tilde_mat(Beta_hat_matrices, X_one_hot, Y_one_hot, prop)
   
   # log_importance_weights <- get_log_importance_weights(U_list, MC_params)
   
@@ -595,7 +596,12 @@ get_log_integrated_likelihood <- function(data,
     colnames() |> 
     as.numeric()
   
-  return(list(log_L_bar = log_L_bar,
+  values_df <- data.frame(psi = psi_grid,
+                          Integrated = log_L_bar$estimate |> 
+                            unname())
+  
+  return(list(values_df = values_df,
+              log_L_bar = log_L_bar,
               Beta_hat_matrices = Beta_hat_matrices,
               log_L_tilde_mat = log_L_tilde_mat,
               log_importance_weights = log_importance_weights,
@@ -613,8 +619,11 @@ get_log_integrated_likelihood <- function(data,
 ################################################################################
 
 get_log_profile_likelihood <- function(data,
-                                       X_h, 
-                                       psi_grid_list) {
+                                       X_h,
+                                       step_size,
+                                       alpha,
+                                       noise_sd,
+                                       verbose) {
   
   model <- get_multinomial_logistic_model(data)
   
@@ -631,19 +640,39 @@ get_log_profile_likelihood <- function(data,
     pull(Y) |> 
     (\(Y) model.matrix(~ Y)[,-1])()
   
+  crit <- qchisq(1 - alpha, 1) / 2
+  
   Beta_MLE <- get_Beta_MLE(model)
   
-  custom_args = list(omega_hat = Beta_MLE, X_one_hot = X_one_hot, X_h_one_hot = X_h_one_hot, use_GA = FALSE)
+  psi_hat <- get_psi_hat(model, X_h)
   
-  init_guess <- c(Beta_MLE)
+  branch_max <- get_log_likelihood(c(Beta_MLE), X_one_hot, Y_one_hot)
   
-  Beta_hats_1 <- iterate_over(psi_grid_list[[1]], init_guess, get_Beta_hat, custom_args, fill_bottom_to_top  = TRUE)
+  Beta_hat_matrix <- iterate_while(psi_max = psi_hat,
+                                   branch_max = branch_max,
+                                   initial_guess = c(Beta_MLE),
+                                   get_Beta_hat = get_Beta_hat,
+                                   get_log_likelihood = get_log_likelihood,
+                                   omega_hat = Beta_MLE,
+                                   X_one_hot = X_one_hot,
+                                   X_h_one_hot = X_h_one_hot,
+                                   Y_one_hot = Y_one_hot,
+                                   crit = crit,
+                                   step_size = step_size,
+                                   noise_sd = noise_sd,
+                                   verbose = verbose)
   
-  init_guess_2 <- tail(Beta_hats_1, 1)
+  log_likelihood <- Beta_hat_matrix |> 
+    apply(1, \(Beta_hat) get_log_likelihood(Beta_hat, X_one_hot, Y_one_hot)) |> 
+    unname()
   
-  Beta_hats_2 <- iterate_over(psi_grid_list[[2]], init_guess_2, get_Beta_hat, custom_args, fill_bottom_to_top  = FALSE)
+  psi_grid <- Beta_hat_matrix |> 
+    rownames() |> 
+    as.numeric()
   
-  Beta_hats_1 |> 
-    rbind(Beta_hats_2) |> 
-    apply(1, \(Beta_hat) get_log_likelihood(Beta_hat, X_one_hot, Y_one_hot))
+  values_df <- data.frame(psi = psi_grid,
+                          Profile = log_likelihood)
+  
+  return(list(values_df = values_df,
+              Beta_hat_matrix = Beta_hat_matrix))
 }

@@ -13,7 +13,9 @@ NumericMatrix iterate_while(
     NumericVector X_h_one_hot,    // Input vector for entropy calculation
     NumericMatrix Y_one_hot,      // Input vector for likelihood calculation
     double crit,                  // Criterion for stopping condition
-    double step_size              // Step size for incrementing psi
+    double step_size,             // Step size for incrementing psi
+    double noise_sd,              // Standard deviation of random noise
+    bool verbose                  // If true, print debug information
 ) {
   // Initialize variables
   double stopping_branch_val = branch_max - crit;
@@ -28,36 +30,62 @@ NumericMatrix iterate_while(
   
   // Forward loop
   NumericVector current_guess = clone(initial_guess);
+  double previous_branch_val_forward = branch_max;
+  
   while (current_branch_val_forward > stopping_branch_val) {
     NumericVector Beta_hat = as<NumericVector>(
       get_Beta_hat(current_guess, current_psi_val_forward, omega_hat, X_one_hot, X_h_one_hot)
     );
-    results.push_back(Beta_hat);
-    psi_values.push_back(current_psi_val_forward);
-    
-    // Update log-likelihood and psi value
     current_branch_val_forward = as<double>(
       get_log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
     );
-    current_psi_val_forward += step_size;
-    current_guess = Beta_hat;
+    
+    if (verbose) {
+      Rcpp::Rcout << "Forward pass - Psi: " << current_psi_val_forward 
+                  << ", Loglikelihood: " << current_branch_val_forward 
+                  << ", Stopping value: " << stopping_branch_val << std::endl;
+    }
+    
+    if (current_branch_val_forward < previous_branch_val_forward) {
+      results.push_back(Beta_hat);
+      psi_values.push_back(current_psi_val_forward);
+      
+      current_guess = clone(Beta_hat);
+      previous_branch_val_forward = current_branch_val_forward;
+      current_psi_val_forward += step_size;
+    } else {
+      current_guess = current_guess + rnorm(current_guess.size(), 0.0, noise_sd);
+    }
   }
   
   // Backward loop
   current_guess = clone(initial_guess);
+  double previous_branch_val_backward = branch_max;
+  
   while (current_branch_val_backward > stopping_branch_val) {
     NumericVector Beta_hat = as<NumericVector>(
       get_Beta_hat(current_guess, current_psi_val_backward, omega_hat, X_one_hot, X_h_one_hot)
     );
-    results.insert(results.begin(), Beta_hat);  // Insert at the beginning
-    psi_values.insert(psi_values.begin(), current_psi_val_backward);
-    
-    // Update log-likelihood and psi value
     current_branch_val_backward = as<double>(
       get_log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
     );
-    current_psi_val_backward -= step_size;
-    current_guess = Beta_hat;
+    
+    if (verbose) {
+      Rcpp::Rcout << "Backward pass - Psi: " << current_psi_val_backward 
+                  << ", Loglikelihood: " << current_branch_val_backward 
+                  << ", Stopping value: " << stopping_branch_val << std::endl;
+    }
+    
+    if (current_branch_val_backward < previous_branch_val_backward) {
+      results.insert(results.begin(), Beta_hat);
+      psi_values.insert(psi_values.begin(), current_psi_val_backward);
+      
+      current_guess = clone(Beta_hat);
+      previous_branch_val_backward = current_branch_val_backward;
+      current_psi_val_backward -= step_size;
+    } else {
+      current_guess = current_guess + rnorm(current_guess.size(), 0.0, noise_sd);
+    }
   }
   
   // Create the output matrix

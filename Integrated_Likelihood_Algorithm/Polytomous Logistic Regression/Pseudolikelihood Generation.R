@@ -63,9 +63,15 @@ X_h <- data.frame(X = factor(X_level))
 
 step_size <- 0.01
 
-threshold <- 100
+threshold <- 80
 
-alpha <- 0.045
+alpha <- 0.03
+
+noise_sd <- 0.01
+
+prop <- 0.9
+
+verbose <- FALSE
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
@@ -77,10 +83,12 @@ alpha <- 0.045
 # num_workers <- availableCores() |>
 #   as.numeric()
 
-num_workers <- parallel::detectCores() |>
-  as.numeric()
+# num_workers <- parallel::detectCores() |>
+#   as.numeric()
 
-R <- num_workers * 5
+num_workers <- 12
+
+R <- num_workers * 2
 
 Beta_MLE <- get_Beta_MLE(model)
 
@@ -88,7 +96,7 @@ init_guess <- c(Beta_MLE)
 
 # num_workers <- 20
 
-chunk_size <- 1
+chunk_size <- 2
 
 method <- "vanilla_MC"
 
@@ -106,7 +114,10 @@ log_integrated_likelihood_vanilla_MC <- get_log_integrated_likelihood(data,
                                                                       step_size, 
                                                                       threshold,
                                                                       alpha,
-                                                                      chunk_size)
+                                                                      prop,
+                                                                      chunk_size,
+                                                                      noise_sd,
+                                                                      verbose)
 
 toc()
 
@@ -114,17 +125,16 @@ toc()
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-psi_hat <- get_psi_hat(model, X_h)
 
-num_std_errors <- 3
-
-psi_grid_list <- get_psi_grid(step_size, num_std_errors, model, X_h, split_at = psi_hat)
 
 tic()
 
-log_profile_likelihood_vals <- get_log_profile_likelihood(data,
-                                                          X_h, 
-                                                          psi_grid_list)
+log_profile_likelihood <- get_log_profile_likelihood(data,
+                                                     X_h,
+                                                     step_size,
+                                                     alpha,
+                                                     noise_sd,
+                                                     verbose)
 
 toc()
 
@@ -132,38 +142,49 @@ toc()
 ################################### STORAGE #################################### 
 ################################################################################
 
-psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
-
-log_likelihood_vals <- data.frame(psi = psi_grid,
-                                  Integrated = log_integrated_likelihood_vanilla_MC$log_L_bar$estimate,
-                                  Profile = log_profile_likelihood_vals)
+log_likelihood_vals <- log_integrated_likelihood_vanilla_MC$values_df |> 
+  merge(log_profile_likelihood$values_df, all = TRUE)
 
 log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={R}_h={X_level}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 
-plot(psi_grid, log_profile_likelihood_vals)
-
-plot(log_integrated_likelihood_vanilla_MC$psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
-abline(v = psi_hat, col = "green")
-abline(v = theta_0[[1]] |> get_entropy(), col = "red")
-abline(v = log_integrated_likelihood_vanilla_MC$psi_grid[which.max(log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)], col = "blue")
-
-for (i in nrow(log_integrated_likelihood_vanilla_MC$log_L_tilde_mat):1) {
-
-  plot(log_integrated_likelihood_vanilla_MC$psi_grid, log_integrated_likelihood_vanilla_MC$log_L_tilde_mat[i,])
-  title(main = i)
-  abline(v = psi_hat, col = "green")
-  abline(v = theta_0[[1]] |> get_entropy(), col = "red")
-  abline(v = log_integrated_likelihood_vanilla_MC$psi_grid[which.max(log_integrated_likelihood_vanilla_MC$log_L_tilde_mat[i,])], col = "blue")
-}
-
-for (i in nrow(log_L_tilde_mat):1) {
-  
-  plot(psi_grid, log_L_tilde_mat[i,])
-  title(main = i)
-  abline(v = psi_hat, col = "green")
-  abline(v = theta_0[[1]] |> get_entropy(), col = "red")
-  abline(v = psi_grid[which.max(log_L_tilde_mat[i,])], col = "blue")
-}
+# plot(log_profile_likelihood$values_df)
+# psi_hat <- get_psi_hat(model, X_h)
+# abline(v = psi_hat, col = "green")
+# 
+# plot(log_integrated_likelihood_vanilla_MC$values_df)
+# 
+# plot(log_integrated_likelihood_vanilla_MC$psi_grid, log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)
+# abline(v = psi_hat, col = "green")
+# abline(v = theta_0[[1]] |> get_entropy(), col = "red")
+# abline(v = log_integrated_likelihood_vanilla_MC$psi_grid[which.max(log_integrated_likelihood_vanilla_MC$log_L_bar$estimate)], col = "blue")
+# 
+# for (i in nrow(log_integrated_likelihood_vanilla_MC$log_L_tilde_mat):1) {
+# 
+#   plot(log_integrated_likelihood_vanilla_MC$psi_grid, log_integrated_likelihood_vanilla_MC$log_L_tilde_mat[i,])
+#   title(main = i)
+#   abline(v = psi_hat, col = "green")
+#   abline(v = theta_0[[1]] |> get_entropy(), col = "red")
+#   abline(v = log_integrated_likelihood_vanilla_MC$psi_grid[which.max(log_integrated_likelihood_vanilla_MC$log_L_tilde_mat[i,])], col = "blue")
+# }
+# 
+# for (i in nrow(log_L_tilde_mat):1) {
+# 
+#   plot(psi_grid, log_L_tilde_mat[i,])
+#   title(main = i)
+#   abline(v = psi_hat, col = "green")
+#   abline(v = theta_0[[1]] |> get_entropy(), col = "red")
+#   abline(v = psi_grid[which.max(log_L_tilde_mat[i,])], col = "blue")
+# }
+# 
+# for (i in 2:1) {
+# 
+#   plot(psi_grid, log_L_tilde_mat[i,])
+#   title(main = i)
+#   abline(v = psi_hat, col = "green")
+#   abline(v = theta_0[[1]] |> get_entropy(), col = "red")
+#   abline(v = psi_grid[which.max(log_L_tilde_mat[i,])], col = "blue")
+# }
+# 
 

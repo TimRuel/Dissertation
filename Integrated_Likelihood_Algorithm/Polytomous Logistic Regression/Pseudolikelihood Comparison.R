@@ -99,7 +99,7 @@ log_likelihood_vals |>
   # filter(Pseudolikelihood == "Integrated") |> 
   ggplot() +
   geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
-             size = 0.1) +
+             size = 1) +
   ylab("Log-Likelihood") +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
@@ -116,7 +116,8 @@ alpha <- 0.05
 
 crit <- qchisq(1 - alpha, 1) / 2
 
-psi_grid <- get_psi_grid(step_size, num_std_errors, model, X_h)
+psi_grid <- log_likelihood_vals$psi |> 
+  unique()
 
 conf_ints <- pseudo_log_likelihood_curves |> 
   map2(MLE_data$MLE,

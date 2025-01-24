@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // iterate_while
-NumericMatrix iterate_while(double psi_max, double branch_max, NumericVector initial_guess, Function get_Beta_hat, Function get_log_likelihood, NumericMatrix omega_hat, NumericMatrix X_one_hot, NumericVector X_h_one_hot, NumericMatrix Y_one_hot, double crit, double step_size);
-RcppExport SEXP _iterate_iterate_while(SEXP psi_maxSEXP, SEXP branch_maxSEXP, SEXP initial_guessSEXP, SEXP get_Beta_hatSEXP, SEXP get_log_likelihoodSEXP, SEXP omega_hatSEXP, SEXP X_one_hotSEXP, SEXP X_h_one_hotSEXP, SEXP Y_one_hotSEXP, SEXP critSEXP, SEXP step_sizeSEXP) {
+NumericMatrix iterate_while(double psi_max, double branch_max, NumericVector initial_guess, Function get_Beta_hat, Function get_log_likelihood, NumericMatrix omega_hat, NumericMatrix X_one_hot, NumericVector X_h_one_hot, NumericMatrix Y_one_hot, double crit, double step_size, double noise_sd, bool verbose);
+RcppExport SEXP _iterate_iterate_while(SEXP psi_maxSEXP, SEXP branch_maxSEXP, SEXP initial_guessSEXP, SEXP get_Beta_hatSEXP, SEXP get_log_likelihoodSEXP, SEXP omega_hatSEXP, SEXP X_one_hotSEXP, SEXP X_h_one_hotSEXP, SEXP Y_one_hotSEXP, SEXP critSEXP, SEXP step_sizeSEXP, SEXP noise_sdSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -27,13 +27,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix >::type Y_one_hot(Y_one_hotSEXP);
     Rcpp::traits::input_parameter< double >::type crit(critSEXP);
     Rcpp::traits::input_parameter< double >::type step_size(step_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(iterate_while(psi_max, branch_max, initial_guess, get_Beta_hat, get_log_likelihood, omega_hat, X_one_hot, X_h_one_hot, Y_one_hot, crit, step_size));
+    Rcpp::traits::input_parameter< double >::type noise_sd(noise_sdSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(iterate_while(psi_max, branch_max, initial_guess, get_Beta_hat, get_log_likelihood, omega_hat, X_one_hot, X_h_one_hot, Y_one_hot, crit, step_size, noise_sd, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_iterate_iterate_while", (DL_FUNC) &_iterate_iterate_while, 11},
+    {"_iterate_iterate_while", (DL_FUNC) &_iterate_iterate_while, 13},
     {NULL, NULL, 0}
 };
 
