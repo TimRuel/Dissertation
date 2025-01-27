@@ -57,17 +57,19 @@ Beta_dist_list <- list(rng = Beta_rng,
 
 model <- get_multinomial_logistic_model(data)
 
-X_level <- 1
+X_level <- 2
 
 X_h <- data.frame(X = factor(X_level))
 
 step_size <- 0.01
 
-threshold <- 80
+# threshold <- 80
+
+threshold <- 170
 
 alpha <- 0.03
 
-noise_sd <- 0.01
+noise_sd <- 0.1
 
 prop <- 0.9
 
@@ -83,10 +85,10 @@ verbose <- FALSE
 # num_workers <- availableCores() |>
 #   as.numeric()
 
-# num_workers <- parallel::detectCores() |>
-#   as.numeric()
+num_workers <- parallel::detectCores() |>
+  as.numeric()
 
-num_workers <- 12
+# num_workers <- 12
 
 R <- num_workers * 2
 
@@ -96,7 +98,7 @@ init_guess <- c(Beta_MLE)
 
 # num_workers <- 20
 
-chunk_size <- 2
+chunk_size <- 1
 
 method <- "vanilla_MC"
 
@@ -148,6 +150,10 @@ log_likelihood_vals <- log_integrated_likelihood_vanilla_MC$values_df |>
 log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_seed={seed}_R={R}_h={X_level}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
+
+# matplot(log_integrated_likelihood_vanilla_MC$log_L_tilde_mat |> colnames() |> as.numeric(),
+#         log_integrated_likelihood_vanilla_MC$log_L_tilde_mat |> t(),
+#         type )
 
 # plot(log_profile_likelihood$values_df)
 # psi_hat <- get_psi_hat(model, X_h)

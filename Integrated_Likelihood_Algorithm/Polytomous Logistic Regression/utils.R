@@ -426,7 +426,7 @@ get_Beta_hat_matrices <- function(omega_hat_list,
 
     tryCatch({
 
-      p()
+      # p()
       
       branch_fn <- make_branch_fn(omega_hat, X_one_hot, X_h_one_hot, Y_one_hot)
       
@@ -435,7 +435,7 @@ get_Beta_hat_matrices <- function(omega_hat_list,
                                maximum = TRUE, 
                                tol = step_size)
       
-      p()
+      # p()
       
       psi_max <- optim_result$maximum
       
@@ -549,9 +549,14 @@ get_log_integrated_likelihood <- function(data,
   
   m <- model |> 
     model.frame() |> 
-    select(starts_with("X")) |> 
-    table() |> 
-    (\(table) table[X_h$X])()
+    filter(X == 1) |> 
+    nrow()
+  
+  # m <- model |> 
+  #   model.frame() |> 
+  #   select(starts_with("X")) |> 
+  #   table() |> 
+  #   (\(table) table[X_h$X])()
   
   X_one_hot <- model.matrix(model)
   

@@ -32,6 +32,8 @@ NumericMatrix iterate_while(
   NumericVector current_guess = clone(initial_guess);
   double previous_branch_val_forward = branch_max;
   
+  // int counter = 0;
+  
   while (current_branch_val_forward > stopping_branch_val) {
     NumericVector Beta_hat = as<NumericVector>(
       get_Beta_hat(current_guess, current_psi_val_forward, omega_hat, X_one_hot, X_h_one_hot)
@@ -53,8 +55,16 @@ NumericMatrix iterate_while(
       current_guess = clone(Beta_hat);
       previous_branch_val_forward = current_branch_val_forward;
       current_psi_val_forward += step_size;
-    } else {
+      // counter = 0;
+    }
+    // } else if (counter > 10) {
+    //   current_psi_val_forward += step_size;
+    //   current_guess = clone(Beta_hat);
+    //   counter = 0;
+    // } 
+    else {
       current_guess = current_guess + rnorm(current_guess.size(), 0.0, noise_sd);
+      // counter += 1;
     }
   }
   
@@ -83,8 +93,16 @@ NumericMatrix iterate_while(
       current_guess = clone(Beta_hat);
       previous_branch_val_backward = current_branch_val_backward;
       current_psi_val_backward -= step_size;
-    } else {
+      // counter = 0;
+    }
+    // } else if (counter > 10) {
+    //   current_psi_val_backward -= step_size;
+    //   current_guess = clone(Beta_hat);
+    //   counter = 0;
+    // } 
+    else {
       current_guess = current_guess + rnorm(current_guess.size(), 0.0, noise_sd);
+      // counter += 1;
     }
   }
   
