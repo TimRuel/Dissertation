@@ -256,8 +256,8 @@ get_Beta_hat <- function(psi,
                          J,
                          p,
                          prev_Beta_hat = NULL,
-                         lambda,
-                         max_retries) {
+                         lambda = 1e-4,
+                         max_retries = 3) {
   
   # Smooth initial guess using a moving average of previous solutions
   if (!is.null(prev_Beta_hat)) {
@@ -327,12 +327,7 @@ get_Beta_hat <- function(psi,
   return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
 }
 
-make_omega_hat_branch_fn <- function(omega_hat, 
-                                     X_one_hot, 
-                                     Y_one_hot, 
-                                     X_h_one_hot,
-                                     lambda,
-                                     max_retries) {
+make_omega_hat_branch_fn <- function(omega_hat, X_one_hot, Y_one_hot, X_h_one_hot) {
   
   Beta_hat_obj_fn <- make_Beta_hat_obj_fn(omega_hat, X_one_hot)
   
@@ -343,23 +338,21 @@ make_omega_hat_branch_fn <- function(omega_hat,
   p <- nrow(omega_hat)
   
   prev_Beta_hat <- NULL
-  
+    
   function(psi) {
     
     Beta_hat_con_fn <- make_Beta_hat_con_fn(psi, X_h_one_hot, J, p)
-    
+  
     Beta_hat_result <- get_Beta_hat(psi,
                                     Beta_hat_obj_fn,
                                     Beta_hat_con_fn,
                                     init_guess,
                                     J,
                                     p,
-                                    prev_Beta_hat,
-                                    lambda,
-                                    max_retries)
+                                    prev_Beta_hat)
     
     Beta_hat <- Beta_hat_result$Beta_hat
-    prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
+    prev_Beta_hat <- Beta_hat_result$prev_Beta_hat  # Update for the next iteration
     
     return(log_likelihood(Beta_hat, X_one_hot, Y_one_hot))
   }
@@ -438,8 +431,8 @@ get_branch <- function(X_one_hot,
                        alpha,
                        step_size,
                        init_guess_sd,
-                       lambda,
-                       max_retries) {
+                       lambda = 1e-4,
+                       max_retries = 3) {
   
   J <- ncol(Y_one_hot) + 1
   
@@ -465,12 +458,7 @@ get_branch <- function(X_one_hot,
     
     omega_hat <- get_omega_hat(omega_hat_obj_fn, omega_hat_con_fn, J, p, init_guess_sd)
     
-    omega_hat_branch_fn <- make_omega_hat_branch_fn(omega_hat, 
-                                                    X_one_hot, 
-                                                    Y_one_hot, 
-                                                    X_h_one_hot,
-                                                    lambda,
-                                                    max_retries)
+    omega_hat_branch_fn <- make_omega_hat_branch_fn(omega_hat, X_one_hot, Y_one_hot, X_h_one_hot)
     
     omega_hat_branch_fn_max <- get_omega_hat_branch_fn_max(omega_hat_branch_fn, J)
     
@@ -540,6 +528,22 @@ get_branch <- function(X_one_hot,
               log_L_tilde_df = log_L_tilde_df))
 }
 
+tic()
+
+branch <- get_branch(X_one_hot,
+                     Y_one_hot,
+                     X_h_one_hot,
+                     psi_hat,
+                     threshold,
+                     alpha,
+                     step_size,
+                     init_guess_sd)
+
+toc()
+
+branch$log_L_tilde_df |>
+  make_plot()
+
 generate_branches <- function(X_one_hot, 
                               Y_one_hot,
                               X_h_one_hot,
@@ -550,11 +554,11 @@ generate_branches <- function(X_one_hot,
                               init_guess_sd,
                               num_branches,
                               chunk_size,
-                              lambda,
-                              max_retries) {
+                              lambda = 1e-4,
+                              max_retries = 3) {
   
   progress_bar <- progressr::progressor(steps = num_branches)
-  
+    
   result <- foreach(
     
     i = 1:num_branches,
@@ -576,9 +580,7 @@ generate_branches <- function(X_one_hot,
                threshold, 
                alpha,
                step_size,
-               init_guess_sd,
-               lambda,
-               max_retries)
+               init_guess_sd)
   }
   
   omega_hat <- lapply(result, `[[`, 1)  # Extract first elements
@@ -589,41 +591,41 @@ generate_branches <- function(X_one_hot,
 }
 
 get_log_L_bar <- function(branches, prop) {
-  
+
   df_list <- branches$log_L_tilde_df
-  
+
   all_psi <- df_list |>
     lapply(function(df) df$psi) |>
     unlist() |>
     unique() |>
     sort()
-  
+
   df_list_filled <- df_list |>
     lapply(function(df) {
       full_join(data.frame(psi = all_psi), df, by = "psi")
     })
-  
+
   merged_df <- reduce(df_list_filled, full_join, by = "psi")
-  
+
   branches_matrix <- merged_df[, -1] |>
     as.matrix() |>
     t() |>
     unname()
-  
+
   colnames(branches_matrix) <- all_psi
-  
+
   psi_vals_to_keep <- colSums(!is.na(branches_matrix)) >= prop * nrow(branches_matrix)
-  
+
   branches_matrix <- branches_matrix[, psi_vals_to_keep]
-  
+
   log_L_bar <- matrixStats::colLogSumExps(branches_matrix, na.rm = TRUE)
-  
+
   log_L_bar_df <- data.frame(psi = psi_vals_to_keep |> 
                                which() |> 
                                names() |> 
                                as.numeric(),
                              value = log_L_bar)
-  
+
   return(list(df = log_L_bar_df,
               branches_matrix = branches_matrix))
 }
@@ -636,36 +638,34 @@ get_log_integrated_likelihood <- function(data,
                                           prop,
                                           init_guess_sd,
                                           num_workers,
-                                          chunk_size,
-                                          lambda = 1e-4,
-                                          max_retries = 3) {
-  
-  model <- fit_multinomial_logistic_model(data)
-  
+                                          chunk_size) {
+
+  model <- get_multinomial_logistic_model(data)
+
   m <- model |>
     model.frame() |>
     filter(X == 1) |>
     nrow()
-  
+
   X_one_hot <- model.matrix(model)
-  
+
   X_level <- X_h |>
     pull(X) |>
     as.character() |>
     as.numeric()
-  
+
   X_h_one_hot <- X_one_hot[1 + m*(X_level - 1),]
-  
+
   Y_one_hot <- data |>
     pull(Y) |>
     (\(Y) model.matrix(~ Y)[,-1])()
-  
+
   psi_hat <- get_psi_hat(model, X_h)
   
   num_branches <- num_workers * chunk_size
   
   plan(multisession, workers = num_workers)
-  
+
   branches <- generate_branches(X_one_hot,
                                 Y_one_hot,
                                 X_h_one_hot,
@@ -675,14 +675,12 @@ get_log_integrated_likelihood <- function(data,
                                 step_size,
                                 init_guess_sd,
                                 num_branches,
-                                chunk_size,
-                                lambda,
-                                max_retries)
+                                chunk_size)
   
   plan(sequential)
   
   log_L_bar <- get_log_L_bar(branches, prop)
-  
+
   return(list(branches = branches,
               log_L_bar = log_L_bar))
 }
@@ -694,30 +692,30 @@ get_log_integrated_likelihood <- function(data,
 get_log_profile_likelihood <- function(data,
                                        X_h,
                                        step_size,
+                                       threshold,
                                        alpha,
-                                       lambda = 1e-4,
-                                       max_retries = 3) {
-  
-  model <- fit_multinomial_logistic_model(data)
-  
+                                       init_guess_sd) {
+
+  model <- get_multinomial_logistic_model(data)
+
   m <- model |>
     model.frame() |>
     filter(X == 1) |>
     nrow()
-  
+
   X_one_hot <- model.matrix(model)
-  
+
   X_level <- X_h |>
     pull(X) |>
     as.character() |>
     as.numeric()
-  
+
   X_h_one_hot <- X_one_hot[1 + m*(X_level - 1),]
-  
+
   Y_one_hot <- data |>
     pull(Y) |>
     (\(Y) model.matrix(~ Y)[,-1])()
-  
+
   Beta_MLE <- get_Beta_MLE(model)
   
   J <- ncol(Y_one_hot) + 1
@@ -726,12 +724,7 @@ get_log_profile_likelihood <- function(data,
   
   delta <- qchisq(1 - alpha, 1) / 2
   
-  Beta_MLE_branch_fn <- make_omega_hat_branch_fn(Beta_MLE, 
-                                                 X_one_hot, 
-                                                 Y_one_hot, 
-                                                 X_h_one_hot,
-                                                 lambda,
-                                                 max_retries)
+  Beta_MLE_branch_fn <- make_omega_hat_branch_fn(Beta_MLE, X_one_hot, Y_one_hot, X_h_one_hot)
   
   Beta_MLE_branch_fn_max <- get_omega_hat_branch_fn_max(Beta_MLE_branch_fn, J)
   
@@ -745,7 +738,7 @@ get_log_profile_likelihood <- function(data,
   
   Beta_hat_obj_fn <- make_Beta_hat_obj_fn(Beta_MLE, X_one_hot)
   
-  init_guess <- rnorm(p * (J - 1), sd = 20)
+  init_guess <- rnorm(p * (J - 1), sd = init_guess_sd)
   
   prev_Beta_hat <- NULL 
   
@@ -776,10 +769,10 @@ get_log_profile_likelihood <- function(data,
     
     log_L_p <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
     
-    log_L_p_df <- log_L_p_df |> 
+    log_L_p_df <- log_L_tilde_df |> 
       mutate(
         value = case_when(
-          psi_val == psi ~ log_L_p,
+          psi_val == psi ~ log_L_tilde,
           TRUE ~ value
         )
       )
@@ -790,7 +783,7 @@ get_log_profile_likelihood <- function(data,
       make_plot() |>
       plotly::ggplotly() |>
       print()
-    
+
     Sys.sleep(0.1)
   }
   
