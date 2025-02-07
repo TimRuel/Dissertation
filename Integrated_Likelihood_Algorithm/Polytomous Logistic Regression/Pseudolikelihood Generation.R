@@ -16,8 +16,6 @@ handlers("cli")
 
 setwd(dirname(getActiveDocumentContext()$path))
 
-# source("utils.R")
-
 population_directory <- selectDirectory(caption = "Select population directory")
 
 setwd(population_directory)
@@ -30,23 +28,21 @@ set.seed(seed)
 ################################## PARAMETERS ################################## 
 ################################################################################
 
-h <- 2
+h <- 1
 
 X_h <- data.frame(X = factor(h))
 
-step_size <- 0.1
+step_size <- 0.05
 
-alpha <- 0.05
+alpha <- 0.03
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
 ################################################################################
 
-threshold <- 50
+threshold <- 40
 
 init_guess_sd <- 20
-
-prop <- 0.7
 
 # num_workers <- Sys.getenv("SLURM_NPROCS") |>
 #   as.numeric()
@@ -55,9 +51,11 @@ prop <- 0.7
 #   as.numeric()
 
 num_workers <- parallel::detectCores() |>
-  as.numeric()
+  as.integer()
 
-chunk_size <- 1
+chunk_size <- 5
+
+num_branches <- num_workers * chunk_size
 
 tic()
 
@@ -73,6 +71,10 @@ log_integrated_likelihood <- get_log_integrated_likelihood(data,
 
 toc()
 
+log_integrated_likelihood_filepath <- glue::glue("IL_obj_R={num_branches}_h={h}_stepsize={step_size}.Rda")
+
+saveRDS(log_integrated_likelihood, log_integrated_likelihood_filepath)
+
 ################################################################################
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
@@ -86,6 +88,11 @@ log_profile_likelihood <- get_log_profile_likelihood(data,
 
 toc()
 
+
+log_profile_likelihood_filepath <- glue::glue("PL_obj_R={num_branches}_h={h}_stepsize={step_size}.Rda")
+
+saveRDS(log_profile_likelihood, log_profile_likelihood_filepath)
+
 ################################################################################
 ################################### STORAGE #################################### 
 ################################################################################
@@ -96,7 +103,9 @@ log_likelihood_vals <- log_integrated_likelihood$log_L_bar$df |>
 # log_likelihood_vals <- values_df |> 
 #   merge(log_profile_likelihood$values_df, all = TRUE)
 
-log_likelihood_vals_file_path <- glue::glue("seed={seed}_J={J}_p={p}_m={m}_R={num_branches}_h={h}_stepsize={step_size}_alpha={alpha}.Rda")
+
+
+log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_R={num_branches}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
 

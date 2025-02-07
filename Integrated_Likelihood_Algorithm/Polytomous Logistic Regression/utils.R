@@ -398,7 +398,7 @@ get_psi_endpoints <- function(omega_hat_branch_fn, omega_hat_branch_fn_max, delt
 get_psi_grid <- function(psi_endpoints, step_size, J) {
   
   psi_endpoints |> 
-    (\(x) c(max(0, x[1]), min(log(J), x[2])))() |> 
+    (\(x) c(max(0.01, x[1]), min(log(J) - 0.01, x[2])))() |> 
     (\(x) c(plyr::round_any(x[1], step_size, floor), 
             plyr::round_any(x[2], step_size, ceiling)))() |>
     (\(x) seq(x[1], x[2], step_size))() |> 
@@ -409,10 +409,10 @@ get_psi_grid <- function(psi_endpoints, step_size, J) {
 ############################ INTEGRATED LIKELIHOOD ############################# 
 ################################################################################
 
-make_plot <- function(df) {
+make_plot <- function(df, y_var) {
   
   df |> 
-    ggplot(aes(x = psi, y = value)) + 
+    ggplot(aes(x = psi, y = y_var)) + 
     geom_point(color = "cyan", size = 3, alpha = 0.7) + 
     theme_minimal(base_size = 15) +  # Minimal theme with a larger base font size
     theme(
@@ -449,19 +449,11 @@ get_branch <- function(X_one_hot,
   
   psi_endpoints <- NULL
   
-  # i <- 1
+  omega_hat_obj_fn <- make_omega_hat_obj_fn(X_h_one_hot, J, p, psi_hat)
   
-  # message("Searching for endpoints...")
+  omega_hat_con_fn <- make_omega_hat_con_fn(threshold, X_one_hot, Y_one_hot)
   
   while(is.null(psi_endpoints)) {
-    
-    # cat("Iteration:", i, "\n")
-    # flush.console() 
-    # i <- i + 1
-    
-    omega_hat_obj_fn <- make_omega_hat_obj_fn(X_h_one_hot, J, p, psi_hat)
-    
-    omega_hat_con_fn <- make_omega_hat_con_fn(threshold, X_one_hot, Y_one_hot)
     
     omega_hat <- get_omega_hat(omega_hat_obj_fn, omega_hat_con_fn, J, p, init_guess_sd)
     
@@ -481,25 +473,19 @@ get_branch <- function(X_one_hot,
                               error = function(e) NULL)
   }
   
-  # message("Endpoints Found!")
-  
   psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
   
   Beta_hat_obj_fn <- make_Beta_hat_obj_fn(omega_hat, X_one_hot)
   
   init_guess <- rnorm(p * (J - 1), sd = init_guess_sd)
   
+  log_L_tilde_df <- data.frame(psi = psi_grid, Integrated = NA)
+  
   prev_Beta_hat <- NULL 
   
-  log_L_tilde_df <- data.frame(psi = psi_grid,
-                               value = NA)
-  
-  # log_L_tilde_df |> 
-  #   make_plot() |> 
-  #   plotly::ggplotly() |> 
-  #   print()
-  
-  for (psi_val in psi_grid) {
+  for (i in seq_along(psi_grid)) {
+    
+    psi_val <- psi_grid[i]
     
     Beta_hat_con_fn <- make_Beta_hat_con_fn(psi_val, X_h_one_hot, J, p)
     
@@ -514,26 +500,11 @@ get_branch <- function(X_one_hot,
                                     max_retries)
     
     Beta_hat <- Beta_hat_result$Beta_hat
-    prev_Beta_hat <- Beta_hat_result$prev_Beta_hat  # Update for the next iteration
+    prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
     
-    log_L_tilde <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
+    log_L_tilde_df$Integrated[i] <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
     
-    log_L_tilde_df <- log_L_tilde_df |> 
-      mutate(
-        value = case_when(
-          psi_val == psi ~ log_L_tilde,
-          TRUE ~ value
-        )
-      )
-    
-    init_guess <- c(Beta_hat)
-    
-    # log_L_tilde_df |> 
-    #   make_plot() |> 
-    #   plotly::ggplotly() |> 
-    #   print()
-    # 
-    # Sys.sleep(0.1)
+    init_guess <- 0.9 * c(Beta_hat) + 0.1 * init_guess
   }
   
   return(list(omega_hat = omega_hat,
@@ -588,7 +559,7 @@ generate_branches <- function(X_one_hot,
        log_L_tilde_df = log_L_tilde_df)
 }
 
-get_log_L_bar <- function(branches, prop) {
+get_log_L_bar <- function(branches, alpha, J) {
   
   df_list <- branches$log_L_tilde_df
   
@@ -612,17 +583,111 @@ get_log_L_bar <- function(branches, prop) {
   
   colnames(branches_matrix) <- all_psi
   
-  psi_vals_to_keep <- colSums(!is.na(branches_matrix)) >= prop * nrow(branches_matrix)
+  delta <- qchisq(1 - alpha, 1) / 2
+  
+  best_prop <- 1
+  
+  best_CI_length <- log(J)
+  
+  for (prop in seq(0, 1, 0.01)) {
+    
+    psi_vals_to_keep <- colSums(!is.na(branches_matrix)) >= prop * nrow(branches_matrix)
+    
+    branches_matrix_new <- branches_matrix[, psi_vals_to_keep]
+    
+    log_R <- branches_matrix_new |> 
+      as.data.frame() |> 
+      (\(df) !is.na(df))() |> 
+      colSums() |> 
+      log()
+    
+    log_L_bar <- matrixStats::colLogSumExps(branches_matrix_new, na.rm = TRUE) - log_R
+    
+    log_L_bar_df <- data.frame(psi = psi_vals_to_keep |> 
+                                 which() |> 
+                                 names() |> 
+                                 as.numeric(),
+                               Integrated = log_L_bar)
+    
+    spline_fitted_model <- smooth.spline(log_L_bar_df$psi, log_L_bar_df$Integrated)
+    
+    MLE_data <- optimize(function(psi) predict(spline_fitted_model, psi)$y,
+                           lower = log_L_bar_df |>
+                             select(psi) |>
+                             min(),
+                           upper = log_L_bar_df |>
+                             select(psi) |>
+                             max(),
+                           maximum = TRUE) |> 
+      data.frame() |> 
+      mutate(MLE = as.numeric(maximum),
+             Maximum = as.numeric(objective)) |>
+      select(MLE, Maximum)
+    
+    curve <- function(psi) {
+      
+      lower_psi_val <- spline_fitted_model$x |> min()
+      
+      upper_psi_val <- spline_fitted_model$x |> max()
+      
+      if (psi < lower_psi_val) {
+        
+        return(head(spline_fitted_model$y, 1) - MLE_data$Maximum)
+      }
+      
+      else if (psi > upper_psi_val) {
+        
+        return(tail(spline_fitted_model$y, 1) - MLE_data$Maximum)
+      }
+      
+      else {
+        
+        return(predict(spline_fitted_model, psi)$y - MLE_data$Maximum)
+      }
+    }
+    
+    lower_bound <- tryCatch(
+      
+      uniroot(function(psi) curve(psi) + delta,
+              interval = c(0, MLE_data$MLE))$root,
+      
+      error = function(e) return(0)
+    )
+    
+    upper_bound <- tryCatch(
+      
+      uniroot(function(psi) curve(psi) + delta,
+              interval = c(MLE_data$MLE, log(J)))$root,
+      
+      error = function(e) return(log(J))
+    )
+    
+    CI_length_new <- upper_bound - lower_bound
+    
+    if (CI_length_new < best_CI_length) {
+      
+      best_prop <- prop
+      best_CI_length = CI_length_new
+    }
+  }
+  
+  psi_vals_to_keep <- colSums(!is.na(branches_matrix)) >= best_prop * nrow(branches_matrix)
   
   branches_matrix <- branches_matrix[, psi_vals_to_keep]
   
-  log_L_bar <- matrixStats::colLogSumExps(branches_matrix, na.rm = TRUE)
+  log_R <- branches_matrix |> 
+    as.data.frame() |> 
+    (\(df) !is.na(df))() |> 
+    colSums() |> 
+    log()
+  
+  log_L_bar <- matrixStats::colLogSumExps(branches_matrix, na.rm = TRUE) - log_R
   
   log_L_bar_df <- data.frame(psi = psi_vals_to_keep |> 
                                which() |> 
                                names() |> 
                                as.numeric(),
-                             value = log_L_bar)
+                             Integrated = log_L_bar)
   
   return(list(df = log_L_bar_df,
               branches_matrix = branches_matrix))
@@ -649,12 +714,12 @@ get_log_integrated_likelihood <- function(data,
   
   X_one_hot <- model.matrix(model)
   
-  X_level <- X_h |>
+  h <- X_h |>
     pull(X) |>
     as.character() |>
     as.numeric()
   
-  X_h_one_hot <- X_one_hot[1 + m*(X_level - 1),]
+  X_h_one_hot <- X_one_hot[1 + m*(h - 1),]
   
   Y_one_hot <- data |>
     pull(Y) |>
@@ -664,7 +729,7 @@ get_log_integrated_likelihood <- function(data,
   
   num_branches <- num_workers * chunk_size
   
-  plan(multisession, workers = num_workers)
+  plan(multisession, workers = I(num_workers))
   
   branches <- generate_branches(X_one_hot,
                                 Y_one_hot,
@@ -681,7 +746,7 @@ get_log_integrated_likelihood <- function(data,
   
   plan(sequential)
   
-  log_L_bar <- get_log_L_bar(branches, prop)
+  log_L_bar <- get_log_L_bar(branches, alpha, J)
   
   return(list(branches = branches,
               log_L_bar = log_L_bar))
@@ -747,17 +812,18 @@ get_log_profile_likelihood <- function(data,
   
   init_guess <- rnorm(p * (J - 1), sd = 20)
   
+  log_L_p_df <- data.frame(psi = psi_grid, Profile = NA)
+  
   prev_Beta_hat <- NULL 
   
-  log_L_p_df <- data.frame(psi = psi_grid,
-                           value = NA)
-  
   log_L_p_df |>
-    make_plot() |>
+    make_plot("Profile") |>
     plotly::ggplotly() |>
     print()
   
-  for (psi_val in psi_grid) {
+  for (i in seq_along(psi_grid)) {
+    
+    psi_val <- psi_grid[i]
     
     Beta_hat_con_fn <- make_Beta_hat_con_fn(psi_val, X_h_one_hot, J, p)
     
@@ -774,20 +840,12 @@ get_log_profile_likelihood <- function(data,
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
     
-    log_L_p <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
+    log_L_p_df$Profile[i] <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
     
-    log_L_p_df <- log_L_p_df |> 
-      mutate(
-        value = case_when(
-          psi_val == psi ~ log_L_p,
-          TRUE ~ value
-        )
-      )
-    
-    init_guess <- c(Beta_hat)
+    init_guess <- 0.9 * c(Beta_hat) + 0.1 * init_guess
     
     log_L_p_df |>
-      make_plot() |>
+      make_plot("Profile") |>
       plotly::ggplotly() |>
       print()
     

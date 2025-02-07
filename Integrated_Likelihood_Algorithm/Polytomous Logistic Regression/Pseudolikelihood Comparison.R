@@ -22,7 +22,7 @@ source("data.R")
 print("Choose your pseudolikelihood data file.")
 log_likelihood_vals_file_path <- selectFile(path = getwd())
 
-model <- get_multinomial_logistic_model(data)
+model <- fit_multinomial_logistic_model(data)
 
 step_size <- log_likelihood_vals_file_path |>  
   str_remove("^.*stepsize=") |> 
@@ -39,7 +39,7 @@ X_h <- data.frame(X = factor(X_level))
 psi_hat <- get_psi_hat(model, X_h)
 
 psi_0 <- theta_0[[X_level]] |> 
-  get_entropy()
+  entropy()
 
 # pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
@@ -197,7 +197,8 @@ c(stat_fn_IL, stat_fn_PL) %<-% map2(
   }
 )
 
-psi_range <- c(min(psi_grid), max(psi_grid))
+# psi_range <- c(min(unlist(conf_ints)), max(unlist(conf_ints)))
+psi_range <- c(0, log(J))
 
 y_min <- pseudo_log_likelihood_curves |> 
   map((\(curve) c(curve(psi_range[1]), curve(psi_range[2])))) |> 
@@ -231,13 +232,13 @@ ggplot() +
                             direction = "y",
                             parse = TRUE,
                             show.legend = FALSE) +
-  # annotate("rect",
-  #          xmin = conf_ints$Integrated[1],
-  #          xmax = min(conf_ints$Integrated[2], psi_range[2]),
-  #          ymin = -Inf,
-  #          ymax = Inf,
-  #          fill = "blue",
-  #          alpha = 0.5) +
+  annotate("rect",
+           xmin = conf_ints$Integrated[1],
+           xmax = min(conf_ints$Integrated[2], psi_range[2]),
+           ymin = -Inf,
+           ymax = Inf,
+           fill = "blue",
+           alpha = 0.5) +
   # annotate("rect",
   #          xmin = conf_ints$Profile[1],
   #          xmax = conf_ints$Profile[2],
@@ -262,7 +263,7 @@ ggplot() +
   xlab(expression(psi)) +
   theme_minimal() +
   theme(axis.line = element_line())
-
+          
 
 
 
