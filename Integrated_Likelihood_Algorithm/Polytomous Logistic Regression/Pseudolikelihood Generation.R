@@ -42,7 +42,7 @@ alpha <- 0.03
 
 threshold <- 40
 
-init_guess_sd <- 20
+init_guess_sd <- 5
 
 # num_workers <- Sys.getenv("SLURM_NPROCS") |>
 #   as.numeric()

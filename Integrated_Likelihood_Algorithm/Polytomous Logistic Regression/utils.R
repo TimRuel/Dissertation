@@ -5,9 +5,9 @@ library(tidyverse)
 library(pipeR)
 library(iterate)
 library(Rcpp)
+library(RcppArmadillo)
 library(nloptr)
-# Rcpp::sourceCpp("../../iterate_while.cpp")
-# sourceCpp("../../get_Beta_hat.cpp")
+sourceCpp("../../polytomous.cpp")
 
 softmax <- function(x) exp(x) / sum(exp(x))
 
@@ -152,41 +152,44 @@ get_psi_hat <- function(model, X_h) {
     entropy()
 }
 
-make_omega_hat_obj_fn <- function(X_h_one_hot, J, p, psi_hat) {
-  
-  function(Beta) {
-    
-    Beta <- matrix(Beta,
-                   nrow = p,
-                   ncol = J - 1,
-                   byrow = FALSE)
-    
-    entropy <- PoI_fn(Beta, X_h_one_hot)
-    
-    return(abs(entropy - psi_hat))
-  }
-}
+# make_omega_hat_obj_fn <- function(X_h_one_hot, J, p, psi_hat) {
+#   
+#   function(Beta) {
+#     
+#     Beta <- matrix(Beta,
+#                    nrow = p,
+#                    ncol = J - 1,
+#                    byrow = FALSE)
+#     
+#     entropy <- PoI_fn(Beta, X_h_one_hot)
+#     
+#     return(abs(entropy - psi_hat))
+#   }
+# }
+# 
+# make_omega_hat_con_fn <- function(threshold, X_one_hot, Y_one_hot) {
+#   
+#   p <- ncol(X_one_hot)
+#   
+#   J_minus_one <- ncol(Y_one_hot)
+#   
+#   function(Beta) {
+#     
+#     Beta <- matrix(Beta,
+#                    nrow = p,
+#                    ncol = J_minus_one,
+#                    byrow = FALSE)
+#     
+#     return(-log_likelihood(Beta, X_one_hot, Y_one_hot) - threshold)
+#   }
+# }
 
-make_omega_hat_con_fn <- function(threshold, X_one_hot, Y_one_hot) {
-  
-  p <- ncol(X_one_hot)
-  
-  J_minus_one <- ncol(Y_one_hot)
-  
-  function(Beta) {
-    
-    Beta <- matrix(Beta,
-                   nrow = p,
-                   ncol = J_minus_one,
-                   byrow = FALSE)
-    
-    return(-log_likelihood(Beta, X_one_hot, Y_one_hot) - threshold)
-  }
-}
+omega_hat_obj_fn <- function(Beta) omega_hat_obj_fn_rcpp(Beta, X_h_one_hot, J - 1, p, psi_hat)
+omega_hat_con_fn <- function(Beta) omega_hat_con_fn_rcpp(Beta, X_one_hot, Y_one_hot, J - 1, p, threshold)
 
-get_omega_hat <- function(omega_hat_obj_fn, omega_hat_con_fn, J, p, guess_sd) {
+get_omega_hat <- function(Jm1, p, init_guess_sd) {
   
-  init_guess <- rnorm(p * (J - 1), sd = guess_sd)
+  init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
   
   omega_hat <- nloptr::auglag(x0 = init_guess,
                               fn = omega_hat_obj_fn,
@@ -196,64 +199,63 @@ get_omega_hat <- function(omega_hat_obj_fn, omega_hat_con_fn, J, p, guess_sd) {
   
   if (omega_hat_obj_fn(omega_hat) <= 0.1 && omega_hat_con_fn(omega_hat) <= 0) {
     
-    omega_hat <- omega_hat |> 
-      matrix(nrow = p,
-             ncol = J - 1,
-             byrow = FALSE)
+    omega_hat <- matrix(omega_hat, nrow = p, ncol = Jm1, byrow = FALSE)
     
     return(omega_hat)
   }
   
   else {
     
-    get_omega_hat(omega_hat_obj_fn, omega_hat_con_fn, J, p, guess_sd)
+    return(get_omega_hat(Jm1, p, init_guess_sd))
   }
 }
 
-make_Beta_hat_obj_fn <- function(omega_hat, X_one_hot) {
-  
-  probs <- X_one_hot %*% cbind(0, omega_hat) |>
-    (\(mat) mat[,-1])() |> 
-    apply(1, softmax_adj) |>
-    t()
-  
-  p <- nrow(omega_hat)
-  
-  J_minus_one <- ncol(omega_hat)
-  
-  function(Beta) {
-    
-    Beta <- matrix(Beta,
-                   nrow = p,
-                   ncol = J_minus_one,
-                   byrow = FALSE)
-    
-    Y_hat <- X_one_hot %*% Beta
-    
-    return(-sum(rowSums(probs * Y_hat) - log(1 + rowSums(exp(Y_hat)))))
-  }
-}
+# make_Beta_hat_obj_fn <- function(omega_hat, X_one_hot, lambda) {
+#   
+#   probs <- X_one_hot %*% omega_hat |>
+#     apply(1, softmax_adj) |>
+#     t()
+#   
+#   p <- nrow(omega_hat)
+#   
+#   J_minus_one <- ncol(omega_hat)
+#   
+#   function(Beta) {
+#     
+#     Beta <- matrix(Beta,
+#                    nrow = p,
+#                    ncol = J_minus_one,
+#                    byrow = FALSE)
+#     
+#     Y_hat <- X_one_hot %*% Beta
+#     
+#     return(-sum(rowSums(probs * Y_hat) - log(1 + rowSums(exp(Y_hat)))) + lambda*sum(Beta^2))
+#   }
+# }
+# 
+# make_Beta_hat_con_fn <- function(psi, X_h_one_hot, J, p) {
+#   
+#   function(Beta) {
+#     
+#     Beta <- matrix(Beta,
+#                    nrow = p,
+#                    ncol = J - 1,
+#                    byrow = FALSE)
+#     
+#     entropy <- PoI_fn(Beta, X_h_one_hot)
+#     
+#     return(entropy - psi)
+#   }
+# }
 
-make_Beta_hat_con_fn <- function(psi, X_h_one_hot, J, p) {
-  
-  function(Beta) {
-    
-    Beta <- matrix(Beta,
-                   nrow = p,
-                   ncol = J - 1,
-                   byrow = FALSE)
-    
-    entropy <- PoI_fn(Beta, X_h_one_hot)
-    
-    return(entropy - psi)
-  }
-}
+safe_auglag <- purrr::possibly(nloptr::auglag, otherwise = NULL)
 
-get_Beta_hat <- function(psi,
-                         Beta_hat_obj_fn,
-                         Beta_hat_con_fn,
+get_Beta_hat <- function(X_one_hot, 
+                         X_h_one_hot,
+                         omega_hat,
+                         psi,
                          init_guess,
-                         J,
+                         Jm1,
                          p,
                          prev_Beta_hat = NULL,
                          lambda,
@@ -261,61 +263,51 @@ get_Beta_hat <- function(psi,
   
   # Smooth initial guess using a moving average of previous solutions
   if (!is.null(prev_Beta_hat)) {
-    init_guess <- 0.9 * prev_Beta_hat + 0.1 * init_guess
+    alpha <- max(0.1, min(0.9, 1 - 1 / max_retries))
+    init_guess <- alpha * prev_Beta_hat + (1 - alpha) * init_guess
   }
   
   # Constraint feasibility check (avoid infeasible starting points)
-  if (max(abs(Beta_hat_con_fn(init_guess))) > 1e-4) {
-    warning("Initial guess violates constraints. Adjusting...")
+  if (sum(init_guess^2) > 1000) {
     init_guess <- init_guess * 0.95  # Simple heuristic to move towards feasibility
   }
   
-  # Regularized objective function to discourage large jumps
-  regularized_Beta_hat_obj_fn <- function(Beta) {
-    Beta_hat_obj_fn(Beta) + lambda * sum(Beta^2)
-  }
-  
+  obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_one_hot, omega_hat, lambda)
+  con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_one_hot, psi, J, p)
+    
   # Optimization attempt with retries
   for (attempt in 1:max_retries) {
-    result <- tryCatch({
-      nloptr::auglag(
-        x0 = init_guess,
-        fn = regularized_Beta_hat_obj_fn,
-        heq = Beta_hat_con_fn,
-        localsolver = "SLSQP",
-        localtol = 1e-8,
-        deprecatedBehavior = FALSE
-      )
-    }, error = function(e) {
-      warning(sprintf("Optimization attempt %d failed: %s", attempt, e$message))
-      return(NULL)
-    })
     
-    # If optimization succeeded, return the result
+    result <- safe_auglag(
+      x0 = init_guess,
+      fn = obj_fn,
+      heq = con_fn,
+      localsolver = "SLSQP",
+      localtol = 1e-8,
+      deprecatedBehavior = FALSE,
+      control = list(on.error = "ignore")
+    )
+    
     if (!is.null(result$par)) {
-      Beta_hat <- matrix(result$par, nrow = p, ncol = J - 1, byrow = FALSE)
+      
+      Beta_hat <- matrix(result$par, nrow = p, ncol = Jm1, byrow = FALSE)
       return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
     }
     
-    # Retry with a perturbed initial guess
+    # Perturbation for next attempt
     init_guess <- init_guess + rnorm(length(init_guess), sd = 0.1)
   }
   
   # If retries failed, attempt a fallback with a different solver
   warning("All SLSQP attempts failed. Trying COBYLA...")
-  result_fallback <- tryCatch({
-    nloptr::auglag(
-      x0 = init_guess,
-      fn = regularized_Beta_hat_obj_fn,
-      heq = Beta_hat_con_fn,
-      localsolver = "COBYLA",
-      localtol = 1e-6,  # Slightly relaxed tolerance
-      deprecatedBehavior = FALSE
-    )
-  }, error = function(e) {
-    warning("Fallback optimization with COBYLA failed. Using previous Beta_hat.")
-    return(NULL)
-  })
+  result_fallback <- safe_auglag(
+    x0 = init_guess,
+    fn = obj_fn,
+    heq = con_fn,
+    localsolver = "COBYLA",
+    localtol = 1e-6,  # Slightly relaxed tolerance
+    deprecatedBehavior = FALSE
+  )
   
   # If fallback fails, return previous Beta_hat
   if (is.null(result_fallback$par)) {
@@ -323,7 +315,7 @@ get_Beta_hat <- function(psi,
     return(list(Beta_hat = prev_Beta_hat, prev_Beta_hat = prev_Beta_hat))
   }
   
-  Beta_hat <- matrix(result_fallback$par, nrow = p, ncol = J - 1, byrow = FALSE)
+  Beta_hat <- matrix(result_fallback$par, nrow = p, ncol = Jm1, byrow = FALSE)
   return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
 }
 
@@ -331,28 +323,23 @@ make_omega_hat_branch_fn <- function(omega_hat,
                                      X_one_hot, 
                                      Y_one_hot, 
                                      X_h_one_hot,
+                                     Jm1,
+                                     p,
                                      lambda,
                                      max_retries) {
   
-  Beta_hat_obj_fn <- make_Beta_hat_obj_fn(omega_hat, X_one_hot)
-  
   init_guess <- c(omega_hat)
-  
-  J <- ncol(omega_hat) + 1
-  
-  p <- nrow(omega_hat)
   
   prev_Beta_hat <- NULL
   
   function(psi) {
     
-    Beta_hat_con_fn <- make_Beta_hat_con_fn(psi, X_h_one_hot, J, p)
-    
-    Beta_hat_result <- get_Beta_hat(psi,
-                                    Beta_hat_obj_fn,
-                                    Beta_hat_con_fn,
+    Beta_hat_result <- get_Beta_hat(X_one_hot, 
+                                    X_h_one_hot,
+                                    omega_hat,
+                                    psi,
                                     init_guess,
-                                    J,
+                                    Jm1,
                                     p,
                                     prev_Beta_hat,
                                     lambda,
@@ -376,7 +363,10 @@ get_omega_hat_branch_fn_max <- function(omega_hat_branch_fn, J) {
   return(list(branch_argmax = branch_argmax, branch_max = branch_max))
 }
 
-get_psi_endpoints <- function(omega_hat_branch_fn, omega_hat_branch_fn_max, delta, J) {
+get_psi_endpoints <- function(omega_hat_branch_fn, 
+                              omega_hat_branch_fn_max, 
+                              delta, 
+                              J) {
   
   branch_argmax <- omega_hat_branch_fn_max$branch_argmax
   
@@ -386,22 +376,23 @@ get_psi_endpoints <- function(omega_hat_branch_fn, omega_hat_branch_fn_max, delt
   
   root_func <- function(psi) omega_hat_branch_fn(psi) - target_value
   
-  # Find left intersection (x < x_max)
   left_intersection <- uniroot(root_func, interval = c(0, branch_argmax))$root
   
-  # Find right intersection (x > x_max)
   right_intersection <- uniroot(root_func, interval = c(branch_argmax, log(J)))$root
   
   return(c(left_intersection, right_intersection))
 }
 
+safe_get_psi_endpoints <- purrr::possibly(get_psi_endpoints, otherwise = NULL)
+
 get_psi_grid <- function(psi_endpoints, step_size, J) {
   
   psi_endpoints |> 
-    (\(x) c(max(0.01, x[1]), min(log(J) - 0.01, x[2])))() |> 
+    (\(x) c(max(0, x[1]), min(log(J), x[2])))() |> 
     (\(x) c(plyr::round_any(x[1], step_size, floor), 
             plyr::round_any(x[2], step_size, ceiling)))() |>
     (\(x) seq(x[1], x[2], step_size))() |> 
+    (\(x) c(max(0.01, head(x, 1)), x[-1][-length(x) + 1], min(log(J) - 0.01, tail(x, 1))))() |> 
     round(6)
 }
 
@@ -449,33 +440,28 @@ get_branch <- function(X_one_hot,
   
   psi_endpoints <- NULL
   
-  omega_hat_obj_fn <- make_omega_hat_obj_fn(X_h_one_hot, J, p, psi_hat)
-  
-  omega_hat_con_fn <- make_omega_hat_con_fn(threshold, X_one_hot, Y_one_hot)
-  
-  while(is.null(psi_endpoints)) {
+  while (is.null(psi_endpoints)) {
     
-    omega_hat <- get_omega_hat(omega_hat_obj_fn, omega_hat_con_fn, J, p, init_guess_sd)
+    omega_hat <- get_omega_hat(J - 1, p, init_guess_sd)
     
     omega_hat_branch_fn <- make_omega_hat_branch_fn(omega_hat, 
                                                     X_one_hot, 
                                                     Y_one_hot, 
                                                     X_h_one_hot,
+                                                    J - 1,
+                                                    p,
                                                     lambda,
                                                     max_retries)
     
     omega_hat_branch_fn_max <- get_omega_hat_branch_fn_max(omega_hat_branch_fn, J)
     
-    psi_endpoints <- tryCatch(get_psi_endpoints(omega_hat_branch_fn, 
-                                                omega_hat_branch_fn_max, 
-                                                delta,
-                                                J),
-                              error = function(e) NULL)
+    psi_endpoints <- safe_get_psi_endpoints(omega_hat_branch_fn, 
+                                            omega_hat_branch_fn_max, 
+                                            delta,
+                                            J)
   }
   
   psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
-  
-  Beta_hat_obj_fn <- make_Beta_hat_obj_fn(omega_hat, X_one_hot)
   
   init_guess <- rnorm(p * (J - 1), sd = init_guess_sd)
   
@@ -487,13 +473,12 @@ get_branch <- function(X_one_hot,
     
     psi_val <- psi_grid[i]
     
-    Beta_hat_con_fn <- make_Beta_hat_con_fn(psi_val, X_h_one_hot, J, p)
-    
-    Beta_hat_result <- get_Beta_hat(psi_val,
-                                    Beta_hat_obj_fn,
-                                    Beta_hat_con_fn,
+    Beta_hat_result <- get_Beta_hat(X_one_hot, 
+                                    X_h_one_hot,
+                                    omega_hat,
+                                    psi_val,
                                     init_guess,
-                                    J,
+                                    J - 1,
                                     p,
                                     prev_Beta_hat,
                                     lambda,
@@ -502,7 +487,7 @@ get_branch <- function(X_one_hot,
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
     
-    log_L_tilde_df$Integrated[i] <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
+    log_L_tilde_df$Integrated[i] <- log_likelihood_rcpp(Beta_hat, X_one_hot, Y_one_hot, J - 1, p)
     
     init_guess <- 0.9 * c(Beta_hat) + 0.1 * init_guess
   }
@@ -719,13 +704,19 @@ get_log_integrated_likelihood <- function(data,
     as.character() |>
     as.numeric()
   
-  X_h_one_hot <- X_one_hot[1 + m*(h - 1),]
+  X_h_one_hot <- X_one_hot[1 + m*(h - 1),] |> 
+    matrix() |> 
+    t()
   
   Y_one_hot <- data |>
     pull(Y) |>
     (\(Y) model.matrix(~ Y)[,-1])()
   
   psi_hat <- get_psi_hat(model, X_h)
+  
+  Jm1 <- ncol(Y_one_hot)
+  
+  p <- ncol(X_one_hot)
   
   num_branches <- num_workers * chunk_size
   
@@ -795,6 +786,8 @@ get_log_profile_likelihood <- function(data,
                                                  X_one_hot, 
                                                  Y_one_hot, 
                                                  X_h_one_hot,
+                                                 J - 1,
+                                                 p,
                                                  lambda,
                                                  max_retries)
   

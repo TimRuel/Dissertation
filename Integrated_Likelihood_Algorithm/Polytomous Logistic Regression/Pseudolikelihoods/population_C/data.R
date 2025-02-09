@@ -25,5 +25,7 @@ X <- get_X(p, m, contrast)
 data <- data.frame(X = X,
                    Y = Y)
 
+threshold <- 40
+
 # Add interactions and/or continuous variables
 
