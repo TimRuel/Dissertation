@@ -3,33 +3,32 @@
 \alias{PolytomousUtils}
 \docType{package}
 \title{
-\packageTitle{PolytomousUtils}
+  A short title line describing what the package does
 }
 \description{
-\packageDescription{PolytomousUtils}
+  A more detailed description of what the package does. A length
+  of about one to five lines is recommended.
 }
 \details{
-%%  ~~ An overview of how to use the package, ~~
-%%  ~~ including the most important functions ~~
+  This section should provide a more detailed overview of how to use the
+  package, including the most important functions.
 }
 \author{
-\packageAuthor{PolytomousUtils}
+Your Name, email optional.
 
-Maintainer: \packageMaintainer{PolytomousUtils}
+Maintainer: Your Name <your@email.com>
 }
 \references{
-%%  ~~ Literature or other references for background information ~~
+  This optional section can contain literature or other references for
+  background information.
 }
-\keyword{package}
-
-%% Uncomment below to imitate parts of library(help = PolytomousUtils)
-%\section{The \file{DESCRIPTION} File}{\packageDESCRIPTION{PolytomousUtils}}
-%\section{Documentation Index}{\packageIndices{PolytomousUtils}}
-
+\keyword{ package }
 \seealso{
-%%  ~~ Optional links to other man pages, e.g. ~~
-%%  ~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+  Optional links to other man pages
 }
 \examples{
-%%  ~~ Optional simple examples of the most important functions ~~
+  \dontrun{
+     ## Optional simple examples of the most important functions
+     ## These can be in \dontrun{} and \donttest{} blocks.   
+  }
 }

@@ -12,7 +12,7 @@ library(tictoc)
 library(rstudioapi)
 
 handlers(global = TRUE)
-handlers("cli")
+handlers("progress")
 
 setwd(dirname(getActiveDocumentContext()$path))
 
@@ -32,9 +32,13 @@ h <- 1
 
 X_h <- data.frame(X = factor(h))
 
-step_size <- 0.05
+step_size <- 0.01
 
 alpha <- 0.03
+
+lambda <- 1e-4
+
+max_retries <- 10
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
@@ -53,21 +57,38 @@ init_guess_sd <- 5
 num_workers <- parallel::detectCores() |>
   as.integer()
 
-chunk_size <- 5
+chunk_size <- 3
 
 num_branches <- num_workers * chunk_size
 
 tic()
 
-log_integrated_likelihood <- get_log_integrated_likelihood(data,
+branch_specs <- generate_branch_specs(data,
+                                      X_h,
+                                      init_guess_sd,
+                                      alpha,
+                                      num_workers,
+                                      chunk_size,
+                                      lambda,
+                                      max_retries)
+
+branch_specs_filepath <- glue::glue("branch_specs/R={num_branches}_h={h}_alpha={alpha}.Rda")
+
+saveRDS(branch_specs, branch_specs_filepath)
+
+toc()
+
+tic()
+
+log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs,
+                                                           data,
                                                            X_h,
-                                                           step_size,
-                                                           threshold,
                                                            alpha,
-                                                           prop,
+                                                           step_size,
                                                            init_guess_sd,
-                                                           num_workers,
-                                                           chunk_size)
+                                                           chunk_size,
+                                                           lambda,
+                                                           max_retries)
 
 toc()
 
@@ -84,10 +105,12 @@ tic()
 log_profile_likelihood <- get_log_profile_likelihood(data,
                                                      X_h,
                                                      step_size,
-                                                     alpha)
+                                                     alpha,
+                                                     init_guess_sd,
+                                                     lambda,
+                                                     max_retries)
 
 toc()
-
 
 log_profile_likelihood_filepath <- glue::glue("PL_obj_R={num_branches}_h={h}_stepsize={step_size}.Rda")
 
@@ -103,11 +126,6 @@ log_likelihood_vals <- log_integrated_likelihood$log_L_bar$df |>
 # log_likelihood_vals <- values_df |> 
 #   merge(log_profile_likelihood$values_df, all = TRUE)
 
-
-
 log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_R={num_branches}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
-
-# log_integrated_likelihood$log_L_bar$df |> 
-#   make_plot()

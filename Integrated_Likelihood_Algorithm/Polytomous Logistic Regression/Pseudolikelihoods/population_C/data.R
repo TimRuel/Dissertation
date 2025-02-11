@@ -10,6 +10,8 @@ p <- 3 # number of levels of predictor
 
 m <- 10 # number of observations at each level of predictor
 
+n <- sum(m * p)
+
 epsilon <- 0.01
 
 max_iter <- 1e6

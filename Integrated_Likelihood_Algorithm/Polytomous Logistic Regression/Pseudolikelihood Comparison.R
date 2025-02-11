@@ -197,8 +197,8 @@ c(stat_fn_IL, stat_fn_PL) %<-% map2(
   }
 )
 
-# psi_range <- c(min(unlist(conf_ints)), max(unlist(conf_ints)))
-psi_range <- c(0, log(J))
+psi_range <- c(min(unlist(conf_ints)), max(unlist(conf_ints)))
+# psi_range <- c(0, log(J))
 
 y_min <- pseudo_log_likelihood_curves |> 
   map((\(curve) c(curve(psi_range[1]), curve(psi_range[2])))) |> 
@@ -232,13 +232,13 @@ ggplot() +
                             direction = "y",
                             parse = TRUE,
                             show.legend = FALSE) +
-  annotate("rect",
-           xmin = conf_ints$Integrated[1],
-           xmax = min(conf_ints$Integrated[2], psi_range[2]),
-           ymin = -Inf,
-           ymax = Inf,
-           fill = "blue",
-           alpha = 0.5) +
+  # annotate("rect",
+  #          xmin = conf_ints$Integrated[1],
+  #          xmax = min(conf_ints$Integrated[2], psi_range[2]),
+  #          ymin = -Inf,
+  #          ymax = Inf,
+  #          fill = "blue",
+  #          alpha = 0.5) +
   # annotate("rect",
   #          xmin = conf_ints$Profile[1],
   #          xmax = conf_ints$Profile[2],
