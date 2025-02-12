@@ -46,6 +46,8 @@ max_retries <- 10
 
 threshold <- 40
 
+quantiles <- c(0.25, 0.5)
+
 init_guess_sd <- 5
 
 # num_workers <- Sys.getenv("SLURM_NPROCS") |>
@@ -57,7 +59,9 @@ init_guess_sd <- 5
 num_workers <- parallel::detectCores() |>
   as.integer()
 
-chunk_size <- 3
+num_workers <- 12
+
+chunk_size <- 1
 
 num_branches <- num_workers * chunk_size
 
@@ -76,16 +80,20 @@ branch_specs_filepath <- glue::glue("branch_specs/R={num_branches}_h={h}_alpha={
 
 saveRDS(branch_specs, branch_specs_filepath)
 
+branch_specs <- readRDS("branch_specs/R=260_h=1_alpha=0.03.Rda")
+
 toc()
 
 tic()
 
-log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs,
+log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs[1:num_branches],
                                                            data,
                                                            X_h,
                                                            alpha,
                                                            step_size,
+                                                           quantiles,
                                                            init_guess_sd,
+                                                           num_workers,
                                                            chunk_size,
                                                            lambda,
                                                            max_retries)

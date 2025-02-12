@@ -4,7 +4,6 @@
 library(tidyverse)
 library(pipeR)
 library(Rcpp)
-library(RcppArmadillo)
 library(nloptr)
 library(PolytomousUtils)
 # sourceCpp("../../polytomous_utils.cpp")
@@ -303,23 +302,41 @@ get_psi_endpoints <- function(omega_hat_branch_fn,
   
   root_func <- function(psi) omega_hat_branch_fn(psi) - target_value
   
-  left_intersection <- uniroot(root_func, interval = c(0, branch_argmax))$root
+  left_intersection <- uniroot(root_func, interval = c(0.01, branch_argmax))$root
   
-  right_intersection <- uniroot(root_func, interval = c(branch_argmax, log(J)))$root
+  right_intersection <- uniroot(root_func, interval = c(branch_argmax, log(J) - 0.01))$root
   
   return(c(left_intersection, right_intersection))
 }
 
 safe_get_psi_endpoints <- purrr::possibly(get_psi_endpoints, otherwise = NULL)
 
-get_psi_grid <- function(psi_endpoints, step_size, J) {
+get_psi_grid_1 <- function(psi_endpoints, step_size, J) {
   
-  psi_endpoints |> 
-    (\(x) c(max(0, x[1]), min(log(J), x[2])))() |> 
-    (\(x) c(plyr::round_any(x[1], step_size, floor), 
+  psi_endpoints |>
+    (\(x) c(max(0, x[1]), min(log(J), x[2])))() |>
+    (\(x) c(plyr::round_any(x[1], step_size, floor),
             plyr::round_any(x[2], step_size, ceiling)))() |>
-    (\(x) seq(x[1], x[2], step_size))() |> 
-    (\(x) c(max(0.01, head(x, 1)), x[-1][-length(x) + 1], min(log(J) - 0.01, tail(x, 1))))() |> 
+    (\(x) seq(x[1], x[2], step_size))() |>
+    (\(x) c(x[-length(x)], min(log(J), tail(x, 1))))() |>
+    round(6)
+}
+
+get_psi_grid_2 <- function(branch_specs, step_size, J, quantiles) {
+  
+  branch_specs |> 
+    purrr::map(\(branch_spec) branch_spec$psi_endpoints) |> 
+    (\(x) do.call(rbind, x))() |> 
+    as.data.frame() |> 
+    purrr::set_names(c("Lower", V2 = "Upper")) |> 
+    dplyr::summarise(Lower = quantile(Lower, quantiles[1]),
+                     Upper = quantile(Upper, quantiles[2])) |> 
+    c() |> 
+    unlist() |> 
+    (\(x) c(plyr::round_any(x[1], step_size, floor), 
+            plyr::round_any(x[2], step_size, ceiling)))() |> 
+    (\(x) seq(x[1], x[2], step_size))() |>
+    (\(x) c(x[-length(x)], min(log(J), tail(x, 1))))() |>
     round(6)
 }
 
@@ -445,7 +462,7 @@ generate_branch_specs <- function(data,
     .errorhandling = "remove",
     .options.future = list(seed = TRUE,
                            chunk.size = chunk_size,
-                           packages = "nloptr")
+                           packages = c("PolytomousUtils", "nloptr"))
     
   ) %dofuture% {
     
@@ -487,29 +504,25 @@ get_branch <- function(branch_spec,
                        lambda,
                        max_retries) {
   
-  omega_hat <- branch_spec$omega_hat
+  psi_grid <- get_psi_grid_1(branch_spec$psi_endpoints, step_size, J)
   
-  psi_endpoints <- branch_spec$psi_endpoints
-  
-  psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
-  
-  progress_bar <- progressr::progressor(along = psi_grid)
+  # progress_bar <- progressr::progressor(along = psi_grid)
   
   init_guess <- rnorm(p * (J - 1), sd = init_guess_sd)
   
-  log_L_tilde_df <- data.frame(psi = psi_grid, Integrated = NA)
+  log_L_tilde_vec <- numeric(length(psi_grid))
   
   prev_Beta_hat <- NULL 
   
   for (i in seq_along(psi_grid)) {
     
-    progress_bar()
+    # progress_bar()
     
     psi <- psi_grid[i]
     
     Beta_hat_result <- get_Beta_hat(X_one_hot, 
                                     X_h_one_hot,
-                                    omega_hat,
+                                    branch_spec$omega_hat,
                                     psi,
                                     init_guess,
                                     J - 1,
@@ -521,12 +534,15 @@ get_branch <- function(branch_spec,
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
     
-    log_L_tilde_df$Integrated[i] <- log_likelihood_rcpp(Beta_hat, X_one_hot, Y_one_hot, J - 1, p, n)
+    log_L_tilde_vec[i] <- log_likelihood_rcpp(Beta_hat, X_one_hot, Y_one_hot, J - 1, p, n)
     
     init_guess <- 0.9 * c(Beta_hat) + 0.1 * init_guess
   }
   
-  return(list(omega_hat = omega_hat,
+  log_L_tilde_df <- data.frame(psi = psi_grid,
+                               Integrated = log_L_tilde_vec)
+  
+  return(list(omega_hat = branch_spec$omega_hat,
               log_L_tilde_df = log_L_tilde_df))
 }
 
@@ -540,20 +556,17 @@ generate_branches <- function(branch_specs,
                               psi_hat,
                               delta,
                               step_size,
+                              quantiles,
                               init_guess_sd,
                               chunk_size,
                               lambda,
                               max_retries) {
   
-  num_points <- branch_specs |> 
-    purrr::map_dbl(\(branch_spec) branch_spec$psi_endpoints |> 
-                     get_psi_grid(step_size, J) |> 
-                     length()) |> 
-    sum()
+  psi_grid <- get_psi_grid_2(branch_specs, step_size, J, quantiles)
   
-  num_steps <- 2 * num_points
-  
-  progress_bar <- progressr::progressor(steps = num_steps)
+  # num_steps <- 2 * length(psi_grid) * length(branch_specs)
+  # 
+  # progress_bar <- progressr::progressor(steps = num_steps)
   
   result <- foreach(
     
@@ -570,19 +583,15 @@ generate_branches <- function(branch_specs,
     
     omega_hat <- branch_spec$omega_hat
     
-    psi_endpoints <- branch_spec$psi_endpoints
-    
-    psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
-    
     init_guess <- rnorm(p * (J - 1), sd = init_guess_sd)
     
-    log_L_tilde_df <- data.frame(psi = psi_grid, Integrated = NA)
+    log_L_tilde_vec <- numeric(length(psi_grid))
     
     prev_Beta_hat <- NULL 
     
     for (i in seq_along(psi_grid)) {
       
-      progress_bar()
+      # progress_bar()
       
       psi <- psi_grid[i]
       
@@ -600,12 +609,15 @@ generate_branches <- function(branch_specs,
       Beta_hat <- Beta_hat_result$Beta_hat
       prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
       
-      log_L_tilde_df$Integrated[i] <- log_likelihood_rcpp(Beta_hat, X_one_hot, Y_one_hot, J - 1, p, n)
+      log_L_tilde_vec[i] <- log_likelihood_rcpp(Beta_hat, X_one_hot, Y_one_hot, J - 1, p, n)
       
       init_guess <- 0.9 * c(Beta_hat) + 0.1 * init_guess
       
-      progress_bar()
+      # progress_bar()
     }
+    
+    log_L_tilde_df <- data.frame(psi = psi_grid, 
+                                 Integrated = log_L_tilde_vec)
     
     return(list(omega_hat = omega_hat,
                 log_L_tilde_df = log_L_tilde_df))
@@ -618,132 +630,24 @@ generate_branches <- function(branch_specs,
        log_L_tilde_df = log_L_tilde_df)
 }
 
-get_log_L_bar <- function(branches, delta, J) {
+get_log_L_bar <- function(branches) {
   
   df_list <- branches$log_L_tilde_df
   
-  all_psi <- df_list |>
-    lapply(function(df) df$psi) |>
-    unlist() |>
-    unique() |>
-    sort()
-  
-  df_list_filled <- df_list |>
-    lapply(function(df) {
-      full_join(data.frame(psi = all_psi), df, by = "psi")
-    })
-  
-  merged_df <- reduce(df_list_filled, full_join, by = "psi")
+  merged_df <- reduce(df_list, full_join, by = "psi")
   
   branches_matrix <- merged_df[, -1] |>
     as.matrix() |>
     t() |>
     unname()
   
-  colnames(branches_matrix) <- all_psi
-  
-  best_prop <- 1
-  
-  best_CI_length <- log(J)
-  
-  for (prop in seq(0, 1, 0.01)) {
-    
-    psi_vals_to_keep <- colSums(!is.na(branches_matrix)) >= prop * nrow(branches_matrix)
-    
-    branches_matrix_new <- branches_matrix[, psi_vals_to_keep]
-    
-    log_R <- branches_matrix_new |> 
-      as.data.frame() |> 
-      (\(df) !is.na(df))() |> 
-      colSums() |> 
-      log()
-    
-    log_L_bar <- matrixStats::colLogSumExps(branches_matrix_new, na.rm = TRUE) - log_R
-    
-    log_L_bar_df <- data.frame(psi = psi_vals_to_keep |> 
-                                 which() |> 
-                                 names() |> 
-                                 as.numeric(),
-                               Integrated = log_L_bar)
-    
-    spline_fitted_model <- smooth.spline(log_L_bar_df$psi, log_L_bar_df$Integrated)
-    
-    MLE_data <- optimize(function(psi) predict(spline_fitted_model, psi)$y,
-                           lower = log_L_bar_df |>
-                             select(psi) |>
-                             min(),
-                           upper = log_L_bar_df |>
-                             select(psi) |>
-                             max(),
-                           maximum = TRUE) |> 
-      data.frame() |> 
-      mutate(MLE = as.numeric(maximum),
-             Maximum = as.numeric(objective)) |>
-      select(MLE, Maximum)
-    
-    curve <- function(psi) {
-      
-      lower_psi_val <- spline_fitted_model$x |> min()
-      
-      upper_psi_val <- spline_fitted_model$x |> max()
-      
-      if (psi < lower_psi_val) {
-        
-        return(head(spline_fitted_model$y, 1) - MLE_data$Maximum)
-      }
-      
-      else if (psi > upper_psi_val) {
-        
-        return(tail(spline_fitted_model$y, 1) - MLE_data$Maximum)
-      }
-      
-      else {
-        
-        return(predict(spline_fitted_model, psi)$y - MLE_data$Maximum)
-      }
-    }
-    
-    lower_bound <- tryCatch(
-      
-      uniroot(function(psi) curve(psi) + delta,
-              interval = c(0, MLE_data$MLE))$root,
-      
-      error = function(e) return(0)
-    )
-    
-    upper_bound <- tryCatch(
-      
-      uniroot(function(psi) curve(psi) + delta,
-              interval = c(MLE_data$MLE, log(J)))$root,
-      
-      error = function(e) return(log(J))
-    )
-    
-    CI_length_new <- upper_bound - lower_bound
-    
-    if (CI_length_new < best_CI_length) {
-      
-      best_prop <- prop
-      best_CI_length = CI_length_new
-    }
-  }
-  
-  psi_vals_to_keep <- colSums(!is.na(branches_matrix)) >= best_prop * nrow(branches_matrix)
-  
-  branches_matrix <- branches_matrix[, psi_vals_to_keep]
-  
   log_R <- branches_matrix |> 
-    as.data.frame() |> 
-    (\(df) !is.na(df))() |> 
-    colSums() |> 
+    nrow() |> 
     log()
   
   log_L_bar <- matrixStats::colLogSumExps(branches_matrix, na.rm = TRUE) - log_R
   
-  log_L_bar_df <- data.frame(psi = psi_vals_to_keep |> 
-                               which() |> 
-                               names() |> 
-                               as.numeric(),
+  log_L_bar_df <- data.frame(psi = merged_df$psi,
                              Integrated = log_L_bar)
   
   return(list(df = log_L_bar_df,
@@ -755,7 +659,9 @@ get_log_integrated_likelihood <- function(branch_specs,
                                           X_h,
                                           alpha,
                                           step_size,
+                                          quantiles,
                                           init_guess_sd,
+                                          num_workers,
                                           chunk_size,
                                           lambda,
                                           max_retries) {
@@ -790,8 +696,6 @@ get_log_integrated_likelihood <- function(branch_specs,
   
   n <- nrow(X_one_hot)
   
-  num_branches <- num_workers * chunk_size
-  
   plan(multisession, workers = I(num_workers))
   
   branches <- generate_branches(branch_specs,
@@ -804,6 +708,7 @@ get_log_integrated_likelihood <- function(branch_specs,
                                 psi_hat,
                                 delta,
                                 step_size,
+                                quantiles,
                                 init_guess_sd,
                                 chunk_size,
                                 lambda,
@@ -811,7 +716,7 @@ get_log_integrated_likelihood <- function(branch_specs,
   
   plan(sequential)
   
-  log_L_bar <- get_log_L_bar(branches, delta, J)
+  log_L_bar <- get_log_L_bar(branches)
   
   return(list(branches = branches,
               log_L_bar = log_L_bar))
@@ -896,18 +801,13 @@ get_log_profile_likelihood <- function(data,
                                           delta,
                                           J)
   
-  psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
+  psi_grid <- get_psi_grid_1(psi_endpoints, step_size, J)
   
   init_guess <- rnorm(p * (J - 1), sd = init_guess_sd)
   
-  log_L_p_df <- data.frame(psi = psi_grid, Profile = NA)
+  log_L_p_vec <- numeric(length(psi_grid))
   
   prev_Beta_hat <- NULL 
-  
-  log_L_p_df |>
-    make_profile_plot() |>
-    plotly::ggplotly() |>
-    print()
   
   for (i in seq_along(psi_grid)) {
     
@@ -927,17 +827,15 @@ get_log_profile_likelihood <- function(data,
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
     
-    log_L_p_df$Profile[i] <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
+    log_L_p_vec[i] <- log_likelihood(Beta_hat, X_one_hot, Y_one_hot)
     
     init_guess <- 0.9 * c(Beta_hat) + 0.1 * init_guess
-    
-    log_L_p_df |>
-      make_profile_plot() |>
-      plotly::ggplotly() |>
-      print()
-    
-    Sys.sleep(0.1)
   }
+  
+  log_L_p_df <- data.frame(psi = psi_grid, 
+                           Profile = log_L_p_vec)
+  
+  print(make_profile_plot(log_L_p_df))
   
   return(log_L_p_df)
 }
