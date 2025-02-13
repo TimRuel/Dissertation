@@ -28,9 +28,7 @@ set.seed(seed)
 ################################## PARAMETERS ################################## 
 ################################################################################
 
-h <- 1
-
-X_h <- data.frame(X = factor(h))
+h <- 2
 
 step_size <- 0.01
 
@@ -59,7 +57,7 @@ init_guess_sd <- 5
 num_workers <- parallel::detectCores() |>
   as.integer()
 
-num_workers <- 12
+# num_workers <- 12
 
 chunk_size <- 1
 
@@ -68,7 +66,7 @@ num_branches <- num_workers * chunk_size
 tic()
 
 branch_specs <- generate_branch_specs(data,
-                                      X_h,
+                                      h,
                                       init_guess_sd,
                                       alpha,
                                       num_workers,
@@ -76,19 +74,19 @@ branch_specs <- generate_branch_specs(data,
                                       lambda,
                                       max_retries)
 
+toc()
+
 branch_specs_filepath <- glue::glue("branch_specs/R={num_branches}_h={h}_alpha={alpha}.Rda")
 
 saveRDS(branch_specs, branch_specs_filepath)
 
 branch_specs <- readRDS("branch_specs/R=260_h=1_alpha=0.03.Rda")
 
-toc()
-
 tic()
 
 log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs[1:num_branches],
                                                            data,
-                                                           X_h,
+                                                           h,
                                                            alpha,
                                                            step_size,
                                                            quantiles,
@@ -111,7 +109,7 @@ saveRDS(log_integrated_likelihood, log_integrated_likelihood_filepath)
 tic()
 
 log_profile_likelihood <- get_log_profile_likelihood(data,
-                                                     X_h,
+                                                     h,
                                                      step_size,
                                                      alpha,
                                                      init_guess_sd,

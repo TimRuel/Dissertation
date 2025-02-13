@@ -98,9 +98,9 @@ get_Y <- function(theta_0, m) {
     factor(levels = 1:J)
 }
 
-get_X <- function(p, m, contrast) {
+get_X <- function(c, m, contrast) {
   
-  X <- 1:p |> 
+  X <- 1:c |> 
     rep(each = m) |> 
     factor()
   
@@ -113,7 +113,11 @@ get_X <- function(p, m, contrast) {
 #################################### GENERAL ###################################
 ################################################################################
 
-fit_multinomial_logistic_model <- function(data) nnet::multinom(Y ~ ., data = data, trace = FALSE)
+fit_multinomial_logistic_model <- function(data, formula) {
+  
+  # formula <- substitute(formula_expr)
+  nnet::multinom(formula, data = data, trace = FALSE)
+}
 
 log_likelihood <- function(Beta, X_one_hot, Y_one_hot) {
   
@@ -144,10 +148,86 @@ get_Beta_MLE <- function(model) {
            byrow = TRUE) 
 }
 
-get_psi_hat <- function(model, X_h) {
+library(dplyr)
+
+library(dplyr)
+
+predict_marginal <- function(model, data) {
+  # Identify categorical and continuous variables
+  categorical_vars <- names(data)[sapply(data, is.factor)]
+  continuous_vars <- names(data)[sapply(data, is.numeric)]
+  
+  # Check that there is exactly one categorical variable
+  if (length(categorical_vars) != 1) {
+    stop("Data must have exactly one categorical variable.")
+  }
+  
+  categorical_var <- categorical_vars[1]  # Use the single categorical variable
+  
+  # Get unique values of the categorical variable
+  unique_categories <- levels(data[[categorical_var]])
+  
+  # Case 1: No continuous variables → predict directly for each categorical level
+  if (length(continuous_vars) == 0) {
+    new_data <- data.frame(
+      categorical_var = factor(unique_categories, levels = unique_categories)
+    )
+    colnames(new_data)[1] <- categorical_var
+    
+    # Predict probabilities for each categorical level
+    pred_probs <- predict(model, new_data, type = "probs")
+    
+    # Convert to data frame and set row names
+    marginal_probs <- as.data.frame(pred_probs)
+    rownames(marginal_probs) <- unique_categories
+    
+    # Name row index properly
+    names(dimnames(marginal_probs)) <- c(categorical_var, "Probability")
+    return(marginal_probs)
+  }
+  
+  # Case 2: At least one continuous variable → compute marginal probabilities
+  unique_values <- lapply(data[continuous_vars], unique)
+  
+  # Create a new dataset with all combinations of categorical and continuous variables
+  if (length(continuous_vars) == 1) {
+    new_data <- data.frame(
+      categorical_var = factor(rep(unique_categories, each = length(unique_values[[1]])), 
+                               levels = unique_categories),
+      continuous_var = rep(unique_values[[1]], times = length(unique_categories))
+    )
+    names(new_data)[2] <- continuous_vars  # Rename continuous variable column
+  } else {
+    new_data <- expand.grid(
+      setNames(unique_values, continuous_vars),
+      categorical_var = factor(unique_categories, levels = unique_categories)
+    )
+  }
+  
+  # Rename categorical column correctly
+  colnames(new_data)[colnames(new_data) == "categorical_var"] <- categorical_var
+  
+  # Predict probabilities for all combinations
+  pred_probs <- predict(model, new_data, type = "probs")
+  
+  # Compute marginal probabilities by averaging over the continuous variables
+  marginal_probs <- aggregate(pred_probs, by = list(new_data[[categorical_var]]), FUN = mean)
+  
+  # Set row names to categorical variable values and remove the first column
+  rownames(marginal_probs) <- marginal_probs[[1]]
+  marginal_probs <- marginal_probs[-1]
+  
+  # Name the row index properly
+  names(dimnames(marginal_probs)) <- c(categorical_var, "Probability")
+  
+  return(marginal_probs)
+}
+
+get_psi_hat <- function(model, data, h) {
   
   model |> 
-    predict(newdata = X_h, type = "probs") |> 
+    predict_marginal(select(data, -Y)) |> 
+    (\(mat) mat[h,])() |> 
     entropy()
 }
 
@@ -405,7 +485,7 @@ get_branch_spec <- function(omega_hat_obj_fn,
 }
 
 generate_branch_specs <- function(data,
-                                  X_h,
+                                  h,
                                   init_guess_sd,
                                   alpha,
                                   num_workers,
@@ -413,21 +493,23 @@ generate_branch_specs <- function(data,
                                   lambda,
                                   max_retries) {
   
-  model <- fit_multinomial_logistic_model(data)
+  model <- fit_multinomial_logistic_model(data, formula)
   
   m <- model |>
     model.frame() |>
-    filter(X == 1) |>
-    nrow()
+    select(where(is.factor) & starts_with("X")) |> 
+    plyr::count() |> 
+    pull("freq") |> 
+    unique()
   
   X_one_hot <- model.matrix(model)
   
-  h <- X_h |>
-    pull(X) |>
-    as.character() |>
-    as.numeric()
+  cat_var <- names(select(data, -Y))[sapply(select(data, -Y), is.factor)]
   
-  X_h_one_hot <- X_one_hot[1 + m*(h - 1),]
+  X_h_one_hot <- data |> 
+    pull(cat_var) |> 
+    (\(x) model.matrix(~x))() |> 
+    (\(mat) mat[1 + m*(h - 1),])()
   
   Y_one_hot <- data |>
     pull(Y) |>
@@ -439,7 +521,7 @@ generate_branch_specs <- function(data,
   
   n <- nrow(X_one_hot)
   
-  psi_hat <- get_psi_hat(model, X_h)
+  psi_hat <- get_psi_hat(model, data, h)
   
   omega_hat_obj_fn <- function(Beta) omega_hat_obj_fn_rcpp(Beta, X_h_one_hot, J - 1, p, psi_hat)
   
@@ -656,7 +738,7 @@ get_log_L_bar <- function(branches) {
 
 get_log_integrated_likelihood <- function(branch_specs,
                                           data,
-                                          X_h,
+                                          h,
                                           alpha,
                                           step_size,
                                           quantiles,
@@ -666,7 +748,7 @@ get_log_integrated_likelihood <- function(branch_specs,
                                           lambda,
                                           max_retries) {
   
-  model <- fit_multinomial_logistic_model(data)
+  model <- fit_multinomial_logistic_model(data, formula)
   
   m <- model |>
     model.frame() |>
@@ -675,18 +757,18 @@ get_log_integrated_likelihood <- function(branch_specs,
   
   X_one_hot <- model.matrix(model)
   
-  h <- X_h |>
-    pull(X) |>
-    as.character() |>
-    as.numeric()
+  cat_var <- names(select(data, -Y))[sapply(select(data, -Y), is.factor)]
   
-  X_h_one_hot <- X_one_hot[1 + m*(h - 1),]
+  X_h_one_hot <- data |> 
+    pull(cat_var) |> 
+    (\(X) model.matrix(~ X))() |> 
+    (\(mat) mat[1 + m*(h - 1),])()
   
   Y_one_hot <- data |>
     pull(Y) |>
     (\(Y) model.matrix(~ Y)[,-1])()
   
-  psi_hat <- get_psi_hat(model, X_h)
+  psi_hat <- get_psi_hat(model, data, h)
   
   delta <- qchisq(1 - alpha, 1) / 2
   
@@ -748,28 +830,30 @@ make_profile_plot <- function(df) {
 }
 
 get_log_profile_likelihood <- function(data,
-                                       X_h,
+                                       h,
                                        step_size,
                                        alpha,
                                        init_guess_sd,
                                        lambda,
                                        max_retries) {
   
-  model <- fit_multinomial_logistic_model(data)
+  model <- fit_multinomial_logistic_model(data, formula)
   
   m <- model |>
     model.frame() |>
-    filter(X == 1) |>
-    nrow()
+    select(where(is.factor) & starts_with("X")) |> 
+    plyr::count() |> 
+    pull("freq") |> 
+    unique()
   
   X_one_hot <- model.matrix(model)
   
-  X_level <- X_h |>
-    pull(X) |>
-    as.character() |>
-    as.numeric()
+  cat_var <- names(select(data, -Y))[sapply(select(data, -Y), is.factor)]
   
-  X_h_one_hot <- X_one_hot[1 + m*(X_level - 1),]
+  X_h_one_hot <- data |> 
+    pull(cat_var) |> 
+    (\(X) model.matrix(~ X))() |> 
+    (\(mat) mat[1 + m*(h - 1),])()
   
   Y_one_hot <- data |>
     pull(Y) |>
