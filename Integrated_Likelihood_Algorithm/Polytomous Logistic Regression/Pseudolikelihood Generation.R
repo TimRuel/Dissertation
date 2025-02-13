@@ -42,8 +42,6 @@ max_retries <- 10
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
 ################################################################################
 
-threshold <- 40
-
 quantiles <- c(0.25, 0.5)
 
 init_guess_sd <- 5
@@ -59,7 +57,7 @@ num_workers <- parallel::detectCores() |>
 
 # num_workers <- 12
 
-chunk_size <- 1
+chunk_size <- 2
 
 num_branches <- num_workers * chunk_size
 
@@ -80,11 +78,11 @@ branch_specs_filepath <- glue::glue("branch_specs/R={num_branches}_h={h}_alpha={
 
 saveRDS(branch_specs, branch_specs_filepath)
 
-branch_specs <- readRDS("branch_specs/R=260_h=1_alpha=0.03.Rda")
+# branch_specs <- readRDS("branch_specs/R=260_h=1_alpha=0.03.Rda")
 
 tic()
 
-log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs[1:num_branches],
+log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs,
                                                            data,
                                                            h,
                                                            alpha,

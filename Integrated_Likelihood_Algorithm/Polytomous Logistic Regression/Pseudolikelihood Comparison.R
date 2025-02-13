@@ -22,23 +22,21 @@ source("data.R")
 print("Choose your pseudolikelihood data file.")
 log_likelihood_vals_file_path <- selectFile(path = getwd())
 
-model <- fit_multinomial_logistic_model(data)
+model <- fit_multinomial_logistic_model(data, formula)
 
 step_size <- log_likelihood_vals_file_path |>  
   str_remove("^.*stepsize=") |> 
   str_extract("\\d+\\.\\d+") |> 
   as.numeric()
 
-X_level <- log_likelihood_vals_file_path |>
+h <- log_likelihood_vals_file_path |>
   str_remove("^.*h=") |>
   str_extract("-?\\d+(\\.\\d+)?") |>
   as.numeric()
 
-X_h <- data.frame(X = factor(X_level))
+psi_hat <- get_psi_hat(model, h)
 
-psi_hat <- get_psi_hat(model, X_h)
-
-psi_0 <- theta_0[[X_level]] |> 
+psi_0 <- theta_0[[h]] |> 
   entropy()
 
 # pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
