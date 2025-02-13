@@ -34,7 +34,7 @@ h <- log_likelihood_vals_file_path |>
   str_extract("-?\\d+(\\.\\d+)?") |>
   as.numeric()
 
-psi_hat <- get_psi_hat(model, h)
+psi_hat <- get_psi_hat(model, data, h)
 
 psi_0 <- theta_0[[h]] |> 
   entropy()
