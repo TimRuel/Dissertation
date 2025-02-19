@@ -1,44 +1,85 @@
+source("data_utils.R")
 source("../../utils.R")
 
-seed <- 348257
+seed <- 6991
 
 set.seed(seed)
 
 J <- 6 # number of levels of response variable
 
-c <- 3 # number of levels of categorical predictor
+m <- c(25, 25, 25) # number of observations at each level of categorical predictor
 
-m <- 50 # number of observations at each level of predictor
+C <- length(m) # number of levels of categorical predictor
 
-n <- sum(m * c)
+n <- sum(m) # total number of observations
 
-epsilon <- 0.01
+X1_levels <- letters[1:C]
 
-max_iter <- 1e6
+X1_ref_level <- X1_levels[1]
 
-theta_0 <- get_theta_0(J, c, epsilon, max_iter)
+X1 <- X1_levels |> 
+  rep(times = m) |> 
+  factor() |> 
+  relevel(X1_ref_level)
 
-Y <- get_Y(theta_0, m)
+# contrasts(X1) <- contr.sum
 
-contrast <- contr.sum
+X2 <- runif(n, 0, 90) |> 
+  scale(center = FALSE) |> 
+  round(1)
 
-X1 <- get_X(c, m, contrast)
+X <- model.matrix(~ X1*X2 - 1)
 
-# X2 <- rnorm(n, mean = 5*(1:c), sd = 5)
+p <- ncol(X) # Number of terms in model after dummy encoding
 
-X2 <- rnorm(n, sd = 5)
+X2_coef <- rnorm(J - 1, sd = 0.3)
 
-data <- data.frame(X1 = X1,
-                   X2 = X2,
-                   Y = Y)
+Beta_0 <- get_Beta_0(X2_coef)
 
-formula <- Y ~ .^2
+true_probs <- X %*% cbind(0, Beta_0) |> 
+  apply(1, softmax) |> 
+  t()
+
+theta_0 <- true_probs |> 
+  as.data.frame() |> 
+  mutate(X1_level = rep(X1_levels, times = m)) |> 
+  aggregate(. ~ X1_level, data = _, FUN = mean) |> 
+  select(-X1_level) |> 
+  apply(1, entropy) |> 
+  setNames(X1_levels)
+
+Y <- true_probs |>
+  apply(1, \(prob) sample(1:J, size = 1, prob = prob)) |> 
+  unlist() |>
+  unname() |> 
+  factor(levels = 1:J)
+
+Y_one_hot <- model.matrix(~ Y)[,-1]
+
+data <- data.frame(Y = Y,
+                   X1 = X1,
+                   X2 = X2)
+
+formula <- Y ~ .^2 - 1
 
 model <- fit_multinomial_logistic_model(data, formula)
 
 Beta_MLE <- get_Beta_MLE(model)
 
-p <- nrow(Beta_MLE) # Number of coefficient terms in model
+threshold <- ceiling(abs(log_likelihood(Beta_MLE, X, model.matrix(~ Y)[,-1])) + 20)
 
-threshold <- 170
+predict(model, data, type = "probs") |>
+  as.data.frame() |>
+  mutate(X1_level = rep(X1_levels, times = m)) |>
+  aggregate(. ~ X1_level, data = _, FUN = mean) |>
+  select(-X1_level) |>
+  apply(1, entropy)
+
+fit <- nnet::multinom(Y ~ X1 - 1, data = data, trace = FALSE)
+
+predict(fit, data, type = "probs") |>
+  unique() |>
+  apply(1, entropy)
+
+theta_0
 

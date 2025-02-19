@@ -3,6 +3,51 @@
 
 using namespace Rcpp;
 
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// ----------------------------
+// rowLogSumExps Function 
+// ----------------------------
+// [[Rcpp::export]]
+NumericVector rowLogSumExps_rcpp(NumericMatrix Y_hat) {
+  int n = Y_hat.nrow();
+  int Jm1 = Y_hat.ncol();
+  int J = Jm1 + 1; // Account for extra column
+  
+  // Create a new matrix with an additional first column of zeros
+  NumericMatrix Y_hat_extended(n, J);
+  
+  for (int i = 0; i < n; i++) {
+    Y_hat_extended(i, 0) = 0.0; // First column of zeros
+    for (int j = 0; j < Jm1; j++) {
+      Y_hat_extended(i, j + 1) = Y_hat(i, j);
+    }
+  }
+  
+  // Compute row-wise logSumExp
+  NumericVector logsumexp(n);
+  
+  for (int i = 0; i < n; i++) {
+    double max_val = Y_hat_extended(i, 0);
+    
+    for (int j = 1; j < J; j++) {
+      if (Y_hat_extended(i, j) > max_val) {
+        max_val = Y_hat_extended(i, j);
+      }
+    }
+    
+    double exp_sum = 0.0;
+    for (int j = 0; j < J; j++) {
+      exp_sum += std::exp(Y_hat_extended(i, j) - max_val);
+    }
+    
+    logsumexp[i] = max_val + std::log(exp_sum);
+  }
+  
+  return logsumexp;
+}
+
 // ----------------------------
 // Log-Likelihood Function 
 // ----------------------------
@@ -12,11 +57,7 @@ double log_likelihood_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericM
   
   // Convert Beta vector into a matrix
   NumericMatrix Beta_mat(p, Jm1);
-  for (int j = 0; j < Jm1; j++) {
-    for (int i = 0; i < p; i++) {
-      Beta_mat(i, j) = Beta[j * p + i];
-    }
-  }
+  std::memcpy(Beta_mat.begin(), Beta.begin(), Beta.size() * sizeof(double));
   
   // Compute Y_hat = X_one_hot %*% Beta_mat
   NumericMatrix Y_hat(n, Jm1);
@@ -30,22 +71,17 @@ double log_likelihood_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericM
     }
   }
   
-  // Compute row-wise exponential sum for normalization
-  NumericVector row_sums(n, 1.0); // Start with 1 for log(1 + sum(exp(Y_hat)))
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < Jm1; j++) {
-      row_sums[i] += std::exp(Y_hat(i, j));
-    }
-  }
+  // Compute logsumexp using our function
+  NumericVector logsumexp = rowLogSumExps_rcpp(Y_hat);
   
-  // Compute log likelihood = sum(rowSums(Y_one_hot * Y_hat)) - sum(log(1 + row_sums))
+  // Compute log-likelihood
   double log_likelihood = 0.0;
   for (int i = 0; i < n; i++) {
     double row_sum_Y_hat = 0.0;
     for (int j = 0; j < Jm1; j++) {
       row_sum_Y_hat += Y_one_hot(i, j) * Y_hat(i, j);
     }
-    log_likelihood += row_sum_Y_hat - std::log(row_sums[i]);
+    log_likelihood += row_sum_Y_hat - logsumexp[i];
   }
   
   return log_likelihood;
@@ -160,48 +196,96 @@ NumericMatrix softmax_matrix_rcpp(NumericMatrix x) {
 // ----------------------------
 // Entropy Calculation
 // ----------------------------
-// [[Rcpp::export]]
-double entropy_rcpp(NumericVector p) {
-  double entropy = 0.0;
-  for (int i = 0; i < p.size(); i++) {
-    if (p[i] > 0) {
-      entropy -= p[i] * std::log(p[i]);
-    }
-  }
-  return entropy;
-}
+// // [[Rcpp::export]]
+// double PoI_fn_rcpp(NumericMatrix Beta, NumericVector X_h_one_hot) {
+//   int p = Beta.nrow();
+//   int Jm1 = Beta.ncol();
+//   
+//   // Compute X_h_one_hot %*% Beta_extended without explicitly creating Beta_extended
+//   NumericVector X_h_Beta(Jm1 + 1, 0.0); // Initialize with zeros (first column is implicitly zero)
+//   
+//   for (int j = 0; j < Jm1; j++) {
+//     double dot_product = 0.0;
+//     for (int i = 0; i < p; i++) {
+//       dot_product += X_h_one_hot[i] * Beta(i, j);
+//     }
+//     X_h_Beta[j + 1] = dot_product; // Shift results to simulate Beta_extended
+//   }
+//   
+//   // Compute softmax in place
+//   double max_val = max(X_h_Beta);
+//   NumericVector exp_vals(Jm1 + 1);
+//   double sum_exp = 0.0;
+//   
+//   for (int j = 0; j < Jm1 + 1; j++) {
+//     exp_vals[j] = std::exp(X_h_Beta[j] - max_val); // Avoid overflow issues
+//     sum_exp += exp_vals[j];
+//   }
+//   
+//   NumericVector probs(Jm1 + 1);
+//   for (int j = 0; j < Jm1 + 1; j++) {
+//     probs[j] = exp_vals[j] / sum_exp;
+//   }
+//   
+//   // Compute entropy: H(p) = -sum(p * log(p))
+//   double entropy = 0.0;
+//   for (int j = 0; j < Jm1 + 1; j++) {
+//     if (probs[j] > 0) { // Avoid log(0)
+//       entropy -= probs[j] * std::log(probs[j]);
+//     }
+//   }
+//   
+//   return entropy;
+// }
 
-// ----------------------------
-// PoI Function
-// ----------------------------
 // [[Rcpp::export]]
-double PoI_fn_rcpp(NumericMatrix Beta, NumericVector X_h_one_hot) {
+double PoI_fn_rcpp(NumericMatrix Beta, NumericMatrix X_h_one_hot) {
   int p = Beta.nrow();
   int Jm1 = Beta.ncol();
+  int n = X_h_one_hot.nrow();  // Number of rows in X_h_one_hot
   
-  // Extend Beta by adding a column of zeros at the beginning
-  NumericMatrix Beta_extended(p, Jm1 + 1);
-  for (int i = 0; i < p; i++) {
+  NumericVector avg_probs(Jm1 + 1, 0.0); // Initialize mean probability vector
+  
+  // Iterate over each row of X_h_one_hot
+  for (int r = 0; r < n; r++) {
+    NumericVector X_h_Beta(Jm1 + 1, 0.0); // First column implicitly zero
+    
+    // Compute X_h_one_hot[r, ] %*% Beta (shifting Beta values)
     for (int j = 0; j < Jm1; j++) {
-      Beta_extended(i, j + 1) = Beta(i, j); // Shift existing columns right
+      double dot_product = 0.0;
+      for (int i = 0; i < p; i++) {
+        dot_product += X_h_one_hot(r, i) * Beta(i, j);
+      }
+      X_h_Beta[j + 1] = dot_product;
+    }
+    
+    // Compute softmax
+    double max_val = max(X_h_Beta); // Stabilization
+    double sum_exp = 0.0;
+    NumericVector exp_vals(Jm1 + 1);
+    
+    for (int j = 0; j < Jm1 + 1; j++) {
+      exp_vals[j] = std::exp(X_h_Beta[j] - max_val);
+      sum_exp += exp_vals[j];
+    }
+    
+    for (int j = 0; j < Jm1 + 1; j++) {
+      avg_probs[j] += exp_vals[j] / sum_exp; // Directly accumulate into avg_probs
     }
   }
   
-  // Compute X_h_one_hot %*% Beta_extended
-  NumericVector X_h_Beta(Jm1 + 1);
+  // Finalize mean probabilities
   for (int j = 0; j < Jm1 + 1; j++) {
-    double dot_product = 0.0;
-    for (int i = 0; i < p; i++) {
-      dot_product += X_h_one_hot[i] * Beta_extended(i, j);
-    }
-    X_h_Beta[j] = dot_product;
+    avg_probs[j] /= n;
   }
   
-  // Compute softmax probabilities
-  NumericVector probs = softmax_vector_rcpp(X_h_Beta);
-  
-  // Compute entropy
-  double entropy = entropy_rcpp(probs);
+  // Compute entropy of the mean probability vector
+  double entropy = 0.0;
+  for (int j = 0; j < Jm1 + 1; j++) {
+    if (avg_probs[j] > 0) { // Avoid log(0)
+      entropy -= avg_probs[j] * std::log(avg_probs[j]);
+    }
+  }
   
   return entropy;
 }
@@ -249,22 +333,17 @@ double Beta_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot,
   // Compute softmax probabilities
   NumericMatrix probs = softmax_adj_matrix_rcpp(X_omega);
   
-  // Compute row-wise exponential sum for normalization
-  NumericVector row_sums(n, 1.0); // Start with 1 for log(1 + sum(exp(Y_hat)))
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < Jm1; j++) {
-      row_sums[i] += std::exp(Y_hat(i, j));
-    }
-  }
+  // Compute logsumexp using our function
+  NumericVector logsumexp = rowLogSumExps_rcpp(Y_hat);
   
   // Compute log likelihood term
   double log_L = 0.0;
   for (int i = 0; i < n; i++) {
-    double row_sum = 0.0;
+    double row_sum_Y_hat = 0.0;
     for (int j = 0; j < Jm1; j++) {
-      row_sum += probs(i, j) * Y_hat(i, j);
+      row_sum_Y_hat += probs(i, j) * Y_hat(i, j);
     }
-    log_L += row_sum - std::log(row_sums[i]);
+    log_L += row_sum_Y_hat - logsumexp[i];
   }
   
   // Compute regularization term
@@ -280,7 +359,7 @@ double Beta_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot,
 // Beta_hat Constraint Function
 // ----------------------------
 // [[Rcpp::export]]
-double Beta_hat_con_fn_rcpp(NumericVector Beta, NumericVector X_h_one_hot, double psi, int Jm1, int p) {
+double Beta_hat_con_fn_rcpp(NumericVector Beta, NumericMatrix X_h_one_hot, double psi, int Jm1, int p) {
   // Reshape Beta into a matrix
   NumericMatrix Beta_mat(p, Jm1);
   for (int j = 0; j < Jm1; j++) {
@@ -299,7 +378,7 @@ double Beta_hat_con_fn_rcpp(NumericVector Beta, NumericVector X_h_one_hot, doubl
 // Omega_hat Objective Function
 // ----------------------------
 // [[Rcpp::export]]
-double omega_hat_obj_fn_rcpp(NumericVector Beta, NumericVector X_h_one_hot, int Jm1, int p, double psi_hat) {
+double omega_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_h_one_hot, int Jm1, int p, double psi_hat) {
   // Reshape Beta into a matrix
   NumericMatrix Beta_mat(p, Jm1);
   for (int j = 0; j < Jm1; j++) {
@@ -314,11 +393,30 @@ double omega_hat_obj_fn_rcpp(NumericVector Beta, NumericVector X_h_one_hot, int 
   return std::abs(entropy - psi_hat);
 }
 
-// -----------------------------
-// Omega_hat Constraint Function
-// -----------------------------
+// --------------------------------------
+// Omega_hat Equality Constraint Function
+// --------------------------------------
 // [[Rcpp::export]]
-double omega_hat_con_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericMatrix Y_one_hot, int Jm1, int p, int n, double threshold) {
+double omega_hat_eq_con_fn_rcpp(NumericVector Beta, NumericMatrix X_h_one_hot, int Jm1, int p, double psi_hat) {
+  // Reshape Beta into a matrix
+  NumericMatrix Beta_mat(p, Jm1);
+  for (int j = 0; j < Jm1; j++) {
+    for (int i = 0; i < p; i++) {
+      Beta_mat(i, j) = Beta[j * p + i];
+    }
+  }
+  
+  // Compute PoI function
+  double entropy = PoI_fn_rcpp(Beta_mat, X_h_one_hot);
+  
+  return entropy - psi_hat;
+}
+
+// ----------------------------------------
+// Omega_hat Inequality Constraint Function
+// ----------------------------------------
+// [[Rcpp::export]]
+double omega_hat_ineq_con_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericMatrix Y_one_hot, int Jm1, int p, int n, double threshold) {
   // Compute log-likelihood
   double log_likelihood = log_likelihood_rcpp(Beta, X_one_hot, Y_one_hot, Jm1, p, n);
 

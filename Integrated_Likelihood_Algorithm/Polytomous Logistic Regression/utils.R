@@ -14,12 +14,46 @@ softmax_adj <- function(x) exp(x) / (1 + sum(exp(x)))
 
 entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
 
-PoI_fn <- function(Beta, X_h_one_hot) {
+extract_X_h <- function(X, h, drop_zero_cols = FALSE) {
   
-  X_h_one_hot %*% cbind(0, Beta) |>
-    softmax() |>
-    entropy()
+  if (!any(grepl(":", colnames(X)))) { 
+    
+    X_h <- X[X[, paste0("X1", h)] == 1,] |> 
+      unique() |> 
+      matrix(ncol = ncol(X))
+    
+    return(X_h)
+  }
+  
+  X_h <- X[X[, paste0("X1", h)] == 1,] |> 
+    matrix(ncol = ncol(X))
+  
+  if (drop_zero_cols) {
+    
+    colnames_X <- colnames(X)
+    cols_to_keep <- grepl(paste0("^X1", h, "$|^X2$|^X1", h, ":X2$"), colnames_X)
+    X_h <- X_h[, cols_to_keep, drop = FALSE] |> 
+      as.matrix(ncol = length(cols_to_keep))
+  }
+  
+  return(X_h)
 }
+
+# PoI_fn <- function(Beta, X_h_one_hot) {
+#   
+#   X_h_one_hot %*% cbind(0, Beta) |>
+#     softmax() |>
+#     entropy()
+# }
+# 
+# PoI_fn2 <- function(Beta, X_h_one_hot) {
+#   
+#   X_h %*% cbind(0, Beta) |> 
+#     apply(1, softmax) |> 
+#     t() |> 
+#     colMeans() |> 
+#     entropy()
+# }
 
 get_probability_vector <- function(k, target_entropy_range, epsilon = 1e-2, max_iter = 1000) {
   
@@ -62,8 +96,9 @@ get_probability_vector <- function(k, target_entropy_range, epsilon = 1e-2, max_
   
   for (i in 1:max_iter) {
     # Generate a random probability vector
-    p <- runif(k)
-    p <- p / sum(p)  # Normalize to make it a valid probability vector
+    p <- k |> 
+      runif(min = -10, max = 10) |> 
+      softmax() 
     
     # Adjust probabilities to ensure all components >= epsilon
     p <- adjust_probabilities(p, epsilon)
@@ -73,7 +108,7 @@ get_probability_vector <- function(k, target_entropy_range, epsilon = 1e-2, max_
     
     # Check if entropy is within the target range
     if (entropy >= lower_bound && entropy <= upper_bound) {
-      return(p)
+      return(sample(p))
     }
   }
   
@@ -132,7 +167,7 @@ log_likelihood <- function(Beta, X_one_hot, Y_one_hot) {
   
   Y_hat <- X_one_hot %*% Beta
   
-  sum(rowSums(Y_one_hot * Y_hat) - log(1 + rowSums(exp(Y_hat))))
+  sum(rowSums(Y_one_hot * Y_hat) - matrixStats::rowLogSumExps(cbind(0, Y_hat)))
 }
 
 likelihood <- function(Beta, X_one_hot, Y_one_hot) exp(log_likelihood(Beta, X_one_hot, Y_one_hot))
@@ -148,100 +183,30 @@ get_Beta_MLE <- function(model) {
            byrow = TRUE) 
 }
 
-library(dplyr)
-
-library(dplyr)
-
-predict_marginal <- function(model, data) {
-  # Identify categorical and continuous variables
-  categorical_vars <- names(data)[sapply(data, is.factor)]
-  continuous_vars <- names(data)[sapply(data, is.numeric)]
-  
-  # Check that there is exactly one categorical variable
-  if (length(categorical_vars) != 1) {
-    stop("Data must have exactly one categorical variable.")
-  }
-  
-  categorical_var <- categorical_vars[1]  # Use the single categorical variable
-  
-  # Get unique values of the categorical variable
-  unique_categories <- levels(data[[categorical_var]])
-  
-  # Case 1: No continuous variables → predict directly for each categorical level
-  if (length(continuous_vars) == 0) {
-    new_data <- data.frame(
-      categorical_var = factor(unique_categories, levels = unique_categories)
-    )
-    colnames(new_data)[1] <- categorical_var
-    
-    # Predict probabilities for each categorical level
-    pred_probs <- predict(model, new_data, type = "probs")
-    
-    # Convert to data frame and set row names
-    marginal_probs <- as.data.frame(pred_probs)
-    rownames(marginal_probs) <- unique_categories
-    
-    # Name row index properly
-    names(dimnames(marginal_probs)) <- c(categorical_var, "Probability")
-    return(marginal_probs)
-  }
-  
-  # Case 2: At least one continuous variable → compute marginal probabilities
-  unique_values <- lapply(data[continuous_vars], unique)
-  
-  # Create a new dataset with all combinations of categorical and continuous variables
-  if (length(continuous_vars) == 1) {
-    new_data <- data.frame(
-      categorical_var = factor(rep(unique_categories, each = length(unique_values[[1]])), 
-                               levels = unique_categories),
-      continuous_var = rep(unique_values[[1]], times = length(unique_categories))
-    )
-    names(new_data)[2] <- continuous_vars  # Rename continuous variable column
-  } else {
-    new_data <- expand.grid(
-      setNames(unique_values, continuous_vars),
-      categorical_var = factor(unique_categories, levels = unique_categories)
-    )
-  }
-  
-  # Rename categorical column correctly
-  colnames(new_data)[colnames(new_data) == "categorical_var"] <- categorical_var
-  
-  # Predict probabilities for all combinations
-  pred_probs <- predict(model, new_data, type = "probs")
-  
-  # Compute marginal probabilities by averaging over the continuous variables
-  marginal_probs <- aggregate(pred_probs, by = list(new_data[[categorical_var]]), FUN = mean)
-  
-  # Set row names to categorical variable values and remove the first column
-  rownames(marginal_probs) <- marginal_probs[[1]]
-  marginal_probs <- marginal_probs[-1]
-  
-  # Name the row index properly
-  names(dimnames(marginal_probs)) <- c(categorical_var, "Probability")
-  
-  return(marginal_probs)
-}
-
 get_psi_hat <- function(model, data, h) {
   
   model |> 
-    predict_marginal(select(data, -Y)) |> 
-    (\(mat) mat[h,])() |> 
-    entropy()
+    predict(data, type = "probs") |>
+    as.data.frame() |>
+    mutate(X1_level = rep(X1_levels, times = m)) |>
+    aggregate(. ~ X1_level, data = _, FUN = mean) |>
+    (\(df) setNames(data.frame(t(df[,-1])), df[,1]))() |> 
+    apply(2, entropy) |> 
+    (\(vec) vec[h])()
 }
 
-get_omega_hat <- function(omega_hat_obj_fn, omega_hat_con_fn, Jm1, p, init_guess_sd) {
+get_omega_hat <- function(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, init_guess_sd) {
   
   init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
   
   omega_hat <- nloptr::auglag(x0 = init_guess,
-                              fn = omega_hat_obj_fn,
-                              hin = omega_hat_con_fn,
+                              fn = function(Beta) 0,
+                              heq = omega_hat_eq_con_fn,
+                              hin = omega_hat_ineq_con_fn,
                               localsolver = "LBFGS",
                               deprecatedBehavior = FALSE)$par
   
-  if (omega_hat_obj_fn(omega_hat) <= 0.1 && omega_hat_con_fn(omega_hat) <= 0) {
+  if (abs(omega_hat_eq_con_fn(omega_hat)) <= 0.1 && omega_hat_ineq_con_fn(omega_hat) <= 0) {
     
     omega_hat <- matrix(omega_hat, nrow = p, ncol = Jm1, byrow = FALSE)
     
@@ -250,7 +215,7 @@ get_omega_hat <- function(omega_hat_obj_fn, omega_hat_con_fn, Jm1, p, init_guess
   
   else {
     
-    return(get_omega_hat(omega_hat_obj_fn, omega_hat_con_fn, Jm1, p, init_guess_sd))
+    return(get_omega_hat(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, init_guess_sd))
   }
 }
 
@@ -265,7 +230,8 @@ get_Beta_hat <- function(X_one_hot,
                          p,
                          prev_Beta_hat = NULL,
                          lambda,
-                         max_retries) {
+                         max_retries,
+                         max_eval) {
   
   # Smooth initial guess using a moving average of previous solutions
   if (!is.null(prev_Beta_hat)) {
@@ -291,10 +257,11 @@ get_Beta_hat <- function(X_one_hot,
       localsolver = "SLSQP",
       localtol = 1e-8,
       deprecatedBehavior = FALSE,
-      control = list(on.error = "ignore")
+      control = list(on.error = "ignore",
+                     maxeval = max_eval)
     )
     
-    if (!is.null(result$par)) {
+    if (!is.null(result$par) && result$convergence == 4) {
       
       Beta_hat <- matrix(result$par, nrow = p, ncol = Jm1, byrow = FALSE)
       return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
@@ -312,7 +279,9 @@ get_Beta_hat <- function(X_one_hot,
     heq = con_fn,
     localsolver = "COBYLA",
     localtol = 1e-6,  # Slightly relaxed tolerance
-    deprecatedBehavior = FALSE
+    deprecatedBehavior = FALSE,
+    control = list(on.error = "ignore",
+                   maxeval = max_eval)
   )
   
   # If fallback fails, return previous Beta_hat
@@ -332,7 +301,8 @@ make_omega_hat_branch_fn <- function(omega_hat,
                                      Jm1,
                                      p,
                                      lambda,
-                                     max_retries) {
+                                     max_retries,
+                                     max_eval) {
   
   init_guess <- c(omega_hat)
   
@@ -349,7 +319,8 @@ make_omega_hat_branch_fn <- function(omega_hat,
                                     p,
                                     prev_Beta_hat,
                                     lambda,
-                                    max_retries)
+                                    max_retries,
+                                    max_eval)
     
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
@@ -445,8 +416,8 @@ make_plot <- function(df, y_var) {
     )
 }
 
-get_branch_spec <- function(omega_hat_obj_fn,
-                            omega_hat_con_fn,
+get_branch_spec <- function(omega_hat_eq_con_fn,
+                            omega_hat_ineq_con_fn,
                             X_one_hot, 
                             Y_one_hot, 
                             X_h_one_hot,
@@ -455,13 +426,14 @@ get_branch_spec <- function(omega_hat_obj_fn,
                             init_guess_sd,
                             delta,
                             lambda,
-                            max_retries) {
+                            max_retries,
+                            max_eval) {
   
   psi_endpoints <- NULL
   
   while (is.null(psi_endpoints)) {
     
-    omega_hat <- get_omega_hat(omega_hat_obj_fn, omega_hat_con_fn, J - 1, p, init_guess_sd)
+    omega_hat <- get_omega_hat(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, J - 1, p, init_guess_sd)
     
     omega_hat_branch_fn <- make_omega_hat_branch_fn(omega_hat, 
                                                     X_one_hot, 
@@ -470,7 +442,8 @@ get_branch_spec <- function(omega_hat_obj_fn,
                                                     J - 1,
                                                     p,
                                                     lambda,
-                                                    max_retries)
+                                                    max_retries,
+                                                    max_eval)
     
     omega_hat_branch_fn_max <- get_omega_hat_branch_fn_max(omega_hat_branch_fn, J)
     
@@ -491,25 +464,14 @@ generate_branch_specs <- function(data,
                                   num_workers,
                                   chunk_size,
                                   lambda,
-                                  max_retries) {
+                                  max_retries,
+                                  max_eval) {
   
   model <- fit_multinomial_logistic_model(data, formula)
   
-  m <- model |>
-    model.frame() |>
-    select(where(is.factor) & starts_with("X")) |> 
-    plyr::count() |> 
-    pull("freq") |> 
-    unique()
-  
   X_one_hot <- model.matrix(model)
   
-  cat_var <- names(select(data, -Y))[sapply(select(data, -Y), is.factor)]
-  
-  X_h_one_hot <- data |> 
-    pull(cat_var) |> 
-    (\(x) model.matrix(~x))() |> 
-    (\(mat) mat[1 + m*(h - 1),])()
+  X_h_one_hot <- extract_X_h(X_one_hot, h, drop_zero_cols = FALSE)
   
   Y_one_hot <- data |>
     pull(Y) |>
@@ -523,9 +485,9 @@ generate_branch_specs <- function(data,
   
   psi_hat <- get_psi_hat(model, data, h)
   
-  omega_hat_obj_fn <- function(Beta) omega_hat_obj_fn_rcpp(Beta, X_h_one_hot, J - 1, p, psi_hat)
+  omega_hat_eq_con_fn <- function(Beta) omega_hat_eq_con_fn_rcpp(Beta, X_h_one_hot, J - 1, p, psi_hat)
   
-  omega_hat_con_fn <- function(Beta) omega_hat_con_fn_rcpp(Beta, X_one_hot, Y_one_hot, J - 1, p, n, threshold)
+  omega_hat_ineq_con_fn <- function(Beta) omega_hat_ineq_con_fn_rcpp(Beta, X_one_hot, Y_one_hot, J - 1, p, n, threshold)
   
   delta <- qchisq(1 - alpha, 1) / 2
   
@@ -548,10 +510,10 @@ generate_branch_specs <- function(data,
     
   ) %dofuture% {
     
-    progress_bar()  
+    progress_bar()
     
-    branch_spec <- get_branch_spec(omega_hat_obj_fn,
-                                   omega_hat_con_fn,
+    branch_spec <- get_branch_spec(omega_hat_eq_con_fn,
+                                   omega_hat_ineq_con_fn,
                                    X_one_hot, 
                                    Y_one_hot, 
                                    X_h_one_hot,
@@ -560,7 +522,8 @@ generate_branch_specs <- function(data,
                                    init_guess_sd,
                                    delta,
                                    lambda,
-                                   max_retries)
+                                   max_retries,
+                                   max_eval)
     
     progress_bar()
     
@@ -584,7 +547,8 @@ get_branch <- function(branch_spec,
                        step_size,
                        init_guess_sd,
                        lambda,
-                       max_retries) {
+                       max_retries,
+                       max_eval) {
   
   psi_grid <- get_psi_grid_1(branch_spec$psi_endpoints, step_size, J)
   
@@ -611,7 +575,8 @@ get_branch <- function(branch_spec,
                                     p,
                                     prev_Beta_hat,
                                     lambda,
-                                    max_retries)
+                                    max_retries,
+                                    max_eval)
     
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
@@ -642,7 +607,8 @@ generate_branches <- function(branch_specs,
                               init_guess_sd,
                               chunk_size,
                               lambda,
-                              max_retries) {
+                              max_retries,
+                              max_eval) {
   
   psi_grid <- get_psi_grid_2(branch_specs, step_size, J, quantiles)
   
@@ -686,7 +652,8 @@ generate_branches <- function(branch_specs,
                                       p,
                                       prev_Beta_hat,
                                       lambda,
-                                      max_retries)
+                                      max_retries,
+                                      max_eval)
       
       Beta_hat <- Beta_hat_result$Beta_hat
       prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
@@ -723,6 +690,8 @@ get_log_L_bar <- function(branches) {
     t() |>
     unname()
   
+  colnames(branches_matrix) <- merged_df$psi
+  
   log_R <- branches_matrix |> 
     nrow() |> 
     log()
@@ -746,23 +715,14 @@ get_log_integrated_likelihood <- function(branch_specs,
                                           num_workers,
                                           chunk_size,
                                           lambda,
-                                          max_retries) {
+                                          max_retries,
+                                          max_eval) {
   
   model <- fit_multinomial_logistic_model(data, formula)
   
-  m <- model |>
-    model.frame() |>
-    filter(X == 1) |>
-    nrow()
-  
   X_one_hot <- model.matrix(model)
   
-  cat_var <- names(select(data, -Y))[sapply(select(data, -Y), is.factor)]
-  
-  X_h_one_hot <- data |> 
-    pull(cat_var) |> 
-    (\(X) model.matrix(~ X))() |> 
-    (\(mat) mat[1 + m*(h - 1),])()
+  X_h_one_hot <- extract_X_h(X_one_hot, h, drop_zero_cols = FALSE)
   
   Y_one_hot <- data |>
     pull(Y) |>
@@ -794,7 +754,8 @@ get_log_integrated_likelihood <- function(branch_specs,
                                 init_guess_sd,
                                 chunk_size,
                                 lambda,
-                                max_retries)
+                                max_retries,
+                                max_eval)
   
   plan(sequential)
   
@@ -835,25 +796,14 @@ get_log_profile_likelihood <- function(data,
                                        alpha,
                                        init_guess_sd,
                                        lambda,
-                                       max_retries) {
+                                       max_retries,
+                                       max_eval) {
   
   model <- fit_multinomial_logistic_model(data, formula)
   
-  m <- model |>
-    model.frame() |>
-    select(where(is.factor) & starts_with("X")) |> 
-    plyr::count() |> 
-    pull("freq") |> 
-    unique()
-  
   X_one_hot <- model.matrix(model)
   
-  cat_var <- names(select(data, -Y))[sapply(select(data, -Y), is.factor)]
-  
-  X_h_one_hot <- data |> 
-    pull(cat_var) |> 
-    (\(X) model.matrix(~ X))() |> 
-    (\(mat) mat[1 + m*(h - 1),])()
+  X_h_one_hot <- extract_X_h(X_one_hot, h, drop_zero_cols = FALSE)
   
   Y_one_hot <- data |>
     pull(Y) |>
@@ -876,7 +826,8 @@ get_log_profile_likelihood <- function(data,
                                                  J - 1,
                                                  p,
                                                  lambda,
-                                                 max_retries)
+                                                 max_retries,
+                                                 max_eval)
   
   Beta_MLE_branch_fn_max <- get_omega_hat_branch_fn_max(Beta_MLE_branch_fn, J)
   
@@ -906,7 +857,8 @@ get_log_profile_likelihood <- function(data,
                                     p,
                                     prev_Beta_hat,
                                     lambda,
-                                    max_retries)
+                                    max_retries,
+                                    max_eval)
     
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat

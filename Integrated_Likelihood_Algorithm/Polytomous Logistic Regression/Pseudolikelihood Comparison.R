@@ -29,15 +29,14 @@ step_size <- log_likelihood_vals_file_path |>
   str_extract("\\d+\\.\\d+") |> 
   as.numeric()
 
-h <- log_likelihood_vals_file_path |>
-  str_remove("^.*h=") |>
-  str_extract("-?\\d+(\\.\\d+)?") |>
-  as.numeric()
+# h <- log_likelihood_vals_file_path |>
+#   str_remove("^.*h=") |>
+#   str_extract("-?\\d+(\\.\\d+)?") |>
+#   as.numeric()
 
 psi_hat <- get_psi_hat(model, data, h)
 
-psi_0 <- theta_0[[h]] |> 
-  entropy()
+psi_0 <- theta_0[[h]]
 
 # pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
 
@@ -64,7 +63,8 @@ log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
 spline_fitted_models <- log_likelihood_vals |>
   drop_na(loglikelihood) |> 
   group_by(Pseudolikelihood) |> 
-  group_map(~ smooth.spline(.x$psi, .x$loglikelihood)) |> 
+  group_map(~ interpSpline(.x$psi, .x$loglikelihood)) |> 
+  # group_map(~ smooth.spline(.x$psi, .x$loglikelihood, spar = 0.5)) |> 
   set_names(pseudolikelihood_names)
 
 MLE_data <- spline_fitted_models |>
@@ -101,12 +101,6 @@ log_likelihood_vals |>
   ylab("Log-Likelihood") +
   scale_color_brewer(palette = "Set1") +
   xlab(expression(psi)) +
-  # scale_x_continuous(expand = c(0, 0),
-  #                    # limits = c(31.5, 32.5)) +
-  #                    limits = c(15, 16)) +
-  # scale_y_continuous(expand = c(0, 0),
-  #                    # limits = c(-0.025, 0)) +
-  #                    limits = c(0, 1)) +
   theme_minimal() +
   theme(axis.line = element_line())
 
@@ -143,16 +137,6 @@ conf_ints <- pseudo_log_likelihood_curves |>
        }
   )
 
-# psi_hat <- get_psi_hat(model, X_h)
-# 
-# conf_ints$Classical <- get_CI_psi_hat(model, X_h, alpha) |> 
-#   round(3)
-# 
-# MLE_data <- MLE_data |>
-#   add_row(Source = "Classical",
-#           MLE = psi_hat,
-#           MLE_label = "hat(psi)")
-
 MLE_data |> 
   select(Source, MLE) |> 
   mutate(MLE = MLE |> 
@@ -163,8 +147,6 @@ MLE_data |>
            map(diff) |> 
            as.numeric()) |> 
   arrange(length) |> 
-  add_row(Source = "Classical",
-          MLE = psi_hat) |>
   add_row(Source = "Truth",
           MLE = psi_0) |>
   kbl(col.names = c("Source", 
@@ -173,7 +155,7 @@ MLE_data |>
                     "CI Length"),   
       align = "c") |> 
   kable_styling(bootstrap_options = c("striped", "hover")) |> 
-  row_spec(4, color = "green", bold = TRUE)
+  row_spec(3, color = "green", bold = TRUE)
 
 # stat_fn_PL <- map2(
 c(stat_fn_IL, stat_fn_PL) %<-% map2(
@@ -195,8 +177,7 @@ c(stat_fn_IL, stat_fn_PL) %<-% map2(
   }
 )
 
-psi_range <- c(min(unlist(conf_ints)), max(unlist(conf_ints)))
-# psi_range <- c(0, log(J))
+psi_range <- c(min(log_likelihood_vals$psi), max(log_likelihood_vals$psi))
 
 y_min <- pseudo_log_likelihood_curves |> 
   map((\(curve) c(curve(psi_range[1]), curve(psi_range[2])))) |> 
@@ -205,9 +186,6 @@ y_min <- pseudo_log_likelihood_curves |>
   round()
 
 label_data <- MLE_data |>
-  add_row(Source = "Classical",
-          MLE = psi_hat,
-          MLE_label = "hat(psi)") |> 
   add_row(Source = "Truth",
           MLE = psi_0,
           MLE_label = "psi[0]")
@@ -218,6 +196,9 @@ ggplot() +
   stat_fn_PL +
   geom_hline(yintercept = 0,
              linetype = 5) +
+  geom_hline(aes(yintercept = -crit),
+             linewidth = 1.5) +
+  geom_text(aes(1.5, -crit, label = "95% CI Line", vjust = 1.3)) +
   geom_vline(aes(xintercept = MLE,
                  color = Source),
              data = label_data,
@@ -230,34 +211,20 @@ ggplot() +
                             direction = "y",
                             parse = TRUE,
                             show.legend = FALSE) +
-  # annotate("rect",
-  #          xmin = conf_ints$Integrated[1],
-  #          xmax = min(conf_ints$Integrated[2], psi_range[2]),
-  #          ymin = -Inf,
-  #          ymax = Inf,
-  #          fill = "blue",
-  #          alpha = 0.5) +
-  # annotate("rect",
-  #          xmin = conf_ints$Profile[1],
-  #          xmax = conf_ints$Profile[2],
-  #          ymin = -Inf,
-  #          ymax = Inf,
-  #          fill = "green",
-  #          alpha = 0.5) +
-  # annotate("rect",
-  #          xmin = conf_ints$Classical[1],
-  #          xmax = conf_ints$Classical[2],
-  #          ymin = -Inf,
-  #          ymax = Inf,
-  #          fill = "red",
-  #          alpha = 0.5) +
+  geom_point(aes(x = psi, y = loglikelihood - max(loglikelihood, na.rm = TRUE)),
+             data = log_likelihood_vals |> 
+               filter(Pseudolikelihood == "Integrated"),
+             size = 1) +
+  geom_point(aes(x = psi, y = loglikelihood - max(loglikelihood, na.rm = TRUE)),
+             data = log_likelihood_vals |> 
+               filter(Pseudolikelihood == "Profile"),
+             size = 1) +
   ylab("Log-Likelihood") +
   scale_x_continuous(expand = c(0, 0),
                      limits = psi_range) +
   scale_y_continuous(expand = c(0, 0),
                      limits = c(y_min, 0.1)) +
   scale_color_brewer(palette = "Set1") +
-  # scale_linewidth_manual(values = c(4, 2.5, 1)) +
   xlab(expression(psi)) +
   theme_minimal() +
   theme(axis.line = element_line())

@@ -10,6 +10,17 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// rowLogSumExps_rcpp
+NumericVector rowLogSumExps_rcpp(NumericMatrix Y_hat);
+RcppExport SEXP _PolytomousUtils_rowLogSumExps_rcpp(SEXP Y_hatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type Y_hat(Y_hatSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowLogSumExps_rcpp(Y_hat));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_likelihood_rcpp
 double log_likelihood_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericMatrix Y_one_hot, int Jm1, int p, int n);
 RcppExport SEXP _PolytomousUtils_log_likelihood_rcpp(SEXP BetaSEXP, SEXP X_one_hotSEXP, SEXP Y_one_hotSEXP, SEXP Jm1SEXP, SEXP pSEXP, SEXP nSEXP) {
@@ -70,25 +81,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// entropy_rcpp
-double entropy_rcpp(NumericVector p);
-RcppExport SEXP _PolytomousUtils_entropy_rcpp(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(entropy_rcpp(p));
-    return rcpp_result_gen;
-END_RCPP
-}
 // PoI_fn_rcpp
-double PoI_fn_rcpp(NumericMatrix Beta, NumericVector X_h_one_hot);
+double PoI_fn_rcpp(NumericMatrix Beta, NumericMatrix X_h_one_hot);
 RcppExport SEXP _PolytomousUtils_PoI_fn_rcpp(SEXP BetaSEXP, SEXP X_h_one_hotSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type Beta(BetaSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type X_h_one_hot(X_h_one_hotSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X_h_one_hot(X_h_one_hotSEXP);
     rcpp_result_gen = Rcpp::wrap(PoI_fn_rcpp(Beta, X_h_one_hot));
     return rcpp_result_gen;
 END_RCPP
@@ -111,13 +111,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // Beta_hat_con_fn_rcpp
-double Beta_hat_con_fn_rcpp(NumericVector Beta, NumericVector X_h_one_hot, double psi, int Jm1, int p);
+double Beta_hat_con_fn_rcpp(NumericVector Beta, NumericMatrix X_h_one_hot, double psi, int Jm1, int p);
 RcppExport SEXP _PolytomousUtils_Beta_hat_con_fn_rcpp(SEXP BetaSEXP, SEXP X_h_one_hotSEXP, SEXP psiSEXP, SEXP Jm1SEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type Beta(BetaSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type X_h_one_hot(X_h_one_hotSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X_h_one_hot(X_h_one_hotSEXP);
     Rcpp::traits::input_parameter< double >::type psi(psiSEXP);
     Rcpp::traits::input_parameter< int >::type Jm1(Jm1SEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
@@ -126,13 +126,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // omega_hat_obj_fn_rcpp
-double omega_hat_obj_fn_rcpp(NumericVector Beta, NumericVector X_h_one_hot, int Jm1, int p, double psi_hat);
+double omega_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_h_one_hot, int Jm1, int p, double psi_hat);
 RcppExport SEXP _PolytomousUtils_omega_hat_obj_fn_rcpp(SEXP BetaSEXP, SEXP X_h_one_hotSEXP, SEXP Jm1SEXP, SEXP pSEXP, SEXP psi_hatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type Beta(BetaSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type X_h_one_hot(X_h_one_hotSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X_h_one_hot(X_h_one_hotSEXP);
     Rcpp::traits::input_parameter< int >::type Jm1(Jm1SEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
     Rcpp::traits::input_parameter< double >::type psi_hat(psi_hatSEXP);
@@ -140,9 +140,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// omega_hat_con_fn_rcpp
-double omega_hat_con_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericMatrix Y_one_hot, int Jm1, int p, int n, double threshold);
-RcppExport SEXP _PolytomousUtils_omega_hat_con_fn_rcpp(SEXP BetaSEXP, SEXP X_one_hotSEXP, SEXP Y_one_hotSEXP, SEXP Jm1SEXP, SEXP pSEXP, SEXP nSEXP, SEXP thresholdSEXP) {
+// omega_hat_eq_con_fn_rcpp
+double omega_hat_eq_con_fn_rcpp(NumericVector Beta, NumericMatrix X_h_one_hot, int Jm1, int p, double psi_hat);
+RcppExport SEXP _PolytomousUtils_omega_hat_eq_con_fn_rcpp(SEXP BetaSEXP, SEXP X_h_one_hotSEXP, SEXP Jm1SEXP, SEXP pSEXP, SEXP psi_hatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type Beta(BetaSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X_h_one_hot(X_h_one_hotSEXP);
+    Rcpp::traits::input_parameter< int >::type Jm1(Jm1SEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_hat(psi_hatSEXP);
+    rcpp_result_gen = Rcpp::wrap(omega_hat_eq_con_fn_rcpp(Beta, X_h_one_hot, Jm1, p, psi_hat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// omega_hat_ineq_con_fn_rcpp
+double omega_hat_ineq_con_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericMatrix Y_one_hot, int Jm1, int p, int n, double threshold);
+RcppExport SEXP _PolytomousUtils_omega_hat_ineq_con_fn_rcpp(SEXP BetaSEXP, SEXP X_one_hotSEXP, SEXP Y_one_hotSEXP, SEXP Jm1SEXP, SEXP pSEXP, SEXP nSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -153,23 +168,24 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
-    rcpp_result_gen = Rcpp::wrap(omega_hat_con_fn_rcpp(Beta, X_one_hot, Y_one_hot, Jm1, p, n, threshold));
+    rcpp_result_gen = Rcpp::wrap(omega_hat_ineq_con_fn_rcpp(Beta, X_one_hot, Y_one_hot, Jm1, p, n, threshold));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_PolytomousUtils_rowLogSumExps_rcpp", (DL_FUNC) &_PolytomousUtils_rowLogSumExps_rcpp, 1},
     {"_PolytomousUtils_log_likelihood_rcpp", (DL_FUNC) &_PolytomousUtils_log_likelihood_rcpp, 6},
     {"_PolytomousUtils_softmax_adj_vector_rcpp", (DL_FUNC) &_PolytomousUtils_softmax_adj_vector_rcpp, 1},
     {"_PolytomousUtils_softmax_adj_matrix_rcpp", (DL_FUNC) &_PolytomousUtils_softmax_adj_matrix_rcpp, 1},
     {"_PolytomousUtils_softmax_vector_rcpp", (DL_FUNC) &_PolytomousUtils_softmax_vector_rcpp, 1},
     {"_PolytomousUtils_softmax_matrix_rcpp", (DL_FUNC) &_PolytomousUtils_softmax_matrix_rcpp, 1},
-    {"_PolytomousUtils_entropy_rcpp", (DL_FUNC) &_PolytomousUtils_entropy_rcpp, 1},
     {"_PolytomousUtils_PoI_fn_rcpp", (DL_FUNC) &_PolytomousUtils_PoI_fn_rcpp, 2},
     {"_PolytomousUtils_Beta_hat_obj_fn_rcpp", (DL_FUNC) &_PolytomousUtils_Beta_hat_obj_fn_rcpp, 7},
     {"_PolytomousUtils_Beta_hat_con_fn_rcpp", (DL_FUNC) &_PolytomousUtils_Beta_hat_con_fn_rcpp, 5},
     {"_PolytomousUtils_omega_hat_obj_fn_rcpp", (DL_FUNC) &_PolytomousUtils_omega_hat_obj_fn_rcpp, 5},
-    {"_PolytomousUtils_omega_hat_con_fn_rcpp", (DL_FUNC) &_PolytomousUtils_omega_hat_con_fn_rcpp, 7},
+    {"_PolytomousUtils_omega_hat_eq_con_fn_rcpp", (DL_FUNC) &_PolytomousUtils_omega_hat_eq_con_fn_rcpp, 5},
+    {"_PolytomousUtils_omega_hat_ineq_con_fn_rcpp", (DL_FUNC) &_PolytomousUtils_omega_hat_ineq_con_fn_rcpp, 7},
     {NULL, NULL, 0}
 };
 

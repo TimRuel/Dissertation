@@ -1,3 +1,4 @@
+source("data_utils.R")
 source("../../utils.R")
 
 seed <- 348257
@@ -6,36 +7,53 @@ set.seed(seed)
 
 J <- 6 # number of levels of response variable
 
-c <- 3 # number of levels of predictor
+m <- c(25, 25, 25) # number of observations at each level of categorical predictor
 
-m <- 10 # number of observations at each level of predictor
+C <- length(m) # number of levels of categorical predictor
 
-n <- sum(m * c)
+n <- sum(m) # total number of observations
 
-epsilon <- 0.01
+X1_levels <- letters[1:C]
 
-max_iter <- 1e6
+X1_ref_level <- X1_levels[1]
 
-theta_0 <- get_theta_0(J, c, epsilon, max_iter)
+X1 <- X1_levels |> 
+  rep(times = m) |> 
+  factor() |> 
+  relevel(X1_ref_level)
 
-Y <- get_Y(theta_0, m)
+X <- model.matrix(~ X1 - 1)
 
-contrast <- contr.sum
+p <- ncol(X) # Number of terms in model after dummy encoding
 
-X <- get_X(c, m, contrast)
+Beta_0 <- get_Beta_0()
 
-data <- data.frame(X = X,
+true_probs <- X %*% cbind(0, Beta_0) |> 
+  apply(1, softmax) |> 
+  t() |> 
+  unique() |> 
+  tapply(rep(1:C, times = J), 
+         function(i) i) |> 
+  setNames(X1_levels)
+
+theta_0 <- true_probs |> 
+  purrr::map_dbl(entropy)
+
+Y <- true_probs |> 
+  purrr::map2(m, \(prob, size) sample(1:J, size = size, prob = prob, replace = TRUE)) |> 
+  unlist() |> 
+  unname() |> 
+  factor(levels = 1:J)
+
+Y_one_hot <- model.matrix(~ Y)[,-1]
+
+data <- data.frame(X1 = X1,
                    Y = Y)
 
-formula <- Y ~ .
+formula <- Y ~ . - 1
 
 model <- fit_multinomial_logistic_model(data, formula)
 
 Beta_MLE <- get_Beta_MLE(model)
 
-p <- nrow(Beta_MLE) # Number of parameters in model
-
-threshold <- 40
-
-# Add interactions and/or continuous variables
-
+threshold <- ceiling(abs(log_likelihood(Beta_MLE, X, model.matrix(~ Y)[,-1])) + 20)

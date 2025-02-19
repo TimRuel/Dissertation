@@ -28,9 +28,9 @@ set.seed(seed)
 ################################## PARAMETERS ################################## 
 ################################################################################
 
-h <- 2
+h <- "c"
 
-step_size <- 0.01
+step_size <- 0.05
 
 alpha <- 0.03
 
@@ -38,13 +38,17 @@ lambda <- 1e-4
 
 max_retries <- 10
 
+max_eval <- 1e4
+
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
 ################################################################################
 
 quantiles <- c(0.25, 0.5)
 
-init_guess_sd <- 5
+# init_guess_sd <- 5 # population C
+
+init_guess_sd <- 0.5 # population D
 
 # num_workers <- Sys.getenv("SLURM_NPROCS") |>
 #   as.numeric()
@@ -57,7 +61,7 @@ num_workers <- parallel::detectCores() |>
 
 # num_workers <- 12
 
-chunk_size <- 2
+chunk_size <- 5
 
 num_branches <- num_workers * chunk_size
 
@@ -70,7 +74,8 @@ branch_specs <- generate_branch_specs(data,
                                       num_workers,
                                       chunk_size,
                                       lambda,
-                                      max_retries)
+                                      max_retries,
+                                      max_eval)
 
 toc()
 
@@ -82,7 +87,7 @@ saveRDS(branch_specs, branch_specs_filepath)
 
 tic()
 
-log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs,
+log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs[1:num_branches],
                                                            data,
                                                            h,
                                                            alpha,
@@ -92,11 +97,12 @@ log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs,
                                                            num_workers,
                                                            chunk_size,
                                                            lambda,
-                                                           max_retries)
+                                                           max_retries,
+                                                           max_eval)
 
 toc()
 
-log_integrated_likelihood_filepath <- glue::glue("IL_obj_R={num_branches}_h={h}_stepsize={step_size}.Rda")
+log_integrated_likelihood_filepath <- glue::glue("IL_objects/R={num_branches}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_integrated_likelihood, log_integrated_likelihood_filepath)
 
@@ -112,11 +118,14 @@ log_profile_likelihood <- get_log_profile_likelihood(data,
                                                      alpha,
                                                      init_guess_sd,
                                                      lambda,
-                                                     max_retries)
+                                                     max_retries,
+                                                     max_eval)
 
 toc()
 
-log_profile_likelihood_filepath <- glue::glue("PL_obj_R={num_branches}_h={h}_stepsize={step_size}.Rda")
+log_profile_likelihood <- log_L_p_df
+
+log_profile_likelihood_filepath <- glue::glue("PL_objects/R={num_branches}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_profile_likelihood, log_profile_likelihood_filepath)
 
@@ -130,6 +139,6 @@ log_likelihood_vals <- log_integrated_likelihood$log_L_bar$df |>
 # log_likelihood_vals <- values_df |> 
 #   merge(log_profile_likelihood$values_df, all = TRUE)
 
-log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals_R={num_branches}_h={h}_stepsize={step_size}.Rda")
+log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals/R={num_branches}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)
