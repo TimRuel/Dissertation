@@ -29,10 +29,8 @@ step_size <- log_likelihood_vals_file_path |>
   str_extract("\\d+\\.\\d+") |> 
   as.numeric()
 
-# h <- log_likelihood_vals_file_path |>
-#   str_remove("^.*h=") |>
-#   str_extract("-?\\d+(\\.\\d+)?") |>
-#   as.numeric()
+h <- log_likelihood_vals_file_path |>
+  str_extract("(?<=h=).") 
 
 psi_hat <- get_psi_hat(model, data, h)
 

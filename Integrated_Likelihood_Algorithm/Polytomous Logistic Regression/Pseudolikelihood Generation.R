@@ -28,9 +28,9 @@ set.seed(seed)
 ################################## PARAMETERS ################################## 
 ################################################################################
 
-h <- "c"
+h <- "b"
 
-step_size <- 0.05
+step_size <- 0.02
 
 alpha <- 0.03
 
@@ -122,8 +122,6 @@ log_profile_likelihood <- get_log_profile_likelihood(data,
                                                      max_eval)
 
 toc()
-
-log_profile_likelihood <- log_L_p_df
 
 log_profile_likelihood_filepath <- glue::glue("PL_objects/R={num_branches}_h={h}_stepsize={step_size}.Rda")
 
