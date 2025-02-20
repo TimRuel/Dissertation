@@ -1,4 +1,4 @@
-\chapter{Likelihood Functions}
+\chapter{The Likelihood Function}
 
 \section{Definition}
 
@@ -166,108 +166,7 @@ Therefore, $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\t
 
 It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of partial $\theta$-derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of approximations to genuine likelihoods so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\symbf{\theta}$ is a $d \times 1$ vector.
 
-\section{One-Index Asymptotics}
 
-The one-index asymptotics framework describes the behavior of likelihood-based statistics as the sample size ($n$) grows to infinity. The aim of this section is to present an overview of some of the theory's classic results. This provides us with a readily available baseline against which to compare the results of the following section discussing the two-index asymptotics framework, in which the full model parameter is partitioned into a parameter of interest and a nuisance parameter, and the dimension of the nuisance parameter is allowed to increase with the sample size.
-
-Let $\symbf{\theta}$ be the parameter of a regular model with true value $\symbf{\theta}_0$. As a partial justification for our use of the MLE in estimating $\symbf{\theta}_0$, we will start by showing that with probability tending to $1$ as $n$ tends toward infinity, the likelihood for $\symbf{\theta}$ is strictly larger at $\symbf{\theta}_0$ than for any other $\symbf{\theta} \in \Theta$. **RC1** implies $$L(\symbf{\theta}; \mathbf{x}_n) = p(\mathbf{x}_n; \symbf{\theta}) = \prod_{i=1}^n p(x_i; \symbf{\theta})$${#eq-MLE1} and $$\ell(\symbf{\theta}; \mathbf{x}_n) = \log p(\mathbf{x}_n; \symbf{\theta}) = \sum_{i=1}^n \log p(x_i; \symbf{\theta}).$${#eq-MLE2}  It follows that 
-$$
-\begin{aligned}
-L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n) &\iff \ell(\symbf{\theta}; \mathbf{x}_n) < \ell(\symbf{\theta}_0; \mathbf{x}_n) \\
-                                                    &\iff \sum_{i=1}^n \log p(x_i; \symbf{\theta}) - \sum_{i=1}^n \log p(x_i; \symbf{\theta}_0) < 0 \\
-                                                    &\iff \sum_{i=1}^n \big[\log p(x_i; \symbf{\theta}) - \log p(x_i; \symbf{\theta}_0)\big] < 0 \\
-                                                    &\iff \sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0 \\
-                                                    &\iff \frac{1}{n}\sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0.
-\end{aligned}
-$${#eq-MLE3}
-**RC3** guarantees that the ratio $p(x; \symbf{\theta}) / p(x; \symbf{\theta}_0)$ is well-defined and finite for all $x \in \mathcal{X}$, the region of common support. Then by the Weak Law of Large Numbers, $$\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} \to \text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg]$${#eq-MLE4} in probability as $n \to \infty$. Furthermore, $$\text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \int_{\mathcal{X}}\Bigg[\frac{p(x; \symbf{\theta})}{p(x; \symbf{\theta}_0)} \Bigg] p(x; \symbf{\theta}_0)dx = \int_{\mathcal{X}}p(x; \symbf{\theta})dx = 1.$${#eq-MLE5}
-Since $\log(x)$ is a strictly concave function, it follows from Jensen's inequality (see Appendix \ref{appendix:A}) and @eq-MLE5 $$\text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] < \log \text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \log 1 = 0.$${#eq-MLE6} Hence, the quantity on the left-hand side of @eq-MLE4 is converging in probability to a constant that is less than 0 as $n$ tends to infinity. From this and the equivalence we established in @eq-MLE3, it follows that $$\lim_{n \to \infty} P_{\symbf{\theta}_0} \big[L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n)\big] = \lim_{n \to \infty} P_{\symbf{\theta}_0} \Bigg[\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} < 0\Bigg] = 1,$${#eq-MLE7} which proves the claim. 
-
-As a global maximizer of the log-likelihood function, the MLE $\hat{\symbf{\theta}}$ of a regular model must be a root of the log-likelihood function, i.e., it must satisfy the *likelihood equation*, $$\nabla_{\symbf{\theta}}\ell(\hat{\symbf{\theta}}) = \mathbf{0}.$${#eq-MLE9} whenever it exists. For an arbitrary model, there may be other roots as well, even when the MLE doesn't exist. Assuming **RC2** and **RC5-8**, it can be shown that there will always be at least one sequence of roots $\hat{\symbf{\theta}}_n$ of its log-likelihood such that $\hat{\symbf{\theta}}_n$ tends to $\symbf{\theta}_0$ in probability as $n \to \infty$ (Cf. Cramér 1945). The MLE will not necessarily be a part of this sequence though, even if it exists. Adding **RC9** is enough to ensure the MLE must be the unique solution to the likelihood equation, however, and therefore this sequence of roots will also be unique and for a given sample $\mathbf{x}_n$, the corresponding root $\hat{\symbf{\theta}}_n = \hat{\symbf{\theta}}(\mathbf{x}_n)$ will be the unique MLE of $\symbf{\theta}_0$. It follows that the MLE is a consistent estimator of $\symbf{\theta}_0$ for regular models. 
-
-We now turn our attention to the asymptotic distribution of the MLE. Similarly to the log-likelihood function, **RC1** implies the score function is equal to
-$$
-\begin{aligned}
-\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) &= \nabla_{\symbf{\theta}} \ell(\symbf{\theta}; \mathbf{x}_n) \\
-                                  &= \nabla_{\symbf{\theta}} \sum_{i=1}^n \ell(\symbf{\theta}; x_i) \\
-                                  &= \sum_{i=1}^n \nabla_{\symbf{\theta}} \ell(\symbf{\theta}; x_i) \\
-                                  &= \sum_{i=1}^n \mathcal{S}(\symbf{\theta}; x_i).
-\end{aligned}
-$${#eq-score_additive} where the last equality is true by . 
-In other words, the score function for the parameter $\symbf{\theta}$ based on data $x_1, ..., x_n$ can be written as the sum of independent contributions $\mathcal{S}(\symbf{\theta}; x_i)$ ($i = 1,..., n$) where each $\mathcal{S}(\symbf{\theta}; x_i)$ can be thought of as the score function for $\symbf{\theta}$ based only on observation $x_i$. This implies that a Taylor series expansion of $\mathcal{S}(\symbf{\theta}; \mathbf{x}_n)$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that depends on $n$. Since the observations are identically distributed, it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\symbf{\theta}; x_i)$. 
-
-**RC4-5** guarantee the existence of a neighborhood of $\symbf{\theta}_0$ on which the first two partial derivatives of $\mathcal{S}(\symbf{\theta}; x_i)$ with respect to $\symbf{\theta}$ exist and are continuous. Without loss of generality, we may assume this neighborhood, call it $N_{\symbf{\theta}_0}$, is convex so that it contains all of the line segments connecting any two of its points. In particular, for any $\symbf{\theta} \in N_{\symbf{\theta}_0}$, $\text{LS}(\symbf{\theta}, \symbf{\theta}_0) \subset N_{\symbf{\theta}_0}$. Then by Taylor's theorem with the Lagrange form of the remainder, there exists $\tilde{\symbf{\theta}}_j \in \text{LS}(\symbf{\theta}, \symbf{\theta}_0)$ such that the $j$-th component of $\mathcal{S}(\symbf{\theta}; x_i)$ may be expanded as
-$$
-\begin{aligned}
-\mathcal{S}_j(\symbf{\theta}; x_i) &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + \frac{1}{2}(\symbf{\theta} - \symbf{\theta}_0)\textbf{H}_{\symbf{\theta}}\Big(\mathcal{S}_j(\tilde{\symbf{\theta}}_j; x_i)\Big)(\symbf{\theta} - \symbf{\theta}_0)^\top \\
-                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\Big[\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + \frac{1}{2}\textbf{H}_{\symbf{\theta}}\Big( \mathcal{S}_j(\tilde{\symbf{\theta}}_j; x_i)\Big)(\symbf{\theta} - \symbf{\theta}_0)^\top\Big] \\
-                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\Big[\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\Big] &&(\text{by } \textbf{RC6}) \\
-                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + \Big[\nabla_{\symbf{\theta}}^\top \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\Big](\symbf{\theta} - \symbf{\theta}_0)^\top.
-\end{aligned}
-$$
-When we stack each of these individual equations into a system of equations, we get 
-$$
-\begin{pmatrix} 
-\mathcal{S}_1(\symbf{\theta}; x_i) \\ 
-\vdots \\ 
-\mathcal{S}_d(\symbf{\theta}; x_i) 
-\end{pmatrix} = 
-\begin{pmatrix} 
-\mathcal{S}_1(\symbf{\theta}_0; x_i) \\ 
-\vdots \\ 
-\mathcal{S}_d(\symbf{\theta}_0; x_i) 
-\end{pmatrix} + \Bigg[
-\begin{pmatrix}
-\nabla^\top \mathcal{S}_1(\symbf{\theta}_0; x_i) \\
-\vdots \\
-\nabla^\top \mathcal{S}_d(\symbf{\theta}_0; x_i)
-\end{pmatrix} + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]
-(\symbf{\theta} - \symbf{\theta}_0)^\top.
-$${#eq-score_Taylor_matrix} 
-
-The matrix of gradient vectors in the second term on the right-hand side of the above equation is simply the Jacobian of the score function evaluated at $\symbf{\theta} = \symbf{\theta}_0$, i.e., $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big)$. However, by @eq-obs_information, this is just the negative transpose of the observed information matrix also evaluated at $\symbf{\theta} = \symbf{\theta}_0$, $\mathcal{I}(\symbf{\theta}_0)$. Furthermore, since we have assumed $\ell$ is continuous in $\symbf{\theta}$, we can freely swap the order of differentiation in all of its second partial derivatives with respect to $\symbf{\theta}$. This implies the Jacobian of the score will be a symmetric matrix, and so we simply have $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) = -\mathcal{I}_i(\symbf{\theta}_0)$. Hence, using more compact notation, @eq-score_Taylor_matrix becomes 
-$$
-\begin{aligned}
-\mathcal{S}(\symbf{\theta}; x_i) &= \mathcal{S}(\symbf{\theta}_0; x_i) + \Big[\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Big]
-(\symbf{\theta} - \symbf{\theta}_0)^\top \\
-                                 &= \mathcal{S}(\symbf{\theta}_0; x_i) - \Big[\mathcal{I}_i(\symbf{\theta}_0) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Big]
-(\symbf{\theta} - \symbf{\theta}_0)^\top
-\end{aligned}
-$${#eq-score_Taylor_compact}
-
-The above represents the second-order Taylor expansion around $\symbf{\theta}_0$ for an individual observation $x_i$'s contribution to the score function. Summing over all of these contributions yields
-$$
-\begin{aligned}
-\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) &= \sum_{i=1}^n \mathcal{S}(\symbf{\theta}; x_i) \\
-                                  &= \sum_{i=1}^n\Bigg[\mathcal{S}(\symbf{\theta}_0; x_i) - \bigg[\mathcal{I}_{X_i}(\symbf{\theta}_0) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\bigg]
-(\symbf{\theta} - \symbf{\theta}_0)^\top\Bigg] \\
-                                  &= \mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg](\symbf{\theta} - \symbf{\theta}_0)^\top \\
-                                  &= \mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]n(\symbf{\theta} - \symbf{\theta}_0)^\top.
-\end{aligned} 
-$${#eq-score_Taylor_summed_1}
-If we divide through by $\sqrt n$, we arrive at $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) = \frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\symbf{\theta} - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_summed_2}
-
-We previously established that regular models will always have a sequence of MLEs $\hat{\symbf{\theta}}_n$ that converge in probability to $\symbf{\theta}_0$ as $n \to \infty$, and that each $\hat{\symbf{\theta}}_n$ in this sequence will satisfy $\mathcal{S}(\hat{\symbf{\theta}}_n; \mathbf{x}_n) = \mathbf{0}$. Plugging $\hat{\symbf{\theta}}_n$ in for $\symbf{\theta}$ in @eq-score_Taylor_summed_2 gives
-$$\frac{1}{\sqrt n}\mathcal{S}(\hat{\symbf{\theta}}_n; \mathbf{x}_n) = \frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top$$ and therefore, 
-$$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O_p(||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_MLE1}
-
-For the terms in the square brackets in the line above, we have the following observations:
-\begin{enumerate}[label = \arabic*)]
-  \item By Equation 3.5.4, $\text{E}_{\symbf{\theta}_0}\big[\mathcal{I}_X(\symbf{\theta}_0)\big] = \mathscr{I}_X(\symbf{\theta}_0)$, and thus $\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) = \frac{1}{n} \sum_{i=1}^n \mathcal{I}_{X_i}(\symbf{\theta}_0)$ is converging in probability to $\mathscr{I}_X(\symbf{\theta}_0)$ as $n \to \infty$ by the Weak Law of Large Numbers, i.e., $\mathscr{I}_X(\symbf{\theta}_0) = \frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + o_p(1)$.
-  \item $M(x_i)$ has finite expectation and does not depend on $\symbf{\theta}$ by \textbf{RC6}, which implies through Markov's inequality that it is bounded in probability as $n \to \infty$, i.e., $M(x_i) = O_p(1)$. It follows that $\frac{1}{n}\sum_{i=1}^nM(x_i) = O_p(1)$ as well.
-  \item The fact that $\hat{\symbf{\theta}}_n$ is converging in probability to $\symbf{\theta}_0$ as $n \to \infty$ implies that $||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||$ is $o_p(1)$.
-\end{enumerate}
-From these three facts we can conclude that the entire term inside the square brackets is converging in probability to $\mathscr{I}_X(\symbf{\theta}_0)$ as $n \to \infty$. This allows us to rewrite @eq-score_Taylor_MLE1 as $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \Big[\mathscr{I}_X(\symbf{\theta}_0) + o_p(1)\Big]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_MLE2}
-This is useful because if we know the distribution to which the term on the left-hand side is converging as $n \to \infty$, we can deduce the asymptotic distribution of $\hat{\symbf{\theta}}_n$ using Slutsky's theorem. 
-
-By definition, $\text{Var}_{\symbf{\theta}_0}\big[\mathcal{S}(\symbf{\theta}_0; x_i)\big] = \mathscr{I}_X(\symbf{\theta}_0)$. From @eq-score_additive, we have that $\frac{1}{n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \frac{1}{n}\sum_{i=1}^n \mathcal{S}(\symbf{\theta}_0; x_i)$. It follows from the Central Limit Theorem that $$\sqrt{n} \bigg(\frac{1}{n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \text{E}_{\symbf{\theta}_0}\Big[\mathcal{S}(\symbf{\theta}_0; x_i)\Big]\bigg) \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big) \> \> \text{as } n \to \infty.$${#eq-score_dist_1} But by the first Bartlett identity, $\text{E}_{\symbf{\theta}_0}\Big[\mathcal{S}(\symbf{\theta}_0; x_i)\Big] = \mathbf{0}$, and therefore $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n)  \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big)\> \> \text{as } n \to \infty.$${#eq-score_dist_2} Combining the results of @eq-score_Taylor_MLE2 and @eq-score_dist_2, we see that $$\Big[\mathscr{I}_X(\symbf{\theta}_0) + o_p(1)\Big]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big) \> \> \text{as } n \to \infty.$${#eq-MLE_dist_1}
-
-Since the term in square brackets is converging in probability to $\mathscr{I}(\symbf{\theta}_0)$, which by **RC8** is a positive definite matrix, a minor extension of Slutsky's Theorem (see Appendix \ref{appendix:A}) allows us to deduce that the asymptotic distribution of the MLE for the true parameter value of a regular model is given by 
-$$
-\begin{aligned}\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top &\overset{d}{\to} \mathscr{I}_X(\symbf{\theta}_0)^{-1} \text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big) \\
-                                                                       &\overset{d}{=} \text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)^{-1}\Big)\> \> \text{as } n \to \infty.
-\end{aligned}
-$${#eq-MLE_dist_2}
 
 
 

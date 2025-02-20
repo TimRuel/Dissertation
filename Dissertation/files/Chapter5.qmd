@@ -1,0 +1,42 @@
+\chapter{Approximation Techniques}
+
+\section{Explicit Parameters of Interest}
+
+\section{Implicit Parameters of Interest}
+
+The procedure described in the previous section is based on the assumption that $\lambda$ is an explicit nuisance parameter so that taking partial derivatives of $\ell$ with respect to its components is a well-defined operation. However, @severini2018 proved that reparameterizing the model in terms of the ZSE parameter yields the same nice properties in the subsequent integrated likelihood when $\psi$ and $\lambda$ are implicit as well. In this section, we consider an approach to approximating the integrated likelihood function that has been adapted from this method.
+
+Consider a model with parameter $\theta \in \Theta$ and implicit parameter of interest $\psi = \varphi(\theta)$ for some function $\varphi: \Theta \to \mathbbm{R}$. @eq-ZSE_IL4 tells us that we can calculate the integrated likelihood for $\psi$ if we know the value of $\theta$ corresponding to a given value of the ZSE parameter, and this will be true for models with both explicit and implict parameters. Let $\hat{\psi} = \varphi(\hat{\theta})$ denote the unrestricted MLE for $\psi$ and define the set $$\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.$${#eq-ZSE_IL6} Then an element of $\Omega_{\hat{\psi}}$ for a model without an explicit nuisance parameter is functionally equivalent to a value $(\hat{\psi}, \phi)$ for a model with an explicit nuisance parameter.
+
+Generalizing the result in @eq-ZSE_IL3, for a given element $\omega \in \Omega_{\hat{\psi}}$, the corresponding value of $\theta$ is that which maximizes $\text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big]$ subject to the restriction that $\varphi(\theta) = \psi$. This allows us to define a function $T_{\psi}: \Omega_{\hat{\psi}} \to \Theta(\psi)$ such that $T_{\psi}(\omega) = \underset{\theta \in \Theta(\psi)}{\mathrm{argmax}} \> \text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big]$. The integrated likelihood for $\psi$ is then given by $$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L\big(T_{\psi}(\omega)\big)\pi(\omega)d\omega,$${#eq-ZSE_IL7} where $\pi(\omega)$ is a density defined on $\Omega_{\hat{\psi}}$.
+
+@eq-ZSE_IL7 can also be written as $$\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(W)\big)\Big],$${#eq-ZSE_IL8} where $W$ represents a random variable with density $\pi(\omega)$. We can further define a function $Q: \mathcal{U} \to \Omega_{\hat{\psi}}$ for some set $\mathcal{U}$ such that if $U$ is a random variable taking values in $\mathcal{U}$, then $Q(U)$ will be a random variable in $\Omega_{\hat{\psi}}$ with a distribution that is completely determined by our choice of $U$. Therefore, $$\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(Q(U))\big)\Big]$${#eq-ZSE_IL8} is an integrated likelihood for $\psi$ with a weight function corresponding to the density of $Q(U)$. 
+
+Define $$\tilde{L}(u; \psi) = L(T_{\psi}(Q(u)), \> u \in \mathcal{U}.$${#eq-ZSE_IL9} Then we simply have $\overset{\sim}{L}(u; \psi) = L(\symbf{\theta})$, with $\symbf{\theta}$ taken to be $T_{\psi}(Q(u))$. $\overset{\sim}{L}(u; \psi)$ will be a genuine likelihood for the parameter $(u, \psi)$ provided that there always exists a value $(u, \psi)$ such that $T_{\psi}(Q(u)) = \symbf{\theta}_0$ for any possible value of $\symbf{\theta}_0$. A sufficient condition for this to occur is that for any $\psi \in \Psi$, $T_{\psi}(Q(\mathcal{U})) = \Omega_{\psi}$.
+
+We can then write the integrated likelihood for $\psi$ in terms of $\overset{\sim}{L}(u; \psi)$ as follows: $$\bar{L}(\psi) = \int_{\mathcal{U}} \tilde{L}(u; \psi)\check{\pi}(u)du,$${#eq-ZSE_IL10} where $\check{\pi}(u)$ is a density on $\mathcal{U}$ of our choosing. If $\check{\pi}(u)$ doesn't depend on $\psi$, the integrated likelihood given by @eq-ZSE_IL10 will have the properties we desire.
+
+We can further rewrite @eq-ZSE_IL10 as $$\bar{L}(\psi) = \int_{\Theta} \frac{\tilde{L}(u; \psi)}{\check{L}(u)} \check{L}(u)\check{\pi}(u)du,$${#eq-ZSE_IL11} where $\check{L}(u)$ represents an arbitrary likelihood function for the "parameter" $u$. From a Bayesian point of view, the quantity $\check{L}(u)\check{\pi}(u)$ can then be thought of as a posterior density for $u$ up to some proportionality constant. If $\check{\pi}(u)$ is chosen to be a conjugate prior for $\check{L}(u)$ such that the posterior density $\check{L}(u)\check{\pi}(u)$ has the same form as $\check{L}$ itself, and $\check{L}$ is chosen to be a known distribution, then random samples can be drawn directly from this posterior density using modern statistical computing packages. Alternatively, it may also be possible to obtain random samples from the posterior density through Monte Carlo methods such as importance sampling or MCMC.  
+
+In either case, once random variates $u_1, ..., u_R$ have been sampled from $\check{L}(u)\check{\pi}(u)$, a simple empirical estimate to $\bar{L}(\psi)$ at a particular value of $\psi$ is given by $$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{i = 1}^R \frac{\tilde{L}(u_i; \psi)}{\check{L}(u_i)}.$${#eq-ZSE_IL12} Repeating this procedure for every value of $\psi \in \Psi$ will give an overall shape for $\hat{\bar{L}}(\psi)$, which can be used to conduct inference for $\psi_0$ without interference from a nuisance parameter. 
+
+\section{Monte Carlo Methods}
+
+\subsection{Simple Monte Carlo}
+
+\subsection{Importance Sampling}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
