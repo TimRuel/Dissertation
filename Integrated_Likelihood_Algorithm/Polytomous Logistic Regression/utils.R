@@ -14,31 +14,6 @@ softmax_adj <- function(x) exp(x) / (1 + sum(exp(x)))
 
 entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
 
-extract_X_h <- function(X, h, drop_zero_cols = FALSE) {
-  
-  if (!any(grepl(":", colnames(X)))) { 
-    
-    X_h <- X[X[, paste0("X1", h)] == 1,] |> 
-      unique() |> 
-      matrix(ncol = ncol(X))
-    
-    return(X_h)
-  }
-  
-  X_h <- X[X[, paste0("X1", h)] == 1,] |> 
-    matrix(ncol = ncol(X))
-  
-  if (drop_zero_cols) {
-    
-    colnames_X <- colnames(X)
-    cols_to_keep <- grepl(paste0("^X1", h, "$|^X2$|^X1", h, ":X2$"), colnames_X)
-    X_h <- X_h[, cols_to_keep, drop = FALSE] |> 
-      as.matrix(ncol = length(cols_to_keep))
-  }
-  
-  return(X_h)
-}
-
 # PoI_fn <- function(Beta, X_h_one_hot) {
 #   
 #   X_h_one_hot %*% cbind(0, Beta) |>

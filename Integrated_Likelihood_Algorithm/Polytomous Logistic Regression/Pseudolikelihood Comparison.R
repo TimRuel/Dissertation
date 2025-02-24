@@ -7,6 +7,7 @@ library(zeallot)
 library(kableExtra)
 library(stringr)
 library(rstudioapi)
+library(splines)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 

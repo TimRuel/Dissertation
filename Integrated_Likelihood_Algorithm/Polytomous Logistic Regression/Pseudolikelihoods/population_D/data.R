@@ -1,5 +1,6 @@
 source("data_utils.R")
 source("../../utils.R")
+library(dplyr)
 
 seed <- 6991
 
@@ -7,13 +8,15 @@ set.seed(seed)
 
 J <- 6 # number of levels of response variable
 
-m <- c(25, 25, 25) # number of observations at each level of categorical predictor
+m <- c(100, 100, 100)  # number of observations at each level of categorical predictor
 
 C <- length(m) # number of levels of categorical predictor
 
 n <- sum(m) # total number of observations
 
-X1_levels <- letters[1:C]
+X1_levels <- LETTERS[1:C]
+
+names(m) <- X1_levels
 
 X1_ref_level <- X1_levels[1]
 
@@ -22,33 +25,42 @@ X1 <- X1_levels |>
   factor() |> 
   relevel(X1_ref_level)
 
-# contrasts(X1) <- contr.sum
+sigma <- 1
 
-X2 <- runif(n, 0, 90) |> 
-  scale(center = FALSE) |> 
-  round(1)
+X2 <- get_X2_samples(X1, sigma)
 
-X <- model.matrix(~ X1*X2 - 1)
+X_design <- model.matrix(~ X1*X2 - 1)
 
-p <- ncol(X) # Number of terms in model after dummy encoding
+p <- ncol(X_design) # Number of terms in model after dummy encoding
 
-X2_coef <- rnorm(J - 1, sd = 0.3)
+Beta2 <- rnorm(J - 1, sd = 0.3)
 
-Beta_0 <- get_Beta_0(X2_coef)
+n_samples <- 10000
 
-true_probs <- X %*% cbind(0, Beta_0) |> 
+Beta_0 <- get_Beta_0(X_design, Beta2, n_samples, sigma)
+
+true_probs <- X_design %*% cbind(0, Beta_0) |> 
   apply(1, softmax) |> 
-  t()
+  t() |> 
+  data.frame() |> 
+  rename_with( ~ paste0("Y", 1:J)) |> 
+  mutate(X1_level = rep(X1_levels, times = m)) |> 
+  select(X1_level, everything())
 
 theta_0 <- true_probs |> 
-  as.data.frame() |> 
-  mutate(X1_level = rep(X1_levels, times = m)) |> 
-  aggregate(. ~ X1_level, data = _, FUN = mean) |> 
-  select(-X1_level) |> 
-  apply(1, entropy) |> 
-  setNames(X1_levels)
+  group_by(X1_level) |> 
+  summarise(across(everything(), \(x) mean(x))) |> 
+  data.frame()
+
+H_0 <- theta_0 |> 
+  group_by(X1_level) |> 
+  rowwise() |> 
+  mutate(entropy = entropy(c_across(everything()))) |> 
+  select(X1_level, entropy) |> 
+  data.frame()
 
 Y <- true_probs |>
+  select(-X1_level) |> 
   apply(1, \(prob) sample(1:J, size = 1, prob = prob)) |> 
   unlist() |>
   unname() |> 
@@ -57,7 +69,7 @@ Y <- true_probs |>
 Y_one_hot <- model.matrix(~ Y)[,-1]
 
 data <- data.frame(Y = Y,
-                   X1 = X1,
+                   X1 = X1, 
                    X2 = X2)
 
 formula <- Y ~ .^2 - 1
@@ -81,5 +93,5 @@ predict(fit, data, type = "probs") |>
   unique() |>
   apply(1, entropy)
 
-theta_0
+H_0
 
