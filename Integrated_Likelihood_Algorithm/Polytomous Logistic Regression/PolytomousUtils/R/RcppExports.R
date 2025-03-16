@@ -29,8 +29,8 @@ PoI_fn_rcpp <- function(Beta, X_h_one_hot) {
     .Call(`_PolytomousUtils_PoI_fn_rcpp`, Beta, X_h_one_hot)
 }
 
-Beta_hat_obj_fn_rcpp <- function(Beta, X_one_hot, omega_hat, lambda, Jm1, p, n) {
-    .Call(`_PolytomousUtils_Beta_hat_obj_fn_rcpp`, Beta, X_one_hot, omega_hat, lambda, Jm1, p, n)
+Beta_hat_obj_fn_rcpp <- function(Beta, X_one_hot, omega_hat, Jm1, p, n) {
+    .Call(`_PolytomousUtils_Beta_hat_obj_fn_rcpp`, Beta, X_one_hot, omega_hat, Jm1, p, n)
 }
 
 Beta_hat_con_fn_rcpp <- function(Beta, X_h_one_hot, psi, Jm1, p) {

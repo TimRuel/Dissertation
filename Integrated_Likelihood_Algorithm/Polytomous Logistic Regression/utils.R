@@ -1,12 +1,126 @@
-################################################################################
-############################### DATA GENERATION ################################
-################################################################################
 library(tidyverse)
 library(pipeR)
 library(Rcpp)
 library(nloptr)
 library(PolytomousUtils)
 # sourceCpp("../../polytomous_utils.cpp")
+
+# True Parameter Generation -----------------------------------------------
+
+get_entropy_ranges <- function(num_classes, levels) {
+  
+  num_ranges <- length(levels)
+  
+  entropy_ranges <- seq(0.6, log(num_classes) - 0.2, length.out = num_ranges + 1) |> 
+    (\(x) mapply(c, x[-length(x)], x[-1], SIMPLIFY = FALSE))() |> 
+    purrr::map(\(x) {
+      
+      midpoint <- mean(x)
+      desired_length <- (x[2] - x[1]) * 0.9
+      return(midpoint + c(-1, 1) * desired_length / 2)}
+    )
+  
+  names(entropy_ranges) <- rev(levels)
+  
+  return(rev(entropy_ranges))
+}
+
+compute_probabilities <- function(intercept, slope, X2_vals) {
+  
+  eta <- matrix(intercept, nrow = length(X2_vals), ncol = length(intercept), byrow = TRUE) + outer(X2_vals, slope, `*`)
+  exp_eta <- exp(eta)
+  
+  denom <- 1 + rowSums(exp_eta)
+  probs <- cbind(1 / denom, exp_eta / denom)
+  
+  return(probs)
+}
+
+Beta_0_objective_fn <- function(params, X2_vals, H_min, H_max, Beta2) {
+  
+  Jm1 <- length(params) / 2
+  intercept <- params[1:Jm1]
+  slope <- params[(Jm1+1):(2*Jm1)] + Beta2
+  
+  prob_matrix <- compute_probabilities(intercept, slope, X2_vals)
+  entropies <- apply(prob_matrix, 1, entropy)
+  
+  return(-diff(range(entropies)))
+}
+
+Beta_0_constraint_fn <- function(params, X2_vals, H_min, H_max, Beta2) {
+  
+  Jm1 <- length(params) / 2
+  intercept <- params[1:Jm1]
+  slope <- params[(Jm1+1):(2*Jm1)] + Beta2
+  
+  prob_matrix <- compute_probabilities(intercept, slope, X2_vals)
+  entropies <- apply(prob_matrix, 1, entropy)
+  
+  return(c(H_min - min(entropies), max(entropies) - H_max))
+}
+
+optimize_Beta_0 <- function(J, X2_interval, H_min, H_max, num_vals, Beta2) {
+  
+  X2_vals <- seq(X2_interval[1], X2_interval[2], length.out = num_vals) 
+  
+  Jm1 <- J - 1
+  init_params <- rnorm(2 * Jm1)
+  
+  result <- auglag(
+    x0 = init_params,
+    fn = function(params) Beta_0_objective_fn(params, X2_vals, H_min, H_max, Beta2),
+    lower = rep(-10, length(init_params)),
+    upper = rep(10, length(init_params)),
+    hin = function(params) Beta_0_constraint_fn(params, X2_vals, H_min, H_max, Beta2),
+    deprecatedBehavior = FALSE)
+  
+  params <- result$par
+  
+  return(list(intercept = params[1:Jm1], slope = params[(Jm1+1):(2*Jm1)]))
+}
+
+get_Beta_0 <- function(X1_levels, p, J, X2_intervals, num_vals) {
+  
+  X1_ref_level <- X1_levels[1]
+  X1_main_effect_names <- paste0("X1", X1_levels)
+  X1X2_interaction_names <- paste0("X1", setdiff(X1_levels, X1_ref_level)) |> 
+    paste0(":X2")
+  
+  Beta_0 <- matrix(NA,
+                   nrow = p,
+                   ncol = J - 1)
+  rownames(Beta_0) <- c(X1_main_effect_names, "X2", X1X2_interaction_names)
+  
+  entropy_ranges <- get_entropy_ranges(J, X1_levels)
+  
+  for (h in X1_levels) {
+    
+    X2_interval <- X2_intervals[[h]]
+    H_range <- entropy_ranges[[h]]
+    
+    if (h == X1_ref_level) {
+      
+      Beta2 <- 0
+      
+      params <- optimize_Beta_0(J, X2_interval, H_range[1], H_range[2], num_vals, Beta2)
+      
+      Beta_0[paste0("X1", h), ] <- params$intercept
+      Beta_0["X2", ] <- params$slope
+    } else {
+      
+      Beta2 <- Beta_0["X2", ]
+      
+      params <- optimize_Beta_0(J, X2_interval, H_range[1], H_range[2], num_vals, Beta2)
+      
+      Beta_0[grepl(h, rownames(Beta_0)), ] <- unname(rbind(params$intercept, params$slope))
+    }
+  }
+  
+  return(Beta_0)
+}
+
+# General -----------------------------------------------------------------
 
 softmax <- function(x) exp(x) / sum(exp(x))
 
@@ -21,107 +135,96 @@ entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
 #     entropy()
 # }
 # 
-# PoI_fn2 <- function(Beta, X_h_one_hot) {
-#   
-#   X_h %*% cbind(0, Beta) |> 
-#     apply(1, softmax) |> 
-#     t() |> 
-#     colMeans() |> 
-#     entropy()
-# }
+PoI_fn2 <- function(Beta, X_h_one_hot) {
 
-get_probability_vector <- function(k, target_entropy_range, epsilon = 1e-2, max_iter = 1000) {
+  X_h_one_hot %*% cbind(0, Beta) |>
+    apply(1, softmax) |>
+    t() |>
+    colMeans() |>
+    entropy()
+}
+
+get_X1_levels <- function(X_design) {
   
-  # Validate inputs
-  if (length(target_entropy_range) != 2 || target_entropy_range[1] > target_entropy_range[2]) {
-    stop("target_entropy_range must be a valid range: c(min, max)")
-  }
-  if (k < 2) {
-    stop("k must be at least 2.")
-  }
+  is_X1_main_effect <- attr(X_design, "assign") == 1
+  X1_main_effects <- colnames(X_design)[is_X1_main_effect]
+  X1_levels <- substr(X1_main_effects, nchar(X1_main_effects), nchar(X1_main_effects))
+  return(X1_levels)
+}
+
+get_X1_ref_level <- function(X_design) {
   
-  adjust_probabilities <- function(prob, epsilon) {
-    while (any(prob < epsilon)) {
-      # Identify indices of probabilities below epsilon
-      below_epsilon <- which(prob < epsilon)
-      deficit <- sum(epsilon - prob[below_epsilon])  # Total deficit to distribute
-      
-      # Set all values below epsilon to epsilon
-      prob[below_epsilon] <- epsilon
-      
-      # Find the index of the largest probability
-      largest_index <- which.max(prob)
-      
-      # Deduct the deficit from the largest component
-      prob[largest_index] <- prob[largest_index] - deficit
-      
-      # If the largest component becomes too small, redistribute proportionally
-      if (prob[largest_index] < epsilon) {
-        excess <- prob[largest_index] - epsilon
-        prob[largest_index] <- epsilon
-        prob[-largest_index] <- prob[-largest_index] + (excess * prob[-largest_index] / sum(prob[-largest_index]))
-      }
-    }
-    return(prob)
-  }
+  X1_levels <- get_X1_levels(X_design)
   
-  # Initialize variables
-  lower_bound <- target_entropy_range[1]
-  upper_bound <- target_entropy_range[2]
+  pattern <- paste0("[", paste(X1_levels, collapse = ""), "]")
   
-  for (i in 1:max_iter) {
-    # Generate a random probability vector
-    p <- k |> 
-      runif(min = -10, max = 10) |> 
-      softmax() 
+  is_interaction <- attr(X_design, "assign") == 3
+  
+  interaction_terms <- colnames(X_design)[is_interaction]
+  
+  X1_interactions <- pattern |> 
+    gregexpr(interaction_terms) |> 
+    regmatches(interaction_terms, m = _) |> 
+    unlist()
+  
+  X1_ref_level <- setdiff(X1_levels, X1_interactions)
+  
+  return(X1_ref_level)
+}  
+
+extract_X_h <- function(X_design, h, drop_zero_cols = FALSE) {
+  
+  X1_levels <- get_X1_levels(X_design)
+  
+  X1_ref_level <- get_X1_ref_level(X_design)
+  
+  X1_main_effect_names <- paste0("X1", X1_levels)
+  
+  X1X2_interaction_names <- paste0("X1", setdiff(X1_levels, X1_ref_level)) |> 
+    paste0(":X2")
+  
+  colnames(X_design) <- c(X1_main_effect_names, "X2", X1X2_interaction_names)
+  
+  rows_to_keep <- X_design[, paste0("X1", h)] == 1
+  
+  X_h <- X_design[rows_to_keep,]
+  
+  if (drop_zero_cols) {
     
-    # Adjust probabilities to ensure all components >= epsilon
-    p <- adjust_probabilities(p, epsilon)
+    cols_to_keep <- grepl(paste0("^X1", h, "$|^X2$|^X1", h, ":X2$"), colnames(X_design))
     
-    # Calculate entropy
-    entropy <- entropy(p)
+    X_h <- X_h[, cols_to_keep] |> 
+      as.matrix(ncol = length(cols_to_keep))
     
-    # Check if entropy is within the target range
-    if (entropy >= lower_bound && entropy <= upper_bound) {
-      return(sample(p))
-    }
+    colnames(X_h) <- colnames(X_design)[cols_to_keep]
   }
   
-  # If no vector found within max_iter
-  stop("Failed to generate a probability vector within the target entropy range.")
+  return(X_h)
 }
 
-get_theta_0 <- function(J, p, epsilon, max_iter) {
+generate_X2_samples <- function(arg_list) {
   
-  seq(0, log(J), length.out = p + 1) |> 
-    (\(x) mapply(c, x[-length(x)], x[-1], SIMPLIFY = FALSE))() |> 
-    map(\(x) get_probability_vector(k = J, target_entropy_range = x, epsilon = epsilon, max_iter = max_iter))
-}
+  X2_samples <- c()
+  
+  for (h in names(arg_list)) {
+    
+    args <- arg_list[[h]]
 
-get_Y <- function(theta_0, m) {
-  
-  J <- length(theta_0[[1]])
-  
-  theta_0 |> 
-    purrr::map(\(prob) sample(1:J, size = m, prob = prob, replace = TRUE)) |> 
-    unlist() |> 
-    factor(levels = 1:J)
-}
+    A <- args$interval[1]
+    B <- args$interval[2]
+    
+    s1 <- args$shape[[1]]
+    s2 <- args$shape[[2]]
 
-get_X <- function(c, m, contrast) {
+    beta_samples <- rbeta(args$n_samples, s1, s2)
+    
+    X2_transformed <- A + (B - A) * beta_samples
+    
+    X2_samples <- c(X2_samples, X2_transformed)
+  }
   
-  X <- 1:c |> 
-    rep(each = m) |> 
-    factor()
-  
-  contrasts(X) <- contrast
-  
-  return(X)
+  return(X2_samples)
 }
-
-################################################################################
-#################################### GENERAL ###################################
-################################################################################
 
 fit_multinomial_logistic_model <- function(data, formula) {
   
@@ -204,70 +307,100 @@ get_Beta_hat <- function(X_one_hot,
                          Jm1,
                          p,
                          prev_Beta_hat = NULL,
-                         lambda,
                          max_retries,
-                         max_eval) {
+                         max_eval,
+                         maxtime) {
   
-  # Smooth initial guess using a moving average of previous solutions
   if (!is.null(prev_Beta_hat)) {
     phi <- max(0.1, min(0.9, 1 - 1 / max_retries))
     init_guess <- phi * prev_Beta_hat + (1 - phi) * init_guess
   }
   
-  # Constraint feasibility check (avoid infeasible starting points)
-  if (sum(init_guess^2) > 1000) {
-    init_guess <- init_guess * 0.95  # Simple heuristic to move towards feasibility
-  }
-  
-  obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_one_hot, omega_hat, lambda, Jm1, p, n)
+  obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_one_hot, omega_hat, Jm1, p, n)
   con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_one_hot, psi, Jm1, p)
-    
-  # Optimization attempt with retries
-  for (attempt in 1:max_retries) {
-    
-    result <- safe_auglag(
-      x0 = init_guess,
-      fn = obj_fn,
-      heq = con_fn,
-      localsolver = "SLSQP",
-      localtol = 1e-8,
-      deprecatedBehavior = FALSE,
-      control = list(on.error = "ignore",
-                     maxeval = max_eval)
-    )
-    
-    if (!is.null(result$par) && result$convergence == 4) {
-      
-      Beta_hat <- matrix(result$par, nrow = p, ncol = Jm1, byrow = FALSE)
-      return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
-    }
-    
-    # Perturbation for next attempt
-    init_guess <- init_guess + rnorm(length(init_guess), sd = 0.1)
-  }
   
-  # If retries failed, attempt a fallback with a different solver
-  warning("All SLSQP attempts failed. Trying COBYLA...")
-  result_fallback <- safe_auglag(
+  result <- safe_auglag(
     x0 = init_guess,
     fn = obj_fn,
     heq = con_fn,
-    localsolver = "COBYLA",
-    localtol = 1e-6,  # Slightly relaxed tolerance
+    localsolver = "SLSQP",
+    localtol = 1e-3,
     deprecatedBehavior = FALSE,
     control = list(on.error = "ignore",
-                   maxeval = max_eval)
+                   # maxeval = max_eval,
+                   maxtime = maxtime)
   )
   
-  # If fallback fails, return previous Beta_hat
-  if (is.null(result_fallback$par)) {
-    warning("All optimization attempts failed. Using previous Beta_hat.")
-    return(list(Beta_hat = prev_Beta_hat, prev_Beta_hat = prev_Beta_hat))
+  if (!is.null(result$par) && result$convergence > 0) {
+    
+    Beta_hat <- matrix(result$par, nrow = p, ncol = Jm1, byrow = FALSE)
+    return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
   }
   
-  Beta_hat <- matrix(result_fallback$par, nrow = p, ncol = Jm1, byrow = FALSE)
-  return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
+  return(list(Beta_hat = prev_Beta_hat, prev_Beta_hat = prev_Beta_hat))
 }
+
+# get_Beta_hat <- function(X_one_hot, 
+#                          X_h_one_hot,
+#                          omega_hat,
+#                          psi,
+#                          init_guess,
+#                          Jm1,
+#                          p,
+#                          prev_Beta_hat = NULL,
+#                          max_retries,
+#                          max_eval,
+#                          maxtime) {
+#   
+#     if (!is.null(prev_Beta_hat)) {
+#     phi <- max(0.1, min(0.9, 1 - 1 / max_retries))
+#     init_guess <- phi * prev_Beta_hat + (1 - phi) * init_guess
+#   }
+#   
+#   obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_one_hot, omega_hat, Jm1, p, n)
+#   con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_one_hot, psi, Jm1, p)
+#     
+#   for (attempt in 1:max_retries) {
+#     
+#     result <- safe_auglag(
+#       x0 = init_guess,
+#       fn = obj_fn,
+#       heq = con_fn,
+#       localsolver = "SLSQP",
+#       localtol = 1e-3,
+#       deprecatedBehavior = FALSE,
+#       control = list(on.error = "ignore",
+#                      maxeval = max_eval,
+#                      maxtime = 1.5)
+#     )
+#     
+#     if (!is.null(result$par) && result$convergence > 0) {
+#       
+#       Beta_hat <- matrix(result$par, nrow = p, ncol = Jm1, byrow = FALSE)
+#       return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
+#     }
+#     
+#     init_guess <- init_guess + rnorm(length(init_guess), sd = 0.1)
+#   }
+#   
+#   result_fallback <- safe_auglag(
+#     x0 = init_guess,
+#     fn = obj_fn,
+#     heq = con_fn,
+#     localsolver = "COBYLA",
+#     localtol = 1e-3,  
+#     deprecatedBehavior = FALSE,
+#     control = list(on.error = "ignore",
+#                    maxeval = max_eval)
+#   )
+#   
+#   if (is.null(result_fallback$par)) {
+#     return(list(Beta_hat = prev_Beta_hat, prev_Beta_hat = prev_Beta_hat))
+#   }
+#   
+#   Beta_hat <- matrix(result_fallback$par, nrow = p, ncol = Jm1, byrow = FALSE)
+#   return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
+# }
 
 make_omega_hat_branch_fn <- function(omega_hat, 
                                      X_one_hot, 
@@ -275,9 +408,9 @@ make_omega_hat_branch_fn <- function(omega_hat,
                                      X_h_one_hot,
                                      Jm1,
                                      p,
-                                     lambda,
                                      max_retries,
-                                     max_eval) {
+                                     max_eval,
+                                     maxtime) {
   
   init_guess <- c(omega_hat)
   
@@ -293,9 +426,9 @@ make_omega_hat_branch_fn <- function(omega_hat,
                                     Jm1,
                                     p,
                                     prev_Beta_hat,
-                                    lambda,
                                     max_retries,
-                                    max_eval)
+                                    max_eval,
+                                    maxtime)
     
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
@@ -308,7 +441,8 @@ get_omega_hat_branch_fn_max <- function(omega_hat_branch_fn, J) {
   
   opt_result <- optimize(omega_hat_branch_fn, 
                          interval = c(0, log(J)), 
-                         maximum = TRUE)
+                         maximum = TRUE,
+                         tol = 0.1)
   branch_argmax <- opt_result$maximum
   branch_max <- opt_result$objective
   
@@ -366,9 +500,7 @@ get_psi_grid_2 <- function(branch_specs, step_size, J, quantiles) {
     round(6)
 }
 
-################################################################################
-############################ INTEGRATED LIKELIHOOD ############################# 
-################################################################################
+# Integrated Likelihood ---------------------------------------------------
 
 make_plot <- function(df, y_var) {
   
@@ -400,12 +532,12 @@ get_branch_spec <- function(omega_hat_eq_con_fn,
                             p,
                             init_guess_sd,
                             delta,
-                            lambda,
                             max_retries,
-                            max_eval) {
+                            max_eval,
+                            maxtime) {
   
   psi_endpoints <- NULL
-  
+
   while (is.null(psi_endpoints)) {
     
     omega_hat <- get_omega_hat(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, J - 1, p, init_guess_sd)
@@ -416,19 +548,20 @@ get_branch_spec <- function(omega_hat_eq_con_fn,
                                                     X_h_one_hot,
                                                     J - 1,
                                                     p,
-                                                    lambda,
                                                     max_retries,
-                                                    max_eval)
+                                                    max_eval,
+                                                    maxtime)
     
     omega_hat_branch_fn_max <- get_omega_hat_branch_fn_max(omega_hat_branch_fn, J)
     
-    psi_endpoints <- safe_get_psi_endpoints(omega_hat_branch_fn, 
-                                            omega_hat_branch_fn_max, 
-                                            delta,
-                                            J)
+  psi_endpoints <- safe_get_psi_endpoints(omega_hat_branch_fn,
+                                          omega_hat_branch_fn_max,
+                                          delta,
+                                          J)
   }
   
   return(list(omega_hat = omega_hat, 
+              omega_hat_branch_fn_max = omega_hat_branch_fn_max,
               psi_endpoints = psi_endpoints))
 }
 
@@ -438,9 +571,9 @@ generate_branch_specs <- function(data,
                                   alpha,
                                   num_workers,
                                   chunk_size,
-                                  lambda,
                                   max_retries,
-                                  max_eval) {
+                                  max_eval,
+                                  maxtime) {
   
   model <- fit_multinomial_logistic_model(data, formula)
   
@@ -496,9 +629,9 @@ generate_branch_specs <- function(data,
                                    p,
                                    init_guess_sd,
                                    delta,
-                                   lambda,
                                    max_retries,
-                                   max_eval)
+                                   max_eval,
+                                   maxtime)
     
     progress_bar()
     
@@ -521,13 +654,11 @@ get_branch <- function(branch_spec,
                        delta,
                        step_size,
                        init_guess_sd,
-                       lambda,
                        max_retries,
-                       max_eval) {
+                       max_eval,
+                       maxtime) {
   
   psi_grid <- get_psi_grid_1(branch_spec$psi_endpoints, step_size, J)
-  
-  # progress_bar <- progressr::progressor(along = psi_grid)
   
   init_guess <- rnorm(p * (J - 1), sd = init_guess_sd)
   
@@ -536,8 +667,6 @@ get_branch <- function(branch_spec,
   prev_Beta_hat <- NULL 
   
   for (i in seq_along(psi_grid)) {
-    
-    # progress_bar()
     
     psi <- psi_grid[i]
     
@@ -549,9 +678,9 @@ get_branch <- function(branch_spec,
                                     J - 1,
                                     p,
                                     prev_Beta_hat,
-                                    lambda,
                                     max_retries,
-                                    max_eval)
+                                    max_eval,
+                                    maxtime)
     
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
@@ -581,15 +710,11 @@ generate_branches <- function(branch_specs,
                               quantiles,
                               init_guess_sd,
                               chunk_size,
-                              lambda,
                               max_retries,
-                              max_eval) {
+                              max_eval,
+                              maxtime) {
   
   psi_grid <- get_psi_grid_2(branch_specs, step_size, J, quantiles)
-  
-  # num_steps <- 2 * length(psi_grid) * length(branch_specs)
-  # 
-  # progress_bar <- progressr::progressor(steps = num_steps)
   
   result <- foreach(
     
@@ -614,8 +739,6 @@ generate_branches <- function(branch_specs,
     
     for (i in seq_along(psi_grid)) {
       
-      # progress_bar()
-      
       psi <- psi_grid[i]
       
       Beta_hat_result <- get_Beta_hat(X_one_hot, 
@@ -626,9 +749,9 @@ generate_branches <- function(branch_specs,
                                       J - 1,
                                       p,
                                       prev_Beta_hat,
-                                      lambda,
                                       max_retries,
-                                      max_eval)
+                                      max_eval,
+                                      maxtime)
       
       Beta_hat <- Beta_hat_result$Beta_hat
       prev_Beta_hat <- Beta_hat_result$prev_Beta_hat 
@@ -636,8 +759,6 @@ generate_branches <- function(branch_specs,
       log_L_tilde_vec[i] <- log_likelihood_rcpp(Beta_hat, X_one_hot, Y_one_hot, J - 1, p, n)
       
       init_guess <- 0.9 * c(Beta_hat) + 0.1 * init_guess
-      
-      # progress_bar()
     }
     
     log_L_tilde_df <- data.frame(psi = psi_grid, 
@@ -689,9 +810,9 @@ get_log_integrated_likelihood <- function(branch_specs,
                                           init_guess_sd,
                                           num_workers,
                                           chunk_size,
-                                          lambda,
                                           max_retries,
-                                          max_eval) {
+                                          max_eval,
+                                          maxtime) {
   
   model <- fit_multinomial_logistic_model(data, formula)
   
@@ -728,9 +849,9 @@ get_log_integrated_likelihood <- function(branch_specs,
                                 quantiles,
                                 init_guess_sd,
                                 chunk_size,
-                                lambda,
                                 max_retries,
-                                max_eval)
+                                max_eval,
+                                maxtime)
   
   plan(sequential)
   
@@ -740,9 +861,7 @@ get_log_integrated_likelihood <- function(branch_specs,
               log_L_bar = log_L_bar))
 }
 
-# ################################################################################
-# ############################## PROFILE LIKELIHOOD ############################## 
-# ################################################################################
+# Profile Likelihood ------------------------------------------------------
 
 make_profile_plot <- function(df) {
   
@@ -770,9 +889,9 @@ get_log_profile_likelihood <- function(data,
                                        step_size,
                                        alpha,
                                        init_guess_sd,
-                                       lambda,
                                        max_retries,
-                                       max_eval) {
+                                       max_eval,
+                                       maxtime) {
   
   model <- fit_multinomial_logistic_model(data, formula)
   
@@ -800,9 +919,9 @@ get_log_profile_likelihood <- function(data,
                                                  X_h_one_hot,
                                                  J - 1,
                                                  p,
-                                                 lambda,
                                                  max_retries,
-                                                 max_eval)
+                                                 max_eval,
+                                                 maxtime)
   
   Beta_MLE_branch_fn_max <- get_omega_hat_branch_fn_max(Beta_MLE_branch_fn, J)
   
@@ -831,9 +950,9 @@ get_log_profile_likelihood <- function(data,
                                     J - 1,
                                     p,
                                     prev_Beta_hat,
-                                    lambda,
                                     max_retries,
-                                    max_eval)
+                                    max_eval,
+                                    maxtime)
     
     Beta_hat <- Beta_hat_result$Beta_hat
     prev_Beta_hat <- Beta_hat_result$prev_Beta_hat

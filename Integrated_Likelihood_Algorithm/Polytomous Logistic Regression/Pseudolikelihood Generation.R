@@ -2,7 +2,6 @@ library(future)
 library(doFuture)
 library(zeallot)
 library(purrr)
-library(plyr)
 library(tidyverse)
 library(insight)
 library(invgamma)
@@ -28,41 +27,21 @@ set.seed(seed)
 ################################## PARAMETERS ################################## 
 ################################################################################
 
-h <- "b"
+h <- "B"
 
-step_size <- 0.1
+step_size <- 0.05
 
 alpha <- 0.03
-
-lambda <- 1e-4
 
 max_retries <- 10
 
 max_eval <- 1e4
 
+maxtime <- 1.5
+
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
 ################################################################################
-
-tic()
-
-branch_specs <- generate_branch_specs(data,
-                                      h,
-                                      init_guess_sd,
-                                      alpha,
-                                      num_workers,
-                                      chunk_size,
-                                      lambda,
-                                      max_retries,
-                                      max_eval)
-
-toc()
-
-branch_specs_filepath <- glue::glue("branch_specs/R={num_branches}_h={h}_alpha={alpha}.Rda")
-
-saveRDS(branch_specs, branch_specs_filepath)
-
-branch_specs <- readRDS("branch_specs/R=260_h=b_alpha=0.03.Rda")
 
 quantiles <- c(0.25, 0.5)
 
@@ -81,9 +60,29 @@ num_workers <- parallel::detectCores() |>
 
 # num_workers <- 12
 
-chunk_size <- 1
+chunk_size <- 5
 
 num_branches <- num_workers * chunk_size
+
+tic()
+
+branch_specs <- generate_branch_specs(data,
+                                      h,
+                                      init_guess_sd,
+                                      alpha,
+                                      num_workers,
+                                      chunk_size,
+                                      max_retries,
+                                      max_eval,
+                                      maxtime)
+
+toc()
+
+branch_specs_filepath <- glue::glue("branch_specs/R={num_branches}_J={J}_h={h}_alpha={alpha}.Rda")
+
+saveRDS(branch_specs, branch_specs_filepath)
+
+# branch_specs <- readRDS("branch_specs/R=60_h=A_alpha=0.03.Rda")
 
 tic()
 
@@ -96,13 +95,13 @@ log_integrated_likelihood <- get_log_integrated_likelihood(branch_specs |> sampl
                                                            init_guess_sd,
                                                            num_workers,
                                                            chunk_size,
-                                                           lambda,
                                                            max_retries,
-                                                           max_eval)
+                                                           max_eval,
+                                                           maxtime)
 
 toc()
 
-log_integrated_likelihood_filepath <- glue::glue("IL_objects/R={num_branches}_h={h}_stepsize={step_size}.Rda")
+log_integrated_likelihood_filepath <- glue::glue("IL_objects/R={num_branches}_J={J}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_integrated_likelihood, log_integrated_likelihood_filepath)
 
@@ -119,13 +118,13 @@ log_profile_likelihood <- get_log_profile_likelihood(data,
                                                      step_size,
                                                      alpha,
                                                      init_guess_sd,
-                                                     lambda,
                                                      max_retries,
-                                                     max_eval)
+                                                     max_eval,
+                                                     maxtime)
 
 toc()
 
-log_profile_likelihood_filepath <- glue::glue("PL_objects/R={num_branches}_h={h}_stepsize={step_size}.Rda")
+log_profile_likelihood_filepath <- glue::glue("PL_objects/R={num_branches}_J={J}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_profile_likelihood, log_profile_likelihood_filepath)
 
@@ -143,6 +142,6 @@ log_likelihood_vals <- log_integrated_likelihood$log_L_bar$df |>
 # 
 # log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals/test.Rda")
 
-log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals/R={num_branches}_h={h}_stepsize={step_size}.Rda")
+log_likelihood_vals_file_path <- glue::glue("log_likelihood_vals/R={num_branches}_J={J}_h={h}_stepsize={step_size}.Rda")
 
 saveRDS(log_likelihood_vals, log_likelihood_vals_file_path)

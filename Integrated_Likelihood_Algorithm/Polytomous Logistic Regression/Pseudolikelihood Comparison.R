@@ -18,8 +18,6 @@ population_directory <- selectDirectory(path = getwd())
 
 setwd(population_directory)
 
-source("data.R")
-
 print("Choose your pseudolikelihood data file.")
 log_likelihood_vals_file_path <- selectFile(path = getwd())
 
@@ -35,35 +33,30 @@ h <- log_likelihood_vals_file_path |>
 
 psi_hat <- get_psi_hat(model, data, h)
 
-psi_0 <- theta_0[[h]]
-
-# pseudolikelihood_names <- c("Integrated", "Mod_Integrated", "Profile")
+psi_0 <- H_0 |> 
+  filter(X1 == h) |> 
+  pull(entropy)
 
 pseudolikelihood_names <- c("Integrated", "Profile")
-
-# pseudolikelihood_names <- "Profile"
 
 log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
                       names_to = "Pseudolikelihood",
                       values_to = "loglikelihood") |>
   mutate(Pseudolikelihood = Pseudolikelihood |>
-           as_factor() |>
-           fct_inorder())
+           as_factor())
 
 # log_likelihood_vals <- log_likelihood_vals |>
 #   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
 #                       names_to = "Pseudolikelihood",
 #                       values_to = "loglikelihood") |>
 #   mutate(Pseudolikelihood = Pseudolikelihood |>
-#            as_factor() |>
-#            fct_inorder())
+#            as_factor())
 
 spline_fitted_models <- log_likelihood_vals |>
   drop_na(loglikelihood) |> 
   group_by(Pseudolikelihood) |> 
-  group_map(~ interpSpline(.x$psi, .x$loglikelihood)) |> 
-  # group_map(~ smooth.spline(.x$psi, .x$loglikelihood, spar = 0.5)) |> 
+  group_map(~ smooth.spline(.x$psi, .x$loglikelihood, cv = TRUE)) |>
   set_names(pseudolikelihood_names)
 
 MLE_data <- spline_fitted_models |>
@@ -83,25 +76,48 @@ MLE_data <- spline_fitted_models |>
         select(MLE, Maximum)
     }) |>
   do.call(rbind, args = _) |>
-  # mutate(MLE_label = c("hat(psi)[PL]")) |>
   mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[PL]")) |>
-  # mutate(MLE_label = c("hat(psi)[IL]", "hat(psi)[m-IL]", "hat(psi)[PL]")) |>
   rownames_to_column("Source")
 
 pseudo_log_likelihood_curves <- spline_fitted_models |> 
   map2(MLE_data$Maximum,
        function(mod, maximum) function(psi) predict(mod, psi)$y - maximum)
 
-log_likelihood_vals |> 
-  # filter(Pseudolikelihood == "Integrated") |> 
-  ggplot() +
+base_plot <- ggplot() +   
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "#444444", color = NA),  
+    plot.background = element_rect(fill = "#2A2A2A", color = NA),  
+    panel.grid.major = element_line(color = "#4C4C4C"),  
+    panel.grid.minor = element_line(color = "#333333"),  
+    axis.ticks = element_line(color = "white"),
+    axis.text = element_text(color = "white"),
+    axis.title = element_text(color = "white"),
+    strip.text = element_text(color = "white"),
+    plot.title = element_text(color = "white", face = "bold"),
+    legend.background = element_rect(fill = "#444444"),
+    legend.text = element_text(color = "white"),
+    legend.title = element_text(color = "white")
+  )
+
+base_plot +
   geom_point(aes(x = psi, y = loglikelihood, color = Pseudolikelihood),
-             size = 1) +
+             data = log_likelihood_vals,
+             size = 3,
+             show.legend = FALSE) +
+  ggrepel::geom_label_repel(aes(x = psi,
+                                y = loglikelihood,
+                                label = Pseudolikelihood,
+                                color = Pseudolikelihood),
+                            data = log_likelihood_vals |> 
+                              filter(psi == round(psi_hat, 1)),
+                            direction = "y",
+                            nudge_y = 2,
+                            parse = TRUE,
+                            show.legend = FALSE) +
   ylab("Log-Likelihood") +
   scale_color_brewer(palette = "Set1") +
-  xlab(expression(psi)) +
-  theme_minimal() +
-  theme(axis.line = element_line())
+  xlab(expression(psi))
 
 alpha <- 0.05
 
@@ -156,20 +172,15 @@ MLE_data |>
   kable_styling(bootstrap_options = c("striped", "hover")) |> 
   row_spec(3, color = "green", bold = TRUE)
 
-# stat_fn_PL <- map2(
 c(stat_fn_IL, stat_fn_PL) %<-% map2(
-  # c(stat_fn_IL, stat_fn_mod_IL, stat_fn_PL) %<-% map2(
   pseudo_log_likelihood_curves,
   pseudolikelihood_names,
   function(curve, pseudolikelihood_name) {
     
     stat_fn <- stat_function(fun = curve,
                              geom = "line",
-                             # label = pseudolikelihood_name,
                              aes(color = pseudolikelihood_name),
-                             # linewidth = pseudolikelihood_name),
                              linewidth = 1.5,
-                             # hjust = 0.1,
                              show.legend = FALSE,
                              xlim = c(psi_grid |> head(1), psi_grid |> tail(1)))
     return(stat_fn)
@@ -189,9 +200,8 @@ label_data <- MLE_data |>
           MLE = psi_0,
           MLE_label = "psi[0]")
 
-ggplot() +
+base_plot +
   stat_fn_IL +
-  # stat_fn_mod_IL +
   stat_fn_PL +
   geom_hline(yintercept = 0,
              linetype = 5) +
@@ -224,9 +234,7 @@ ggplot() +
   scale_y_continuous(expand = c(0, 0),
                      limits = c(y_min, 0.1)) +
   scale_color_brewer(palette = "Set1") +
-  xlab(expression(psi)) +
-  theme_minimal() +
-  theme(axis.line = element_line())
+  xlab(expression(psi))
           
 
 

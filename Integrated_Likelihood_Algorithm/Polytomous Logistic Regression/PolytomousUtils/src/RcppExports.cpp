@@ -94,19 +94,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // Beta_hat_obj_fn_rcpp
-double Beta_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericMatrix omega_hat, double lambda, int Jm1, int p, int n);
-RcppExport SEXP _PolytomousUtils_Beta_hat_obj_fn_rcpp(SEXP BetaSEXP, SEXP X_one_hotSEXP, SEXP omega_hatSEXP, SEXP lambdaSEXP, SEXP Jm1SEXP, SEXP pSEXP, SEXP nSEXP) {
+double Beta_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, NumericMatrix omega_hat, int Jm1, int p, int n);
+RcppExport SEXP _PolytomousUtils_Beta_hat_obj_fn_rcpp(SEXP BetaSEXP, SEXP X_one_hotSEXP, SEXP omega_hatSEXP, SEXP Jm1SEXP, SEXP pSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type Beta(BetaSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type X_one_hot(X_one_hotSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type omega_hat(omega_hatSEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< int >::type Jm1(Jm1SEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(Beta_hat_obj_fn_rcpp(Beta, X_one_hot, omega_hat, lambda, Jm1, p, n));
+    rcpp_result_gen = Rcpp::wrap(Beta_hat_obj_fn_rcpp(Beta, X_one_hot, omega_hat, Jm1, p, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -181,7 +180,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_PolytomousUtils_softmax_vector_rcpp", (DL_FUNC) &_PolytomousUtils_softmax_vector_rcpp, 1},
     {"_PolytomousUtils_softmax_matrix_rcpp", (DL_FUNC) &_PolytomousUtils_softmax_matrix_rcpp, 1},
     {"_PolytomousUtils_PoI_fn_rcpp", (DL_FUNC) &_PolytomousUtils_PoI_fn_rcpp, 2},
-    {"_PolytomousUtils_Beta_hat_obj_fn_rcpp", (DL_FUNC) &_PolytomousUtils_Beta_hat_obj_fn_rcpp, 7},
+    {"_PolytomousUtils_Beta_hat_obj_fn_rcpp", (DL_FUNC) &_PolytomousUtils_Beta_hat_obj_fn_rcpp, 6},
     {"_PolytomousUtils_Beta_hat_con_fn_rcpp", (DL_FUNC) &_PolytomousUtils_Beta_hat_con_fn_rcpp, 5},
     {"_PolytomousUtils_omega_hat_obj_fn_rcpp", (DL_FUNC) &_PolytomousUtils_omega_hat_obj_fn_rcpp, 5},
     {"_PolytomousUtils_omega_hat_eq_con_fn_rcpp", (DL_FUNC) &_PolytomousUtils_omega_hat_eq_con_fn_rcpp, 5},

@@ -295,8 +295,7 @@ double PoI_fn_rcpp(NumericMatrix Beta, NumericMatrix X_h_one_hot) {
 // ----------------------------
 // [[Rcpp::export]]
 double Beta_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, 
-                            NumericMatrix omega_hat, double lambda,
-                            int Jm1, int p, int n) {
+                            NumericMatrix omega_hat, int Jm1, int p, int n) {
   
   // Reshape Beta into a matrix
   NumericMatrix Beta_mat(p, Jm1);
@@ -346,13 +345,7 @@ double Beta_hat_obj_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot,
     log_L += row_sum_Y_hat - logsumexp[i];
   }
   
-  // Compute regularization term
-  double reg_term = 0.0;
-  for (int i = 0; i < Beta.size(); i++) {
-    reg_term += Beta[i] * Beta[i];
-  }
-  
-  return -log_L + lambda * reg_term;
+  return -log_L;
 }
 
 // ----------------------------
