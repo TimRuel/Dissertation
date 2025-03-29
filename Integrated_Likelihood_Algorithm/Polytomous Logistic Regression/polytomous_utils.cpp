@@ -1,9 +1,5 @@
 // [[Rcpp::depends(Rcpp)]]
 #include <Rcpp.h>
-
-using namespace Rcpp;
-
-#include <Rcpp.h>
 using namespace Rcpp;
 
 // ----------------------------
@@ -415,4 +411,3 @@ double omega_hat_ineq_con_fn_rcpp(NumericVector Beta, NumericMatrix X_one_hot, N
 
   return -log_likelihood - threshold;
 }
-

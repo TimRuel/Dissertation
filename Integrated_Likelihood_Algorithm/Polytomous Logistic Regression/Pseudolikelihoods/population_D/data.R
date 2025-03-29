@@ -144,7 +144,7 @@ Y <- Y_probs |>
   unname() |>
   factor(levels = 1:J)
 
-Y_one_hot <- model.matrix(~ Y)[,-1]
+Y_design <- model.matrix(~ Y)[,-1]
 
 data <- data.frame(X1 = X1,
                    X2 = X2,
@@ -155,8 +155,6 @@ formula <- Y ~ .^2 - 1
 model <- fit_multinomial_logistic_model(data, formula)
 
 Beta_MLE <- get_Beta_MLE(model)
-
-threshold <- ceiling(abs(log_likelihood(Beta_MLE, X_design, model.matrix(~ Y)[,-1])) + 20)
 
 observed_entropy_df <- Y_probs |> 
   group_by(X1) |> 

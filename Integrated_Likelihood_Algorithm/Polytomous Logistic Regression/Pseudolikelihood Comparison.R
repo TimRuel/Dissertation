@@ -187,13 +187,9 @@ c(stat_fn_IL, stat_fn_PL) %<-% map2(
   }
 )
 
-psi_range <- c(min(log_likelihood_vals$psi), max(log_likelihood_vals$psi))
+psi_range <- c(min(log_likelihood_vals$psi) - step_size, max(conf_ints$psi[2], conf_ints$Integrated[2]) + step_size)
 
-y_min <- pseudo_log_likelihood_curves |> 
-  map((\(curve) c(curve(psi_range[1]), curve(psi_range[2])))) |> 
-  unlist() |> 
-  min() |> 
-  round()
+y_min <- pseudo_log_likelihood_curves[[1]](conf_ints$Integrated[1]) - 0.5
 
 label_data <- MLE_data |>
   add_row(Source = "Truth",
