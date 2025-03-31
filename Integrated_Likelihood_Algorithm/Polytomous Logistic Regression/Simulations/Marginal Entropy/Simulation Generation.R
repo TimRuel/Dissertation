@@ -5,7 +5,7 @@ set.seed(seed)
 
 # Population Parameters -----------------------------------------------
 
-J <- 4 # number of levels of response variable
+J <- 6 # number of levels of response variable
 
 X1_levels <- c("A", "B", "C") # Levels of categorical predictor
 
@@ -29,7 +29,7 @@ Beta_0 <- get_Beta_0(X1_levels, p, J, X2_intervals, num_vals)
 
 # Data Parameters ---------------------------------------------------------
 
-m <- c(60, 60, 60)  # number of observations at each level of categorical predictor
+m <- c(100, 100, 100)  # number of observations at each level of categorical predictor
 
 names(m) <- X1_levels
 
@@ -50,30 +50,34 @@ X2_arg_list <- list(X2_intervals, X2_shape_params, m) |>
 
 # Pseudolikelihood Parameters ----------------------------------------
 
-step_size <- 0.025
+step_size <- 0.01
 
-num_std_errors <- 3.5
+num_std_errors <- 4
 
 threshold <- ceiling(abs(log_likelihood(Beta_MLE, X_design, model.matrix(~ Y)[,-1]))) + 20
 
 init_guess_sd <- 5
 
-num_workers <- Sys.getenv("SLURM_NPROCS") |>
-  as.numeric()
+# num_workers <- Sys.getenv("SLURM_NPROCS") |>
+#   as.numeric()
+
+num_workers <- 12
 
 chunk_size <- 1
 
-IL_maxtime <- 5
+IL_maxtime <- 10
 
-PL_maxtime <- 5
+PL_maxtime <- 10
 
 # Simulations -------------------------------------------------------------
 
-n_sims <- 50
+n_sims <- 100
 
 starting_sim_num <- 1
 
 sim_nums <- starting_sim_num:(starting_sim_num + n_sims - 1)
+
+tic()
 
 for (i in sim_nums) {
   
@@ -109,7 +113,7 @@ for (i in sim_nums) {
   
   formula <- Y ~ .^2 - 1 
   
-  data_filepath <- glue::glue("sim_dfs/h={h}/Sim{i}.Rda")
+  data_filepath <- glue::glue("sim_dfs/Sim{i}.Rda")
   
   saveRDS(data, data_filepath)
     
@@ -150,11 +154,15 @@ for (i in sim_nums) {
     
     # Storage ------------------------------------------------------------
     
-    log_likelihood_vals <- log_integrated_likelihood$log_L_bar$df |> 
+    log_likelihood_df <- log_integrated_likelihood$log_L_bar$df |> 
       merge(log_profile_likelihood, all = TRUE)
     
-    log_likelihood_vals_filepath <- glue::glue("log_likelihood_vals/h={h}/Sim{i}.Rda")
+    log_likelihood_df_filepath <- glue::glue("log_likelihood_dfs/h={h}/Sim{i}.Rda")
     
-    saveRDS(log_likelihood_vals, log_likelihood_vals_filepath)
+    saveRDS(log_likelihood_df, log_likelihood_df_filepath)
   }
+  
+  pushoverr::pushover(paste("Sim", i, "done!"))
 }
+
+toc()

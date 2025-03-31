@@ -11,12 +11,12 @@ get_entropy_ranges <- function(num_classes, levels) {
   
   num_ranges <- length(levels)
   
-  entropy_ranges <- seq(0.6, log(num_classes) - 0.2, length.out = num_ranges + 1) |> 
+  entropy_ranges <- seq(0.3, log(num_classes) - 0.2, length.out = num_ranges + 1) |> 
     (\(x) mapply(c, x[-length(x)], x[-1], SIMPLIFY = FALSE))() |> 
     purrr::map(\(x) {
       
       midpoint <- mean(x)
-      desired_length <- (x[2] - x[1]) * 0.9
+      desired_length <- (x[2] - x[1]) * 0.75
       return(midpoint + c(-1, 1) * desired_length / 2)}
     )
   
@@ -271,21 +271,75 @@ E_log_like <- function(omega, X_design, Beta) {
   sum(rowSums(probs * logits) - log(1 + rowSums(exp(logits))))
 }
 
+safe_auglag <- purrr::possibly(nloptr::auglag)
+
 get_Beta_hat <- function(obj_fn,
                          con_fn,
                          init_guess,
+                         prev_Beta_hat = NULL,
                          maxtime) {
-  
-  Beta_hat <- nloptr::auglag(
-    x0 = init_guess,
-    fn = obj_fn,
-    heq = con_fn,
-    localsolver = "SLSQP",
-    deprecatedBehavior = FALSE,
-    control = list(maxtime = maxtime))$par
-  
-  return(Beta_hat)
+
+   if (!is.null(prev_Beta_hat)) {
+   phi <- max(0.1, min(0.9, 1 - 1 / 10))
+   init_guess <- 0.9 * prev_Beta_hat + 0.1 * init_guess
+ }
+
+ for (attempt in 1:10) {
+
+   result <- safe_auglag(
+     x0 = init_guess,
+     fn = obj_fn,
+     heq = con_fn,
+     localsolver = "SLSQP",
+     localtol = 1e-3,
+     deprecatedBehavior = FALSE,
+     control = list(on.error = "ignore",
+                    maxtime = maxtime)
+   )
+
+   if (!is.null(result$par) && result$convergence > 0) {
+
+     Beta_hat <- result$par
+     return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
+   }
+
+   init_guess <- init_guess + rnorm(length(init_guess), sd = 0.1)
+ }
+
+ result_fallback <- safe_auglag(
+   x0 = init_guess,
+   fn = obj_fn,
+   heq = con_fn,
+   localsolver = "COBYLA",
+   localtol = 1e-3,
+   deprecatedBehavior = FALSE,
+   control = list(on.error = "ignore",
+                  maxtime = maxtime + 10)
+ )
+
+ if (is.null(result_fallback$par)) {
+   return(list(Beta_hat = prev_Beta_hat, prev_Beta_hat = prev_Beta_hat))
+ }
+
+ Beta_hat <- result_fallback$par
+ return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
 }
+
+# get_Beta_hat <- function(obj_fn,
+#                          con_fn,
+#                          init_guess,
+#                          maxtime) {
+#   
+#   Beta_hat <- nloptr::auglag(
+#     x0 = init_guess,
+#     fn = obj_fn,
+#     heq = con_fn,
+#     localsolver = "SLSQP",
+#     deprecatedBehavior = FALSE,
+#     control = list(maxtime = maxtime))$par
+#   
+#   return(Beta_hat)
+# }
 
 get_psi_endpoints <- function(psi_max, Beta_max, X_h_design, num_std_errors, J, n_h) {
   
@@ -385,6 +439,7 @@ make_omega_hat_branch_fn <- function(omega_hat,
     Beta_hat <- get_Beta_hat(obj_fn,
                              con_fn,
                              c(omega_hat),
+                             NULL,
                              maxtime)
     
     return(log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n))
@@ -441,7 +496,7 @@ generate_branches <- function(X_design,
     
     obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_design, omega_hat, Jm1, p, n)
     
-    Beta_hat <- rnorm(p * Jm1, sd = init_guess_sd)
+    prev_Beta_hat <- NULL
     
     log_L_tilde_vec <- numeric(length(psi_grid))
 
@@ -451,12 +506,17 @@ generate_branches <- function(X_design,
 
       con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
 
-      init_guess <- Beta_hat
+      init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
 
-      Beta_hat <- get_Beta_hat(obj_fn,
-                               con_fn,
-                               init_guess,
-                               maxtime)
+      Beta_hat_result <- get_Beta_hat(obj_fn,
+                                      con_fn,
+                                      init_guess,
+                                      prev_Beta_hat,
+                                      maxtime)
+      
+      Beta_hat <- Beta_hat_result$Beta_hat
+      
+      prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
 
       log_L_tilde_vec[i] <- log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n)
     }
@@ -464,8 +524,8 @@ generate_branches <- function(X_design,
     log_L_tilde_df <- data.frame(psi = psi_grid, 
                                  Integrated = log_L_tilde_vec)
     
-    return(list(omega_hat = omega_hat,
-                log_L_tilde_df = log_L_tilde_df))
+    list(omega_hat = omega_hat,
+         log_L_tilde_df = log_L_tilde_df)
   }
   
   plan(sequential)
@@ -636,7 +696,7 @@ get_log_profile_likelihood <- function(data,
   
   obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_design, Beta_MLE, Jm1, p, n)
   
-  Beta_hat <- rnorm(p * Jm1, sd = init_guess_sd)
+  prev_Beta_hat <- NULL
   
   log_L_p_vec <- numeric(length(psi_grid))
   
@@ -646,12 +706,17 @@ get_log_profile_likelihood <- function(data,
     
     con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
     
-    init_guess <- Beta_hat
+    init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
     
-    Beta_hat <- get_Beta_hat(obj_fn,
-                             con_fn,
-                             init_guess,
-                             maxtime)
+    Beta_hat_result <- get_Beta_hat(obj_fn,
+                                    con_fn,
+                                    init_guess,
+                                    prev_Beta_hat,
+                                    maxtime)
+    
+    Beta_hat <- Beta_hat_result$Beta_hat
+    
+    prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
     
     log_L_p_vec[i] <- log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n)
   }

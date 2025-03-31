@@ -7,7 +7,7 @@ set.seed(seed)
 
 # True Parameter Generation -----------------------------------------------
 
-J <- 4 # number of levels of response variable
+J <- 6 # number of levels of response variable
 
 X1_levels <- c("A", "B", "C") # Levels of categorical predictor
 
@@ -105,7 +105,7 @@ base_plot +
 
 # Data Generation ---------------------------------------------------------
 
-m <- c(60, 60, 60)  # number of observations at each level of categorical predictor
+m <- c(100, 100, 100)  # number of observations at each level of categorical predictor
 
 names(m) <- X1_levels
 

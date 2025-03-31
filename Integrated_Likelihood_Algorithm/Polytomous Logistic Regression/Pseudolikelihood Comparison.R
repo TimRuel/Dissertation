@@ -39,7 +39,14 @@ psi_0 <- H_0 |>
 
 pseudolikelihood_names <- c("Integrated", "Profile")
 
-log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
+# log_likelihood_vals <- readRDS(log_likelihood_vals_file_path) |>
+#   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
+#                       names_to = "Pseudolikelihood",
+#                       values_to = "loglikelihood") |>
+#   mutate(Pseudolikelihood = Pseudolikelihood |>
+#            as_factor())
+
+log_likelihood_vals <- readRDS("log_likelihood_dfs/h=C/Sim1.Rda") |>
   tidyr::pivot_longer(cols = all_of(pseudolikelihood_names),
                       names_to = "Pseudolikelihood",
                       values_to = "loglikelihood") |>

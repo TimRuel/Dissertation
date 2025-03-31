@@ -28,7 +28,7 @@ h <- "A"
 
 step_size <- 0.025
 
-num_std_errors <- 3.5
+num_std_errors <- 4
 
 ################################################################################
 ########################## INTEGRATED LIKELIHOOD - VANILLA MC ##################
@@ -47,11 +47,11 @@ init_guess_sd <- 5
 num_workers <- parallel::detectCores() |>
   as.integer()
 
-chunk_size <- 2
+chunk_size <- 1
 
 num_branches <- num_workers * chunk_size
 
-IL_maxtime <- 5
+IL_maxtime <- 10
 
 tic()
 
@@ -78,7 +78,7 @@ saveRDS(log_integrated_likelihood, log_integrated_likelihood_filepath)
 ############################## PROFILE LIKELIHOOD ############################## 
 ################################################################################
 
-PL_maxtime <- 5
+PL_maxtime <- 10
 
 tic()
 
