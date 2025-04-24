@@ -1,11 +1,22 @@
-
+library(foreach)
+library(doFuture)
+library(future)
 
 TASK_ID <- Sys.getenv("TASK_ID")
-MC_CORES <- Sys.getenv("MC_CORES")
+num_cores <- Sys.getenv("MC_CORES") |> 
+  as.integer()
 
-num_cores <- parallel::detectCores()
+plan(multisession, workers = I(num_cores)) 
 
-saveRDS(list(MC_CORES = MC_CORES, num_cores = num_cores), paste0("test", TASK_ID, ".rda"))
+results <- foreach(i = 1:num_cores, 
+                   .combine = c) %dofuture% 
+  {
+  paste("Running on worker", i, "- PID:", Sys.getpid())
+    }
 
-test0 <- readRDS("test0.rda")
+# Print results
+message <- paste(results, collapse = "\n")
+
+saveRDS(list(message = message,
+             num_cores = num_cores), paste0("out_", TASK_ID, ".rda"))
 

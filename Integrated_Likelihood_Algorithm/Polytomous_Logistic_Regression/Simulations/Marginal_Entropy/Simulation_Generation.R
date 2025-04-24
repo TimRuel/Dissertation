@@ -6,14 +6,9 @@ source("../../utils.R")
 seed <- 7835
 set.seed(seed)
 
-print("Detecting cores")
-print(parallel::detectCores())
-print("Checking environment variable MC_CORES")
-print(Sys.getenv("MC_CORES"))
-print("-------------")
-print(Sys.getenv("TASK_ID"))
-
 TASK_ID <- Sys.getenv("TASK_ID")
+num_cores <- Sys.getenv("MC_CORES") |> 
+  as.integer()
 
 # Population Parameters -----------------------------------------------
 
