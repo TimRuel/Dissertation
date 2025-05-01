@@ -1,5 +1,5 @@
 default:
-  psi_grid:
+  psi_grid_specs:
     step_size: 0.01
     num_std_errors: 
       - -3
@@ -10,4 +10,15 @@ default:
   parallel_specs:
     num_workers: 12
     chunk_size: 5
+  Beta_0:
+    specs:
+      J: 6
+      entropy_range:
+        offset:
+          - 0.3
+          - 0.2
+        padding: 0.75
+      num_vals: 1000
+    values:
+  data_dir: "data"
   output_dir: "results"

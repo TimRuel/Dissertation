@@ -20,3 +20,6 @@ message <- paste(results, collapse = "\n")
 saveRDS(list(message = message,
              num_cores = num_cores), paste0("out_", TASK_ID, ".rda"))
 
+out_0 <- readRDS("out_0.rda")
+
+cat(out_0[[1]], "\n")

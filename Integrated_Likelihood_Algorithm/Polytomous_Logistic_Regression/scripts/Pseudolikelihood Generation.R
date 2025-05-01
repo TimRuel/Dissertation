@@ -9,42 +9,20 @@ set.seed(cfg$seed)
 
 # Population Parameters -----------------------------------------------
 
-J <- 6 # number of levels of response variable
+entropy_ranges <- get_entropy_ranges(cfg)
 
-X1_levels <- c("A", "B", "C") # Levels of categorical predictor
+cfg$X1$levels <- purrr::imap(cfg$X1$levels, function(level, X1_level) {
+  level$X2$specs$entropy_range <- entropy_ranges[[X1_level]]
+  level
+})
 
-X1_ref_level <- X1_levels[1]
+Beta_0 <- get_Beta_0(cfg)
 
-p <- ncol(model.matrix( ~ factor(X1_levels)[1] * J - 1)) # number of terms in model after dummy encoding
-
-entropy_ranges <- get_entropy_ranges(J, X1_levels)
-
-X2_intervals <- list("A" = c(0, 1),
-                     "B" = c(0, 1),
-                     "C" = c(0, 1))
-
-X2_shape_params <- list("A" = c(2, 5),
-                        "B" = c(3, 3),
-                        "C" = c(5, 2))
-
-num_vals <- 1000
-
-Beta_0 <- get_Beta_0(X1_levels, p, J, X2_intervals, num_vals)
+cfg$Beta_0$values <- Beta_0
 
 # Data Parameters ---------------------------------------------------------
 
-m <- c(60, 60, 60)  # number of observations at each level of categorical predictor
 
-names(m) <- X1_levels
-
-C <- length(X1_levels) # number of levels of categorical predictor
-
-n <- sum(m) # total number of observations
-
-X1 <- X1_levels |>
-  rep(times = m) |>
-  factor() |>
-  relevel(X1_ref_level)
 
 X2_arg_list <- list(X2_intervals, X2_shape_params, m) |>
   unlist(recursive = FALSE) |>
@@ -52,7 +30,7 @@ X2_arg_list <- list(X2_intervals, X2_shape_params, m) |>
   map(unname) |>
   map(~ setNames(., c("interval", "shape", "n_samples")))
 
-# Pseudolikelihood Parameters ----------------------------------------
+# Pseudolikelihood Parameters --------------------------------------------
 
 step_size <- 0.01
 
@@ -76,18 +54,21 @@ PL_maxtime <- 10
 
 # Data Generation ---------------------------------------------------------
 
-X2 <- generate_X2_samples(X2_arg_list)
+X1 <- get_X1(cfg)
+
+X2 <- get_X2(cfg)
+
+cfg$X1$levels <- purrr::imap(cfg$X1$levels, function(level, X1_level) {
+  level$X2$values <- X2[names(X2) == X1_level] |> 
+    unname()
+  level
+})
 
 X_design <- model.matrix(~ X1*X2 - 1)
 
-Y_probs <- X_design %*% cbind(0, Beta_0) |>
-  apply(1, softmax) |>
-  t() |>
-  data.frame() |>
-  rename_with( ~ paste0("Y", 1:J)) |>
-  mutate(X1 = rep(X1_levels, times = m),
-         X2 = X2) |>
-  select(X1, X2, everything())
+Y_probs <- get_Y_probs(cfg)
+
+cfg$data$Y$true_probs <- Y_probs
 
 Y <- Y_probs |>
   select(-c(X1, X2)) |>
