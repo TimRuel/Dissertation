@@ -1,133 +1,108 @@
-# Data Generation ---------------------------------------------------------
-
-get_X1 <- function(X1_level_specs) {
+get_X1 <- function(X1_levels) {
   
-  X1_levels <- names(X1_level_specs)
+  X1_level_names <- names(X1_levels)
   
-  X1_ref_level <- X1_level_specs |> 
-    purrr::map_lgl(\(x) x$ref_level) |> 
+  X1_ref_level <- X1_levels |> 
+    map_lgl(\(x) x$ref_level) |> 
     which() |> 
     names()
   
-  m <- purrr::map_dbl(X1_level_specs, \(x) x$num_obs)
+  m <- map_dbl(X1_levels, \(x) x$m)
   
-  X1_levels |>
+  X1_level_names |>
     rep(times = m) |>
     factor() |>
     relevel(X1_ref_level)
 }
 
-# get_X1 <- function(cfg, envir = environment()) {
-#   
-#   list2env(cfg$X1, envir)
-#   
-#   X1_levels <- names(levels)
-#   
-#   X1_ref_level <- levels |> 
-#     purrr::map_lgl(\(x) x$ref_level) |> 
-#     which() |> 
-#     names()
-#   
-#   m <- purrr::map_dbl(levels, \(x) x$num_obs)
-#   
-#   X1_levels |>
-#     rep(times = m) |>
-#     factor() |>
-#     relevel(X1_ref_level)
-# }
-
-get_X2_within_X1_level <- function(X1_level_spec) {
-  
-  list2env(X2_specs, environment())
-  
-  dist |> 
-    do.call(dist_params) |> 
-    (\(X2) interval[1] + diff(interval) * X2)()
-}
-
-get_X2 <- function(X1_level_specs) {
-  
-  X1_level_specs |> 
-    purrr::imap(\(level_spec, level) {
-      
-      list2env(level_spec$X2, envir)
-      
-      X2_vals <- if (is.null(values)) {
-        list2env(specs, envir)
-        args <- as.list(c(num_obs, shape_params))
-        samples <- do.call(rbeta, args)
-        interval[1] + diff(interval) * samples
-        
-      } else {
-        values
-      }
-      
-      set_names(X2_vals, rep(level, num_obs))
-    }) |> 
-    unname() |>
-    unlist()
-}
-
-get_X2 <- function(X1_specs, envir = environment()) {
-  
-  list2env(X1_specs, envir)
+get_X2 <- function(X1_levels) {
   
   X1_levels |> 
-    purrr::imap(\(level, X1_level) {
-      
-      list2env(level$X2, envir)
-      
-      X2_vals <- if (is.null(values)) {
-        list2env(specs, envir)
-        args <- as.list(c(num_obs, shape_params))
-        samples <- do.call(rbeta, args)
-        interval[1] + diff(interval) * samples
-        
-      } else {
-        values
-      }
-      
-      set_names(X2_vals, rep(X1_level, num_obs))
+    imap(\(level, h) {
+      m <- level$m
+      list2env(level$X2, environment())
+      args <- as.list(c(m, dist$params))
+      samples <- do.call(dist$name, args)
+      X2_obs <- support[1] + diff(support) * samples
+      set_names(X2_obs, rep(h, m))
     }) |> 
     unname() |>
     unlist()
 }
 
-get_Y_probs <- function(cfg, envir = environment()) {
+get_design_matrix <- function(formula, ...) {
   
-  list2env(cfg$X1, envir)
+  formula <- as.formula(formula)
+
+  df <- data.frame(...)
+  mf <- model.frame(formula, data = df)
+  mm <- model.matrix(attr(mf, "terms"), data = mf)
   
-  X1_ref_level <- levels |> 
-    purrr::map_lgl(\(x) x$ref_level) |> 
-    which() |> 
-    names()
+  attr(mm, "original_model_frame") <- mf
+  attr(mm, "terms") <- terms(formula, data = df)
+  attr(mm, "formula") <- formula
+  attr(mm, "contrasts") <- attr(mm, "contrasts")
   
-  m <- levels |> 
-    purrr::map_dbl(\(x) x$num_obs)
+  return(mm)
+}
+
+recover_original_data <- function(X_design) {
   
-  X1 <- levels |>
-    names() |> 
-    rep(times = m) |>
-    factor() |>
-    relevel(X1_ref_level)
+  mf <- attr(X_design, "original_model_frame")
   
-  X2 <- get_X2(cfg, envir)
+  if (is.null(mf)) {
+    stop("No model frame stored in the design matrix.")
+  }
   
-  X_design <- model.matrix(~ X1*X2 - 1)
+  as.data.frame(mf)
+}
+
+get_Y_probs <- function(X_design, Beta_0) {
   
-  Beta_0 <- cfg$Beta_0$values
+  df <- recover_original_data(X_design)
   
-  X_design %*% cbind(0, Beta_0) |>
+  Y_probs <- X_design %*% cbind(0, Beta_0) |>
     apply(1, softmax) |>
     t() |>
     data.frame() |>
-    rename_with( ~ paste0("Y", 1:(ncol(Beta_0) + 1))) |>
-    mutate(X1 = X1,
-           X2 = X2) |>
-    select(X1, X2, everything())
+    rename_with( ~ paste0("Y", 1:(ncol(Beta_0) + 1)))
+  
+  cbind(df, Y_probs)
 }
 
-get_Y <- function(cfg, envir = environment()) {
+get_Y <- function(Y_probs) {
   
+  df <- Y_probs |>
+    select(starts_with("Y"))
   
+  J <- ncol(df)
+  
+  df |>
+    apply(1, \(prob) sample(1:J, size = 1, prob = prob)) |>
+    unlist() |>
+    unname() |>
+    factor(levels = 1:J)
+}
+
+get_data <- function(X1_levels, formula, Beta_0) {
+  
+  X1 <- get_X1(X1_levels)
+  
+  X2 <- get_X2(X1_levels)
+  
+  X_design <- get_design_matrix(formula, X1, X2)
+  
+  Y_probs <- get_Y_probs(X_design, Beta_0)
+  
+  Y <- get_Y(Y_probs)
+  
+  df <- data.frame(X1 = X1,
+                     X2 = X2,
+                     Y)
+  
+  data <- list(df = df,
+               X_design = X_design,
+               Y_probs = Y_probs)
+  
+  return(data)
 }

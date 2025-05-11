@@ -12,8 +12,9 @@ X1_levels:
       - 0.0
       - 1.0
       entropy_range:
-      - 1.2149963
-      - 1.5379362
+      - 1.21
+      - 1.54
+    m: 60.0
     ref_level: yes
     level_of_interest: yes
   B:
@@ -27,8 +28,9 @@ X1_levels:
       - 0.0
       - 1.0
       entropy_range:
-      - 0.7844098
-      - 1.1073497
+      - 0.78
+      - 1.11
+    m: 60.0
     ref_level: no
     level_of_interest: no
   C:
@@ -42,17 +44,23 @@ X1_levels:
       - 0.0
       - 1.0
       entropy_range:
-      - 0.3538233
-      - 0.6767632
+      - 0.35
+      - 0.68
+    m: 60.0
     ref_level: no
     level_of_interest: no
-true_param_specs:
+specs:
   J: 6
   entropy_range_specs:
     offset:
     - 0.3
     - 0.2
     padding: 0.75
-  num_X2_test_vals: 1000
+  reps:
+    Beta_0: 1000
+    pY_0: 1000000
+  formula: ~.^2 - 1
   p: 6
-Beta_0_path: results/experiment_A/Beta_0.rds
+true_params_dir: results/experiment_A/true_params
+data_dir: results/experiment_A/data
+plots_dir: results/experiment_A/plots

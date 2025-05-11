@@ -3,6 +3,8 @@ get_num_predictors <- function(X1_level_names, J) {
   ncol(model.matrix( ~ factor(X1_level_names)[1] * J - 1))
 }
 
+entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
+
 get_entropy_ranges <- function(X1_level_names, J, entropy_range_specs) {
   
   list2env(entropy_range_specs, environment())
@@ -15,10 +17,12 @@ get_entropy_ranges <- function(X1_level_names, J, entropy_range_specs) {
 
   entropy_ranges <- seq(lower, upper, length.out = num_ranges + 1) |>
     (\(x) mapply(c, x[-length(x)], x[-1], SIMPLIFY = FALSE))() |>
-    purrr::map(\(x) {
+    map(\(x) {
       midpoint <- mean(x)
       desired_length <- (x[2] - x[1]) * padding
-      return(midpoint + c(-1, 1) * desired_length / 2)
+      range <- (midpoint + c(-1, 1) * desired_length / 2) |> 
+        round(2)
+      return(range)
     }
     )
 
@@ -62,14 +66,14 @@ Beta_0_constraint_fn <- function(params, X2_vals, entropy_range, Beta2) {
   return(c(entropy_range[1] - min(entropies), max(entropies) - entropy_range[2]))
 }
 
-optimize_Beta_0 <- function(J, entropy_range, X2_support, num_X2_test_vals, Beta2) {
+optimize_Beta_0 <- function(J, entropy_range, X2_support, reps, Beta2) {
 
-  X2_vals <- seq(X2_support[1], X2_support[2], length.out = num_X2_test_vals)
+  X2_vals <- seq(X2_support[1], X2_support[2], length.out = reps)
 
   Jm1 <- J - 1
   init_params <- rnorm(2 * Jm1)
 
-  result <- auglag(
+  result <- nloptr::auglag(
     x0 = init_params,
     fn = function(params) Beta_0_objective_fn(params, X2_vals, Beta2),
     lower = rep(-10, length(init_params)),
@@ -82,14 +86,12 @@ optimize_Beta_0 <- function(J, entropy_range, X2_support, num_X2_test_vals, Beta
   return(list(intercept = params[1:Jm1], slope = params[(Jm1+1):(2*Jm1)]))
 }
 
-get_experiment_parameters <- function(X1_levels, true_param_specs) {
-  
-  list2env(true_param_specs, environment())
+get_Beta_0 <- function(X1_levels, J, p, reps) {
 
   X1_level_names <- names(X1_levels)
 
   X1_ref_level <- X1_levels |>
-    purrr::map_lgl(\(x) x$ref_level) |>
+    map_lgl(\(x) x$ref_level) |>
     which() |>
     names()
 
@@ -104,21 +106,15 @@ get_experiment_parameters <- function(X1_levels, true_param_specs) {
   
   rownames(Beta_0) <- c(X1_main_effect_names, "X2", X1X2_interaction_names)
   
-  entropy_ranges <- get_entropy_ranges(X1_level_names, J, entropy_range_specs)
-
   for (h in X1_level_names) {
 
     list2env(X1_levels[[h]]$X2, environment())
-    
-    entropy_range <- entropy_ranges[[h]]
-    
-    X1_levels[[h]]$X2$entropy_range <- entropy_range
 
     if (h == X1_ref_level) {
 
       Beta2 <- 0
 
-      params <- optimize_Beta_0(J, entropy_range, support, num_X2_test_vals, Beta2)
+      params <- optimize_Beta_0(J, entropy_range, support, reps, Beta2)
 
       Beta_0[paste0("X1", h), ] <- params$intercept
       Beta_0["X2", ] <- params$slope
@@ -126,14 +122,78 @@ get_experiment_parameters <- function(X1_levels, true_param_specs) {
 
       Beta2 <- Beta_0["X2", ]
 
-      params <- optimize_Beta_0(J, entropy_range, support, num_X2_test_vals, Beta2)
+      params <- optimize_Beta_0(J, entropy_range, support, reps, Beta2)
 
       Beta_0[grepl(h, rownames(Beta_0)), ] <- unname(rbind(params$intercept, params$slope))
     }
   }
   
-  experiment_parameters <- list(Beta_0 = Beta_0,
-                                X1_levels = X1_levels)
+  return(Beta_0)
+}
 
+get_experiment_parameters <- function(X1_levels, ep_specs) {
+  
+  ep_specs$p <- get_num_predictors(names(X1_levels), ep_specs$J)
+  
+  list2env(ep_specs, environment())
+  
+  entropy_ranges <- X1_levels |> 
+    names() |> 
+    get_entropy_ranges(J, entropy_range_specs)
+  
+  m <- map_dbl(X1_levels, \(x) x$m)
+  
+  X1_levels <- X1_levels |> 
+    imap(\(level, h) {
+      level$X2$entropy_range <- entropy_ranges[[h]]
+      level$m <- reps$pY_0
+      level
+    })
+  
+  Beta_0 <- get_Beta_0(X1_levels, J, p, reps$Beta_0)
+  
+  X1 <- get_X1(X1_levels)
+  
+  X2 <- get_X2(X1_levels)
+  
+  X_design <- get_design_matrix(ep_specs$formula, X1, X2)
+  
+  pY_0 <- get_Y_probs(X_design, Beta_0)
+  
+  theta_0 <- pY_0 |> 
+    select(-X2) |> 
+    group_by(X1) |> 
+    summarise(across(everything(), mean)) |> 
+    data.frame()
+  
+  H_0 <- theta_0 |> 
+    group_by(X1) |> 
+    rowwise() |> 
+    mutate(entropy = entropy(c_across(everything()))) |> 
+    select(X1, entropy) |> 
+    data.frame()
+  
+  X1_levels <- X1_levels |> 
+    imap(\(level, h) {
+      level$m <- m[[h]]
+      level
+    })
+  
+  experiment_parameters <- list(true_params = list(Beta_0 = Beta_0,
+                                                   theta_0 = theta_0,
+                                                   H_0 = H_0),
+                                pY_0 = pY_0,
+                                X1_levels = X1_levels,
+                                specs = ep_specs)
+  
   return(experiment_parameters)
+}
+
+save_list_objects <- function(object_list, dir_path) {
+  
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
+  
+  for (object in names(object_list)) saveRDS(object_list[[object]], file = file.path(dir_path, paste0(object, ".rds")))
 }
