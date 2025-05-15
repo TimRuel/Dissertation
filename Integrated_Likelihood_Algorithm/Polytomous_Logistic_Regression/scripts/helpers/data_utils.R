@@ -96,11 +96,11 @@ get_data <- function(X1_levels, formula, Beta_0) {
   
   Y <- get_Y(Y_probs)
   
-  df <- data.frame(X1 = X1,
-                     X2 = X2,
-                     Y)
+  model_df <- data.frame(X1 = X1,
+                   X2 = X2,
+                   Y)
   
-  data <- list(df = df,
+  data <- list(model_df = model_df,
                X_design = X_design,
                Y_probs = Y_probs)
   

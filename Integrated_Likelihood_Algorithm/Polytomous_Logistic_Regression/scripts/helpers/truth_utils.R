@@ -3,8 +3,6 @@ get_num_predictors <- function(X1_level_names, J) {
   ncol(model.matrix( ~ factor(X1_level_names)[1] * J - 1))
 }
 
-entropy <- function(p) -sum(p * log(p), na.rm = TRUE)
-
 get_entropy_ranges <- function(X1_level_names, J, entropy_range_specs) {
   
   list2env(entropy_range_specs, environment())

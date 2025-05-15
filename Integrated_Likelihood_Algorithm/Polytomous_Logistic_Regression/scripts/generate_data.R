@@ -43,7 +43,7 @@ X1_levels <- experiment_parameters$X1_levels
 
 data <- get_data(X1_levels, ep_specs$formula, experiment_parameters$true_params$Beta_0)
 
-plots <- get_plots(X1_levels, experiment_parameters$pY_0, data$Y_probs, data$df)
+plots <- get_plots(X1_levels, experiment_parameters$pY_0, data$Y_probs, data$model_df)
 
 experiment_config <- list(
   experiment_id = experiment_id,
