@@ -129,17 +129,19 @@ get_Beta_0 <- function(X1_levels, J, p, reps) {
   return(Beta_0)
 }
 
-get_experiment_parameters <- function(X1_levels, ep_specs) {
+get_experiment_parameters <- function(X1_levels, model_specs) {
   
-  ep_specs$p <- get_num_predictors(names(X1_levels), ep_specs$J)
+  model_specs$p <- get_num_predictors(names(X1_levels), model_specs$J)
   
-  list2env(ep_specs, environment())
+  list2env(model_specs, environment())
   
   entropy_ranges <- X1_levels |> 
     names() |> 
     get_entropy_ranges(J, entropy_range_specs)
   
-  m <- map_dbl(X1_levels, \(x) x$m)
+  m <- map_int(X1_levels, \(x) x$m)
+  
+  model_specs$n <- sum(m)
   
   X1_levels <- X1_levels |> 
     imap(\(level, h) {
@@ -154,7 +156,7 @@ get_experiment_parameters <- function(X1_levels, ep_specs) {
   
   X2 <- get_X2(X1_levels)
   
-  X_design <- get_design_matrix(ep_specs$formula, X1, X2)
+  X_design <- get_X_design(formula, X1, X2)
   
   pY_0 <- get_Y_probs(X_design, Beta_0)
   
@@ -177,12 +179,14 @@ get_experiment_parameters <- function(X1_levels, ep_specs) {
       level
     })
   
+  model_specs$formula <- paste0("Y", formula)
+  
   experiment_parameters <- list(true_params = list(Beta_0 = Beta_0,
                                                    theta_0 = theta_0,
                                                    H_0 = H_0),
                                 pY_0 = pY_0,
                                 X1_levels = X1_levels,
-                                specs = ep_specs)
+                                model_specs = model_specs)
   
   return(experiment_parameters)
 }

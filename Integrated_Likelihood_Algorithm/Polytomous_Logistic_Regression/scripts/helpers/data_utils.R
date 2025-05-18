@@ -30,23 +30,68 @@ get_X2 <- function(X1_levels) {
     unlist()
 }
 
-get_design_matrix <- function(formula, ...) {
+get_X1_ref_level <- function(X1_levels) {
+
+  X1_levels |>
+    map_lgl(\(x) x$ref_level) |>
+    which() |>
+    names()
+}
+
+get_X1_level_of_interest <- function(X1_levels) {
+  
+  X1_levels |>
+    map_lgl(\(x) x$level_of_interest) |>
+    which() |>
+    names()
+}
+
+get_X_design <- function(formula, ...) {
   
   formula <- as.formula(formula)
 
   df <- data.frame(...)
   mf <- model.frame(formula, data = df)
-  mm <- model.matrix(attr(mf, "terms"), data = mf)
+  X_design <- model.matrix(attr(mf, "terms"), data = mf)
   
-  attr(mm, "original_model_frame") <- mf
-  attr(mm, "terms") <- terms(formula, data = df)
-  attr(mm, "formula") <- formula
-  attr(mm, "contrasts") <- attr(mm, "contrasts")
+  attr(X_design, "original_model_frame") <- mf
+  attr(X_design, "terms") <- terms(formula, data = df)
+  attr(X_design, "formula") <- formula
+  attr(X_design, "contrasts") <- attr(X_design, "contrasts")
   
-  return(mm)
+  return(X_design)
 }
 
-recover_original_data <- function(X_design) {
+get_X_h_design <- function(X_design, X1_levels) {
+  
+  X1_ref_level <- get_X1_ref_level(X1_levels)
+  
+  h <- get_X1_level_of_interest(X1_levels)
+  
+  X1_level_names <- names(X1_levels)
+  
+  X1_main_effect_names <- paste0("X1", X1_level_names)
+  
+  X1X2_interaction_names <- paste0("X1", setdiff(X1_level_names, X1_ref_level)) |>
+    paste0(":X2")
+  
+  colnames(X_design) <- c(X1_main_effect_names, "X2", X1X2_interaction_names)
+  
+  rows_to_keep <- X_design[, paste0("X1", h)] == 1
+  
+  X_h_design <- X_design[rows_to_keep,]
+  
+  return(X_h_design)
+}
+
+get_Y_design <- function(model_df) {
+  
+  model_df |>
+    pull(Y) |>
+    (\(Y) model.matrix(~ Y)[,-1])()
+}
+
+recover_model_frame <- function(X_design) {
   
   mf <- attr(X_design, "original_model_frame")
   
@@ -59,7 +104,7 @@ recover_original_data <- function(X_design) {
 
 get_Y_probs <- function(X_design, Beta_0) {
   
-  df <- recover_original_data(X_design)
+  df <- recover_model_frame(X_design)
   
   Y_probs <- X_design %*% cbind(0, Beta_0) |>
     apply(1, softmax) |>
@@ -90,7 +135,7 @@ get_data <- function(X1_levels, formula, Beta_0) {
   
   X2 <- get_X2(X1_levels)
   
-  X_design <- get_design_matrix(formula, X1, X2)
+  X_design <- get_X_design(formula, X1, X2)
   
   Y_probs <- get_Y_probs(X_design, Beta_0)
   

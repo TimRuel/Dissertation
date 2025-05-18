@@ -3,7 +3,7 @@
 # General -----------------------------------------------------------------
 
 # PoI_fn <- function(Beta, X_h_design) {
-# 
+#
 #   X_h_design %*% cbind(0, Beta) |>
 #     apply(1, softmax) |>
 #     t() |>
@@ -11,57 +11,9 @@
 #     entropy()
 # }
 
-# get_X1_levels <- function(X_design) {
-# 
-#   is_X1_main_effect <- attr(X_design, "assign") == 1
-#   X1_main_effects <- colnames(X_design)[is_X1_main_effect]
-#   X1_levels <- substr(X1_main_effects, nchar(X1_main_effects), nchar(X1_main_effects))
-#   return(X1_levels)
-# }
-
-# get_X1_ref_level <- function(X_design) {
-# 
-#   X1_levels <- get_X1_levels(X_design)
-# 
-#   pattern <- paste0("[", paste(X1_levels, collapse = ""), "]")
-# 
-#   is_interaction <- attr(X_design, "assign") == 3
-# 
-#   interaction_terms <- colnames(X_design)[is_interaction]
-# 
-#   X1_interactions <- pattern |>
-#     gregexpr(interaction_terms) |>
-#     regmatches(interaction_terms, m = _) |>
-#     unlist()
-# 
-#   X1_ref_level <- setdiff(X1_levels, X1_interactions)
-# 
-#   return(X1_ref_level)
-# }
-
-# get_X_h_design <- function(X_design, h) {
-# 
-#   X1_levels <- get_X1_levels(X_design)
-# 
-#   X1_ref_level <- get_X1_ref_level(X_design)
-# 
-#   X1_main_effect_names <- paste0("X1", X1_levels)
-# 
-#   X1X2_interaction_names <- paste0("X1", setdiff(X1_levels, X1_ref_level)) |>
-#     paste0(":X2")
-# 
-#   colnames(X_design) <- c(X1_main_effect_names, "X2", X1X2_interaction_names)
-# 
-#   rows_to_keep <- X_design[, paste0("X1", h)] == 1
-# 
-#   X_h_design <- X_design[rows_to_keep,]
-# 
-#   return(X_h_design)
-# }
-
 fit_multinomial_logistic_model <- function(data, formula) {
 
-  nnet::multinom(formula, data = data, trace = FALSE)
+  nnet::multinom(formula, data, trace = FALSE)
 }
 
 log_likelihood <- function(Beta, X_design, Y_design) {
@@ -84,21 +36,27 @@ likelihood <- function(Beta, X_design, Y_design) exp(log_likelihood(Beta, X_desi
 
 get_Beta_MLE <- function(model) {
 
-  J <- length(model$lev)
+  Jm1 <- length(model$lev) - 1
 
   model |>
     coef() |>
     unname() |>
-    matrix(ncol = J - 1,
+    matrix(ncol = Jm1,
            byrow = TRUE)
 }
 
-get_psi_hat <- function(model, data, h) {
+get_psi_hat <- function(model, X1_levels) {
+  
+  X1_level_names <- names(X1_levels)
+  
+  m <- map_int(X1_levels, \(x) x$m)
+  
+  h <- get_X1_level_of_interest(X1_levels)
 
   model |>
-    predict(data, type = "probs") |>
+    predict(type = "probs") |>
     as.data.frame() |>
-    mutate(X1_level = rep(X1_levels, times = m)) |>
+    mutate(X1_level = rep(X1_level_names, times = m)) |>
     aggregate(. ~ X1_level, data = _, FUN = mean) |>
     (\(df) setNames(data.frame(t(df[,-1])), df[,1]))() |>
     apply(2, entropy) |>
@@ -270,6 +228,11 @@ get_omega_hat <- function(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, in
 
     return(get_omega_hat(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, init_guess_sd))
   }
+}
+
+get_threshold <- function(Beta_MLE, X_design, Y_design, threshold_offset) {
+
+  ceiling(abs(log_likelihood(Beta_MLE, X_design, Y_design))) + threshold_offset
 }
 
 make_omega_hat_branch_fn <- function(omega_hat,
@@ -497,11 +460,11 @@ get_log_L_bar <- function(branches) {
               branches_matrix = branches_matrix))
 }
 
-cfg <- config::get(file = "../config/population_A.yml")
 
-get_integrated_LL <- function(  
+get_integrated_LL <- function(
     model_df,
     formula,
+
     h,
     step_size,
     num_std_errors,
@@ -510,36 +473,6 @@ get_integrated_LL <- function(
     num_workers,
     chunk_size,
     maxtime) {
-
-
-
-  model <- fit_multinomial_logistic_model(model_df, formula)
-
-  Y_design <- data |>
-    pull(Y) |>
-    (\(Y) model.matrix(~ Y)[,-1])()
-
-  X_design <- model.matrix(model)
-
-  X_h_design <- get_X_h_design(X_design, h)
-
-  psi_hat <- get_psi_hat(model, data, h)
-
-  Beta_MLE <- get_Beta_MLE(model)
-
-  Jm1 <- ncol(Y_design)
-
-  J <- Jm1 + 1
-
-  p <- ncol(X_design)
-
-  n <- nrow(X_design)
-
-  n_h <- nrow(X_h_design)
-
-  psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, num_std_errors, J, n_h)
-
-  psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
 
   branches <- generate_branches(X_design,
                                 Y_design,
@@ -641,14 +574,25 @@ get_log_profile_likelihood <- function(data,
   return(log_L_p_df)
 }
 
-run_model <- function(model_df, model_specs) {
-  
-  list2env(model_specs, environment())
-  
-  threshold       <- config$threshold
-  num_workers     <- config$num_workers
+run_experiment <- function(config, X_design, model_df) {
 
-  
+  list2env(config$model_specs, environment())
+  list2env(config$optimization_specs, environment())
+
+  X1_levels <- config$X1_levels
+  formula <- as.formula(formula)
+  ml_model <- fit_multinomial_logistic_model(model_df, formula)
+  Beta_MLE <- get_Beta_MLE(ml_model)
+  Y_design <- get_Y_design(model_df)
+  threshold <- get_threshold(Beta_MLE, X_design, Y_design, threshold_offset)
+  h <- get_level_of_interest(X1_levels)
+  X_h_design <- get_X_h_design(X1_levels)
+  psi_hat <- get_psi_hat(ml_model, X1_levels)
+  n_h <- nrow(X_h_design)
+
+  psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, num_std_errors, J, n_h)
+  psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
+
   # ---- Run integrated likelihood ----
   log_integrated_likelihood <- get_log_integrated_likelihood(
     data = data,
@@ -662,7 +606,7 @@ run_model <- function(model_df, model_specs) {
     chunk_size = chunk_size,
     IL_maxtime = IL_maxtime
   )
-  
+
   # ---- Run profile likelihood ----
   log_profile_likelihood <- get_log_profile_likelihood(
     data = data,
@@ -673,7 +617,7 @@ run_model <- function(model_df, model_specs) {
     init_guess_sd = init_guess_sd,
     PL_maxtime = PL_maxtime
   )
-  
+
   # ---- Return results ----
   list(
     log_integrated_likelihood = log_integrated_likelihood,
