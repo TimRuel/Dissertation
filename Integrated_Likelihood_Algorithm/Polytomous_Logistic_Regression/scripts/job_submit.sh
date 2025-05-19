@@ -7,7 +7,7 @@
 #SBATCH --output=logs/sample_job.%A_%a.out
 #SBATCH --job-name="sample_job_%a"
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=32
+#SBATCH --ntasks-per-node=64
 #SBATCH --array=0-999
 #SBATCH --mem=1G
 
@@ -25,6 +25,7 @@ export MC_CORES=$((SLURM_NTASKS - 1))
 # Set experiment ID and iteration
 EXPERIMENT_ID="experiment_A"
 ITERATION_ID=$SLURM_ARRAY_TASK_ID
+REQUESTED_CORES=$MC_CORES
 
 # Run the R script using Rscript (better for command-line args)
-Rscript --max-connections=256 scripts/main.R "$EXPERIMENT_ID" "$ITERATION_ID"
+Rscript --max-connections=256 scripts/main.R "$EXPERIMENT_ID" "$ITERATION_ID" "$REQUESTED_CORES"

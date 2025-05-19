@@ -22,8 +22,7 @@ if (file_exists(dest_path)) {
 }
 
 experiment_config <- read_yaml(template_path)
-
-# (Optional: modify experiment_config dynamically if needed here)
+experiment_config$experiment_id <- experiment_id
 
 write_yaml(experiment_config, dest_path)
 message("Created config: ", dest_path)

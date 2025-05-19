@@ -16,12 +16,12 @@ get_core_config <- function(requested_cores = NULL) {
   max_cores <- if (!is.na(mc_cores_env)) {
     as.integer(mc_cores_env)
   } else {
-    parallel::detectCores(logical = FALSE)
+    parallel::detectCores()
   }
   
   if (!is.null(requested_cores)) {
-    if (!is.numeric(requested_cores) || requested_cores <= 0) {
-      stop("requested_cores must be a positive integer")
+    if (is.na(requested_cores) || requested_cores <= 0) {
+      stop("Invalid requested_cores value. Must be a positive integer.")
     }
     if (requested_cores > max_cores) {
       warning("Requested more cores than available; using max instead")

@@ -270,26 +270,19 @@ get_omega_hat_branch_arg_max <- function(omega_hat_branch_fn, J) {
   return(branch_argmax)
 }
 
-generate_branches <- function(cfg) {
-
-  X_design,
-  Y_design,
-  X_h_design,
-  Jm1,
-  p,
-  n,
-  psi_grid,
-  psi_hat,
-  threshold,
-  init_guess_sd,
-  num_workers,
-  chunk_size,
-  num_std_errors,
-  maxtime
-
-  list2env(cfg$data, envir)
-  list2env(cfg$omega_hat_specs, envir)
-  list2env(cfg$parallel_specs, envir)
+generate_branches <- function(X_design,
+                              Y_design,
+                              X_h_design,
+                              Jm1,
+                              p,
+                              n,
+                              psi_grid,
+                              psi_hat,
+                              threshold,
+                              init_guess_sd,
+                              num_workers,
+                              chunk_size,
+                              maxtime) {
 
   num_branches <- num_workers * chunk_size
 
@@ -324,70 +317,70 @@ generate_branches <- function(cfg) {
 
     for (i in seq_along(psi_grid)) {
 
+      # psi <- psi_grid[i]
+      # 
+      # con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
+      # 
+      # init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
+      # 
+      # Beta_hat_result <- get_Beta_hat(
+      #   obj_fn,
+      #   con_fn,
+      #   init_guess,
+      #   prev_Beta_hat,
+      #   maxtime
+      # )
+      # 
+      # Beta_hat <- Beta_hat_result$Beta_hat
+      # prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
+      # 
+      # # Evaluate constraint satisfaction
+      # constraint_val <- tryCatch(
+      #   con_fn(Beta_hat),
+      #   error = function(e) rep(NA_real_, Jm1 * p)
+      # )
+      # constraint_violation <- sum(abs(constraint_val), na.rm = TRUE)
+      # 
+      # # Evaluate objective value (just in case)
+      # obj_val <- tryCatch(
+      #   obj_fn(Beta_hat),
+      #   error = function(e) NA_real_
+      # )
+      # 
+      # # Compute likelihood
+      # logL <- tryCatch(
+      #   log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n),
+      #   error = function(e) NA_real_
+      # )
+      # 
+      # log_L_tilde_vec[i] <- logL
+      # 
+      # # LOGGING: Save diagnostics for debugging
+      # log_messages[i] <- sprintf(
+      #   "Branch %d | psi: %.4f | logL: %.4f | obj: %.4f | constraint_violation: %.4e",
+      #   i, psi, logL, obj_val, constraint_violation
+      # )
+
       psi <- psi_grid[i]
 
       con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
 
       init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
 
-      Beta_hat_result <- get_Beta_hat(
-        obj_fn,
-        con_fn,
-        init_guess,
-        prev_Beta_hat,
-        maxtime
-      )
+      Beta_hat_result <- get_Beta_hat(obj_fn,
+                                      con_fn,
+                                      init_guess,
+                                      prev_Beta_hat,
+                                      maxtime)
 
       Beta_hat <- Beta_hat_result$Beta_hat
+
       prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
 
-      # Evaluate constraint satisfaction
-      constraint_val <- tryCatch(
-        con_fn(Beta_hat),
-        error = function(e) rep(NA_real_, Jm1 * p)
-      )
-      constraint_violation <- sum(abs(constraint_val), na.rm = TRUE)
-
-      # Evaluate objective value (just in case)
-      obj_val <- tryCatch(
-        obj_fn(Beta_hat),
-        error = function(e) NA_real_
-      )
-
-      # Compute likelihood
-      logL <- tryCatch(
-        log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n),
-        error = function(e) NA_real_
-      )
-
-      log_L_tilde_vec[i] <- logL
-
-      # LOGGING: Save diagnostics for debugging
-      log_messages[i] <- sprintf(
-        "Branch %d | psi: %.4f | logL: %.4f | obj: %.4f | constraint_violation: %.4e",
-        i, psi, logL, obj_val, constraint_violation
-      )
-
-      # psi <- psi_grid[i]
-      #
-      # con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
-      #
-      # init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
-      #
-      # Beta_hat_result <- get_Beta_hat(obj_fn,
-      #                                 con_fn,
-      #                                 init_guess,
-      #                                 prev_Beta_hat,
-      #                                 maxtime)
-      #
-      # Beta_hat <- Beta_hat_result$Beta_hat
-      #
-      # prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
-      #
-      # log_L_tilde_vec[i] <- log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n)
+      log_L_tilde_vec[i] <- log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n)
     }
 
-    writeLines(log_messages, paste0("branch_log_", Sys.getpid(), ".txt"))
+    # writeLines(log_messages, paste0("branch_log_", Sys.getpid(), ".txt"))
 
     log_L_tilde_df <- data.frame(psi = psi_grid,
                                  Integrated = log_L_tilde_vec)
@@ -427,16 +420,18 @@ outlier_flag <- function(x) {
 
 get_log_L_bar <- function(branches) {
 
-  branch_filter1 <- branches$log_L_tilde_df |>
-    map_lgl(inflection_flag)
-
-  branch_filter2 <- branches$log_L_tilde_df |>
-    map_dbl(\(df) max(df$Integrated)) |>
-    outlier_flag()
-
-  branch_filter <- branch_filter1 & branch_filter2
-
-  df_list <- branches$log_L_tilde_df[branch_filter]
+  # branch_filter1 <- branches$log_L_tilde_df |>
+  #   map_lgl(inflection_flag)
+  # 
+  # branch_filter2 <- branches$log_L_tilde_df |>
+  #   map_dbl(\(df) max(df$Integrated)) |>
+  #   outlier_flag()
+  # 
+  # branch_filter <- branch_filter1 & branch_filter2
+  # 
+  # df_list <- branches$log_L_tilde_df[branch_filter]
+  
+  df_list <- branches$log_L_tilde_df
 
   merged_df <- reduce(df_list, full_join, by = "psi")
 
@@ -460,19 +455,19 @@ get_log_L_bar <- function(branches) {
               branches_matrix = branches_matrix))
 }
 
-
-get_integrated_LL <- function(
-    model_df,
-    formula,
-
-    h,
-    step_size,
-    num_std_errors,
-    init_guess_sd,
-    threshold,
-    num_workers,
-    chunk_size,
-    maxtime) {
+get_integrated_LL <- function(X_design,
+                              Y_design,
+                              X_h_design,
+                              Jm1,
+                              p,
+                              n,
+                              psi_grid,
+                              psi_hat,
+                              threshold,
+                              init_guess_sd,
+                              num_workers,
+                              chunk_size,
+                              maxtime) {
 
   branches <- generate_branches(X_design,
                                 Y_design,
@@ -486,58 +481,25 @@ get_integrated_LL <- function(
                                 init_guess_sd,
                                 num_workers,
                                 chunk_size,
-                                num_std_errors,
                                 maxtime)
 
-  return(branches)
+  log_L_bar <- get_log_L_bar(branches)
 
-  # log_L_bar <- get_log_L_bar(branches)
-
-  # print(make_plot(log_L_bar$df))
-
-  # return(list(branches = branches,
-  #             log_L_bar = log_L_bar))
+  return(list(branches = branches,
+              log_L_bar = log_L_bar))
 }
 
 # Profile Likelihood ------------------------------------------------------
 
-num_std_errors_profile <- 3
-
-get_log_profile_likelihood <- function(data,
-                                       formula,
-                                       h,
-                                       step_size,
-                                       num_std_errors,
-                                       init_guess_sd,
-                                       maxtime) {
-
-  model <- fit_multinomial_logistic_model(data, formula)
-
-  Y_design <- data |>
-    pull(Y) |>
-    (\(Y) model.matrix(~ Y)[,-1])()
-
-  X_design <- model.matrix(model)
-
-  X_h_design <- get_X_h_design(X_design, h)
-
-  psi_hat <- get_psi_hat(model, data, h)
-
-  Beta_MLE <- get_Beta_MLE(model)
-
-  Jm1 <- ncol(Y_design)
-
-  J <- Jm1 + 1
-
-  p <- ncol(X_design)
-
-  n <- nrow(X_design)
-
-  n_h <- nrow(X_h_design)
-
-  psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, num_std_errors, J, n_h)
-
-  psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
+get_profile_LL <- function(X_design,
+                           Y_design,
+                           X_h_design,
+                           Jm1,
+                           p,
+                           n,
+                           psi_grid,
+                           init_guess_sd,
+                           maxtime) {
 
   obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_design, Beta_MLE, Jm1, p, n)
 
@@ -569,8 +531,6 @@ get_log_profile_likelihood <- function(data,
   log_L_p_df <- data.frame(psi = psi_grid,
                            Profile = log_L_p_vec)
 
-  # print(make_plot(log_L_p_df))
-
   return(log_L_p_df)
 }
 
@@ -582,45 +542,49 @@ run_experiment <- function(config, X_design, model_df) {
   X1_levels <- config$X1_levels
   formula <- as.formula(formula)
   ml_model <- fit_multinomial_logistic_model(model_df, formula)
-  Beta_MLE <- get_Beta_MLE(ml_model)
   Y_design <- get_Y_design(model_df)
-  threshold <- get_threshold(Beta_MLE, X_design, Y_design, threshold_offset)
-  h <- get_level_of_interest(X1_levels)
-  X_h_design <- get_X_h_design(X1_levels)
+  Beta_MLE <- get_Beta_MLE(ml_model)
+  threshold <- get_threshold(Beta_MLE, X_design, Y_design, IL$threshold_offset)
+  h <- get_X1_level_of_interest(X1_levels)
+  X_h_design <- get_X_h_design(X_design, X1_levels)
   psi_hat <- get_psi_hat(ml_model, X1_levels)
   n_h <- nrow(X_h_design)
-
   psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, num_std_errors, J, n_h)
   psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
 
   # ---- Run integrated likelihood ----
-  log_integrated_likelihood <- get_log_integrated_likelihood(
-    data = data,
-    formula = formula,
-    h = entropy_range,
-    step_size = step_size,
-    num_std_errors = num_std_errors,
-    init_guess_sd = init_guess_sd,
-    threshold = threshold,
-    num_workers = num_workers,
-    chunk_size = chunk_size,
-    IL_maxtime = IL_maxtime
+  integrated_LL <- get_integrated_LL(
+    X_design = X_design, 
+    Y_design = Y_design, 
+    X_h_design = X_h_design, 
+    Jm1 = J - 1, 
+    p = p, 
+    n = n, 
+    psi_grid = psi_grid, 
+    psi_hat = psi_hat, 
+    threshold = threshold, 
+    init_guess_sd = IL$init_guess_sd, 
+    num_workers = IL$num_workers, 
+    chunk_size = IL$chunk_size, 
+    maxtime = IL$maxtime
   )
 
   # ---- Run profile likelihood ----
-  log_profile_likelihood <- get_log_profile_likelihood(
-    data = data,
-    formula = formula,
-    h = entropy_range,
-    step_size = step_size,
-    num_std_errors = num_std_errors,
-    init_guess_sd = init_guess_sd,
-    PL_maxtime = PL_maxtime
+  profile_LL <- get_profile_LL(
+    X_design = X_design, 
+    Y_design = Y_design, 
+    X_h_design = X_h_design, 
+    Jm1 = J - 1, 
+    p = p, 
+    n = n, 
+    psi_grid = psi_grid, 
+    init_guess_sd = PL$init_guess_sd, 
+    maxtime = PL$maxtime
   )
 
   # ---- Return results ----
   list(
-    log_integrated_likelihood = log_integrated_likelihood,
-    log_profile_likelihood = log_profile_likelihood
+    integrated_LL = integrated_LL,
+    profile_LL = profile_LL
   )
 }

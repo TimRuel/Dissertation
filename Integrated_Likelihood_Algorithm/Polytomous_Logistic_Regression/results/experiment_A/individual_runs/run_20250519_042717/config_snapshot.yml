@@ -63,10 +63,20 @@ model_specs:
   p: 6
   'n': 180
 optimization_specs:
-  step_size: 0.01
-  num_std_errors: 3.5
-  init_guess_sd: 5
-  chunk_size: 1
-  maxtime:
-    IL: 10
-    PL: 10
+  IL:
+    step_size: 0.1
+    num_std_errors: 3
+    init_guess_sd: 5
+    threshold_offset: 20
+    chunk_size: 1
+    maxtime: 10
+    max_cores: 12
+    num_workers: 12
+  PL:
+    step_size: 0.1
+    num_std_errors: 3
+    init_guess_sd: 5
+    maxtime: 10
+  run_type: individual
+run_id: run_20250519_042717
+output_dir: C:/Northwestern/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/results/experiment_A/individual_runs/run_20250519_042717

@@ -37,14 +37,15 @@ model_specs:
     pY_0: 1000000
   formula: "~.^2 - 1"
 optimization_specs:
-  step_size: 0.01
-  num_std_errors: 3.5
-  init_guess_sd: 5
-  threshold_offset: 20
-  chunk_size: 1
-  maxtime:
-    IL: 10
-    PL: 10
-  
-
-  
+  IL:
+    step_size: 0.1
+    num_std_errors: 3
+    init_guess_sd: 5
+    threshold_offset: 20
+    chunk_size: 1
+    maxtime: 10
+  PL: 
+    step_size: 0.1
+    num_std_errors: 3
+    init_guess_sd: 5
+    maxtime: 10
