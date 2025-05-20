@@ -129,6 +129,11 @@ get_Y <- function(Y_probs) {
     factor(levels = 1:J)
 }
 
+get_seed_for_run <- function(base_seed, run_id) {
+
+    as.integer(abs(Reduce(`+`, utf8ToInt(run_id)))) + base_seed
+}
+
 get_data <- function(X1_levels, formula, Beta_0) {
   
   X1 <- get_X1(X1_levels)

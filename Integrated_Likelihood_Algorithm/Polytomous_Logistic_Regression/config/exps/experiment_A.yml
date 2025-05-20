@@ -1,5 +1,3 @@
-experiment_id: experiment_A
-seed: 7835
 X1_levels:
   A:
     X2:
@@ -11,9 +9,6 @@ X1_levels:
       support:
       - 0
       - 1
-      entropy_range:
-      - 1.21
-      - 1.54
     m: 60
     ref_level: yes
     level_of_interest: yes
@@ -27,9 +22,6 @@ X1_levels:
       support:
       - 0
       - 1
-      entropy_range:
-      - 0.78
-      - 1.11
     m: 60
     ref_level: no
     level_of_interest: no
@@ -43,9 +35,6 @@ X1_levels:
       support:
       - 0
       - 1
-      entropy_range:
-      - 0.35
-      - 0.68
     m: 60
     ref_level: no
     level_of_interest: no
@@ -59,19 +48,7 @@ model_specs:
   reps:
     Beta_0: 1000
     pY_0: 1000000
-  formula: Y~.^2 - 1
-  p: 6
-  'n': 180
+  formula: ~.^2 - 1
 optimization_specs:
-  IL:
-    step_size: 0.1
-    num_std_errors: 3
-    init_guess_sd: 5
-    threshold_offset: 20
-    chunk_size: 1
-    maxtime: 10
-  PL:
-    step_size: 0.1
-    num_std_errors: 3
-    init_guess_sd: 5
-    maxtime: 10
+  seed: 7835
+experiment_id: experiment_A

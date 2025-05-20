@@ -85,44 +85,34 @@ plot_data <- function(df) {
     labs(title = "Observed Y Values by X1 and X2", x = "X2", y = "Count", fill = "Observed Y")
 }
 
-get_plots <- function(X1_levels, pY_0, Y_probs, df) {
+get_theoretical_entropy_plot <- function(X1_levels, pY_0) {
   
-  title_theoretical <- "Theoretical Entropy of Probabilities of Y Classes by X1 and X2"
-  title_observed <- "Observed Entropy of Probabilities of Y Classes by X1 and X2"
+  title <- "Theoretical Entropy of Probabilities of Y Classes by X1 and X2"
+
+  entropy_plot <- plot_entropy(X1_levels, 
+                               pY_0, 
+                               title)
   
-  theoretical_entropy_plot <- plot_entropy(X1_levels, 
-                                           pY_0, 
-                                           title_theoretical)
+  return(entropy_plot)
+}
+
+get_observed_plots <- function(X1_levels, Y_probs, df) {
+  
+  title <- "Observed Entropy of Probabilities of Y Classes by X1 and X2"
   
   observed_entropy_plot <- plot_entropy(X1_levels, 
                                         Y_probs, 
-                                        title_observed)
+                                        title)
   
   Y_probs_plot <- plot_Y_probs(Y_probs)
   
   data_plot <- plot_data(df)
   
-  plots <- list(theoretical_entropy_plot = theoretical_entropy_plot,
-                observed_entropy_plot = observed_entropy_plot,
+  plots <- list(observed_entropy_plot = observed_entropy_plot,
                 Y_probs_plot = Y_probs_plot,
                 data_plot = data_plot)
   
   return(plots)
 }
 
-save_list_plots <- function(plots_list, dir_path) {
-  
-  if (!dir.exists(dir_path)) {
-    dir.create(dir_path, recursive = TRUE)
-  }
-  
-  for (plot in names(plots_list)) {
-    
-    ggsave(filename = file.path(dir_path, paste0(plot, ".png")), 
-           plot = plots_list[[plot]],
-           width = 8,
-           height = 6,
-           dpi = 300,           
-           units = "in")
-  }
-}
+

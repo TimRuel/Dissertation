@@ -13,54 +13,53 @@ proj_subdir <- here("Integrated_Likelihood_Algorithm", "Polytomous_Logistic_Regr
 proj_path <- function(...) here(proj_subdir, ...)
 miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
 
+# --- Parse arguments ---
 args <- commandArgs(trailingOnly = TRUE)
-experiment_id <- if (length(args) > 0) args[1] else "experiment_A"
+experiment_id <- if (length(args) > 0) args[1] else stop("[ERROR] Missing experiment_id")
+mode <- if (length(args) > 1) args[2] else stop("[ERROR] Missing experiment mode")
+run_id <- if (length(args) > 2) args[3] else stop("[ERROR] Missing run id")
 
-config_path <- proj_path("config", paste0(experiment_id, ".yml"))
+# --- Load config ---
+config_path <- proj_path("config", "exps", paste0(experiment_id, ".yml"))
 if (!file.exists(config_path)) stop("[ERROR] Config file not found: ", config_path)
-
 experiment_config <- read_yaml(config_path)
-
-set.seed(experiment_config$seed)
 
 X1_levels <- experiment_config$X1_levels
 model_specs <- experiment_config$model_specs
 
-# Setup output directories
-base_path <- proj_path("results", experiment_id)
-true_params_dir <- here(base_path, "true_params")
-data_dir <- here(base_path, "data")
-plots_dir <- here(base_path, "plots")
+# --- Setup directories ---
+true_params_dir <- proj_path("experiments", experiment_id, "true_params")
+run_dir <- proj_path("experiments", experiment_id, mode, run_id)
+data_dir <- here(run_dir, "data")
+plots_dir <- here(run_dir, "plots")
+config_snapshot_path <- here(run_dir, "config_snapshot.yml")
 
-dir_create(c(true_params_dir, data_dir, plots_dir))
+dir_create(c(run_dir, data_dir, plots_dir))
 
-# Check if data already exists
-required_data_files <- c("X_design.rds", "Y_probs.rds", "model_df.rds")
-
-if (all(file_exists(here(data_dir, required_data_files)))) {
-  message("[INFO] Data already exists for ", experiment_id, " — skipping generation.")
+# --- Step 1: Load Beta_0 ---
+Beta_0_path <- here(true_params_dir, "Beta_0.rds")
+if (file_exists(Beta_0_path)) {
+  message("[INFO] Loading Beta_0 from: ", true_params_dir)
+  Beta_0 <- readRDS(Beta_0_path)
 } else {
-  experiment_parameters <- get_experiment_parameters(X1_levels, model_specs)
-  X1_levels <- experiment_parameters$X1_levels
-  
-  data <- get_data(X1_levels, model_specs$formula, experiment_parameters$true_params$Beta_0)
-  
-  plots <- get_plots(X1_levels, experiment_parameters$pY_0, data$Y_probs, data$model_df)
-  
-  save_list_objects(experiment_parameters$true_params, true_params_dir)
-  save_list_objects(data, data_dir)
-  save_list_plots(plots, plots_dir)
-  
-  # Save resolved config separately in results directory
-  resolved_config <- list(
-    experiment_id = experiment_id,
-    seed = experiment_config$seed,
-    X1_levels = X1_levels,
-    model_specs = experiment_parameters$model_specs,
-    optimization_specs = experiment_config$optimization_specs
-  )
-  
-  resolved_path <- here(base_path, "resolved_config.yml")
-  write_yaml(resolved_config, resolved_path)
-  message("[INFO] Generated data and saved resolved config to ", resolved_path)
+  stop("[ERROR] Beta_0.rds not found in: ", true_params_dir)
 }
+
+# --- Step 2: Generate data and plots (always) ---
+message("[INFO] Generating new data and plots for run: ", run_id)
+seed <- get_seed_for_run(experiment_config$seed, run_id)
+set.seed(seed)
+data <- get_data(X1_levels, model_specs$formula, Beta_0)
+plots <- get_observed_plots(X1_levels, data$Y_probs, data$model_df)
+
+save_list_objects(data, data_dir)
+save_list_plots(plots, plots_dir)
+
+# --- Step 3: Write resolved config for the run ---
+config_snapshot <- experiment_config
+config_snapshot$optimizaton_specs <- list(seed = seed,
+                                          mode = mode,
+                                          run_id = run_id)
+
+write_yaml(config_snapshot, config_snapshot_path)
+message("[INFO] Saved config snapshot to ", config_snapshot)

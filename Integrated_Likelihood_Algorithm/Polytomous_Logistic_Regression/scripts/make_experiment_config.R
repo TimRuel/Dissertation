@@ -15,7 +15,7 @@ args <- commandArgs(trailingOnly = TRUE)
 experiment_id <- if (length(args) > 0) args[1] else stop("Provide experiment ID")
 
 template_path <- proj_path("config", "template_experiment.yml")
-dest_path <- proj_path("config", paste0(experiment_id, ".yml"))
+dest_path <- proj_path("config", "exps", paste0(experiment_id, ".yml"))
 
 if (file_exists(dest_path)) {
   stop("Experiment config already exists: ", dest_path)

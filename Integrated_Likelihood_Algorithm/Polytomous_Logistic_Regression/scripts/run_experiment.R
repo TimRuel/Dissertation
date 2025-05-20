@@ -23,7 +23,7 @@ output_dir <- config$output_dir
 run_type <- config$optimization_specs$run_type %||% "individual"
 
 # ---- Load Data ----
-data_dir <- proj_path("results", experiment_id, "data")
+data_dir <- proj_path("experiments", experiment_id, "data")
 required_files <- c("X_design.rds", "Y_probs.rds", "model_df.rds")
 missing <- required_files[!file_exists(here(data_dir, required_files))]
 if (length(missing) > 0) stop("Missing required data files: ", paste(missing, collapse = ", "))

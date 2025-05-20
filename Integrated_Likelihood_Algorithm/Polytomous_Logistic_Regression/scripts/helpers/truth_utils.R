@@ -191,11 +191,3 @@ get_experiment_parameters <- function(X1_levels, model_specs) {
   return(experiment_parameters)
 }
 
-save_list_objects <- function(object_list, dir_path) {
-  
-  if (!dir.exists(dir_path)) {
-    dir.create(dir_path, recursive = TRUE)
-  }
-  
-  for (object in names(object_list)) saveRDS(object_list[[object]], file = file.path(dir_path, paste0(object, ".rds")))
-}
