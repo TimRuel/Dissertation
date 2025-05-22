@@ -156,7 +156,9 @@ get_experiment_parameters <- function(X1_levels, model_specs) {
   
   X2 <- get_X2(X1_levels)
   
-  X_design <- get_X_design(formula, X1, X2)
+  mm_formula <- substring(formula, 2)
+  
+  X_design <- get_X_design(mm_formula, X1, X2)
   
   pY_0 <- get_Y_probs(X_design, Beta_0)
   
@@ -173,19 +175,10 @@ get_experiment_parameters <- function(X1_levels, model_specs) {
     select(X1, entropy) |> 
     data.frame()
   
-  X1_levels <- X1_levels |> 
-    imap(\(level, h) {
-      level$m <- m[[h]]
-      level
-    })
-  
-  model_specs$formula <- paste0("Y", formula)
-  
   experiment_parameters <- list(true_params = list(Beta_0 = Beta_0,
                                                    theta_0 = theta_0,
                                                    H_0 = H_0),
                                 pY_0 = pY_0,
-                                X1_levels = X1_levels,
                                 model_specs = model_specs)
   
   return(experiment_parameters)

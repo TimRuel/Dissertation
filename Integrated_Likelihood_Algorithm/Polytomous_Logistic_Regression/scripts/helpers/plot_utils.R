@@ -115,4 +115,25 @@ get_observed_plots <- function(X1_levels, Y_probs, df) {
   return(plots)
 }
 
+get_LL_plot <- function(df) {
+  
+  df |>
+    ggplot(aes(x = psi, y = .data[[names(df)[2]]])) +
+    geom_point(color = "cyan", size = 3, alpha = 0.7) +
+    theme_minimal(base_size = 15) +  # Minimal theme with a larger base font size
+    theme(
+      plot.background = element_rect(fill = "#2E2E2E", color = NA),  # Dark background for the whole plot
+      panel.background = element_rect(fill = "#3A3A3F", color = "#1A1A1A", linewidth = 2),  # Lighter panel with a border
+      axis.text = element_text(color = "white"),  # White axis labels
+      axis.title = element_text(color = "white"),  # White axis titles
+      plot.title = element_text(color = "white", size = 18, face = "bold"),  # White title
+      plot.caption = element_text(color = "gray", size = 10),  # Gray caption
+      panel.grid = element_line(color = "gray30", linetype = "dashed")  # Subtle grid lines
+    ) +
+    labs(
+      x = "\u03C8",
+      y = paste(names(df)[[2]], "Log-Likelihood")
+    )
+}
+
 

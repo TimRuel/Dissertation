@@ -92,7 +92,7 @@ write_yaml(config_snapshot, config_snapshot_path)
 # Step 8: Run experiment
 if (mode == "individual") message("Running experiment...")
 start_time <- Sys.time()
-run_script("scripts/run_experiment.R", config_snapshot_path)
+run_script("scripts/run_experiment.R", run_dir)
 
 # Step 9: Metadata
 end_time <- Sys.time()
@@ -115,7 +115,7 @@ metadata <- list(
 )
 
 # Step 10: Save metadata & log
-log_path <- if (mode == "individual") run_dir else proj_path("experiments", experiment_id, mode)
+log_path <- if (mode == "individual") here(run_dir, "run_log.csv") else proj_path("experiments", experiment_id, mode, "run_log.csv")
 append_run_log(metadata, log_path)
 save_run_metadata(metadata, run_dir)
 

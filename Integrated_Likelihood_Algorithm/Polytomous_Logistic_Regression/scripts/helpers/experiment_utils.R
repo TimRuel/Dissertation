@@ -1,4 +1,4 @@
-# scripts/helpers/model_utils.R
+# scripts/helpers/experiment_utils.R
 
 # General -----------------------------------------------------------------
 
@@ -182,27 +182,6 @@ get_psi_grid <- function(psi_endpoints, step_size, J) {
   return(psi_grid)
 }
 
-make_plot <- function(df) {
-
-  df |>
-    ggplot(aes(x = psi, y = .data[[names(df)[2]]])) +
-    geom_point(color = "cyan", size = 3, alpha = 0.7) +
-    theme_minimal(base_size = 15) +  # Minimal theme with a larger base font size
-    theme(
-      plot.background = element_rect(fill = "#2E2E2E", color = NA),  # Dark background for the whole plot
-      panel.background = element_rect(fill = "#3A3A3F", color = "#1A1A1A", size = 2),  # Lighter panel with a border
-      axis.text = element_text(color = "white"),  # White axis labels
-      axis.title = element_text(color = "white"),  # White axis titles
-      plot.title = element_text(color = "white", size = 18, face = "bold"),  # White title
-      plot.caption = element_text(color = "gray", size = 10),  # Gray caption
-      panel.grid = element_line(color = "gray30", linetype = "dashed")  # Subtle grid lines
-    ) +
-    labs(
-      x = "\u03C8",
-      y = paste(names(df)[[2]], "Log-Likelihood")
-    )
-}
-
 # Integrated Likelihood ---------------------------------------------------
 
 get_omega_hat <- function(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, init_guess_sd) {
@@ -313,7 +292,7 @@ generate_branches <- function(X_design,
 
     log_L_tilde_vec <- numeric(length(psi_grid))
 
-    log_messages <- character(length(psi_grid))
+    # log_messages <- character(length(psi_grid))
 
     for (i in seq_along(psi_grid)) {
 
@@ -494,6 +473,7 @@ get_integrated_LL <- function(X_design,
 get_profile_LL <- function(X_design,
                            Y_design,
                            X_h_design,
+                           Beta_MLE,
                            Jm1,
                            p,
                            n,
@@ -549,8 +529,8 @@ run_experiment <- function(config, X_design, model_df) {
   X_h_design <- get_X_h_design(X_design, X1_levels)
   psi_hat <- get_psi_hat(ml_model, X1_levels)
   n_h <- nrow(X_h_design)
-  psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, num_std_errors, J, n_h)
-  psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
+  psi_endpoints_IL <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, IL$num_std_errors, J, n_h)
+  psi_grid_IL <- get_psi_grid(psi_endpoints_IL, IL$step_size, J)
 
   # ---- Run integrated likelihood ----
   integrated_LL <- get_integrated_LL(
@@ -560,7 +540,7 @@ run_experiment <- function(config, X_design, model_df) {
     Jm1 = J - 1, 
     p = p, 
     n = n, 
-    psi_grid = psi_grid, 
+    psi_grid = psi_grid_IL, 
     psi_hat = psi_hat, 
     threshold = threshold, 
     init_guess_sd = IL$init_guess_sd, 
@@ -568,23 +548,33 @@ run_experiment <- function(config, X_design, model_df) {
     chunk_size = IL$chunk_size, 
     maxtime = IL$maxtime
   )
+  
+  IL_plot <- get_LL_plot(integrated_LL$log_L_bar$df)
 
   # ---- Run profile likelihood ----
+  psi_endpoints_PL <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, PL$num_std_errors, J, n_h)
+  psi_grid_PL <- get_psi_grid(psi_endpoints_PL, PL$step_size, J)
+  
   profile_LL <- get_profile_LL(
     X_design = X_design, 
     Y_design = Y_design, 
     X_h_design = X_h_design, 
+    Beta_MLE,
     Jm1 = J - 1, 
     p = p, 
     n = n, 
-    psi_grid = psi_grid, 
+    psi_grid = psi_grid_PL, 
     init_guess_sd = PL$init_guess_sd, 
     maxtime = PL$maxtime
   )
+  
+  PL_plot <- get_LL_plot(profile_LL)
 
   # ---- Return results ----
   list(
     integrated_LL = integrated_LL,
-    profile_LL = profile_LL
+    profile_LL = profile_LL,
+    plots = list(IL_plot = IL_plot,
+                 PL_plot = PL_plot)
   )
 }

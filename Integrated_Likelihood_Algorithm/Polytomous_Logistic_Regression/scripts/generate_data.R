@@ -21,7 +21,7 @@ run_id <- if (length(args) > 2) args[3] else stop("[ERROR] Missing run id")
 
 # --- Load config ---
 config_path <- proj_path("config", "exps", paste0(experiment_id, ".yml"))
-if (!file.exists(config_path)) stop("[ERROR] Config file not found: ", config_path)
+if (!file.exists(config_path)) stop("[ERROR] Config file not found at /", sub(".*(/?config/.*)", "\\1", config_path))
 experiment_config <- read_yaml(config_path)
 
 X1_levels <- experiment_config$X1_levels
@@ -39,17 +39,18 @@ dir_create(c(run_dir, data_dir, plots_dir))
 # --- Step 1: Load Beta_0 ---
 Beta_0_path <- here(true_params_dir, "Beta_0.rds")
 if (file_exists(Beta_0_path)) {
-  message("[INFO] Loading Beta_0 from: ", true_params_dir)
+  message("[INFO] Loading Beta_0 from /", sub(".*(/?experiments/.*)", "\\1", true_params_dir))
   Beta_0 <- readRDS(Beta_0_path)
 } else {
-  stop("[ERROR] Beta_0.rds not found in: ", true_params_dir)
+  stop("[ERROR] Beta_0.rds not found in /", sub(".*(/?experiments/.*)", "\\1", true_params_dir))
 }
 
 # --- Step 2: Generate data and plots (always) ---
 message("[INFO] Generating new data and plots for run: ", run_id)
-seed <- get_seed_for_run(experiment_config$seed, run_id)
+seed <- get_seed_for_run(experiment_config$optimization_specs$seed, run_id)
 set.seed(seed)
-data <- get_data(X1_levels, model_specs$formula, Beta_0)
+mm_formula <- substring(model_specs$formula, 2)
+data <- get_data(X1_levels, mm_formula, Beta_0)
 plots <- get_observed_plots(X1_levels, data$Y_probs, data$model_df)
 
 save_list_objects(data, data_dir)
@@ -57,9 +58,9 @@ save_list_plots(plots, plots_dir)
 
 # --- Step 3: Write resolved config for the run ---
 config_snapshot <- experiment_config
-config_snapshot$optimizaton_specs <- list(seed = seed,
-                                          mode = mode,
-                                          run_id = run_id)
+config_snapshot$optimization_specs <- list(seed = seed,
+                                           mode = mode,
+                                           run_id = run_id)
 
 write_yaml(config_snapshot, config_snapshot_path)
-message("[INFO] Saved config snapshot to ", config_snapshot)
+message("[INFO] Saved config snapshot to /", sub(".*(/?experiments/.*)", "\\1", run_dir))

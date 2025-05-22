@@ -131,7 +131,7 @@ get_Y <- function(Y_probs) {
 
 get_seed_for_run <- function(base_seed, run_id) {
 
-    as.integer(abs(Reduce(`+`, utf8ToInt(run_id)))) + base_seed
+    return(as.integer(abs(Reduce(`+`, utf8ToInt(run_id))) + base_seed))
 }
 
 get_data <- function(X1_levels, formula, Beta_0) {

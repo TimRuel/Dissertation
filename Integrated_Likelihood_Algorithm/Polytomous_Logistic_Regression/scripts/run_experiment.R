@@ -5,6 +5,8 @@ suppressPackageStartupMessages({
   library(here)
   library(yaml)
   library(fs)
+  library(doFuture)
+  library(PolytomousUtils)
 })
 
 proj_subdir <- here("Integrated_Likelihood_Algorithm", "Polytomous_Logistic_Regression")
@@ -13,18 +15,16 @@ miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
 
 # ---- Parse Arguments ----
 args <- commandArgs(trailingOnly = TRUE)
-config_path <- if (length(args) > 0) args[1] else stop("[ERROR] A config filepath was not provided.")
-if (!file.exists(config_path)) stop("[ERROR] Config file not found: ", config_path)
+run_dir <- if (length(args) > 0) args[1] else stop("[ERROR] A run directory was not provided.")
+if (!file.exists(run_dir)) stop("[ERROR] Run directory does not exist at /", sub(".*(/?experiments/.*)", "\\1", run_dir))
 
 # ---- Load Config ----
-config <- read_yaml(config_path)
-experiment_id <- config$experiment_id
-output_dir <- config$output_dir
-run_type <- config$optimization_specs$run_type %||% "individual"
+config_snapshot_path <- here(run_dir, "config_snapshot.yml")
+config_snapshot <- read_yaml(config_snapshot_path)
 
 # ---- Load Data ----
-data_dir <- proj_path("experiments", experiment_id, "data")
-required_files <- c("X_design.rds", "Y_probs.rds", "model_df.rds")
+data_dir <- here(run_dir, "data")
+required_files <- c("X_design.rds", "model_df.rds")
 missing <- required_files[!file_exists(here(data_dir, required_files))]
 if (length(missing) > 0) stop("Missing required data files: ", paste(missing, collapse = ", "))
 
@@ -32,10 +32,17 @@ X_design <- readRDS(here(data_dir, "X_design.rds"))
 model_df <- readRDS(here(data_dir, "model_df.rds"))
 
 # ---- Run Experiment ----
-results <- run_experiment(config, X_design, model_df)
+results <- run_experiment(config_snapshot, X_design, model_df)
 
 # ---- Save Results ----
-saveRDS(results$log_integrated_likelihood, file = here(output_dir, "log_integrated_likelihood.rds"))
-saveRDS(results$log_profile_likelihood,   file = here(output_dir, "log_profile_likelihood.rds"))
+results_dir <- here(run_dir, "results")
+dir_create(results_dir)
+saveRDS(results$integrated_LL, file = here(results_dir, "integrated_LL.rds"))
+saveRDS(results$profile_LL, file = here(results_dir, "profile_LL.rds"))
+message("✓ Experiment results saved to /", sub(".*(/?experiments/.*)", "\\1", results_dir))
 
-message("✓ Experiment results saved to: ", output_dir)
+plots_dir <- here(run_dir, "plots")
+save_list_plots(results$plots, plots_dir)
+message("✓ Log-likelihood plots saved to /", sub(".*(/?experiments/.*)", "\\1", plots_dir))
+
+
