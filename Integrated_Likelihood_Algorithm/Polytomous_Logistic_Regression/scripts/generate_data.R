@@ -16,8 +16,8 @@ miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
 # --- Parse arguments ---
 args <- commandArgs(trailingOnly = TRUE)
 experiment_id <- if (length(args) > 0) args[1] else stop("[ERROR] Missing experiment_id")
-mode <- if (length(args) > 1) args[2] else stop("[ERROR] Missing experiment mode")
-run_id <- if (length(args) > 2) args[3] else stop("[ERROR] Missing run id")
+sim_id <- if (length(args) > 1) args[2] else stop("[ERROR] Missing sim_id")
+run_id <- if (length(args) > 2) args[3] else stop("[ERROR] Missing run_id")
 
 # --- Load config ---
 config_path <- proj_path("config", "exps", paste0(experiment_id, ".yml"))
@@ -29,12 +29,16 @@ model_specs <- experiment_config$model_specs
 
 # --- Setup directories ---
 true_params_dir <- proj_path("experiments", experiment_id, "true_params")
-run_dir <- proj_path("experiments", experiment_id, mode, run_id)
+run_dir <- if (is.null(sim_id)) {
+  proj_path("experiments", experiment_id, "individual_runs", run_id) 
+} else {
+  proj_path("experiments", experiment_id, "simulations", sim_id, run_id)
+}
 data_dir <- here(run_dir, "data")
 plots_dir <- here(run_dir, "plots")
 config_snapshot_path <- here(run_dir, "config_snapshot.yml")
 
-dir_create(c(run_dir, data_dir, plots_dir))
+dir_create(c(data_dir, plots_dir))
 
 # --- Step 1: Load Beta_0 ---
 Beta_0_path <- here(true_params_dir, "Beta_0.rds")
@@ -59,7 +63,7 @@ save_list_plots(plots, plots_dir)
 # --- Step 3: Write resolved config for the run ---
 config_snapshot <- experiment_config
 config_snapshot$optimization_specs <- list(seed = seed,
-                                           mode = mode,
+                                           sim_id = sim_id,
                                            run_id = run_id)
 
 write_yaml(config_snapshot, config_snapshot_path)

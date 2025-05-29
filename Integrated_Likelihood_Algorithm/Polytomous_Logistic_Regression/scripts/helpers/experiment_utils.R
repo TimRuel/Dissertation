@@ -271,8 +271,6 @@ generate_branches <- function(X_design,
 
   omega_hat <- get_omega_hat(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, init_guess_sd)
 
-  plan(multisession, workers = I(num_workers))
-
   result <- foreach(
 
     i = 1:num_branches,
@@ -367,8 +365,6 @@ generate_branches <- function(X_design,
     list(omega_hat = omega_hat,
          log_L_tilde_df = log_L_tilde_df)
   }
-
-  plan(sequential)
 
   omega_hat <- lapply(result, `[[`, 1)
   log_L_tilde_df <- lapply(result, `[[`, 2)

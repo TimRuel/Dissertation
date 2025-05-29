@@ -2,8 +2,12 @@
 
 #!/usr/bin/env Rscript
 
+# options(future.fork.multisession.stagger = TRUE)
+# options(future.makeClusterPSOCK.connectTimeout = 240)
+
 suppressPackageStartupMessages({
   library(tidyverse)
+  library(doFuture)
   library(here)
   library(yaml)
   library(fs)
@@ -26,11 +30,12 @@ run_script <- function(script_rel_path, args = character()) {
 
 # Parse command line args
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 1) stop("Usage: Rscript main.R <experiment_id> [requested_cores] [iteration_id] [--force] [--non-interactive]")
+if (length(args) < 2) stop("Usage: Rscript main.R <experiment_id> [requested_cores] [sim_id] [run_id] [--force] [--non-interactive]")
 
 experiment_id <- args[1]
 requested_cores <- if (length(args) >= 2 && !grepl("^--", args[2])) as.integer(args[2]) else NULL
-iteration_id <- if (length(args) >= 3 && !grepl("^--", args[3])) args[3] else NULL
+sim_id <- if (length(args) >= 3 && !grepl("^--", args[3])) args[3] else NULL
+run_id <- if (length(args) >= 4 && !grepl("^--", args[4])) args[4] else NULL
 
 force <- "--force" %in% args
 non_interactive <- "--non-interactive" %in% args
@@ -40,7 +45,7 @@ config_path <- proj_path("config", "exps", paste0(experiment_id, ".yml"))
 if (!file.exists(config_path)) {
   message("Creating experiment config...")
   run_script("scripts/make_experiment_config.R", experiment_id)
-} else if (is.null(iteration_id)) {
+} else if (is.null(run_id)) {
   if (!should_proceed_or_abort(
     paste0("Experiment config already exists for '", experiment_id, "'. Proceed with it?"),
     force = force, non_interactive = non_interactive
@@ -60,20 +65,19 @@ if (length(dir_ls(true_params_dir, fail = FALSE)) == 0) {
   message("[INFO] True parameters already exist — skipping generation.")
 }
 
-# Step 3: Determine mode and run_id
-if (is.null(iteration_id)) {
-  mode <- "individual"
+# Step 3: Generate run_id and path to the run directory, creating if necessary 
+if (is.null(sim_id)) {
   run_id <- paste0("run_", format(Sys.time(), "%Y%m%d_%H%M%S", tz = "UTC"))
+  run_dir <- proj_path("experiments", experiment_id, "individual_runs", run_id)
+  dir_create(run_dir)
 } else {
-  mode <- "simulations"
-  run_id <- paste0("iter_", sprintf("%03d", as.integer(iteration_id)))
+  run_dir <- proj_path("experiments", experiment_id, "simulations", sim_id, run_id)
 }
 
 # Step 4: Generate data
-run_script("scripts/generate_data.R", c(experiment_id, mode, run_id))
+run_script("scripts/generate_data.R", c(experiment_id, sim_id, run_id))
 
 # Step 5: Add optimization config to config snapshot
-run_dir <- proj_path("experiments", experiment_id, mode, run_id)
 config_snapshot_path <- here(run_dir, "config_snapshot.yml")
 config_snapshot <- read_yaml(config_snapshot_path)
 opt_config_path <- proj_path("config", "opt_config.yml")
@@ -90,8 +94,20 @@ config_snapshot_path <- here(run_dir, "config_snapshot.yml")
 write_yaml(config_snapshot, config_snapshot_path)
 
 # Step 8: Run experiment
-if (mode == "individual") message("Running experiment...")
+message("Running experiment...")
 start_time <- Sys.time()
+
+if (.Platform$OS.type == "unix") {
+  plan(multicore, workers = I(core_info$num_workers))
+} else {
+  plan(multisession, workers = I(core_info$num_workers))
+}
+
+on.exit({
+  plan(sequential)
+  shutdown_workers()
+}, add = TRUE)
+
 run_script("scripts/run_experiment.R", run_dir)
 
 # Step 9: Metadata
@@ -105,8 +121,8 @@ git_hash <- tryCatch(
 
 metadata <- list(
   experiment_id   = experiment_id,
+  sim_id          = sim_id,
   run_id          = run_id,
-  mode            = mode,
   slurm_array_id  = Sys.getenv("SLURM_ARRAY_TASK_ID", unset = NA),
   timestamp_start = start_time,
   timestamp_end   = end_time,
@@ -114,9 +130,7 @@ metadata <- list(
   git_commit      = git_hash
 )
 
-# Step 10: Save metadata & log
-log_path <- if (mode == "individual") here(run_dir, "run_log.csv") else proj_path("experiments", experiment_id, mode, "run_log.csv")
-append_run_log(metadata, log_path)
-save_run_metadata(metadata, run_dir)
-
-message("✓ Run completed: ", run_dir)
+# Step 10: Save metadata
+log_dir <- here(run_dir, "logs")
+save_run_metadata(metadata, log_dir)
+message("✓ Run completed")

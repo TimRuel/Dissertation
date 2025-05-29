@@ -15,15 +15,6 @@ save_list_objects <- function(object_list, dir_path) {
   for (object in names(object_list)) saveRDS(object_list[[object]], file = file.path(dir_path, paste0(object, ".rds")))
 }
 
-should_proceed_or_abort <- function(prompt, force = FALSE, non_interactive = FALSE) {
-  if (force) return(TRUE)
-  if (non_interactive) return(FALSE)
-  
-  cat(prompt, " [y/N]: ")
-  response <- tolower(trimws(readLines("stdin", n = 1)))
-  response %in% c("y", "yes")
-}
-
 save_list_plots <- function(plots_list, dir_path) {
   
   if (!dir.exists(dir_path)) {
@@ -40,3 +31,5 @@ save_list_plots <- function(plots_list, dir_path) {
            units = "in")
   }
 }
+
+
