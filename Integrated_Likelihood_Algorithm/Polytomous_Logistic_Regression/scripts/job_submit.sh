@@ -24,24 +24,24 @@ EXPERIMENT_ID=$(printf "exp_%s" "$EXPERIMENT_VERSION")
 SIM_NUM="$2"
 SIM_ID=$(printf "sim_%02d" "$SIM_NUM")
 
-# Slurm-provided array task ID
 RUN_NUM=$((SLURM_ARRAY_TASK_ID + 1))
 RUN_ID=$(printf "iter_%04d" "$RUN_NUM")
 
 REQUESTED_CORES=$SLURM_NTASKS
 
-# Paths
 SIM_DIR="experiments/${EXPERIMENT_ID}/simulations/${SIM_ID}"
 RUN_DIR="${SIM_DIR}/${RUN_ID}"
 LOG_DIR="${RUN_DIR}/logs"
 
-# Make sure log dir exists
 mkdir -p "$LOG_DIR"
 
-# Redirect all output and error to a unique log file
-exec > "${LOG_DIR}/slurm_log.out" 2>&1
+LOG_FILE="${LOG_DIR}/slurm_log.out"
+CHECKJOB_MONITOR="${LOG_DIR}/checkjob_monitor.out"
 
-echo "📌 Logging to ${LOG_DIR}/slurm_log.out"
+# Redirect stdout and stderr to log file
+exec > "$LOG_FILE" 2>&1
+
+echo "📌 Logging to $LOG_FILE"
 
 # -------------------------------
 # Load Environment
@@ -58,19 +58,58 @@ module load git/2.37.2-gcc-10.4.0
 echo "🔁 Running Iteration $RUN_NUM of Simulation $SIM_NUM in Experiment $EXPERIMENT_VERSION with $REQUESTED_CORES cores..."
 
 # -------------------------------
-# Run R script
+# Monitor checkjob output in background
+# -------------------------------
+(
+  while true; do
+    echo "===== checkjob (interval) at $(date) =====" >> "$CHECKJOB_MONITOR"
+    checkjob "$SLURM_JOB_ID" >> "$CHECKJOB_MONITOR" 2>&1
+    sleep 30
+  done
+) &
+CHECKJOB_PID=$!
+
+# -------------------------------
+# Trap for cleanup and final diagnostics
+# -------------------------------
+trap '
+  echo "===== FINAL SEFF OUTPUT for Job $SLURM_JOB_ID =====" >> "$LOG_FILE"
+  echo "(Logged at $(date))" >> "$LOG_FILE"
+  seff "$SLURM_JOB_ID" >> "$LOG_FILE" 2>&1
+
+  echo "===== FINAL CHECKJOB OUTPUT for Job $SLURM_JOB_ID =====" >> "$LOG_FILE"
+  echo "(Logged at $(date))" >> "$LOG_FILE"
+  checkjob "$SLURM_JOB_ID" >> "$LOG_FILE" 2>&1
+
+  echo "===== SACCT OUTPUT for Job $SLURM_JOB_ID =====" >> "$LOG_FILE"
+  echo "(Logged at $(date))" >> "$LOG_FILE"
+  sacct -j "$SLURM_JOB_ID" --format=JobID,JobName%20,Elapsed,MaxRSS,ReqMem,AllocCPUs,State >> "$LOG_FILE" 2>&1
+
+  echo "===== SYSTEM MEMORY (free -h) =====" >> "$LOG_FILE"
+  echo "(Logged at $(date))" >> "$LOG_FILE"
+  free -h >> "$LOG_FILE" 2>&1
+
+  echo "===== SYSTEM LOAD (uptime) =====" >> "$LOG_FILE"
+  echo "(Logged at $(date))" >> "$LOG_FILE"
+  uptime >> "$LOG_FILE" 2>&1
+
+  echo "===== SYSTEM PROCESSES (top -b -n 1) =====" >> "$LOG_FILE"
+  echo "(Logged at $(date))" >> "$LOG_FILE"
+  top -b -n 1 | head -40 >> "$LOG_FILE" 2>&1
+
+  echo "===== BACKGROUND CHECKJOB MONITOR LOG =====" >> "$LOG_FILE"
+  cat "$CHECKJOB_MONITOR" >> "$LOG_FILE" 2>/dev/null
+  rm -f "$CHECKJOB_MONITOR"
+
+  kill "$CHECKJOB_PID" 2>/dev/null
+' EXIT
+
+# -------------------------------
+# Run the R script
 # -------------------------------
 command -v Rscript >/dev/null 2>&1 || {
   echo "❌ ERROR: Rscript not found in PATH."
   exit 1
 }
 
-trap '
-  echo "===== SEFF OUTPUT for Job $SLURM_JOB_ID =====" >> "${LOG_DIR}/slurm_log.out"
-  seff "$SLURM_JOB_ID" >> "${LOG_DIR}/slurm_log.out" 2>&1
-  echo "===== CHECKJOB OUTPUT for Job $SLURM_JOB_ID =====" >> "${LOG_DIR}/slurm_log.out"
-  checkjob "$SLURM_JOB_ID" >> "${LOG_DIR}/slurm_log.out" 2>&1
-' EXIT
-
 Rscript --max-connections=256 scripts/main.R "$EXPERIMENT_ID" "$REQUESTED_CORES" "$SIM_ID" "$RUN_ID"
-

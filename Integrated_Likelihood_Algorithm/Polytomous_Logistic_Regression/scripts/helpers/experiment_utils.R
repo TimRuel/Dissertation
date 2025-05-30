@@ -87,25 +87,22 @@ get_Beta_hat <- function(obj_fn,
                          prev_Beta_hat = NULL,
                          maxtime) {
 
-   if (!is.null(prev_Beta_hat)) {
-   phi <- max(0.1, min(0.9, 1 - 1 / 10))
-   init_guess <- 0.9 * prev_Beta_hat + 0.1 * init_guess
- }
+ if (!is.null(prev_Beta_hat)) init_guess <- prev_Beta_hat
 
- for (attempt in 1:10) {
+ for (attempt in 1:100) {
 
    result <- safe_auglag(
      x0 = init_guess,
      fn = obj_fn,
      heq = con_fn,
      localsolver = "SLSQP",
-     localtol = 1e-3,
+     localtol = 1e-6,
      deprecatedBehavior = FALSE,
      control = list(on.error = "ignore",
                     maxtime = maxtime)
    )
 
-   if (!is.null(result$par) && result$convergence > 0) {
+   if (!is.null(result$par) && result$convergence == 0) {
 
      Beta_hat <- result$par
      return(list(Beta_hat = Beta_hat, prev_Beta_hat = Beta_hat))
@@ -119,10 +116,10 @@ get_Beta_hat <- function(obj_fn,
    fn = obj_fn,
    heq = con_fn,
    localsolver = "COBYLA",
-   localtol = 1e-3,
+   localtol = 1e-6,
    deprecatedBehavior = FALSE,
    control = list(on.error = "ignore",
-                  maxtime = maxtime + 10)
+                  maxtime = -1)
  )
 
  if (is.null(result_fallback$par)) {
@@ -269,8 +266,6 @@ generate_branches <- function(X_design,
 
   omega_hat_ineq_con_fn <- function(Beta) omega_hat_ineq_con_fn_rcpp(Beta, X_design, Y_design, Jm1, p, n, threshold)
 
-  omega_hat <- get_omega_hat(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, init_guess_sd)
-
   result <- foreach(
 
     i = 1:num_branches,
@@ -283,6 +278,8 @@ generate_branches <- function(X_design,
                            packages = c("PolytomousUtils", "nloptr"))
 
   ) %dofuture% {
+    
+    omega_hat <- get_omega_hat(omega_hat_eq_con_fn, omega_hat_ineq_con_fn, Jm1, p, init_guess_sd)
 
     obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_design, omega_hat, Jm1, p, n)
 
@@ -290,55 +287,9 @@ generate_branches <- function(X_design,
 
     log_L_tilde_vec <- numeric(length(psi_grid))
 
-    # log_messages <- character(length(psi_grid))
+    for (j in seq_along(psi_grid)) {
 
-    for (i in seq_along(psi_grid)) {
-
-      # psi <- psi_grid[i]
-      # 
-      # con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
-      # 
-      # init_guess <- rnorm(p * Jm1, sd = init_guess_sd)
-      # 
-      # Beta_hat_result <- get_Beta_hat(
-      #   obj_fn,
-      #   con_fn,
-      #   init_guess,
-      #   prev_Beta_hat,
-      #   maxtime
-      # )
-      # 
-      # Beta_hat <- Beta_hat_result$Beta_hat
-      # prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
-      # 
-      # # Evaluate constraint satisfaction
-      # constraint_val <- tryCatch(
-      #   con_fn(Beta_hat),
-      #   error = function(e) rep(NA_real_, Jm1 * p)
-      # )
-      # constraint_violation <- sum(abs(constraint_val), na.rm = TRUE)
-      # 
-      # # Evaluate objective value (just in case)
-      # obj_val <- tryCatch(
-      #   obj_fn(Beta_hat),
-      #   error = function(e) NA_real_
-      # )
-      # 
-      # # Compute likelihood
-      # logL <- tryCatch(
-      #   log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n),
-      #   error = function(e) NA_real_
-      # )
-      # 
-      # log_L_tilde_vec[i] <- logL
-      # 
-      # # LOGGING: Save diagnostics for debugging
-      # log_messages[i] <- sprintf(
-      #   "Branch %d | psi: %.4f | logL: %.4f | obj: %.4f | constraint_violation: %.4e",
-      #   i, psi, logL, obj_val, constraint_violation
-      # )
-
-      psi <- psi_grid[i]
+      psi <- psi_grid[j]
 
       con_fn <- function(Beta) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
 
@@ -354,10 +305,8 @@ generate_branches <- function(X_design,
 
       prev_Beta_hat <- Beta_hat_result$prev_Beta_hat
 
-      log_L_tilde_vec[i] <- log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n)
+      log_L_tilde_vec[j] <- log_likelihood_rcpp(Beta_hat, X_design, Y_design, Jm1, p, n)
     }
-
-    # writeLines(log_messages, paste0("branch_log_", Sys.getpid(), ".txt"))
 
     log_L_tilde_df <- data.frame(psi = psi_grid,
                                  Integrated = log_L_tilde_vec)
