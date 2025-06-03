@@ -2,9 +2,6 @@
 
 #!/usr/bin/env Rscript
 
-# options(future.fork.multisession.stagger = TRUE)
-# options(future.makeClusterPSOCK.connectTimeout = 240)
-
 suppressPackageStartupMessages({
   library(tidyverse)
   library(doFuture)
@@ -70,12 +67,14 @@ if (is.null(sim_id)) {
   run_id <- paste0("run_", format(Sys.time(), "%Y%m%d_%H%M%S", tz = "UTC"))
   run_dir <- proj_path("experiments", experiment_id, "individual_runs", run_id)
   dir_create(run_dir)
+  data_args <- c(experiment_id, run_id)
 } else {
   run_dir <- proj_path("experiments", experiment_id, "simulations", sim_id, run_id)
+  data_args <- c(experiment_id, sim_id, run_id)
 }
 
 # Step 4: Generate data
-run_script("scripts/generate_data.R", c(experiment_id, sim_id, run_id))
+run_script("scripts/generate_data.R", data_args)
 
 # Step 5: Add optimization config to config snapshot
 config_snapshot_path <- here(run_dir, "config_snapshot.yml")
@@ -96,17 +95,6 @@ write_yaml(config_snapshot, config_snapshot_path)
 # Step 8: Run experiment
 message("Running experiment...")
 start_time <- Sys.time()
-
-if (.Platform$OS.type == "unix") {
-  plan(multicore, workers = I(core_info$num_workers))
-} else {
-  plan(multisession, workers = I(core_info$num_workers))
-}
-
-on.exit({
-  plan(sequential)
-  shutdown_workers()
-}, add = TRUE)
 
 run_script("scripts/run_experiment.R", run_dir)
 
@@ -134,3 +122,4 @@ metadata <- list(
 log_dir <- here(run_dir, "logs")
 save_run_metadata(metadata, log_dir)
 message("✓ Run completed")
+

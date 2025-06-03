@@ -15,9 +15,17 @@ miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
 
 # --- Parse arguments ---
 args <- commandArgs(trailingOnly = TRUE)
-experiment_id <- if (length(args) > 0) args[1] else stop("[ERROR] Missing experiment_id")
-sim_id <- if (length(args) > 1) args[2] else stop("[ERROR] Missing sim_id")
-run_id <- if (length(args) > 2) args[3] else stop("[ERROR] Missing run_id")
+if (length(args) == 2) {
+  experiment_id <- args[[1]]
+  sim_id        <- NULL
+  run_id        <- args[[2]]
+} else if (length(args) == 3) {
+  experiment_id <- args[[1]]
+  sim_id        <- args[[2]]
+  run_id        <- args[[3]]
+} else {
+  stop("Expected either 2 arguments (experiment_id, run_id) or 3 (experiment_id, sim_id, run_id)")
+}
 
 # --- Load config ---
 config_path <- proj_path("config", "exps", paste0(experiment_id, ".yml"))

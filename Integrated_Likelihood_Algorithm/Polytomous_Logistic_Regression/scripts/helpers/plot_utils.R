@@ -136,4 +136,18 @@ get_LL_plot <- function(df) {
     )
 }
 
+get_branches_plot <- function(mat) {
+
+  df <- as.data.frame(mat)
+  df$CurveID <- paste0("Curve_", seq_len(nrow(df)))
+  
+  df_long <- df |> 
+    pivot_longer(-CurveID, names_to = "X", values_to = "Y") |> 
+    mutate(X = as.numeric(X))
+  
+  plot_base() + 
+    theme(legend.position = "none") +
+    geom_line(data = df_long, aes(x = X, y = Y, group = CurveID, color = CurveID), linewidth = 1) +
+    labs(title = "Integrated Log-Likelihood Branches", x = "\u03C8", y = "Log-Likelihood")
+}
 
