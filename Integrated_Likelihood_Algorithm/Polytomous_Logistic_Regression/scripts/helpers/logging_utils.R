@@ -37,7 +37,8 @@ save_run_metadata <- function(metadata, output_dir) {
   }
   
   # Save as both CSV and RDS
-  write_csv(as_tibble(metadata), here(output_dir, "metadata.csv"))
+  metadata_df <- as_tibble(lapply(metadata, \(x) if (is.null(x)) NA else x))
+  write_csv(metadata_df, here(output_dir, "metadata.csv"))
   saveRDS(metadata, here(output_dir, "metadata.rds"))
 }
 

@@ -27,49 +27,20 @@ data_dir <- here(run_dir, "data")
 required_files <- c("X_design.rds", "model_df.rds")
 missing <- required_files[!file_exists(here(data_dir, required_files))]
 if (length(missing) > 0) stop("Missing required data files: ", paste(missing, collapse = ", "))
-
 X_design <- readRDS(here(data_dir, "X_design.rds"))
 model_df <- readRDS(here(data_dir, "model_df.rds"))
 
-# ---- Run Experiment ----
-list2env(config$model_specs, environment())
-list2env(config$optimization_specs, environment())
-
-X1_levels <- config$X1_levels
-formula <- as.formula(formula)
-ml_model <- fit_multinomial_logistic_model(model_df, formula)
-Y_design <- get_Y_design(model_df)
-Beta_MLE <- get_Beta_MLE(ml_model)
-threshold <- get_threshold(Beta_MLE, X_design, Y_design, IL$threshold_offset)
-h <- get_X1_level_of_interest(X1_levels)
-X_h_design <- get_X_h_design(X_design, X1_levels)
-psi_hat <- get_psi_hat_from_model(ml_model, X1_levels)
-n_h <- nrow(X_h_design)
-psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, IL$num_std_errors, J, n_h)
-psi_grid <- get_psi_grid(psi_endpoints, IL$step_size, J)
-
 # ---- Run integrated likelihood ----
 
+num_workers <- config$optimization_specs$IL$num_workers
+
 if (.Platform$OS.type == "unix") {
-  plan(multicore, workers = I(IL$num_workers))
+  plan(multicore, workers = I(num_workers))
 } else {
-  plan(multisession, workers = I(IL$num_workers))
+  plan(multisession, workers = I(num_workers))
 }
 
-integrated_LL <- get_integrated_LL(
-  X_design = X_design, 
-  Y_design = Y_design, 
-  X_h_design = X_h_design, 
-  Jm1 = J - 1, 
-  p = p, 
-  n = n, 
-  psi_grid = psi_grid, 
-  psi_hat = psi_hat, 
-  threshold = threshold, 
-  init_guess_sd = IL$init_guess_sd, 
-  num_workers = IL$num_workers, 
-  chunk_size = IL$chunk_size
-)
+integrated_LL <- get_integrated_LL(config, X_design, model_df)
 
 plan(sequential)
 
@@ -84,17 +55,7 @@ if (.Platform$OS.type == "unix") {
   plan(multisession, workers = I(2))
 }
 
-profile_LL <- get_profile_LL(
-  step_size = PL$step_size, 
-  alpha = PL$alpha,
-  psi_hat = psi_hat,
-  Beta_MLE = Beta_MLE, 
-  X_design = X_design,
-  Y_design = Y_design,
-  X_h_design = X_h_design, 
-  Jm1 = J - 1,
-  p = p,
-  n = n)
+profile_LL <- get_profile_LL(config, X_design, model_df)
 
 plan(sequential)
 

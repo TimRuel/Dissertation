@@ -101,6 +101,33 @@ get_psi_grid <- function(psi_endpoints, step_size, J) {
   return(psi_grid)
 }
 
+get_fine_psi_grid <- function(psi_grid,
+                              psi_mode,
+                              fine_step_size,
+                              fine_window) {
+  
+  # Ensure psi_grid is sorted and unique
+  psi_grid <- sort(unique(psi_grid))
+  
+  # Determine left and right limits using nearest psi_grid values
+  lower_bound <- max(psi_grid[psi_grid <= (psi_mode - fine_window)])
+  upper_bound <- min(psi_grid[psi_grid >= (psi_mode + fine_window)])
+  
+  # Build fine psi values from lower_bound to upper_bound
+  fine_grid <- seq(from = lower_bound,
+                   to = upper_bound,
+                   by = fine_step_size) |> 
+    round(8)
+  
+  # Combine with original grid and deduplicate + sort
+  full_grid <- c(psi_grid, fine_grid) |> 
+    round(8) |> 
+    unique() |> 
+    sort()
+  
+  return(full_grid)
+}
+
 # Beta_hat ----------------------------------------------------------------
 
 get_Beta_hat_template <- function(obj_fn, con_fn, init_guess) {
@@ -213,51 +240,101 @@ get_branch_params <- function(X_design,
 
 # Integrated Log-Likelihood ---------------------------------------------------
 
+run_branch_side <- function(direction, 
+                            branch_mode, 
+                            psi_grid, 
+                            step_size,
+                            fine_step_size,
+                            fine_window,
+                            log_likelihood_fn,
+                            get_Beta_hat,
+                            con_fn_template) {
+  
+  # Get finer working grid from psi_grid and psi_hat ± band
+  fine_grid <- get_fine_psi_grid(
+    psi_grid       = psi_grid,
+    psi_mode       = branch_mode$psi,
+    fine_step_size = fine_step_size,
+    fine_window    = fine_window
+  )
+  
+  # Determine which psi values to evaluate depending on direction
+  psi_working_grid <- if (direction == "left") {
+    rev(fine_grid[fine_grid < branch_mode$psi])
+  } else {
+    fine_grid[fine_grid > branch_mode$psi]
+  }
+  
+  psi_vals <- c()
+  log_L_tilde_vals <- c()
+  init_guess <- branch_mode$Beta_MLE
+  
+  for (psi in psi_working_grid) {
+    Beta_hat_con_fn <- function(Beta) con_fn_template(Beta, psi)
+    Beta_hat <- get_Beta_hat(Beta_hat_con_fn, init_guess)
+    log_L_tilde <- log_likelihood_fn(Beta_hat)
+    init_guess <- Beta_hat
+    
+    # Only keep results for psi values in original psi_grid
+    if (any(abs(psi_grid - psi) < 1e-8)) {
+      psi_vals <- c(psi_vals, psi)
+      log_L_tilde_vals <- c(log_L_tilde_vals, log_L_tilde)
+    }
+  }
+  
+  # Reverse the output if we reversed the grid
+  if (direction == "left") {
+    psi_vals <- rev(psi_vals)
+    log_L_tilde_vals <- rev(log_L_tilde_vals)
+  }
+  
+  list(psi = psi_vals, Integrated = log_L_tilde_vals)
+}
+
 compute_IL_branch <- function(branch_mode,
                               psi_grid,
+                              step_size,
+                              fine_step_size,
+                              fine_window,
                               log_likelihood_fn,
                               get_Beta_hat,
                               con_fn_template) {
   
-  psi_grid_left <- rev(psi_grid[psi_grid <= branch_mode$psi])
-  psi_grid_right <- psi_grid[psi_grid > branch_mode$psi]
+  # Evaluate branch to the left of the peak
+  left_result <- run_branch_side(
+    direction          = "left",
+    branch_mode        = branch_mode,
+    psi_grid           = psi_grid,
+    step_size          = step_size,
+    fine_step_size     = fine_step_size,
+    fine_window        = fine_window,
+    log_likelihood_fn  = log_likelihood_fn,
+    get_Beta_hat       = get_Beta_hat,
+    con_fn_template    = con_fn_template
+  )
   
-  log_L_tilde_vec_left <- numeric(length(psi_grid_left))
-  log_L_tilde_vec_right <- numeric(length(psi_grid_right))
+  # Evaluate branch to the right of the peak
+  right_result <- run_branch_side(
+    direction          = "right",
+    branch_mode        = branch_mode,
+    psi_grid           = psi_grid,
+    step_size          = step_size,
+    fine_step_size     = fine_step_size,
+    fine_window        = fine_window,
+    log_likelihood_fn  = log_likelihood_fn,
+    get_Beta_hat       = get_Beta_hat,
+    con_fn_template    = con_fn_template
+  )
   
-  init_guess <- c(branch_mode$Beta_MLE)
+  # Combine and sort
+  out <- rbind(
+    data.frame(psi = left_result$psi, Integrated = left_result$Integrated),
+    data.frame(psi = right_result$psi, Integrated = right_result$Integrated)
+  )
   
-  for (i in seq_along(psi_grid_left)) {
-    
-    psi <- psi_grid_left[i]
-    
-    Beta_hat_con_fn <- function(Beta) con_fn_template(Beta, psi)
-    
-    Beta_hat <- get_Beta_hat(Beta_hat_con_fn, init_guess)
-    
-    log_L_tilde_vec_left[i] <- log_likelihood_fn(Beta_hat)
-    
-    init_guess <- Beta_hat
-  }
-  
-  init_guess <- c(branch_mode$Beta_MLE)
-  
-  for (i in seq_along(psi_grid_right)) {
-    
-    psi <- psi_grid_right[i]
-    
-    Beta_hat_con_fn <- function(Beta) con_fn_template(Beta, psi)
-    
-    Beta_hat <- get_Beta_hat(Beta_hat_con_fn, init_guess)
-    
-    log_L_tilde_vec_right[i] <- log_likelihood_fn(Beta_hat)
-    
-    init_guess <- Beta_hat
-  }
-  
-  log_L_tilde_vec <- c(rev(log_L_tilde_vec_left), log_L_tilde_vec_right)
-  
-  data.frame(psi = psi_grid, Integrated = log_L_tilde_vec)
+  out <- out[order(out$psi), , drop = FALSE]
+  rownames(out) <- NULL
+  out
 }
 
 get_log_L_bar <- function(IL_branches) {
@@ -284,19 +361,24 @@ get_log_L_bar <- function(IL_branches) {
               branches_matrix = branches_matrix))
 }
 
-get_integrated_LL <- function(X_design,
-                              Y_design,
-                              X_h_design,
-                              Jm1,
-                              p,
-                              n,
-                              psi_grid,
-                              psi_hat,
-                              threshold,
-                              init_guess_sd,
-                              num_workers,
-                              chunk_size) {
+get_integrated_LL <- function(config, X_design, model_df) {
   
+  invisible(list2env(config$model_specs, environment()))
+  invisible(list2env(config$optimization_specs$IL, environment()))
+  
+  X1_levels <- config$X1_levels
+  formula <- as.formula(formula)
+  ml_model <- fit_multinomial_logistic_model(model_df, formula)
+  Y_design <- get_Y_design(model_df)
+  Beta_MLE <- get_Beta_MLE(ml_model)
+  threshold <- get_threshold(Beta_MLE, X_design, Y_design, threshold_offset)
+  Jm1 <- J - 1
+  h <- get_X1_level_of_interest(X1_levels)
+  X_h_design <- get_X_h_design(X_design, X1_levels)
+  psi_hat <- get_psi_hat_from_model(ml_model, X1_levels)
+  n_h <- nrow(X_h_design)
+  psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, num_std_errors, J, n_h)
+  psi_grid <- get_psi_grid(psi_endpoints, step_size, J)
   num_branches <- num_workers * chunk_size
   
   log_likelihood_fn <- function(Beta) log_likelihood_rcpp(Beta, X_design, Y_design, Jm1, p, n)
@@ -334,6 +416,8 @@ get_integrated_LL <- function(X_design,
     IL_branch <- compute_IL_branch(
       branch_mode = branch_params$branch_mode,
       psi_grid = psi_grid,
+      fine_step_size = fine_step_size,
+      fine_window = fine_window,
       log_likelihood_fn = log_likelihood_fn,
       get_Beta_hat = get_Beta_hat,
       con_fn_template = con_fn_template
@@ -358,6 +442,8 @@ get_integrated_LL <- function(X_design,
 
 compute_profile_branch <- function(direction,
                                    step_size,
+                                   fine_step_size,
+                                   fine_window,
                                    psi_hat,
                                    Beta_MLE,
                                    PLL_max,
@@ -366,54 +452,70 @@ compute_profile_branch <- function(direction,
                                    get_Beta_hat,
                                    con_fn_template) {
   
-  step <- if (direction == "left") -step_size else step_size
-  psi <- if (direction == "left")
-    floor(psi_hat / step_size) * step_size
-  else
-    ceiling(psi_hat / step_size) * step_size
-  
-  log_L_p <- PLL_max
-  init_guess <- Beta_MLE
-  
   psi_vals <- list()
-  log_L_p_vec <- list()
+  log_L_p_vals <- list()
+  init_guess <- Beta_MLE
+  log_L_p <- PLL_max
+  
+  # Compute step anchor point and direction sign (determines the step direction based on branch side)
+  if (direction == "left") {
+    step_anchor <- floor(psi_hat / step_size) * step_size
+    direction_sign <- -1
+  } else {
+    step_anchor <- ceiling(psi_hat / step_size) * step_size
+    direction_sign <- 1
+  }
+  
+  psi <- psi_hat + direction_sign * step_size
   
   while (log_L_p > stopping_val) {
     
+    # Compute constrained MLE
     Beta_hat_con_fn <- function(Beta) con_fn_template(Beta, psi)
     Beta_hat <- get_Beta_hat(Beta_hat_con_fn, init_guess)
+    log_L_p <- log_likelihood_fn(Beta_hat)
     init_guess <- Beta_hat
     
-    log_L_p <- log_likelihood_fn(Beta_hat)
-    
+    # Record value
     psi_vals[[length(psi_vals) + 1]] <- psi
-    log_L_p_vec[[length(log_L_p_vec) + 1]] <- log_L_p
+    log_L_p_vals[[length(log_L_p_vals) + 1]] <- log_L_p
     
-    psi <- psi + step
+    # Adjust step size dynamically
+    dist_from_peak <- abs(psi - psi_hat)
+    use_fine_step <- dist_from_peak < fine_window || 
+      (direction == "left" && psi > step_anchor) ||
+      (direction == "right" && psi < step_anchor)
+    current_step <- if (use_fine_step) fine_step_size else step_size
+    psi <- psi + direction_sign * current_step
   }
   
   psi_vals <- unlist(psi_vals)
-  log_L_p_vec <- unlist(log_L_p_vec)
+  log_L_p_vals <- unlist(log_L_p_vals)
   
+  # Append peak for left branch
   if (direction == "left") {
     psi_vals <- c(rev(psi_vals), psi_hat)
-    log_L_p_vec <- c(rev(log_L_p_vec), PLL_max)
+    log_L_p_vals <- c(rev(log_L_p_vals), PLL_max)
   }
   
-  list(psi = psi_vals, Profile = log_L_p_vec)
+  list(psi = psi_vals, Profile = log_L_p_vals)
 }
 
-get_profile_LL <- function(step_size, 
-                           alpha,
-                           psi_hat,
-                           Beta_MLE, 
-                           X_design,
-                           Y_design,
-                           X_h_design, 
-                           Jm1,
-                           p,
-                           n) {
+get_profile_LL <- function(config, X_design, model_df) {
   
+  invisible(list2env(config$model_specs, environment()))
+  invisible(list2env(config$optimization_specs$PL, environment()))
+  
+  X1_levels <- config$X1_levels
+  formula <- as.formula(formula)
+  ml_model <- fit_multinomial_logistic_model(model_df, formula)
+  Beta_MLE <- get_Beta_MLE(ml_model)
+  Jm1 <- J - 1
+  h <- get_X1_level_of_interest(X1_levels)
+  X_h_design <- get_X_h_design(X_design, X1_levels)
+  psi_hat <- get_psi_hat_from_model(ml_model, X1_levels)
+  Y_design <- get_Y_design(model_df)
+
   log_likelihood_fn <- function(Beta) log_likelihood_rcpp(Beta, X_design, Y_design, Jm1, p, n)
   Beta_hat_obj_fn <- function(Beta) Beta_hat_obj_fn_rcpp(Beta, X_design, Beta_MLE, Jm1, p, n)
   get_Beta_hat <- function(con_fn, init_guess) get_Beta_hat_template(Beta_hat_obj_fn, con_fn, init_guess)
@@ -439,6 +541,8 @@ get_profile_LL <- function(step_size,
     compute_profile_branch(
       direction = dir,
       step_size = step_size,
+      fine_step_size = fine_step_size,
+      fine_window = fine_window,
       psi_hat = psi_hat,
       Beta_MLE = Beta_MLE,
       PLL_max = PLL_max,
@@ -455,70 +559,3 @@ get_profile_LL <- function(step_size,
   
   return(profile_LL)
 }
-
-# Experiment --------------------------------------------------------------
-
-run_experiment <- function(config, X_design, model_df) {
-  
-  list2env(config$model_specs, environment())
-  list2env(config$optimization_specs, environment())
-  
-  X1_levels <- config$X1_levels
-  formula <- as.formula(formula)
-  ml_model <- fit_multinomial_logistic_model(model_df, formula)
-  Y_design <- get_Y_design(model_df)
-  Beta_MLE <- get_Beta_MLE(ml_model)
-  threshold <- get_threshold(Beta_MLE, X_design, Y_design, IL$threshold_offset)
-  h <- get_X1_level_of_interest(X1_levels)
-  X_h_design <- get_X_h_design(X_design, X1_levels)
-  psi_hat <- get_psi_hat_from_model(ml_model, X1_levels)
-  n_h <- nrow(X_h_design)
-  psi_endpoints <- get_psi_endpoints(psi_hat, Beta_MLE, X_h_design, IL$num_std_errors, J, n_h)
-  psi_grid <- get_psi_grid(psi_endpoints, IL$step_size, J)
-  
-  # ---- Run integrated likelihood ----
-  integrated_LL <- get_integrated_LL(
-    X_design = X_design, 
-    Y_design = Y_design, 
-    X_h_design = X_h_design, 
-    Jm1 = J - 1, 
-    p = p, 
-    n = n, 
-    psi_grid = psi_grid, 
-    psi_hat = psi_hat, 
-    threshold = threshold, 
-    init_guess_sd = IL$init_guess_sd, 
-    num_workers = IL$num_workers, 
-    chunk_size = IL$chunk_size
-  )
-  
-  IL_plot <- get_LL_plot(integrated_LL$log_L_bar_df)
-  IL_branches_plot <- get_branches_plot(integrated_LL$branches_matrix)
-  
-  # ---- Run profile likelihood ----
-  
-  profile_LL <- get_profile_LL(
-    step_size = PL$step_size, 
-    alpha = PL$alpha,
-    psi_hat = psi_hat,
-    Beta_MLE = Beta_MLE, 
-    X_design = X_design,
-    Y_design = Y_design,
-    X_h_design = X_h_design, 
-    Jm1 = Jm1,
-    p = p,
-    n = n)
-  
-  PL_plot <- get_LL_plot(profile_LL)
-  
-  # ---- Return results ----
-  list(
-    integrated_LL = integrated_LL,
-    profile_LL = profile_LL,
-    plots = list(IL_plot = IL_plot,
-                 IL_branches_plot = IL_branches_plot,
-                 PL_plot = PL_plot)
-  )
-}
-
-
