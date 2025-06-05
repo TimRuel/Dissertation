@@ -25,9 +25,9 @@ save_list_plots <- function(plots_list, dir_path) {
     
     ggsave(filename = here(dir_path, paste0(plot, ".png")), 
            plot = plots_list[[plot]],
-           width = 8,
-           height = 6,
-           dpi = 300,           
+           width = 20,
+           height = 9,
+           dpi = "retina",           
            units = "in")
   }
 }

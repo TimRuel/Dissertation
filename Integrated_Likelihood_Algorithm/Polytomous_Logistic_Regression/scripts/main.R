@@ -95,12 +95,15 @@ write_yaml(config_snapshot, config_snapshot_path)
 # Step 8: Run experiment
 message("Running experiment...")
 start_time <- Sys.time()
-
 run_script("scripts/run_experiment.R", run_dir)
-
-# Step 9: Metadata
 end_time <- Sys.time()
-elapsed_time <- round(as.numeric(difftime(end_time, start_time, units = "secs")), 2)
+
+# Step 9: Compare results
+message("Comparing results...")
+run_script("scripts/compare_results.R", run_dir)
+
+# Step 10: Metadata
+elapsed_time <- round(as.numeric(difftime(end_time, start_time, units = "mins")), 2)
 
 git_hash <- tryCatch(
   system2("git", c("rev-parse", "HEAD"), stdout = TRUE),
@@ -118,7 +121,7 @@ metadata <- list(
   git_commit      = git_hash
 )
 
-# Step 10: Save metadata
+# Step 11: Save metadata
 log_dir <- here(run_dir, "logs")
 save_run_metadata(metadata, log_dir)
 message("✓ Run completed")

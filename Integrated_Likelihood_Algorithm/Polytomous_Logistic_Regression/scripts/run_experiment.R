@@ -1,3 +1,5 @@
+# scripts/run_experiment.R
+
 #!/usr/bin/env Rscript
 
 suppressPackageStartupMessages({
@@ -31,7 +33,6 @@ X_design <- readRDS(here(data_dir, "X_design.rds"))
 model_df <- readRDS(here(data_dir, "model_df.rds"))
 
 # ---- Run integrated likelihood ----
-
 num_workers <- config$optimization_specs$IL$num_workers
 
 if (.Platform$OS.type == "unix") {
@@ -48,7 +49,6 @@ IL_plot <- get_LL_plot(integrated_LL$log_L_bar_df)
 IL_branches_plot <- get_branches_plot(integrated_LL$branches_matrix)
 
 # ---- Run profile likelihood ----
-
 if (.Platform$OS.type == "unix") {
   plan(multicore, workers = I(2))
 } else {

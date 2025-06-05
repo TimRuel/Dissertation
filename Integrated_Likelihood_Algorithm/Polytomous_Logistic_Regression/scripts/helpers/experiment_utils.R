@@ -466,7 +466,7 @@ compute_profile_branch <- function(direction,
     direction_sign <- 1
   }
   
-  psi <- psi_hat + direction_sign * step_size
+  psi <- psi_hat + direction_sign * fine_step_size
   
   while (log_L_p > stopping_val) {
     
