@@ -45,8 +45,9 @@ integrated_LL <- get_integrated_LL(config, X_design, model_df)
 
 plan(sequential)
 
-IL_plot <- get_LL_plot(integrated_LL$log_L_bar_df)
-IL_branches_plot <- get_branches_plot(integrated_LL$branches_matrix)
+results_dir <- here(run_dir, "results")
+dir_create(results_dir)
+saveRDS(integrated_LL, file = here(results_dir, "integrated_LL.rds"))
 
 # ---- Run profile likelihood ----
 if (.Platform$OS.type == "unix") {
@@ -59,26 +60,8 @@ profile_LL <- get_profile_LL(config, X_design, model_df)
 
 plan(sequential)
 
-PL_plot <- get_LL_plot(profile_LL)
+saveRDS(profile_LL, file = here(results_dir, "profile_LL.rds"))
 
-# ---- Store Results ----
-results <- list(
-  integrated_LL = integrated_LL,
-  profile_LL = profile_LL,
-  plots = list(IL_plot = IL_plot,
-               IL_branches_plot = IL_branches_plot,
-               PL_plot = PL_plot)
-)
-
-# ---- Save Results ----
-results_dir <- here(run_dir, "results")
-dir_create(results_dir)
-saveRDS(results$integrated_LL, file = here(results_dir, "integrated_LL.rds"))
-saveRDS(results$profile_LL, file = here(results_dir, "profile_LL.rds"))
+report_objects <- get_report_objects(run_dir)
+save_list_objects(report_objects, results_dir)
 message("✓ Experiment results saved to /", sub(".*(/?experiments/.*)", "\\1", results_dir))
-
-plots_dir <- here(run_dir, "plots")
-save_list_plots(results$plots, plots_dir)
-message("✓ Log-likelihood plots saved to /", sub(".*(/?experiments/.*)", "\\1", plots_dir))
-
-

@@ -101,6 +101,9 @@ get_psi_grid <- function(psi_endpoints, step_size, J) {
   return(psi_grid)
 }
 
+safe_max <- function(x, fallback) if (length(x) == 0) fallback else max(x)
+safe_min <- function(x, fallback) if (length(x) == 0) fallback else min(x)
+
 get_fine_psi_grid <- function(psi_grid,
                               psi_mode,
                               fine_step_size,
@@ -110,8 +113,8 @@ get_fine_psi_grid <- function(psi_grid,
   psi_grid <- sort(unique(psi_grid))
   
   # Determine left and right limits using nearest psi_grid values
-  lower_bound <- max(psi_grid[psi_grid <= (psi_mode - fine_window)])
-  upper_bound <- min(psi_grid[psi_grid >= (psi_mode + fine_window)])
+  lower_bound <- safe_max(psi_grid[psi_grid <= (psi_mode - fine_window)], min(psi_grid))
+  upper_bound <- safe_min(psi_grid[psi_grid >= (psi_mode + fine_window)], max(psi_grid))
   
   # Build fine psi values from lower_bound to upper_bound
   fine_grid <- seq(from = lower_bound,
@@ -522,6 +525,7 @@ get_profile_LL <- function(config, X_design, model_df) {
   con_fn_template <- function(Beta, psi) Beta_hat_con_fn_rcpp(Beta, X_h_design, psi, Jm1, p)
   
   PLL_max <- log_likelihood_fn(Beta_MLE)
+  alpha <- min(alpha_levels)
   crit <- qchisq(1 - alpha, df = 1) / 2
   stopping_val <- PLL_max - crit
   
@@ -559,3 +563,54 @@ get_profile_LL <- function(config, X_design, model_df) {
   
   return(profile_LL)
 }
+
+get_report_objects <- function(run_dir) {
+  
+  data_dir <- here(run_dir, "data")
+  results_dir <- here(run_dir, "results")
+  config_path <- here(run_dir, "config_snapshot.yml")
+  config <- read_yaml(config_path)
+  experiment_id <- config$experiment$id
+  true_params_dir <- proj_path("experiments", experiment_id, "true_params")
+  
+  integrated_LL <- readRDS(here(results_dir, "integrated_LL.rds"))
+  profile_LL <- readRDS(here(results_dir, "profile_LL.rds"))
+  
+  X1_levels <- config$X1_levels
+  
+  H_0 <- readRDS(here(true_params_dir, "H_0.rds"))
+  h <- get_X1_level_of_interest(X1_levels)
+  psi_0 <- H_0 |>
+    filter(X1 == h) |>
+    pull(entropy)
+  
+  LL_df <- integrated_LL$log_L_bar_df |>
+    merge(profile_LL, all = TRUE)
+  
+  LL_df_long <- get_LL_df_long(LL_df)
+  
+  spline_models <- get_spline_models(LL_df_long)
+  
+  MLE_data <- get_MLE_data(spline_models)
+  
+  pseudolikelihoods <- get_pseudolikelihoods(spline_models, MLE_data)
+  
+  alpha_levels <- config$optimization_specs$PL$alpha_levels
+  
+  J <- config$model_specs$J
+  
+  conf_ints <- get_confidence_intervals(
+    pseudolikelihoods = pseudolikelihoods,
+    LL_df_long = LL_df_long,
+    MLE_data = MLE_data,
+    alpha_levels = alpha_levels,
+    J = J
+  )
+  
+  return(list(MLE_data = MLE_data,
+              conf_ints = conf_ints))
+}
+
+
+
+

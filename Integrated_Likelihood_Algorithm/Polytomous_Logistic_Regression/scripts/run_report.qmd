@@ -1,0 +1,126 @@
+---
+title: "Run Report"
+format: 
+  html:
+    embed-resources: true
+params:
+  run_dir: null
+---
+
+```{r setup, include=FALSE}
+# Ensure the run directory is provided
+if (is.null(params$run_dir)) {
+  stop("You must provide a path to the run directory via `params$run_dir`.")
+}
+
+library(tidyverse)
+library(ggrepel)
+library(kableExtra)
+library(zeallot)
+library(here)
+library(yaml)
+
+# Set up project path helpers
+proj_subdir <- here("Integrated_Likelihood_Algorithm", "Polytomous_Logistic_Regression")
+proj_path <- function(...) here(proj_subdir, ...)
+
+# Load helper functions (e.g., plotting utilities)
+miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
+
+# Define key paths
+run_dir <- params$run_dir
+data_dir <- here(run_dir, "data")
+results_dir <- here(run_dir, "results")
+config_path <- here(run_dir, "config_snapshot.yml")
+config <- read_yaml(config_path)
+experiment_id <- config$experiment$id
+true_params_dir <- proj_path("experiments", experiment_id, "true_params")
+```
+
+```{r echo=FALSE, results="asis"}
+sim_id <- config$experiment$sim_id
+run_id <- config$experiment$run_id
+
+if (!is.null(sim_id)) {
+  subtitle <- paste("Experiment", experiment_id,
+                    "— Simulation", sim_id,
+                    "— Iteration", run_id)
+} else {
+  subtitle <- paste("Experiment", experiment_id,
+                    "— Individual Run", run_id)
+}
+
+header <- paste("###", subtitle)
+cat(header)
+```
+
+---
+
+```{r include=FALSE}
+X1_levels <- config$X1_levels
+Y_probs <- readRDS(here(data_dir, "Y_probs.rds"))
+model_df <- readRDS(here(data_dir, "model_df.rds"))
+observed_plots <- get_observed_plots(X1_levels, Y_probs, model_df)
+theoretical_entropy_plot <- readRDS(here(true_params_dir, "theoretical_entropy_plot.rds"))
+```
+
+```{r include=FALSE}
+integrated_LL <- readRDS(here(results_dir, "integrated_LL.rds"))
+profile_LL <- readRDS(here(results_dir, "profile_LL.rds"))
+IL_plot <- get_LL_plot(integrated_LL$log_L_bar_df)
+IL_branches_plot <- get_branches_plot(integrated_LL$branches_matrix)
+PL_plot <- get_LL_plot(profile_LL)
+```
+
+```{r include=FALSE}
+H_0 <- readRDS(here(true_params_dir, "H_0.rds"))
+h <- get_X1_level_of_interest(X1_levels)
+psi_0 <- H_0 |>
+  filter(X1 == h) |>
+  pull(entropy)
+
+LL_df <- integrated_LL$log_L_bar_df |>
+  merge(profile_LL, all = TRUE)
+
+LL_df_long <- get_LL_df_long(LL_df)
+
+alpha_levels <- config$optimization_specs$PL$alpha_levels
+
+MLE_data <- readRDS(here(results_dir, "MLE_data.rds"))
+conf_ints <- readRDS(here(results_dir, "conf_ints.rds"))
+
+caption <- make_kable_caption(run_dir)
+
+LL_comparison_tables <- render_LL_comparison_tables(
+  MLE_data = MLE_data,
+  conf_ints = conf_ints,
+  psi_0 = psi_0
+  )
+
+spline_models <- get_spline_models(LL_df_long)
+
+pseudolikelihoods <- get_pseudolikelihoods(spline_models, MLE_data)
+
+stat_fns <- get_stat_fns(pseudolikelihoods, LL_df)
+
+LL_comparison_plot <- get_LL_comparison_plot(
+  stat_fns = stat_fns,
+  LL_df_long = LL_df_long,
+  MLE_data = MLE_data,
+  alpha_levels = alpha_levels,
+  psi_0 = psi_0
+  )
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, dpi=300}
+LL_comparison_plot
+IL_plot
+PL_plot
+IL_branches_plot
+LL_comparison_tables$MLEs
+LL_comparison_tables$CIs
+observed_plots$data_plot
+observed_plots$Y_probs_plot
+observed_plots$observed_entropy_plot
+theoretical_entropy_plot
+```

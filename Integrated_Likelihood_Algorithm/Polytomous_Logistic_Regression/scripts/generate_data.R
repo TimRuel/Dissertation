@@ -43,10 +43,8 @@ run_dir <- if (is.null(sim_id)) {
   proj_path("experiments", experiment_id, "simulations", sim_id, run_id)
 }
 data_dir <- here(run_dir, "data")
-plots_dir <- here(run_dir, "plots")
+dir_create(data_dir)
 config_snapshot_path <- here(run_dir, "config_snapshot.yml")
-
-dir_create(c(data_dir, plots_dir))
 
 # --- Step 1: Load Beta_0 ---
 Beta_0_path <- here(true_params_dir, "Beta_0.rds")
@@ -57,22 +55,18 @@ if (file_exists(Beta_0_path)) {
   stop("[ERROR] Beta_0.rds not found in /", sub(".*(/?experiments/.*)", "\\1", true_params_dir))
 }
 
-# --- Step 2: Generate data and plots (always) ---
-message("[INFO] Generating new data and plots for run: ", run_id)
+# --- Step 2: Generate data (always) ---
+message("[INFO] Generating new data for run: ", run_id)
 seed <- get_seed_for_run(experiment_config$optimization_specs$seed, run_id)
 set.seed(seed)
 mm_formula <- substring(model_specs$formula, 2)
 data <- get_data(X1_levels, mm_formula, Beta_0)
-plots <- get_observed_plots(X1_levels, data$Y_probs, data$model_df)
-
 save_list_objects(data, data_dir)
-save_list_plots(plots, plots_dir)
 
 # --- Step 3: Write resolved config for the run ---
 config_snapshot <- experiment_config
-config_snapshot$optimization_specs <- list(seed = seed,
-                                           sim_id = sim_id,
-                                           run_id = run_id)
+config_snapshot$experiment$sim_id <- sim_id
+config_snapshot$experiment$run_id <- run_id
 
 write_yaml(config_snapshot, config_snapshot_path)
 message("[INFO] Saved config snapshot to /", sub(".*(/?experiments/.*)", "\\1", run_dir))

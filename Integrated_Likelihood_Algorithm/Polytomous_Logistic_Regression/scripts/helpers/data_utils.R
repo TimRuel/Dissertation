@@ -136,16 +136,21 @@ get_seed_for_run <- function(base_seed, run_id) {
 
 get_data <- function(X1_levels, formula, Beta_0) {
   
-  X1 <- get_X1(X1_levels)
-  
-  X2 <- get_X2(X1_levels)
-  
-  X_design <- get_X_design(formula, X1, X2)
-  
-  Y_probs <- get_Y_probs(X_design, Beta_0)
-  
-  Y <- get_Y(Y_probs)
-  
+  while (TRUE) {
+    
+    X1 <- get_X1(X1_levels)
+    
+    X2 <- get_X2(X1_levels)
+    
+    X_design <- get_X_design(formula, X1, X2)
+    
+    Y_probs <- get_Y_probs(X_design, Beta_0)
+    
+    Y <- get_Y(Y_probs)
+    
+    if (all(table(Y) > 0)) break
+  }
+
   model_df <- data.frame(X1 = X1,
                          X2 = X2,
                          Y)

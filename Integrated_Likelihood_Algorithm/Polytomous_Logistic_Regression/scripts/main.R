@@ -6,12 +6,15 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(doFuture)
   library(here)
+  library(quarto)
   library(yaml)
   library(fs)
   library(Rcpp)
   library(nloptr)
   library(PolytomousUtils)
 })
+
+i_am("Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/main.R")
 
 proj_subdir <- here("Integrated_Likelihood_Algorithm", "Polytomous_Logistic_Regression")
 proj_path <- function(...) here(proj_subdir, ...)
@@ -89,7 +92,6 @@ config_snapshot$optimization_specs$IL$max_cores <- core_info$max_cores
 config_snapshot$optimization_specs$IL$num_workers <- core_info$num_workers
 
 # Step 7: Save config snapshot
-config_snapshot_path <- here(run_dir, "config_snapshot.yml")
 write_yaml(config_snapshot, config_snapshot_path)
 
 # Step 8: Run experiment
@@ -98,11 +100,7 @@ start_time <- Sys.time()
 run_script("scripts/run_experiment.R", run_dir)
 end_time <- Sys.time()
 
-# Step 9: Compare results
-message("Comparing results...")
-run_script("scripts/compare_results.R", run_dir)
-
-# Step 10: Metadata
+# Step 9: Metadata
 elapsed_time <- round(as.numeric(difftime(end_time, start_time, units = "mins")), 2)
 
 git_hash <- tryCatch(
@@ -121,7 +119,7 @@ metadata <- list(
   git_commit      = git_hash
 )
 
-# Step 11: Save metadata
+# Step 10: Save metadata
 log_dir <- here(run_dir, "logs")
 save_run_metadata(metadata, log_dir)
 message("✓ Run completed")
