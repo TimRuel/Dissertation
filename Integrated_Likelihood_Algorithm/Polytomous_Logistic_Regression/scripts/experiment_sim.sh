@@ -9,7 +9,7 @@
 #SBATCH --nodes=1
 #SBATCH --mem-per-cpu=500M
 #SBATCH --ntasks-per-node=64
-#SBATCH --array=0-4
+#SBATCH --array=0-999
 
 # Validate CLI Arguments
 if [[ $# -lt 2 ]]; then
@@ -54,6 +54,7 @@ module load fftw/3.3.10-gcc-12.3.0
 module load gdal/3.7.0-gcc-12.3.0
 module load nlopt/2.7.1-gcc-12.3.0
 module load git/2.37.2-gcc-10.4.0
+module load chrome/114.0.5735.90
 
 echo "🔁 Running Iteration $RUN_NUM of Simulation $SIM_NUM in Experiment $EXPERIMENT_VERSION with $REQUESTED_CORES cores..."
 

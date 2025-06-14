@@ -1,5 +1,31 @@
 ---
-title: "simulation_report"
-format: html
+title: "Simulation Report"
+format: 
+  html:
+    embed-resources: true
+params:
+  sim_dir: null
 ---
 
+```{r setup, include=FALSE}
+# Ensure the sim directory is provided
+if (is.null(params$sim_dir)) {
+  stop("You must provide a path to the sim directory via `params$sim_dir`.")
+}
+
+library(tidyverse)
+library(ggrepel)
+library(kableExtra)
+library(zeallot)
+library(here)
+library(yaml)
+
+# Set up project path helpers
+proj_subdir <- here("Integrated_Likelihood_Algorithm", "Polytomous_Logistic_Regression")
+proj_path <- function(...) here(proj_subdir, ...)
+
+# Load helper functions (e.g., plotting utilities)
+miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
+
+# Define key paths
+```
