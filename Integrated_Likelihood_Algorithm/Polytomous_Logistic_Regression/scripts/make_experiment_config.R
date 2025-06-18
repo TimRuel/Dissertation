@@ -20,5 +20,5 @@ dest_path <- proj_path("config", "exps", paste0(experiment_id, ".yml"))
 experiment_config <- read_yaml(template_path)
 experiment_config$experiment$id <- experiment_id
 
-write_yaml(experiment_config, dest_path)
+write_strict_yaml(experiment_config, dest_path)
 message("[INFO] Created and saved config to /", sub(".*(/?config/.*)", "\\1", dest_path))

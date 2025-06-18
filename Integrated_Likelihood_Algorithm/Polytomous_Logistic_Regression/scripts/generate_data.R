@@ -68,5 +68,5 @@ config_snapshot <- experiment_config
 config_snapshot$experiment$sim_id <- sim_id
 config_snapshot$experiment$run_id <- run_id
 
-write_yaml(config_snapshot, config_snapshot_path)
+write_strict_yaml(config_snapshot, config_snapshot_path)
 message("[INFO] Saved config snapshot to /", sub(".*(/?experiments/.*)", "\\1", run_dir))

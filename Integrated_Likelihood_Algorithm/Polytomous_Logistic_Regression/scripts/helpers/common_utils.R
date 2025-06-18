@@ -31,3 +31,20 @@ save_list_plots <- function(plots_list, dir_path) {
            units = "in")
   }
 }
+
+write_strict_yaml <- function(object, file) {
+  yaml_str <- yaml::as.yaml(
+    object,
+    handlers = list(
+      logical = function(x) {
+        if (x) {
+          structure("true", class = "verbatim")
+        } else {
+          structure("false", class = "verbatim")
+        }
+      }
+    )
+  )
+  writeLines(yaml_str, file)
+}
+

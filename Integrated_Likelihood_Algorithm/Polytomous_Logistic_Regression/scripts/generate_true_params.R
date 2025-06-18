@@ -30,13 +30,11 @@ set.seed(experiment_config$optimization_specs$seed)
 experiment_parameters <- get_experiment_parameters(X1_levels, model_specs)
 true_params_dir <- proj_path("experiments", experiment_id, "true_params")
 dir_create(true_params_dir)
-theoretical_entropy_plot <- get_theoretical_entropy_plot(X1_levels, experiment_parameters$pY_0)
 save_list_objects(experiment_parameters$true_params, true_params_dir)
-saveRDS(theoretical_entropy_plot, here(true_params_dir, "theoretical_entropy_plot.rds"))
 message("[INFO] Saved true parameters to ", sub(".*(/?experiments/.*)", "\\1", true_params_dir))
 
 # Update config file with additional model specs
 experiment_config$model_specs <- experiment_parameters$model_specs
-write_yaml(experiment_config, config_path)
+write_strict_yaml(experiment_config, config_path)
 message("[INFO] Updated experiment config with additional model specs.")
 

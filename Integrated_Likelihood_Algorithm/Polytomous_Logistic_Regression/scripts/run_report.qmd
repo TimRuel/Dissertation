@@ -4,15 +4,13 @@ format:
   html:
     embed-resources: true
 params:
-  run_dir: null
+  experiment: null
+  X1_levels: null
+  model_specs: null
+  optimization_specs: null
 ---
 
 ```{r setup, include=FALSE}
-# Ensure the run directory is provided
-if (is.null(params$run_dir)) {
-  stop("You must provide a path to the run directory via `params$run_dir`.")
-}
-
 library(tidyverse)
 library(ggrepel)
 library(kableExtra)
@@ -27,28 +25,23 @@ proj_path <- function(...) here(proj_subdir, ...)
 # Load helper functions (e.g., plotting utilities)
 miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
 
-# Define key paths
-run_dir <- params$run_dir
+list2env(params, envir = environment())
+experiment_id <- experiment$id
+sim_id <- experiment$sim_id
+run_id <- experiment$run_id
+base_path <- if (is.null(sim_id)) "individual_runs" else file.path("simulations", sim_id)
+run_dir <- proj_path("experiments", experiment_id, base_path, run_id)
 data_dir <- here(run_dir, "data")
 results_dir <- here(run_dir, "results")
-config_path <- here(run_dir, "config_snapshot.yml")
-config <- read_yaml(config_path)
-experiment_id <- config$experiment$id
 true_params_dir <- proj_path("experiments", experiment_id, "true_params")
 ```
 
 ```{r echo=FALSE, results="asis"}
-sim_id <- config$experiment$sim_id
-run_id <- config$experiment$run_id
-
-if (!is.null(sim_id)) {
-  subtitle <- paste("Experiment", experiment_id,
-                    "— Simulation", sim_id,
-                    "— Iteration", run_id)
-} else {
-  subtitle <- paste("Experiment", experiment_id,
-                    "— Individual Run", run_id)
-}
+subtitle <- paste(
+  "Experiment", experiment_id,
+  if (!is.null(sim_id)) paste("— Simulation", sim_id, "— Iteration", run_id)
+  else paste("— Individual Run", run_id)
+)
 
 header <- paste("###", subtitle)
 cat(header)
@@ -57,11 +50,31 @@ cat(header)
 ---
 
 ```{r include=FALSE}
-X1_levels <- config$X1_levels
 Y_probs <- readRDS(here(data_dir, "Y_probs.rds"))
 model_df <- readRDS(here(data_dir, "model_df.rds"))
 observed_plots <- get_observed_plots(X1_levels, Y_probs, model_df)
-theoretical_entropy_plot <- readRDS(here(true_params_dir, "theoretical_entropy_plot.rds"))
+```
+
+```{r include=FALSE}
+J <- model_specs$J
+entropy_range_specs <- model_specs$entropy_range_specs
+entropy_ranges <- X1_levels |>
+  names() |>
+  get_entropy_ranges(J, entropy_range_specs)
+X1_levels_temp <- X1_levels |>
+  imap(\(level, h) {
+    level$X2$entropy_range <- entropy_ranges[[h]]
+    level$m <- 1e5
+    level
+  })
+X1 <- get_X1(X1_levels_temp)
+X2 <- get_X2(X1_levels_temp)
+formula <- model_specs$formula
+mm_formula <- substring(formula, 2)
+X_design <- get_X_design(mm_formula, X1, X2)
+Beta_0 <- readRDS(here(true_params_dir, "Beta_0.rds"))
+pY_0 <- get_Y_probs(X_design, Beta_0)
+theoretical_entropy_plot <- get_theoretical_entropy_plot(X1_levels_temp, pY_0)
 ```
 
 ```{r include=FALSE}
@@ -84,7 +97,7 @@ LL_df <- integrated_LL$log_L_bar_df |>
 
 LL_df_long <- get_LL_df_long(LL_df)
 
-alpha_levels <- config$optimization_specs$PL$alpha_levels
+alpha_levels <- optimization_specs$PL$alpha_levels
 
 MLE_data <- readRDS(here(results_dir, "MLE_data.rds"))
 conf_ints <- readRDS(here(results_dir, "conf_ints.rds"))

@@ -18,7 +18,7 @@ get_spline_models <- function(LL_df_long) {
     set_names(levels(LL_df_long$pseudolikelihood))
 }
 
-get_MLE_data <- function(spline_models) {
+get_MLE_data <- function(spline_models, LL_df_long) {
   
   spline_models |>
     imap(
@@ -314,4 +314,42 @@ get_LL_comparison_plot <- function(stat_fns,
           legend.position.inside = c(1, 1),
           legend.justification = c(1, 1))
 }
+
+summarize_confidence_intervals <- function(ci_list, true_value) {
+
+  combined <- bind_rows(ci_list, .id = "source_id")
+  
+  # Add a coverage indicator
+  combined <- combined |>
+    mutate(covers_true = lower <= true_value & upper >= true_value)
+  
+  # Group and summarize
+  summary_df <- combined |>
+    group_by(pseudolikelihood, confidence, alpha) |>
+    summarise(
+      length = mean(upper - lower),
+      coverage_rate = mean(covers_true),
+      .groups = "drop"
+    )
+  
+  return(summary_df)
+}
+
+summarize_mle_performance <- function(mle_list, true_value) {
+
+  combined <- bind_rows(mle_list, .id = "source_id")
+  
+  summary_df <- combined |>
+    group_by(Source) |>
+    summarise(
+      bias = mean(MLE - true_value),
+      sd = sqrt(mean((MLE - mean(MLE))^2)),
+      rmse = sqrt(mean((MLE - true_value)^2)),
+      .groups = "drop"
+    )
+  
+  return(summary_df)
+}
+
+
 

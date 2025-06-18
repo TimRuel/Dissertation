@@ -591,7 +591,7 @@ get_report_objects <- function(run_dir) {
   
   spline_models <- get_spline_models(LL_df_long)
   
-  MLE_data <- get_MLE_data(spline_models)
+  MLE_data <- get_MLE_data(spline_models, LL_df_long)
   
   pseudolikelihoods <- get_pseudolikelihoods(spline_models, MLE_data)
   
