@@ -1,0 +1,1704 @@
+📌 Logging to experiments/exp_v1.0.0/simulations/sim_01/iter_0676/logs/slurm_log.out
+🔁 Running Iteration 676 of Simulation 1 in Experiment v1.0.0 with 64 cores...
+here() starts at /gpfs/home/tbr0780/Dissertation
+[INFO] True parameters already exist — skipping generation.
+[INFO] Loading Beta_0 from /experiments/exp_v1.0.0/true_params
+[INFO] Generating new data for run: iter_0676
+[INFO] Saved config snapshot to /experiments/exp_v1.0.0/simulations/sim_01/iter_0676
+Running experiment...
+✓ Experiment results saved to /experiments/exp_v1.0.0/simulations/sim_01/iter_0676/results
+✓ Run completed
+===== FINAL SEFF OUTPUT for Job 5931127 =====
+(Logged at Wed Jun 18 20:31:12 CDT 2025)
+Job ID: 5931127
+Array Job ID: 5858372_675
+Cluster: quest
+User/Group: tbr0780/tbr0780
+State: RUNNING
+Nodes: 1
+Cores per node: 64
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 1-05:42:24 core-walltime
+Job Wall-clock time: 00:27:51
+Memory Utilized: 0.00 MB (estimated maximum)
+Memory Efficiency: 0.00% of 31.25 GB (500.00 MB/core)
+WARNING: Efficiency statistics may be misleading for RUNNING jobs.
+===== FINAL CHECKJOB OUTPUT for Job 5931127 =====
+(Logged at Wed Jun 18 20:31:13 CDT 2025)
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:27:54 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== SACCT OUTPUT for Job 5931127 =====
+(Logged at Wed Jun 18 20:31:17 CDT 2025)
+JobID                     JobName    Elapsed     MaxRSS     ReqMem  AllocCPUS      State 
+------------ -------------------- ---------- ---------- ---------- ---------- ---------- 
+5858372_675        experiment_sim   00:27:56                32000M         64    RUNNING 
+5858372_675+                batch   00:27:56                               64    RUNNING 
+5858372_675+               extern   00:27:56                               64    RUNNING 
+===== SYSTEM MEMORY (free -h) =====
+(Logged at Wed Jun 18 20:31:17 CDT 2025)
+              total        used        free      shared  buff/cache   available
+Mem:          251Gi        22Gi       220Gi       6.7Gi       8.2Gi       217Gi
+Swap:          31Gi       231Mi        31Gi
+===== SYSTEM LOAD (uptime) =====
+(Logged at Wed Jun 18 20:31:18 CDT 2025)
+ 20:31:18 up 86 days,  8:56,  0 users,  load average: 11.55, 43.13, 50.96
+===== SYSTEM PROCESSES (top -b -n 1) =====
+(Logged at Wed Jun 18 20:31:18 CDT 2025)
+top - 20:31:18 up 86 days,  8:56,  0 users,  load average: 11.55, 43.13, 50.96
+Tasks: 707 total,   1 running, 706 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.1 us,  0.2 sy,  0.0 ni, 99.6 id,  0.0 wa,  0.0 hi,  0.1 si,  0.0 st
+MiB Mem : 257574.4 total, 225866.6 free,  23290.8 used,   8416.9 buff/cache
+MiB Swap:  32768.0 total,  32536.8 free,    231.2 used. 223187.0 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+2148754 tbr0780   20   0  271944   5364   3780 R  16.7   0.0   0:00.13 top
+1090764 root       0 -20   50.3g  19.2g 377140 S   5.6   7.7   4001:56 mmfsd
+      1 root      20   0  246808  11568   8632 S   0.0   0.0   9:05.48 systemd
+      2 root      20   0       0      0      0 S   0.0   0.0   0:09.64 kthreadd
+      3 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 rcu_gp
+      4 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 rcu_par+
+      5 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 slub_fl+
+      7 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     11 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 mm_perc+
+     12 root      20   0       0      0      0 S   0.0   0.0   0:00.00 rcu_tas+
+     13 root      20   0       0      0      0 S   0.0   0.0   0:00.00 rcu_tas+
+     14 root      20   0       0      0      0 S   0.0   0.0   1:04.62 ksoftir+
+     15 root      20   0       0      0      0 I   0.0   0.0 113:13.83 rcu_sch+
+     16 root      rt   0       0      0      0 S   0.0   0.0   0:11.18 migrati+
+     17 root      rt   0       0      0      0 S   0.0   0.0   0:01.76 watchdo+
+     18 root      20   0       0      0      0 S   0.0   0.0   0:00.02 cpuhp/0
+     19 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/1
+     20 root      rt   0       0      0      0 S   0.0   0.0   0:07.28 watchdo+
+     21 root      rt   0       0      0      0 S   0.0   0.0   0:08.32 migrati+
+     22 root      20   0       0      0      0 S   0.0   0.0   0:26.00 ksoftir+
+     24 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     25 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/2
+     26 root      rt   0       0      0      0 S   0.0   0.0   0:07.14 watchdo+
+     27 root      rt   0       0      0      0 S   0.0   0.0   0:08.03 migrati+
+     28 root      20   0       0      0      0 S   0.0   0.0   0:17.31 ksoftir+
+     30 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     31 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/3
+     32 root      rt   0       0      0      0 S   0.0   0.0   0:07.15 watchdo+
+     33 root      rt   0       0      0      0 S   0.0   0.0   0:07.66 migrati+
+     34 root      20   0       0      0      0 S   0.0   0.0   0:13.12 ksoftir+
+     36 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     37 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/4
+     38 root      rt   0       0      0      0 S   0.0   0.0   0:07.21 watchdo+
+===== BACKGROUND CHECKJOB MONITOR LOG =====
+===== checkjob (interval) at Wed Jun 18 20:06:30 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:03:10 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:07:04 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:03:43 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:07:36 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:04:16 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:08:09 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:04:48 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:08:42 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:05:21 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:09:15 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:05:54 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:09:48 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:06:27 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:10:21 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:07:16 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:11:08 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:07:48 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:11:40 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:08:19 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:12:12 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:08:51 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:12:45 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:09:27 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:13:20 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:10:00 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:13:53 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:10:32 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:14:26 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:11:05 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:14:58 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:11:38 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:15:31 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:12:11 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:16:04 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:13:09 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:17:03 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:13:42 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:17:34 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:14:13 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:18:06 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:14:47 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:18:41 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:15:20 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:19:14 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:15:55 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:19:48 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:16:28 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:20:21 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:17:00 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:20:56 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:17:36 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:21:29 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:18:18 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:22:10 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:18:49 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:22:41 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:19:20 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:23:13 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:19:52 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:23:45 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:20:25 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:24:21 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:21:00 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:24:56 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:21:35 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:25:29 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:22:08 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:26:01 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:22:40 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:26:34 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:23:13 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:27:07 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:23:46 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:27:40 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:24:31 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:28:24 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:25:04 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:28:55 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:25:35 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:29:27 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:26:08 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:29:59 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:26:40 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:30:34 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:27:13 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.
+===== checkjob (interval) at Wed Jun 18 20:31:07 CDT 2025 =====
+--------------------------------------------------------------------------------
+JOB INFORMATION 
+--------------------------------------------------------------------------------
+JobId=5931127 ArrayJobId=5858372 ArrayTaskId=675 JobName=experiment_sim
+   UserId=tbr0780(3229) GroupId=tbr0780(4023) MCS_label=N/A
+   Priority=19518 Nice=0 Account=p32397 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:27:46 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2025-06-18T15:19:09 EligibleTime=2025-06-18T15:19:11
+   AccrueTime=2025-06-18T15:19:11
+   StartTime=2025-06-18T20:03:21 EndTime=2025-06-18T22:03:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2025-06-18T20:03:21 Scheduler=Main
+   Partition=short AllocNode:Sid=quser41:3973193
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=qnode1028
+   BatchHost=qnode1028
+   NumNodes=1 NumCPUs=64 NumTasks=64 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=64,mem=32000M,node=1,billing=288
+   AllocTRES=cpu=64,mem=32000M,node=1,billing=288
+   Socks/Node=* NtasksPerN:B:S:C=64:0:*:* CoreSpec=*
+   MinCPUsNode=64 MinMemoryCPU=500M MinTmpDiskNode=0
+   Features=[quest10|quest11|quest12|quest13] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression/scripts/experiment_sim.sh
+   WorkDir=/gpfs/home/tbr0780/Dissertation/Integrated_Likelihood_Algorithm/Polytomous_Logistic_Regression
+   StdErr=/dev/null
+   StdIn=/dev/null
+   StdOut=/dev/null
+   MailUser=timothyruel2024@u.northwestern.edu MailType=INVALID_DEPEND,BEGIN,END,FAIL,REQUEUE,STAGE_OUT
+   
+--------------------------------------------------------------------------------
+JOB EFFICIENCY 
+--------------------------------------------------------------------------------
+Job efficiency will be calculated after the job has completed.

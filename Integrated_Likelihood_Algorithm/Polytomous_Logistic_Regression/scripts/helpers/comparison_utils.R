@@ -325,7 +325,7 @@ summarize_confidence_intervals <- function(ci_list, true_value) {
   
   # Group and summarize
   summary_df <- combined |>
-    group_by(pseudolikelihood, confidence, alpha) |>
+    group_by(pseudolikelihood, confidence) |>
     summarise(
       length = mean(upper - lower),
       coverage_rate = mean(covers_true),

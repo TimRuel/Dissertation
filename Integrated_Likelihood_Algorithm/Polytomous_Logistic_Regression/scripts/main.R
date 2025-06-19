@@ -92,7 +92,7 @@ config_snapshot$optimization_specs$IL$max_cores <- core_info$max_cores
 config_snapshot$optimization_specs$IL$num_workers <- core_info$num_workers
 
 # Step 7: Save config snapshot
-write_yaml(config_snapshot, config_snapshot_path)
+write_strict_yaml(config_snapshot, config_snapshot_path)
 
 # Step 8: Run experiment
 message("Running experiment...")

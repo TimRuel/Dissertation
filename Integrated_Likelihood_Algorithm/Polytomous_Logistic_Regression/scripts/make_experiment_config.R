@@ -11,6 +11,8 @@ suppressPackageStartupMessages({
 proj_subdir <- here("Integrated_Likelihood_Algorithm", "Polytomous_Logistic_Regression")
 proj_path <- function(...) here(proj_subdir, ...)
 
+miceadds::source.all(proj_path("scripts", "helpers"), print.source = FALSE)
+
 args <- commandArgs(trailingOnly = TRUE)
 experiment_id <- if (length(args) > 0) args[1] else stop("[ERROR] Provide experiment ID")
 
