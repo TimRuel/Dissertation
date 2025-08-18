@@ -18,7 +18,11 @@ We can then write the integrated likelihood for $\psi$ in terms of $\overset{\si
 
 We can further rewrite @eq-ZSE_IL10 as $$\bar{L}(\psi) = \int_{\Theta} \frac{\tilde{L}(u; \psi)}{\check{L}(u)} \check{L}(u)\check{\pi}(u)du,$${#eq-ZSE_IL11} where $\check{L}(u)$ represents an arbitrary likelihood function for the "parameter" $u$. From a Bayesian point of view, the quantity $\check{L}(u)\check{\pi}(u)$ can then be thought of as a posterior density for $u$ up to some proportionality constant. If $\check{\pi}(u)$ is chosen to be a conjugate prior for $\check{L}(u)$ such that the posterior density $\check{L}(u)\check{\pi}(u)$ has the same form as $\check{L}$ itself, and $\check{L}$ is chosen to be a known distribution, then random samples can be drawn directly from this posterior density using modern statistical computing packages. Alternatively, it may also be possible to obtain random samples from the posterior density through Monte Carlo methods such as importance sampling or MCMC.  
 
-In either case, once random variates $u_1, ..., u_R$ have been sampled from $\check{L}(u)\check{\pi}(u)$, a simple empirical estimate to $\bar{L}(\psi)$ at a particular value of $\psi$ is given by $$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{i = 1}^R \frac{\tilde{L}(u_i; \psi)}{\check{L}(u_i)}.$${#eq-ZSE_IL12} Repeating this procedure for every value of $\psi \in \Psi$ will give an overall shape for $\hat{\bar{L}}(\psi)$, which can be used to conduct inference for $\psi_0$ without interference from a nuisance parameter. 
+In either case, once random variates $u_1, ..., u_R$ have been sampled from $\check{L}(u)\check{\pi}(u)$, a simple empirical estimate to $\bar{L}(\psi)$ at a particular value of $\psi$ is given by $$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{i = 1}^R \frac{\tilde{L}(u_i; \psi)}{\check{L}(u_i)}.$${#eq-ZSE_IL12} Repeating this procedure for every value of $\psi \in \Psi$ will give an overall shape for $\hat{\bar{L}}(\psi)$, which can be used to conduct inference for $\psi_0$ without interference from a nuisance parameter.
+
+\section{Laplace's Method}
+
+
 
 \section{Monte Carlo Methods}
 

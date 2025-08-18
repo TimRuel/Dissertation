@@ -1,5 +1,55 @@
-\chapter{Applications to a Poisson Model}
+\chapter{Estimating the Weighted Sum of Poisson Rates}
 
-\section{Weighted Sum of Poisson Means}
+The aim of this chapter is to examine the utility of the integrated likelihood function as a tool for estimating the weighted sum of a group of independent and distinct Poisson rates. We will compare and contrast the performances of the point and interval estimators it produces under four different model frameworks, using the analogous estimators produced by the profile likelihood function as a benchmark within each framework. The models we will consider are as follows:
 
-\section{Zero-Inflated Poisson}
+- Naive group rates
+- Fixed effects regression
+- Random intercepts regression
+- Random intercepts and slopes regression
+
+\section{Naive Group Rates}
+
+Consider a group of $G$ independent Poisson processes having distinct rates per unit time of $\theta_1, ..., \theta_G$. Let $Y_g$ denote the running tally of observations that we record from the $g$-th process during an interval of time $t_g$, so that $$Y_g \sim \text{Poisson}(t_g\theta_g).$$ Suppose we are interested in estimating a weighted sum of these Poisson rates, i.e. our parameter of interest is $$\psi = \sum_{g=1}^G \alpha_g \theta_g,$$ where $\alpha_1, ..., \alpha_G$ are known positive weights. Letting $\alpha$ and $\theta$ denote the column vectors of their constituent elements, we can also write this using the more compact notation $$\psi = \alpha^\top \theta.$$ 
+
+Let $Y = (Y_1, ..., Y_G)^\top$ represent the vector of recorded counts from each group. The log-likelihood for $\theta$  is $$\ell(\theta; Y) = \sum_{g=1}^G \big(Y_g \log \theta_g - t_g \theta_g\big),$$ where we have discarded any additive terms not depending on $\theta$. The unconstrained MLE for $\theta$ is $\hat{\theta} = \Big(\frac{Y_1}{t_1}, ..., \frac{Y_G}{t_G}\Big)^{\top}$, and the corresponding unconstrained MLE for $\psi$ is $\hat{\psi} = \alpha^\top \hat{\theta}$.
+
+Because $\psi$ is a function of the full model parameter, there is no explicit nuisance parameter over which can integrate to obtain an integrated likelihood for it. Instead, we must use the ZSE parameterization method for an implicit nuisance parameter introduced in @severini2018 to approximate the integral. See also chapters 4 and 5 for a more general discussion of the ZSE parameter and the role it plays in constructing integrated likelihood functions with desirable properties.
+
+Consider the subspace $\Omega_{\hat{\psi}} = \{\omega \in \Theta: \alpha^\top \omega = \hat{\psi}\}$ which, due to the linearity of the constraint, can be thought of as an affine hyperplane embedded in $\Theta \subseteq \mathbb{R}^G_{>0}$. Recall from Section 2 of Chapter 5 that elements of $\Omega_{\hat{\psi}}$ play the role of the ZSE parameter in models for which the nuisance parameter is implicit. Let $Q(\theta; \omega)$ represent the expected value of $\ell(\theta; Y)$ under the probability distribution indexed by an element $\omega \in \Omega_{\hat{\psi}}$. That is,
+$$
+\begin{aligned}
+Q(\theta; \omega) &:= \text{E}_{\omega}[\ell(\theta; Y)] \\
+                  &= \text{E}_{\omega}\Bigg[\sum_{g=1}^G \big(Y_g \log \theta_g - t_g \theta_g\big)\Bigg] \\
+                  &= \sum_{g=1}^G \big(\text{E}_{\omega_g}[Y_g] \log \theta_g - t_g \theta_g\big) \\
+                  &= \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big).
+\end{aligned}
+$$
+
+For a given value of $\psi$, the ZSE-constrained optimizer is 
+$$
+\tilde{\theta}(\omega; \psi) := \arg \max_{\substack{\theta}} \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) \> \text{ s.t. } \> \alpha^{\top} \theta = \psi.
+$$
+Evaluating $L(\theta; Y) := \exp(\ell(\theta; Y))$ at $\theta = \tilde{\theta}(\omega; \psi)$ gives us a mapping from $\psi$ to its associated likelihood value under the distribution indexed by $\omega$. If we integrate this mapping over $\Omega_{\hat{\psi}}$ with respect to some weight function $\pi(\omega)$ that doesn't depend on $\psi$, we can obtain the integrated likelihood function for $\psi$ based on the ZSE parameterization, i.e.
+
+$$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(\tilde{\theta}(\omega; \psi)) \pi(\omega) d\omega.$$
+
+Unsurprisingly, no closed-form solution exists for this integral. Instead, we can use Monte Carlo integration to approximate it with the following estimator:
+
+$$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{j=1}^R L(\tilde{\theta}(\omega^{(j)}; \psi); Y),$$
+where the choice of $\pi(\omega)$ is now understood to be defined implicitly as the density function admitted by the probability measure $d\Pi(\omega)$ that governs how each $\omega^{(j)}$ is drawn from $\Omega_{\hat{\psi}}$. As long as the selection does not depend on the value of $\psi$, we are essentially free to choose any (non-degenerate) probability distribution we wish, and the form of $\pi(\omega)$ will be adjusted accordingly.
+
+We can think of the functions $L(\tilde{\theta}(\omega^{(j)}; \psi); Y)$ for $j = 1, ..., R$ as being individual "branches" of the integrated likelihood that we average to obtain an estimate of its true underlying value at a particular value of $\psi$. If we define the branch curve $$b_{\omega}(\psi) := \log L(\tilde{\theta}(\omega^{(j)}; \psi); Y),$$ its corresponding mode is given by $$\psi^*_{\omega} := \arg \max_{\substack{\psi}} b_{\omega}(\psi).$$ In general, for an arbitrary model and parameter of interest, there is no reason to expect that for two distinct values $\omega^{(1)}, \omega^{(2)} \in \Omega_{\hat{\psi}}$, their corresponding branch curve modes $\psi^*_{\omega^{(1)}}$ and $\psi^*_{\omega^{(2)}}$ will be equal. For this specific case of estimating the weighted sum of a group of Poisson rates, however,we will prove that every branch will have the same mode regardless of the value of $\omega$ from which it came, and furthermore that mode will simply be the unconstrained MLE for $\psi$, given by $\hat{\psi} = \alpha^{\top} \hat{\theta}$.
+
+**Proposition**: $\psi^*_{\omega} = \hat{\psi}$ for all $\omega \in \Omega_{\hat{\psi}}$.
+
+**Proof**: We proceed by the method of Lagrange multipliers. 
+
+The behavior of the integrated likelihood for $\psi$ under the ZSE parameterization is near-identical to that of the profile likelihood. 
+
+\section{Fixed Effects Regression}
+
+\section{Random Intercepts Regression}
+
+\section{Random Intercepts and Slopes Regression}
+
+\section{Discussion}
