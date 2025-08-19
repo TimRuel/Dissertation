@@ -27,22 +27,54 @@ $$
 
 For a given value of $\psi$, the ZSE-constrained optimizer is 
 $$
-\tilde{\theta}(\omega; \psi) := \arg \max_{\substack{\theta}} \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) \> \text{ s.t. } \> \alpha^{\top} \theta = \psi.
+\tilde{\theta}(\psi; \omega) := \arg \max_{\substack{\theta}} Q(\theta; \omega) \> \text{ s.t. } \> \alpha^{\top} \theta = \psi.
 $$
-Evaluating $L(\theta; Y) := \exp(\ell(\theta; Y))$ at $\theta = \tilde{\theta}(\omega; \psi)$ gives us a mapping from $\psi$ to its associated likelihood value under the distribution indexed by $\omega$. If we integrate this mapping over $\Omega_{\hat{\psi}}$ with respect to some weight function $\pi(\omega)$ that doesn't depend on $\psi$, we can obtain the integrated likelihood function for $\psi$ based on the ZSE parameterization, i.e.
+Evaluating $L(\theta; Y) := \exp(\ell(\theta; Y))$ at $\theta = \tilde{\theta}(\psi; \omega)$ gives us a mapping from $\psi$ to its associated likelihood value under the distribution indexed by $\omega$. If we integrate this mapping over $\Omega_{\hat{\psi}}$ with respect to some weight function $\pi(\omega)$ that doesn't depend on $\psi$, we can obtain the integrated likelihood function for $\psi$ based on the ZSE parameterization, i.e.
 
-$$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(\tilde{\theta}(\omega; \psi)) \pi(\omega) d\omega.$$
+$$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L(\tilde{\theta}(\psi; \omega)) \pi(\omega) d\omega.$$
 
 Unsurprisingly, no closed-form solution exists for this integral. Instead, we can use Monte Carlo integration to approximate it with the following estimator:
 
 $$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{j=1}^R L(\tilde{\theta}(\omega^{(j)}; \psi); Y),$$
 where the choice of $\pi(\omega)$ is now understood to be defined implicitly as the density function admitted by the probability measure $d\Pi(\omega)$ that governs how each $\omega^{(j)}$ is drawn from $\Omega_{\hat{\psi}}$. As long as the selection does not depend on the value of $\psi$, we are essentially free to choose any (non-degenerate) probability distribution we wish, and the form of $\pi(\omega)$ will be adjusted accordingly.
 
-We can think of the functions $L(\tilde{\theta}(\omega^{(j)}; \psi); Y)$ for $j = 1, ..., R$ as being individual "branches" of the integrated likelihood that we average to obtain an estimate of its true underlying value at a particular value of $\psi$. If we define the branch curve $$b_{\omega}(\psi) := \log L(\tilde{\theta}(\omega^{(j)}; \psi); Y),$$ its corresponding mode is given by $$\psi^*_{\omega} := \arg \max_{\substack{\psi}} b_{\omega}(\psi).$$ In general, for an arbitrary model and parameter of interest, there is no reason to expect that for two distinct values $\omega^{(1)}, \omega^{(2)} \in \Omega_{\hat{\psi}}$, their corresponding branch curve modes $\psi^*_{\omega^{(1)}}$ and $\psi^*_{\omega^{(2)}}$ will be equal. For this specific case of estimating the weighted sum of a group of Poisson rates, however,we will prove that every branch will have the same mode regardless of the value of $\omega$ from which it came, and furthermore that mode will simply be the unconstrained MLE for $\psi$, given by $\hat{\psi} = \alpha^{\top} \hat{\theta}$.
+We can think of the functions $L(\tilde{\theta}(\omega^{(j)}; \psi); Y)$ for $j = 1, ..., R$ as being individual "branches" of the integrated likelihood that we average to obtain an estimate of its true underlying value at a particular value of $\psi$. If we define the branch curve $$b_{\omega}(\psi) := \log L(\tilde{\theta}(\psi; \omega^{(j)}); Y),$$ its corresponding mode is given by $$\psi^*_{\omega} := \arg \max_{\substack{\psi}} b_{\omega}(\psi).$$ In general, for an arbitrary model and parameter of interest, there is no reason to expect that for two distinct values $\omega^{(1)}, \omega^{(2)} \in \Omega_{\hat{\psi}}$, their corresponding branch curve modes $\psi^*_{\omega^{(1)}}$ and $\psi^*_{\omega^{(2)}}$ will be equal. For this specific case of estimating the weighted sum of a group of Poisson rates, however, we will prove that every branch will have the same mode regardless of the value of $\omega$ from which it came, and furthermore that mode will simply be the unconstrained MLE for $\psi$, given by $\hat{\psi} = \alpha^{\top} \hat{\theta}$.
 
 **Proposition**: $\psi^*_{\omega} = \hat{\psi}$ for all $\omega \in \Omega_{\hat{\psi}}$.
 
-**Proof**: We proceed by the method of Lagrange multipliers. 
+**Proof**: It suffices to show that an arbitrary branch curve $b_{\omega}(\psi)$ has a stationary point at $\psi = \hat{\psi}$, i.e. $b'_{\omega}(\hat{\psi}) = 0$. Since $\ell(\theta; Y)$ is concave in $\theta$ and the mapping $\psi \mapsto \tilde{\theta}(\psi; \omega)$ is smooth, such a point will be the unique maximizer of $b_{\omega}(\psi)$. Differentiating the branch yields $$b'_{\omega}({\psi}) = \nabla_{\theta} \ell(\tilde{\theta}(\psi; \omega); Y)^\top\frac{\partial\tilde{\theta}(\psi; \omega)}{\partial \psi}.$${#eq-7.0} 
+
+Thus, we need to be able to evaluate both the ZSE optimizer $\tilde{\theta}(\psi; \omega)$ and its partial derivative with respect to $\psi$ at $\psi = \hat{\psi}$. Recall that to evaluate $\tilde{\theta}(\psi; \omega)$ at a point $\psi$ for a given $\omega$ is to solve the constrained maximization problem $$\arg \max_{\substack{\theta}} \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) \> \text{ s.t. } \> \alpha^{\top} \theta = \psi.$$ We proceed by the method of Lagrange multipliers. For some multiplier $\lambda$ (which may depend on $\psi$ and $\omega$), define the Lagrangian function $$\mathcal{L}(\theta, \lambda) = \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) + \lambda\Bigg[\psi - \sum_{g=1}^G \alpha_g \theta_g\Bigg].$$ Per the Lagrange multiplier theorem, the solution to the maximization problem will satisfy $$\frac{\partial \mathcal{L}(\theta, \lambda)}{\theta_g}\Bigg|_{\theta_g = \tilde{\theta}_g} = 0, \> \> \text{for } g = 1, ..., G$${#eq-7.1} and $$\frac{\partial \mathcal{L}(\theta, \lambda)}{\lambda} = 0.$${#eq-7.2} From @eq-7.1, we have $$\frac{t_g\omega_g}{\tilde{\theta_g}} - t_g - \lambda\alpha_g = 0.$$ This implies that the optimal solution $\tilde{\theta}$, viewed here as a function of $\lambda$, satisfies $$\tilde{\theta}_g(\lambda) = \frac{t_g \omega_g}{t_g + \lambda\alpha_g}.$${#eq-7.3} Paired with the constraint condition enforced by @eq-7.2, this in turn implies that the optimal value of $\lambda$ will satisfy $$\sum_{g=1}^G \alpha_g \theta_g(\lambda) = \psi.$${#eq-7.4} Note that $\lambda = 0 \iff \tilde{\theta} = \omega \iff \psi = \hat{\psi}$. It follows that $$\tilde{\theta}(\hat{\psi}; \omega) = \omega.$$
+
+Turning our attention now to the derivative of the ZSE optimizer with respect to $\psi$, we have that $$\frac{\partial\tilde{\theta}_g}{\partial \psi} = \frac{\partial\tilde{\theta}_g}{\partial \lambda} \frac{d\lambda}{d \psi}.$$ From @eq-7.3, we can compute $$\frac{\partial\tilde{\theta}_g}{\partial \lambda} = -\frac{t_g\omega_g\alpha_g}{(t_g + \lambda\alpha_g)^2}.$$ At $\lambda = 0$, this evaluates to $$\frac{\partial\tilde{\theta}_g}{\partial \lambda}\Bigg|_{\lambda = 0} = -\frac{\omega_g\alpha_g}{t_g}.$$ Similarly, differentiating both sides of @eq-7.4 with respect to $\psi$ gives $$\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda} \frac{d \lambda}{d \psi} = 1 \implies \frac{d \lambda}{d \psi} = \frac{1}{\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda}}.$$ At $\psi = \hat{\psi}$, this evaluates to $$\frac{d \lambda}{d \psi}\Bigg|_{\psi = \hat{\psi}} = \frac{1}{\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda}\Big|_{\lambda = 0}} = -\frac{1}{\sum_{g=1}^G \alpha_g^2 \omega_g / t_g}.$$ Thus 
+$$
+\begin{aligned}
+\frac{\partial\tilde{\theta}_g}{\partial \psi}\Bigg|_{\psi = \hat{\psi}} &= \frac{\partial\tilde{\theta}_g}{\partial \lambda}\Bigg|_{\lambda = 0} \cdot \frac{d\lambda}{d \psi}\Bigg|_{\psi = \hat{\psi}} \\
+                                                                         &= \bigg(-\frac{\omega_g\alpha_g}{t_g}\bigg) \Bigg(-\frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
+                                                                         &= \frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h},
+\end{aligned}
+$$
+where we have changed the index of summation from $g$ to $h$ in the denominator of the final two lines to avoid confusion with the particular index $g$ being considered in the numerator.
+
+Returning to @eq-7.0, we can now compute 
+$$
+\begin{aligned}
+b'_{\omega}({\hat{\psi}}) &= \Bigg[\nabla_{\theta} \ell(\tilde{\theta}(\psi; \omega); Y)\Bigg|_{\psi = \hat{\psi}}\Bigg]^\top\Bigg[\frac{\partial\tilde{\theta}(\psi; \omega)}{\partial \psi} \Bigg|_{\psi = \hat{\psi}}\Bigg] \\
+                          &= \sum_{g=1}^G \Bigg(\frac{\partial \ell}{\partial \theta_g}\Bigg|_{\theta_g = \tilde{\theta}_g(\hat{\psi}; \omega)}\Bigg)\Bigg(\frac{\partial\tilde{\theta}_g}{\partial \psi}\Bigg|_{\psi = \hat{\psi}}\Bigg) \\
+                          &= \sum_{g=1}^G \Bigg(\frac{Y_g}{\tilde{\theta}_g(\hat{\psi}; \omega)} - t_g\Bigg)\Bigg(\frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
+                          &= \sum_{g=1}^G \Bigg(\frac{Y_g}{\omega_g} - t_g\Bigg)\Bigg(\frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
+                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\sum_{g=1}^G \alpha_g\Bigg(\frac{Y_g}{t_g} - \omega_g\Bigg) \\
+                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg(\sum_{g=1}^G \alpha_g\hat{\theta}_g - \sum_{g=1}^G\alpha_g\omega_g\Bigg) \\
+                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}(\hat{\psi} - \hat{\psi}) \\
+                          &= 0.
+\end{aligned}
+$$
+
+$\therefore \> \> b'_{\omega}({\hat{\psi}}) = 0$.
+
+Since the choice of branch was arbitrary, this holds true for all $\omega \in \Omega_{\hat{\psi}}$.
+
+$\therefore \> \psi^*_{\omega} = \hat{\psi}$ for all $\omega \in \Omega_{\hat{\psi}}. \hfill \blacksquare$ 
 
 The behavior of the integrated likelihood for $\psi$ under the ZSE parameterization is near-identical to that of the profile likelihood. 
 
