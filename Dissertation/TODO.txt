@@ -1,0 +1,37 @@
+
+POISSON CHAPTER
+
+- Finish argument for why behavior of integrated likelihood under ZSE parameterization is
+  identical to profile likelihood in naive group rates model for weighted sum of group rates. 
+  - Show that the curvature of each branch of the integrated likelihood is identical
+    to that of the profile likelihood using a quadratic expansion around their modes which have
+    already been shown to be equal regardless of choice of omega_hat.
+
+- Give real-world examples for each model framework.
+
+- After showing simulation results comparing IL to PL on fake data with known true parameters,
+  use IL and PL to estimate parameter of interest using real data, ideally from a previously
+  published study.
+
+- Gather simulation results that compare performance of profile likelihood to integrated likelihood
+  under a misspecified model assumption. In particular, for the fixed effects regression application,
+  the operating practice up until this point has been to compute the true marginal rates in each group
+  by marginalizing over the joint distribution of the covariates, and then using those same distributions
+  from which the joint distribution arises (the covariates are assumed to be independent) to generate 
+  new values of the covariates with which to run a regression. Once the covariate sample data has been 
+  generated, the knowledge of the underlying distribution from which they came does not factor into the 
+  regression, as it would not in real life. However, the very fact that we are using the same distributions
+  (and the same number) to generate the covariates as those which produced the true marginal rates is an
+  advantage that we would also not have in real life. In other words, we are assuming that our model has been
+  correctly specified, which is far from guaranteed in practice. A property of a good estimator is that it is
+  robust to model misspecification, meaning it "performs well" (according to whichever metrics you have decided
+  are a good measure of that) even if the underlying model from which it came does not match the true process
+  generating the observations. Hence, it is of interest to us to determine whether an estimator from an integrated
+  likelihood has better frequentist properties compared to its profile likelihood counterpart when the model from 
+  which they are derived is misspecified. To misspecify a model, we have two levers at our disposal. We can (i) 
+  vary the distribution of the covariates that we use to generate the data compared to the one we use to compute 
+  the true marginal rates, and (ii) we can vary the number of covariates itself that we use in our regression model
+  relative to the number we used to compute the true marginal rates. Pulling each of these levers to different degrees
+  and keeping track of the results should serve to give a good idea of the difference in performance (if one exists) 
+  between an IL estimator vs a PL estimator under a misspecified model. This procedure can be done for other applications
+  involving a regression as well.
