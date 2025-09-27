@@ -1,8 +1,8 @@
-\chapter{Applications to a Multinomial Model}
-
-\section{Entropy Estimation}
+\chapter{Multinomial Dyads}
 
 For $n$ independent trials each of which leads to a success for exactly one of $d$ categories, with the $j$th category having a fixed probability of success $\theta_j$, the multinomial distribution allows us to calculate the probability of any particular combination of numbers of successes for the various categories. If $N_j$ represents the number of successes in the $j$th category, then the random vector $(N_1, ..., N_d)$ will follow a multinomial distribution with parameter $\symbf{\theta} = (\theta_1, ..., \theta_j)$ such that $\text{E}_{\symbf{\theta}}(N_j) = n\theta_j$ for $j = 1, ..., d$, where $n = \sum_{j=1}^d N_j$. Since each $\theta_j$ is meant to be interpreted as a probability, the parameter space $\Theta$ must be the probability simplex in $\mathbbm{R}^d$ so that $\theta_j \geq 0$ for all $j$ and $\sum_{j=1}^d \theta_j = 1$. 
+
+\section{Entropy}
 
 Suppose we are interested in the entropy of this distribution, so that the parameter of interest is $\psi = \varphi(\symbf{\theta}),$ where $$\varphi(\theta) = -\sum_{j=1}^d \theta_j \log(\theta_j).$$ Let $(n_1, ..., n_d)$ denote the observed counts of $(N_1, ..., N_d)$ so that the likelihood function is given by $$L(\symbf{\theta}) = \prod_{j=1}^d \theta_j^{n_j}.$$ The unresricted MLE of $\theta_j$ is given by $\hat{\theta}_j = \frac{n_j}{n}$. Similarly, due to the invariance property of the MLE, the unrestricted MLE of $\psi$ will simply be $\hat{\psi} = \varphi(\hat{\symbf{\theta}})$.
 
@@ -12,7 +12,13 @@ From @eq-ZSE_IL9, finding $\overset{\sim}{L}(u; \psi)$ is a matter of defining t
 
 From here, we sample $R$ random variates from the appropriate Dirichlet distribution, calculate $\overset{\sim}{L}(u; \psi)$ and $L(u)$ for each one, and use @eq-ZSE_IL12 to approximate the integrated likelihood at a particular value of $\psi$. We then repeat this process over a finely spaced sequence of the possible values of $\psi$ in order to get a shape of the overall integrated likelihood. See Appendix \ref{appendix:C} for a graph comparing the plot of one such integrated likelihood to the profile likelihood, for observed data $(n_1, ..., n_6) = (1, 1, 4, 7, 10)$ and 250 samples of the appropriate Dirichlet distribution drawn for each value of $\psi$.^[The samples were obtained using the 'LaplacesDemon' R package. The distance minimizations needed for $Q$ and $T_{\psi}$ were computed numerically using the 'nloptr' R package.]
 
-\section{Simpson Index}
+\subsection{Fixed Effects Regression}
+
+\section{Simpson's Diversity Index}
+
+\section{Shared Effect}
+
+
 
 
 

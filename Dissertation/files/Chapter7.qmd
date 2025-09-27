@@ -1,8 +1,12 @@
-\chapter{Estimating the Weighted Sum of Poisson Rates}
+\chapter{Poisson Dyads}
 
-This chapter aims to examine the utility of the integrated likelihood function as a tool for estimating the weighted sum of a group of independent and distinct Poisson rates. We will compare and contrast the performances of the point and interval estimators it produces under three different model frameworks, using the analogous estimators produced by the profile likelihood function as a benchmark within each framework. The models we will consider are (i) a naive model in which we estimate the Poisson rate in each group using only the group's observed count and exposure time, (ii) a generalized linear regression model with fixed effects in which we assume there is an underlying covariate structure influencing the observed counts in each group, and (iii) a hierarchical mixed effects regression model in which we assume some or all of the intercepts and slopes from the previous model are random effects instead of fixed. We will also consider the robustness of the pseudolikelihood-derived estimators to model misspecification when evaluating their performance.
+This chapter aims to examine the utility of the integrated likelihood function as a tool for estimating parameters of interest in dyads with models of observations that follow a Poisson distribution. In each dyad we investigate, we will compare and contrast the performances of the point and interval estimators produced by the integrated likelihood (or more commonly, our approximations to the integrated likelihood) for the dyad's parameter of interest to the analogous estimators produced by the profile likelihood function.^[The profile likelihood has a conceptual simplicity and an ease of computation that makes it a convenient choice for an estimation benchmark.]
 
-\section{Naive Group Rates}
+\section{Weighted Sums of Poisson Rates}
+
+In this section we consider the task of estimating the weighted sum of a group of independent and distinct Poisson rates. The models we will consider are (i) a basic model in which we estimate the Poisson rate in each group using only the group's observed count and exposure time, (ii) a fixed effects regression model in which we assume there is an underlying covariate structure influencing the observed counts in each group, and (iii) a hierarchical mixed effects regression model in which we assume some or all of the intercepts and slopes from the previous model are random effects instead of fixed. We will also take into account the robustness of the pseudolikelihood-derived estimators to model misspecification when evaluating their performance.
+
+\subsection{Basic Group Rates}
 
 Consider a group of $G$ independent Poisson processes having distinct rates per unit time of $\theta_1, ..., \theta_G$. Let $Y_g$ denote the running tally of observations that we record from the $g$-th process during an interval of time $t_g$, so that $$Y_g \sim \text{Poisson}(t_g\theta_g).$$ Suppose we are interested in estimating a weighted sum of these Poisson rates, i.e. our parameter of interest is $$\psi = \sum_{g=1}^G \alpha_g \theta_g,$$ where $\alpha_1, ..., \alpha_G$ are known positive weights. Letting $\alpha$ and $\theta$ denote the column vectors of their constituent elements, we can also write this using the more compact notation $$\psi = \alpha^\top \theta.$$ 
 
@@ -10,7 +14,7 @@ Let $Y = (Y_1, ..., Y_G)^\top$ represent the vector of recorded counts from each
 
 Because $\psi$ is a function of the full model parameter, there is no explicit nuisance parameter over which can integrate to obtain an integrated likelihood for it. Instead, we must use the ZSE parameterization method for an implicit nuisance parameter introduced in @severini2018 to approximate the integral. See also chapters 4 and 5 for a more general discussion of the ZSE parameter and the role it plays in constructing integrated likelihood functions with desirable properties.
 
-Consider the subspace $\Omega_{\hat{\psi}} = \{\omega \in \Theta: \alpha^\top \omega = \hat{\psi}\}$ which, due to the linearity of the constraint, can be thought of as an affine hyperplane embedded in $\Theta \subseteq \mathbb{R}^G_{>0}$. Recall from Section 2 of Chapter 5 that elements of $\Omega_{\hat{\psi}}$ play the role of the ZSE parameter in models for which the nuisance parameter is implicit. Let $Q(\theta; \omega)$ represent the expected value of $\ell(\theta; Y)$ under the probability distribution indexed by an element $\omega \in \Omega_{\hat{\psi}}$. That is,
+Recall that elements of the subspace $\Omega_{\hat{\psi}} = \{\omega \in \Theta: \alpha^\top \omega = \hat{\psi}\}$ play the role of the ZSE parameter in models for which the nuisance parameter is implicit. Let $Q(\theta; \omega)$ represent the expected value of $\ell(\theta; Y)$ under the probability distribution indexed by an element $\omega \in \Omega_{\hat{\psi}}$. That is,
 $$
 \begin{aligned}
 Q(\theta; \omega) &:= \text{E}_{\omega}[\ell(\theta; Y)] \\
@@ -33,50 +37,22 @@ Unsurprisingly, no closed-form solution exists for this integral. Instead, we ca
 $$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{j=1}^R L(\tilde{\theta}(\omega^{(j)}; \psi); Y),$$
 where the choice of $\pi(\omega)$ is now understood to be defined implicitly as the density function admitted by the probability measure $d\Pi(\omega)$ that governs how each $\omega^{(j)}$ is drawn from $\Omega_{\hat{\psi}}$. As long as the selection does not depend on the value of $\psi$, we are essentially free to choose any (non-degenerate) probability distribution we wish, and the form of $\pi(\omega)$ will be adjusted accordingly.
 
-We can think of the functions $L(\tilde{\theta}(\omega^{(j)}; \psi); Y)$ for $j = 1, ..., R$ as being individual "branches" of the integrated likelihood that we average to obtain an estimate of its true underlying value at a particular value of $\psi$. If we define the branch curve $$b_{\omega}(\psi) := \log L(\tilde{\theta}(\psi; \omega^{(j)}); Y),$$ its corresponding mode is given by $$\psi^*_{\omega} := \arg \max_{\substack{\psi}} b_{\omega}(\psi).$$ In general, for an arbitrary model and parameter of interest, there is no reason to expect that for two distinct values $\omega^{(1)}, \omega^{(2)} \in \Omega_{\hat{\psi}}$, their corresponding branch curve modes $\psi^*_{\omega^{(1)}}$ and $\psi^*_{\omega^{(2)}}$ will be equal. For this specific case of estimating the weighted sum of a group of Poisson rates, however, we will prove that every branch will have the same mode regardless of the value of $\omega$ from which it came, and furthermore that mode will simply be the unconstrained MLE for $\psi$, given by $\hat{\psi} = \alpha^{\top} \hat{\theta}$.
+Hence, under a simple MC approximation scheme, the functions $L(\tilde{\theta}(\omega^{(j)}; \psi); Y)$ for $j = 1, ..., R$ are individual "branches" of the integrated likelihood that we average to obtain an estimate of its true underlying value at a particular value of $\psi$. Let $$b_{\omega}(\psi) := \log L(\tilde{\theta}(\psi; \omega^{(j)}); Y)$$ denote the branch curve generated by the value $\omega \in \Omega_{\hat{\psi}}$, and let its mode be given by $$\psi^*_{\omega} := \arg \max_{\substack{\psi}} b_{\omega}(\psi).$$ 
 
-**Proposition**: $\psi^*_{\omega} = \hat{\psi}$ for all $\omega \in \Omega_{\hat{\psi}}$.
+For an arbitrary dyad, two distinct values $\omega^{(1)}, \omega^{(2)} \in \Omega_{\hat{\psi}}$ will in general produce branch curves with modes $\psi^*_{\omega^{(1)}}$ and $\psi^*_{\omega^{(2)}}$, respectively, that are also distinct. In other words, there is no reason to expect that branch curves corresponding to different values drawn from $\Omega_{\hat{\psi}}$ will be maximized at the same location. However, if our dyad is such that the model belongs to the exponential family and our parameter of interest $\psi$ is a linear function of the full model parameter, then this is no longer case. Indeed, it can be shown that under these two conditions, the branch curves of the integrated likelihood function for $\psi$ will all have the same mode regardless of the values of $\omega$ that generated them, and furthermore that mode will simply be the unconstrained MLE for $\psi$, given by $\hat{\psi} = \alpha^{\top} \hat{\theta}$ (see appendix:A for a proof). Thus, our MC approximation to the integrated likelihood for $\psi$, being nothing more a simple average of these branches at each value of $\psi$, must also be maximized at $\hat{\psi}$.
 
-**Proof**: It suffices to show that an arbitrary branch curve $b_{\omega}(\psi)$ has a stationary point at $\psi = \hat{\psi}$, i.e. $b'_{\omega}(\hat{\psi}) = 0$. Since $\ell(\theta; Y)$ is concave in $\theta$ and the mapping $\psi \mapsto \tilde{\theta}(\psi; \omega)$ is smooth, such a point will be the unique maximizer of $b_{\omega}(\psi)$. Differentiating the branch yields $$b'_{\omega}({\psi}) = \nabla_{\theta} \ell(\tilde{\theta}(\psi; \omega); Y)^\top\frac{\partial\tilde{\theta}(\psi; \omega)}{\partial \psi}.$${#eq-7.0} 
+This suggests that the maximum likelihood estimate for $\psi$ based on the simple MC approximation to the ZSE-parameterized integrated likelihood under the dyad criteria will be the same as the one produced by the profile likelihood. Furthermore, we can use a quadratic expansion of an arbitrary branch curve to show that the branch's curvature around its peak at $\hat{\psi}$ will be equal to that of the profile likelihood up to a second-order approximation (again, see appendix:A for a proof). It follows that the behavior of our MC approximation to the integrated likelihood for $\psi$, itself being nothing more than a simple average of these branches, will be virtually indistinguishable from that of the profile likelihood near $\hat{\psi}$ since each branch contributes a quadratic with the same peak and very similar curvature. Thus it is clear that for any dyad satisfying these criteria, it does not matter whether one uses the integrated or the profile likelihood to conduct inference regarding its parameter of interest - the conclusions will be identical. However, the profile likelihood is in general both conceptually and computationally easier to implement, making it the better choice in such cases.
 
-Thus, we need to be able to evaluate both the ZSE optimizer $\tilde{\theta}(\psi; \omega)$ and its partial derivative with respect to $\psi$ at $\psi = \hat{\psi}$. Recall that to evaluate $\tilde{\theta}(\psi; \omega)$ at a point $\psi$ for a given $\omega$ is to solve the constrained maximization problem $$\arg \max_{\substack{\theta}} \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) \> \text{ s.t. } \> \alpha^{\top} \theta = \psi.$$ We proceed by the method of Lagrange multipliers. For some multiplier $\lambda$ (which may depend on $\psi$ and $\omega$), define the Lagrangian function $$\mathcal{L}(\theta, \lambda) = \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) + \lambda\Bigg[\psi - \sum_{g=1}^G \alpha_g \theta_g\Bigg].$$ Per the Lagrange multiplier theorem, the solution to the maximization problem will satisfy $$\frac{\partial \mathcal{L}(\theta, \lambda)}{\theta_g}\Bigg|_{\theta_g = \tilde{\theta}_g} = 0, \> \> \text{for } g = 1, ..., G$${#eq-7.1} and $$\frac{\partial \mathcal{L}(\theta, \lambda)}{\lambda} = 0.$${#eq-7.2} From @eq-7.1, we have $$\frac{t_g\omega_g}{\tilde{\theta_g}} - t_g - \lambda\alpha_g = 0.$$ This implies that the optimal solution $\tilde{\theta}$, viewed here as a function of $\lambda$, satisfies $$\tilde{\theta}_g(\lambda) = \frac{t_g \omega_g}{t_g + \lambda\alpha_g}.$${#eq-7.3} Paired with the constraint condition enforced by @eq-7.2, this in turn implies that the optimal value of $\lambda$ will satisfy $$\sum_{g=1}^G \alpha_g \tilde{\theta}_g(\lambda) = \psi.$${#eq-7.4} Note that $\lambda = 0 \iff \tilde{\theta} = \omega \iff \psi = \hat{\psi}$. It follows that $\tilde{\theta}(\hat{\psi}; \omega) = \omega.$
+\subsection{Fixed Effects Regression}
 
-Turning our attention now to the derivative of the ZSE optimizer with respect to $\psi$, we have that $$\frac{\partial\tilde{\theta}_g}{\partial \psi} = \frac{\partial\tilde{\theta}_g}{\partial \lambda} \frac{d\lambda}{d \psi}.$$ From @eq-7.3, we can compute $$\frac{\partial\tilde{\theta}_g}{\partial \lambda} = -\frac{t_g\omega_g\alpha_g}{(t_g + \lambda\alpha_g)^2}.$$ At $\lambda = 0$, this evaluates to $$\frac{\partial\tilde{\theta}_g}{\partial \lambda}\Bigg|_{\lambda = 0} = -\frac{\omega_g\alpha_g}{t_g}.$$ Similarly, differentiating both sides of @eq-7.4 with respect to $\psi$ gives $$\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda} \frac{d \lambda}{d \psi} = 1 \implies \frac{d \lambda}{d \psi} = \frac{1}{\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda}}.$$ At $\psi = \hat{\psi}$, this evaluates to $$\frac{d \lambda}{d \psi}\Bigg|_{\psi = \hat{\psi}} = \frac{1}{\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda}\Big|_{\lambda = 0}} = -\frac{1}{\sum_{g=1}^G \alpha_g^2 \omega_g / t_g}.$$ Thus 
-$$
-\begin{aligned}
-\frac{\partial\tilde{\theta}_g}{\partial \psi}\Bigg|_{\psi = \hat{\psi}} &= \frac{\partial\tilde{\theta}_g}{\partial \lambda}\Bigg|_{\lambda = 0} \cdot \frac{d\lambda}{d \psi}\Bigg|_{\psi = \hat{\psi}} \\
-                                                                         &= \bigg(-\frac{\omega_g\alpha_g}{t_g}\bigg) \Bigg(-\frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
-                                                                         &= \frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h},
-\end{aligned}
-$$
-where we have changed the index of summation from $g$ to $h$ in the denominator of the final two lines to avoid confusion with the particular index $g$ being considered in the numerator.
+\subsection{Mixed Effects Regression}
 
-Returning to @eq-7.0, we can now compute 
-$$
-\begin{aligned}
-b'_{\omega}({\hat{\psi}}) &= \Bigg[\nabla_{\theta} \ell(\tilde{\theta}(\psi; \omega); Y)\Bigg|_{\psi = \hat{\psi}}\Bigg]^\top\Bigg[\frac{\partial\tilde{\theta}(\psi; \omega)}{\partial \psi} \Bigg|_{\psi = \hat{\psi}}\Bigg] \\
-                          &= \sum_{g=1}^G \Bigg(\frac{\partial \ell}{\partial \theta_g}\Bigg|_{\theta_g = \tilde{\theta}_g(\hat{\psi}; \omega)}\Bigg)\Bigg(\frac{\partial\tilde{\theta}_g}{\partial \psi}\Bigg|_{\psi = \hat{\psi}}\Bigg) \\
-                          &= \sum_{g=1}^G \Bigg(\frac{Y_g}{\tilde{\theta}_g(\hat{\psi}; \omega)} - t_g\Bigg)\Bigg(\frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
-                          &= \sum_{g=1}^G \Bigg(\frac{Y_g}{\omega_g} - t_g\Bigg)\Bigg(\frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
-                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\sum_{g=1}^G \alpha_g\Bigg(\frac{Y_g}{t_g} - \omega_g\Bigg) \\
-                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg(\sum_{g=1}^G \alpha_g\hat{\theta}_g - \sum_{g=1}^G\alpha_g\omega_g\Bigg) \\
-                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}(\hat{\psi} - \hat{\psi}) \\
-                          &= 0.
-\end{aligned}
-$$
+\subsubsection{Fixed Intercepts and Random Slopes}
 
-$\therefore \> \> b'_{\omega}({\hat{\psi}}) = 0$.
+\subsubsection{Random Intercepts and Fixed Slopes}
 
-Since the choice of branch was arbitrary, this holds true for all $\omega \in \Omega_{\hat{\psi}}$.
+\subsubsection{Random Intercepts and Random Slopes}
 
-$\therefore \> \psi^*_{\omega} = \hat{\psi}$ for all $\omega \in \Omega_{\hat{\psi}}. \hfill \blacksquare$ 
+\section{Overdispersion}
 
-The behavior of the integrated likelihood for $\psi$ under the ZSE parameterization is near-identical to that of the profile likelihood. 
-
-\section{Fixed Effects Regression}
-
-\section{Random Intercepts Regression}
-
-\section{Random Intercepts and Slopes Regression}
-
-\section{Discussion}
+\section{Zero-Inflation}
