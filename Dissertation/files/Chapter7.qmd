@@ -8,7 +8,7 @@ To motivate our discussion, let us imagine a hypothetical scenario to which we w
 
 To interpret the number of patient-days as a random variable is to declare that what really matters is not the rate of infection among hospitals in this outbreak in particular but rather the more abstract notion of the disease's "true" rate of infection in general. This would mean that both the numerator and denominator in our ratio are random variables, transforming it from an "estimator which happens to be a ratio" into an actual "ratio estimator". Conversely, to treat them as fixed parameters is to condition on their exact values reported by each hospital in the group, thereby restricting our attention to the rate of infection among these hospitals only. Neither choice is inherently right or wrong - it is up to us to decide where our interest lies - but once we have decided, we must honor the consequences of that choice in our analysis. Failure to do so would lead to bias in our estimates. We will begin with the assumption that the point of our analysis is to gauge the risk involved with this outbreak specifically, so until such time as it is explicitly noted otherwise, it is safe to regard the patient-days that each hospital reports as being fixed parameters.
 
-The overall rate of infection among only the hospitals in our group is therefore what constitutes our parameter of interest. As usual we will call this value $\psi$ and its estimator $\hat{\psi}$. In practice, especially for an example such as this, the line between $\psi$ and $\hat{\psi}$ often gets blurred, with many treating the observed rate as though it is the same as the true underlying rate. From the perspective of assessing impact, this is completely reasonable as the observed rate is by definition what the hospitals actually experience. However, for the sake of avoiding conceptual ambiguity in our language and intent, we will continue to treat them as two distinct entities. If nothing else, it serves as a friendly reminder of the importance of maintaining proper separation between estimand and estimator.
+The overall rate of infection among only the hospitals in our group is therefore what constitutes our parameter of interest. As usual we will call this value $\psi$ and its estimator $\hat{\psi}$. In practice, especially for an example such as this, the line between $\psi$ and $\hat{\psi}$ often gets blurred, with many treating the observed rate as though it is the same as the true underlying rate. From the perspective of assessing impact, this is understandable as the observed rate is by definition what the hospitals actually experience. However, for the sake of avoiding conceptual ambiguity in our language and intent, we will continue to treat them as two distinct entities. If nothing else, it serves as a friendly reminder of the importance of maintaining proper separation between estimand and estimator.
 
 Assume there are $J$ hospitals in the group, and let $Y_j$ and $t_j$ represent the number of infections and patient-days, respectively, reported by hospital $j$ since the start of the outbreak. Then our estimator may be written as 
 $$
@@ -23,7 +23,7 @@ where $t_j' \equiv \frac{t_j}{\sum_{j=1}^J t_j}$ and $\hat{\theta}_j \equiv Y_j 
 
 Thus, the overall rate of infection can be decomposed as the weighted *average* of the individual hospitals' rates of infection. Note that the term "average" is proper here since $\sum_{j=1}^J t_j' = 1$. This follows directly from our requirement that each weight $t_j'$ be proportional to the number of patient-days contributed by hospital $j$ to the total number of patient-days across all the hospitals since the outbreak began. We made this restriction as a consequence of the question that motivated our analysis, but it was entirely arbitrary. There is nothing actually requiring the weights to sum to one, or indeed that they depend on the patient-days at all. We could just as easily have asked about an aggregated infection rate relative to some other hospital-specific metric (e.g. number of available beds, population of surrounding region, etc.) that would in turn inform the precise values of the weights we choose for our parameter of interest. 
 
-And of course the utility of a weighted sum as a parameter of interest is not unique to our example of evaluating the severity of a disease outbreak in a group of hospitals either. In general, we may consider any set of $J$ independent count-generating processes with distinct rates (countable events per unit time) of $\theta_1, ..., \theta_J$ and corresponding weights $\alpha_1, ..., \alpha_j$ as inducing a parameter of interest of the form $$\psi = \sum_{j=1}^J \alpha_j \theta_j.$${#eq-3} It is not necessary to assume that the weights are normalized, though we will still require that $\alpha_j > 0$ for all $j$ in order to retain the interpretation of $\psi$ as being a weighted *sum* of individual rates. 
+And of course the utility of a weighted sum as a parameter of interest is not unique to our example of evaluating the severity of a disease outbreak in a group of hospitals either. In general, we may consider any set of $J$ independent count-generating processes with distinct rates (countable events per unit time) of $\theta_1, ..., \theta_J$ and corresponding weights $\alpha_1, ..., \alpha_J$ as inducing a parameter of interest of the form $$\psi = \sum_{j=1}^J \alpha_j \theta_j.$${#eq-3} It is not necessary to assume that the weights are normalized, though we will still require that $\alpha_j > 0$ for all $j$ in order to retain the interpretation of $\psi$ as being a weighted *sum* of individual rates. 
 
 In the following sections, we will assess the ability of the integrated likelihood to produce accurate estimates for $\psi$ under three separate model frameworks. The models we will consider are (i) a naive one in which we estimate the rate in each group using only the group's observed count and exposure time, (ii) a fixed effects regression model in which we assume there is an underlying covariate structure influencing the observed counts in each group, and (iii) a hierarchical mixed effects regression model in which we assume some or all of the intercepts and slopes from the previous model are random effects instead of fixed. We will also take into account the robustness of the pseudolikelihood-derived estimators to model misspecification when evaluating their performance.
 
@@ -31,7 +31,7 @@ In the following sections, we will assess the ability of the integrated likeliho
 
 We begin with a model characterized by its sole use of a process's observed count of events over some recorded interval of time to estimate its associated rate. This is perhaps the simplest nontrivial model one can employ for our parameter of interest, so we will refer to it as the *naive rates model*. 
 
-Let $Y_j$ denote the count of events that we record from the $j$-th process during an exposure time $t_j$ (the patient-days in our outbreak example). We will proceed for the moment under the assumption that the mean of the random variable underlying each count-generating process is roughly equal to its variance, meaning there is no risk of overdispersion. It is therefore safe to assume that the counts follow a Poisson distribution, i.e. $$Y_j \sim \text{Poisson}(t_j\theta_j).$$ The log-likelihood for $\theta$ then becomes $$\ell(\theta; Y) = \sum_{j=1}^J \big(Y_j \log \theta_j - t_j \theta_j\big),$$ where we have discarded any additive terms not depending on $\theta$. The unconstrained MLE for $\theta_j$ is given by $\hat{\theta}_j = Y_j / t_j$, with the corresponding MLE for $\psi$ being obtained by plugging these estimates into @eq-3, i.e. $$\hat{\psi} = \sum_{j=1}^J \alpha_j \hat{\theta}_j.$${#eq-4}
+Let $Y_j$ denote the count of events that we record from the $j$-th process during an exposure time $t_j$ (the patient-days in our outbreak example). We will proceed for the moment under the assumption that the mean of the random variable underlying each count-generating process is roughly equal to its variance, meaning there is no risk of overdispersion. It is therefore safe to assume that the counts follow a Poisson distribution, i.e. $$Y_j \sim \text{Poisson}(t_j\theta_j).$$ The log-likelihood for $\theta$ then becomes $$\ell(\theta; Y) = \sum_{j=1}^J \big(Y_j \log \theta_j - t_j \theta_j\big),$$ where we have discarded any additive terms not depending on $\theta$. The unconstrained MLE for $\theta_j$ is given by $\hat{\theta}_j = Y_j / t_j$, with the corresponding MLE for $\psi$ being obtained by plugging these estimates into @eq-3, yielding $$\hat{\psi} = \sum_{j=1}^J \alpha_j \hat{\theta}_j.$${#eq-4}
 
 Since $\psi$ is a function of the full model parameter, we can employ the ZSE parameterization method for an implicit nuisance parameter introduced in @severini2018 to approximate the integrated likelihood. Recall that elements of the subspace $\Omega_{\hat{\psi}} = \{\omega \in \Theta: \alpha^\top \omega = \hat{\psi}\}$ play the role of the ZSE parameter in models for which the nuisance parameter is implicit. Let $Q(\theta; \omega)$ represent the expected value of $\ell(\theta; Y)$ under the probability distribution indexed by an element $\omega \in \Omega_{\hat{\psi}}$. That is,
 $$
@@ -64,30 +64,95 @@ Of course, by definition $\hat{\psi}$ is also the maximizer of the profile likel
 
 \subsection{Fixed Effects Regression}
 
-Now suppose there is a set of covariates that we have reason to believe is influencing the counts we record from the Poisson process in each group. For example, that at the same time we record Poisson counts from each group, we also make observations from a set of covariates we have reason to believe are influencing the 
+In the previous section, we relied solely on the observed counts and exposure times to estimate $\psi$. In practice, however, additional external factors often influence the counts we observe from each process. For instance, in the disease-outbreak example, variations in patient age distributions or other comorbidities across hospitals could affect the number of reported infections. To account for such influences, we turn to the standard framework of linear regression, which formally relates covariates to systematic variation in the observed counts.
 
+Let $Y_{ij}$ denote the $i$-th count from process $j$ observed over an exposure time $t_{ij}$. Unlike the naive rates model in which only the total count per process was relevant, the presence of covariates that vary by observation requires us to retain each individual $Y_{ij}$ and $t_{ij}$. If we were to ignore the covariates and sum over the index $i$, we would recover the structure of the naive model. Suppose that for each count we also observe a vector of covariates $X_{ij}$ that may affect the rate at which process $j$ generates events. We model these effects using a *fixed effects regression* framework, in which the coefficients associated with each covariate are treated as constant but unknown parameters to be estimated from the data. Some covariates may have *process-specific* effects (their impact varies across $j$), while others may have *process-agnostic* effects (affecting $Y_{ij}$ uniformly across all processes $j = 1, ..., J$). We partition the covariate vector as $$X_{ij} = \begin{pmatrix} X_{ij}^{(s)} \\ X_{ij}^{(a)}\end{pmatrix}$${#eq-7.1.2.1} where $X_{ij}^{(s)} \in \mathbb{R}^{p\times1}$ and $X_{ij}^{(a)} \in \mathbb{R}^{q\times1}$ collect the process-specific and process-agnostic covariates, respectively. 
 
-regress the Poisson counts we observe from each group against a corresponding set of covariates that we observe as well. The Poisson distribution's membership in the exponential family of distributions makes this an example of a generalized linear model (GLM). As the structure of any regression model depends upon the manner in which its data was collected, it would be wise to begin by establishing the sampling procedure germane to this GLM. As before, assume there are $J$ groups  
+Because covariates can influence the number of events recorded in each observation, the underlying rate $$\theta_{ij} \equiv \theta_j(X_{ij})$${#eq-7.1.2.2} may vary with $i$. Each observed count $Y_{ij}$ then has a conditional mean $$\mu_{ij} \equiv \text{E}(Y_{ij} | X_{ij}) = t_{ij} \theta_{ij}.$${#eq-7.1.2.3} We define the *marginal rate* of process $j$ as the expected rate averaged over the distribution of covariates, i.e., $$\bar{\theta}_j \equiv \text{E}_{X_j}[\theta_j(X_{j})] = \int\theta_j(X_{j})dF_{X_j}(X_{j}),$${#eq-7.1.2.4} where $X_j$ represents a generic covariate vector associated with process $j$, drawn according to the joint distribution $F_{X_{j}}$. These marginal rates generalize the naive rates from the previous model by averaging over covariates rather than relying on raw totals. Our parameter of interest for this model may then be written as 
+$$
+\psi = \sum_{j=1}^J \alpha_j \bar{\theta}_j,
+$${#eq-7.1.2.5}
+for some positive weights $\alpha_1, ..., \alpha_J$.
 
-For each of the $J$ groups, we assume that there is a distinct Poisson process with underlying 
+Up to this point, we have refrained from placing any distributional assumption on the observed counts. In this chapter, we focus on two commonly used distributions for count data: the Poisson and the negative binomial. Since both distributions belong to the exponential family, our model fits naturally within the framework of generalized linear models (GLMs), which provide a formal connection between the covariate-dependent rates $\theta_j(X_{ij})$ and the observed counts. In the following subsections, we examine each distribution in turn and assess how well an integrated likelihood function can produce estimators of weighted sums of the marginal rates $\bar{\theta}_j$ under these standard count models.
 
+\subsubsection{The Poisson GLM}
 
+Suppose the conditional distribution of $Y_{ij}$ given $X_{ij}$ is $Y_{ij} | X_{ij} \sim \text{Poisson}(\mu_{ij})$. Then the conditional probability mass function of $Y_{ij}$ can be expressed in canonical exponential-family form as
 
-We will assume that every count we record from group $j$ is generated by a Poisson process with an underlying rate per unit exposure of $\theta_j$ that is modulated by the presence of covariates
+$$
+\begin{aligned}
+\text{P}(Y_{ij} = y | X_{ij}) &= \frac{e^{-\mu_{ij}}\mu_{ij}^y}{y!} \\
+              &= \exp\big[y \log(\mu_{ij}) - \mu_{ij} - \log(y!)\big] \\
+              &= \exp\big[y \log(t_{ij} \theta_{ij}) - t_{ij} \theta_{ij} - \log(y!)\big] \\
+              &= \exp\big[y \log(\theta_{ij}) - t_{ij} \theta_{ij} + y\log(t_{ij}) - \log(y!)\big] \\
+              &= \exp\big[y \eta_{ij} - t_{ij} \exp(\eta_{ij}) + y\log(t_{ij}) - \log(y!)\big],
+\end{aligned}
+$$
+where $\eta_{ij} = \log(\theta_{ij})$ is the natural parameter of the model. 
 
-Let $Y_{ij}$ represent the $i$-th observation made from the process in the $j$-th group during an exposure time $t_{ij}$, so that $$Y_{ij} \sim \text{Poisson}(\mu_{ij}),$$ where $\mu_{ij} = t_{ij} \theta_j$ and $i \in \{1, ..., n_j\}$. If we were to disregard the covariates at this point and sum all quantities over the index $i$, we would arrive at the setup of the previous section. Instead, we impose a regression structure on the data by assuming that the mean of $Y_{ij}$ has a conditional dependence on its associated vector of covariates $X_{ij}$ through a linear combination (or some function thereof) of their observed values with a vector of unknown parameters $\beta$. We will assume in this section that all of the coefficients in $\beta$ are constant parameters with a fixed effect on the Poisson counts we observe, as opposed to themselves being realizations of some group of latent random variables. These coefficients are the parameters that interact most directly with the data we observe, so it is sensible and justified to take $\beta$ for our full model parameter.
+As a transformation of the rate, $\eta_{ij}$ governs the mean of the distribution and thus captures how the expected count depends on the covariates. Following from the bedrock regression principle that systematic variation in the mean response should be explained linearly in terms of the predictors, we formalize this dependence by defining the *linear predictor* for observation $i$ from process $j$ as $X_{ij}^\top \beta_j,$ a linear combination of the covariates with a vector of unknown coefficients $\beta_j$. 
 
- Every GLM needs a link function relating the conditional mean of its response variable given its set of predictors to the linear predictor itself; we will choose for ours the canonical link for a Poisson GLM, the natural logarithm. If we let $\text{E}(Y_{ij} | X_{ij}) = \mu_{ij}$, then we have $$\log(\mu_{ij}) = X_{ij}^\top\beta.$$ Substituting in our earlier expression for $\mu_{ij}$ in terms of $t_{ij}$ and $\theta_j$ and doing some rearranging, we arrive at $$\log(\theta_j) = X_{ij}^\top \beta - \log(t_{ij})$$ for $i = 1, ..., n_j$ and $j = 1, ..., J$.
+In a GLM, the systematic component represented by $X_{ij}^\top \beta_j$ must be connected to its random component $\mu_{ij}$, the conditional mean of the response. This is done via a *link function* $g(\cdot)$, which specifies the relationship $$g(\mu_{ij}) =X_{ij}^\top \beta_j.$$ The *canonical link function* is the special choice of $g(\cdot)$ that sets the natural parameter equal to the linear predictor, i.e., $$\eta_{ij} = X_{ij}^\top \beta_j.$${#eq-7.1.2.6} 
 
-For the $i$-th count from the $g$-th process, we observe values from $p + q$ independent covariates, where $p$ and $q$ are known non-negative integers such that $p + q \geq 1$. $p$ represents the number of covariates that have a process-dependent effect on their associated response $Y_{ig}$ (i.e. their slope coefficient depends on the value of $g$). 
+For the Poisson distribution, we have already shown that the natural parameter is related to the rate through $\eta_{ij} = \log(\theta_{ij})$. Because the conditional mean of each Poisson process includes the exposure time, $\mu_{ij} = t_{ij}\theta_{ij}$, the model can be equivalently written as 
+$$
+\begin{aligned}
+\log(\mu_{ij}) &= \log(t_{ij}\theta_{ij}) \\
+               &= \log(t_{ij}) + \log(\theta_{ij}) \\
+               &= \log(t_{ij}) + \eta_{ij} \\
+               &= \log(t_{ij}) + X_{ij}^\top \beta_j, &&(\text{using the canonical link})
+\end{aligned}
+$$ {#eq-7.1.2.7}
+where $\log(t_{ij})$ acts as a known offset. It follows that the canonical link for a Poisson GLM is the *log link* $g(\mu_{ij}) = \log(\mu_{ij}/t_{ij})$, under which additive effects of $X_{ij}$ correspond to multiplicative effects on $\mu_{ij}$.
 
-Let us further assume that each observed $Y_{ig}$ has associated with it two vectors of observed covariates $X_{ig} \in \mathbb{R}^{p\times1}$ and $Z_{ig} \in \mathbb{R}^{q\times1}$,  That is,  A covariate is assigned to a component of the vector $X_{ig}$ if its effect on the response $Y_{ig}$ is assumed to vary across processes  or to a component of the vector $Z_{ig}$ if its effect on $Y_{ig}$ is assumed to be constant regardless of the process with which it is associated (i.e. it has a single slope coefficient for all values of $g$). ^[We still assume the effects associated with the covariates belonging to $X_{ig}$ are *fixed* and not *random*, in the sense that we do not consider the effects themselves (the corresponding slope coefficients) to be realizations of an underlying random variable.] 
+To simplify notation, we include a leading 1 in the process-specific covariate vector $X_{ij}^{(s)}$ that corresponds to the intercept term for process $j$. We then partition the coefficient vector $\beta_j$ as $$\beta_j = \begin{pmatrix}\beta_j^{(s)} \\ \beta^{(a)}\end{pmatrix},$${#eq-7.1.2.8} where $\beta_j^{(s)} \in \mathbb{R}^{p\times1}$ contains all the coefficients specific to process $j$ (including the intercept) and $\beta^{(a)} \in \mathbb{R}^{q\times1}$ contains the shared, process-agnostic slopes. The linear predictor for observation $i$ from process $j$ can then be written as $$\eta_{ij} = \big(X_{ij}^{(s)}\big)^\top \beta_j^{(s)} + \big(X_{ij}^{(a)}\big)^\top \beta^{(a)}.$${#eq-7.1.2.9}
 
+Stacking the observations for process $j$, we can express the model in matrix form as  
+$$
+\eta_j = X_j^{(s)} \beta_j^{(s)} + X_j^{(a)} \beta^{(a)},
+$${#eq-7.1.2.10}
+where $X_j^{(s)} \in \mathbb{R}^{n_j \times p}$ and $X_j^{(a)} \in \mathbb{R}^{n_j \times q}$ are the design matrices of process-specific and process-agnostic covariates, respectively, and $\eta_j = (\eta_{1j}, \ldots, \eta_{n_j j})^\top$ is the vector of linear predictors for process $j$.
 
+The log-likelihood for an individual observation $Y_{ij}$ follows directly from the exponential-family representation of the Poisson distribution:
+$$
+\ell_{ij}(\beta_j^{(s)}, \beta^{(a)}; Y) 
+= Y_{ij} \eta_{ij} - t_{ij} \exp(\eta_{ij}) + Y_{ij}\log(t_{ij}) - \log(Y_{ij}!).
+$${#eq-7.1.2.11}
+Summing over all observations within process $j$ gives the process-level log-likelihood,
+$$
+\ell_j(\beta_j^{(s)}, \beta^{(a)}; Y) 
+= \sum_{i=1}^{n_j} \ell_{ij}(\beta_j^{(s)}, \beta^{(a)})
+= \sum_{i=1}^{n_j} \Big[ Y_{ij} \eta_{ij} - t_{ij}\exp(\eta_{ij}) + Y_{ij}\log(t_{ij}) - \log(Y_{ij}!) \Big].
+$${#eq-7.1.2.12}
+Finally, aggregating across all processes yields the full log-likelihood,
+$$
+\ell(\beta^{(s)}, \beta^{(a)}; Y) 
+= \sum_{j=1}^J \ell_j(\beta_j^{(s)}, \beta^{(a)}),
+$${#eq-7.1.2.13}
+which depends jointly on the shared parameters $\beta^{(a)}$ and the collection of process-specific coefficients 
+$\beta^{(s)} = (\beta_1^{(s)\top}, \ldots, \beta_J^{(s)\top})^\top.$
 
-Let $\alpha_g$ represent the intercept term in group $g$, 
+Let $\hat{\beta}_j$ denote the MLE of the coefficient vector $\beta_j$. Since the $\exp(\eta_{ij})$ term in the log-likelihood makes it nonlinear in $\beta_j$, the score equations for this model cannot be solved algebraically, and thus no closed-form expressions for each $\hat{\beta}_j$ exists. Instead, $\hat{\beta}_j$ can be obtained numerically using the `glm()` function from the `stats` package in R, which implements the standard iteratively reweighted least squares (IRLS) algorithm for approximating the MLEs in the GLM framework.
 
-and $Z_{ig}$ on the basis of whether the covariate
+From @eq-7.1.2.6, the corresponding estimated linear predictors for process $j$ are given by
+$$
+\hat{\eta}_{ij} = X_{ij}^\top \hat{\beta}_j.
+$${#eq-7.1.2.13}
+Since $\eta_{ij} = \log(\theta_{ij})$, the estimated observation-level rate is 
+$$
+\hat{\theta}_{ij} = \exp(X_{ij}^\top \hat{\beta}_j).
+$${#eq-7.1.2.14}
+An estimate of the marginal rate $\bar{\theta}_j$ defined in @eq-7.1.2.4 can then be obtained by averaging these observation-level estimates over the index $i$:
+$$
+\hat{\bar{\theta}}_j = \frac{1}{n_j} \sum_{i=1}^{n_j} \exp(X_{ij}^\top \hat{\beta}_j).
+$${#eq-7.1.2.15}
+Finally, substituting these into @eq-7.1.2.5 yields the MLE for $\psi$:
+$$
+\hat{\psi} = \sum_{j=1}^J \alpha_j \hat{\bar{\theta}}_j.
+$${#eq-7.1.2.16}
+
+\subsubsection{The Negative Binomial GLM}
 
 \subsection{Mixed Effects Regression}
 

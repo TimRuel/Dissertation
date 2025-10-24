@@ -175,17 +175,22 @@
 %                #6 - font control
 % if tempskipa <= 0 the heading is a run-in heading
 
+% Main section: slightly larger, clear spacing above/below
 \def\section{\@startsection{section}{1}%
-  \z@{2ex \@plus 0ex \@minus 0ex}{2.3ex \@plus 0ex \@minus 0ex}%
+  \z@{3.0ex \@plus 0ex \@minus 0ex}{2.0ex \@plus 0ex \@minus 0ex}%
   {\normalfont\Large\bfseries}}
 
+% Subsection: smaller, a bit less space above and below
 \def\subsection{\@startsection{subsection}{2}%
-  \z@{-3.25ex \@plus 0ex \@minus 0ex}{1.5ex \@plus 0ex \@minus 0ex}%
-  {\normalfont\bfseries}}
+  \z@{2.5ex \@plus 0ex \@minus 0ex}{1.5ex \@plus 0ex \@minus 0ex}%
+  {\normalfont\large\bfseries}}
 
+% Subsubsection: same pattern, but with minimal spacing and smaller font
 \def\subsubsection{\@startsection{subsubsection}{3}%
-  \z@{0ex \@plus 0ex \@minus 0ex}{0ex \@plus 0ex \@minus 0ex}%
-  {\normalfont\bfseries}}
+  \z@{2.0ex \@plus 0ex \@minus 0ex}{1.0ex \@plus 0ex \@minus 0ex}%
+  {\normalfont\normalsize\bfseries}}
+
+
 
 
 
