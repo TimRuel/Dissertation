@@ -1,6 +1,6 @@
 \chapter{Count Dyads}
 
-This chapter aims to examine the utility of the integrated likelihood function as a tool for estimating parameters of interest in dyads with models of data generated from count distributions. In each dyad we investigate, we will compare and contrast the performances of the point and interval estimators produced by the integrated likelihood (or more commonly, our approximations to the integrated likelihood) for the dyad's parameter of interest to the analogous estimators produced by the profile likelihood function. Our use of the profile likelihood stems from its conceptual simplicity and ease of computation, making it a convenient choice for an estimation benchmark.
+This chapter examines the utility of the integrated likelihood function as a tool for estimating parameters of interest in dyads with models of data generated from count distributions. In each dyad we investigate, we will compare and contrast the performances of the point and interval estimators produced by the integrated likelihood (or more commonly, our approximations to the integrated likelihood) for the dyad's parameter of interest to the analogous estimators produced by the profile likelihood function. Our use of the profile likelihood stems from its conceptual simplicity and ease of computation, making it a convenient choice for an estimation benchmark.
 
 \section{Weighted Sums of Rate Parameters}
 
@@ -227,10 +227,10 @@ Suppose the conditional distribution of $Y_{ij}$ given $X_{ij}$ is $Y_{ij} | X_{
 
 $$
 \begin{aligned}
-\text{P}(Y_{ij} = y | X_{ij}) &= \frac{\Gamma(y + r_j)}{\Gamma(r_j)y!}\Bigg(\frac{r_j}{r_j + \mu_{ij}}\Bigg)^{r_j}\Bigg(\frac{\mu_{ij}}{r_j + \mu_{ij}}\Bigg)^y, \> \> y = 0, 1, 2, ... \\
-                              
+\text{P}(Y_{ij} = y | X_{ij}) &= \frac{\Gamma(y + r_j)}{\Gamma(r_j)y!}\Bigg(\frac{r_j}{r_j + \mu_{ij}}\Bigg)^{r_j}\Bigg(\frac{\mu_{ij}}{r_j + \mu_{ij}}\Bigg)^y, \> \> y = 0, 1, 2, ...                               
 \end{aligned}
 $$
+
 where $\eta_{ij} = \log(\theta_{ij})$ is the natural parameter of the model. 
 
 As a transformation of the rate, $\eta_{ij}$ governs the mean of the distribution and thus captures how the expected count depends on the covariates. Following from the bedrock regression principle that systematic variation in the mean response should be explained linearly in terms of the predictors, we formalize this dependence by defining the *linear predictor* for observation $i$ from process $j$ as $X_{ij}^\top \beta_j,$ a linear combination of the covariates with a vector of unknown coefficients $\beta_j$. 
