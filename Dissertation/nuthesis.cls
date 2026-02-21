@@ -178,7 +178,7 @@
 % Main section: slightly larger, clear spacing above/below
 \def\section{\@startsection{section}{1}%
   \z@{3.0ex \@plus 0ex \@minus 0ex}{2.0ex \@plus 0ex \@minus 0ex}%
-  {\normalfont\Large\bfseries}}
+  {\normalfont\Large\bfseries\centering}}
 
 % Subsection: smaller, a bit less space above and below
 \def\subsection{\@startsection{subsection}{2}%
@@ -187,8 +187,8 @@
 
 % Subsubsection: same pattern, but with minimal spacing and smaller font
 \def\subsubsection{\@startsection{subsubsection}{3}%
-  \z@{2.0ex \@plus 0ex \@minus 0ex}{1.0ex \@plus 0ex \@minus 0ex}%
-  {\normalfont\normalsize\bfseries}}
+  \z@{2.0ex \@plus 0ex \@minus 0ex}{-1em}%
+  {\normalfont\normalsize\bfseries\nobreak\hspace{0.75em}}}
 
 
 
