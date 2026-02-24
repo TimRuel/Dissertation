@@ -1,266 +1,225 @@
-\chapter{Multinomial Dyads}
+\chapter{Negative Binomial Dyads}
+
+<!--
+============================================================
+Introduction
+============================================================ 
+-->
 
 \section{Introduction}
 
-This chapter concerns parameters of interest derived from a multinomial distribution under various model assumptions. The parameters of interest considered are Shannon entropy, Simpson's diversity index, and a shared effect coefficient in a multinomial logistic regression. We begin with a brief review of the multinomial distribution and its relevant properties.
-
-Let $\symbf{Y}$ denote the outcome of a single categorical trial with parameter $\symbf{\theta} = (\theta_1, ..., \theta_J) \in \Delta_{J-1},$
-where
-$$
-\Delta_{J-1} \equiv \Bigg\{\symbf{\theta} \in [0, 1]^J: \sum_{j=1}^J \theta_j = 1\Bigg\}
-$${#eq-simplex}
-is the $(J-1)$-dimensional probability simplex. We may represent $\symbf{Y}$ as a random vector taking values in the canonical basis of $\mathbbm{R}^J$, i.e.,
-$$
-\symbf{Y} \in \{\symbf{e}_1, ..., \symbf{e}_J\},
-$$
-where $\symbf{e}_j$ denotes the $j$th standard basis vector. The distribution of $\symbf{Y}$ is specified by 
-$$
-\mathbbm{P}(\symbf{Y} = \symbf{e}_j) = \theta_j, \quad j = 1, \dots, J,
-$${#eq-categorical-distribution}
-and we write $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$.
-
-A multinomial random vector arises as the sum of $n$ $\text{i.i.d.}$ categorical random vectors:
-$$
-\sum_{i = 1}^n \textbf{Y}_i \sim \text{Multinomial}(n, \symbf{\theta}),
-\quad
-\textbf{Y}_i \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta}),
-\quad
-i = 1, ..., n.
-$${#eq-multinomial-construction}
-In particular, the categorical distribution is a special case of the multinomial distribution with $n = 1$, mirroring the relationship between the Bernoulli and binomial distributions.^[The categorical distribution is also known as the *multinoulli* distribution.]
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.5\textwidth]{files/Images/simplex.png}
-  \caption{%
-    \textbf{The probability simplex for a multinomial model with three categories.}
-    The simplex $\Delta_2$ is embedded in $\mathbbm{R}^3$ with vertices
-    $(1,0,0)$, $(0,1,0)$, and $(0,0,1)$.
-    Each point on the surface corresponds to a probability vector $\symbf{\theta}$
-    satisfying $\sum_j \theta_j = 1$.
-  }
-  \label{fig:multinomial-simplex}
-\end{figure}
-
-Let $(N_1, ..., N_J) \sim \text{Multinomial}(n, \symbf{\theta})$, where $N_j$ denotes the number of observations falling in category $j$ and $n = \sum_{j=1}^J N_j$. Each marginal count satisfies $N_j \sim \text{Binomial}(n, \theta_j)$, with $\mathbbm{E}_{\symbf{\theta}}(N_j) = n \theta_j$. Since $\symbf{\theta}$ represents category probabilities, the natural parameter space is the probability simplex $\Theta = \Delta_{J-1} \subset \mathbbm{R}^J.$ The likelihood and log-likelihood functions are given by 
-$$
-L(\symbf{\theta}) = \prod_{j=1}^J \theta_j^{N_j}
-$${#eq-multinomial-likelihood} 
-and 
-$$
-\ell(\symbf{\theta}) = \sum_{j=1}^J N_j \log \theta_j,
-$${#eq-multinomial-log-likelihood} 
-respectively. Maximization of @eq-multinomial-log-likelihood subject to $\symbf{\theta} \in \Delta_{J-1}$ yields the familiar maximum likelihood estimator
-$$
-\hat{\theta}_j = \frac{N_j}{n},
-\quad
-j = 1, ..., J.
-$${#eq-multinomial-mle}
-
-The multinomial likelihood is invariant under relabeling of the category indices: permuting the components of $\symbf{\theta}$ leaves the likelihood unchanged. This symmetry implies that, absent a sample size large enough to detect fractional differences between cell probabilities, multiple configurations of the probability vector are observationally equivalent.^[This invariance does not imply non-identifiability of the multinomial parameter, but rather reflects weak identification in directions that are immaterial for the likelihood yet consequential for certain parameters of interest.] This equivalence is most pronounced near the boundary of the probability simplex. When one or more categories are rare or unobserved, the likelihood provides little information about which specific components of $\symbf{\theta}$ are effectively zero, resulting in flat or weakly identified directions associated with different boundary faces.
-
-\section{Parameters of Interest}
-
-\subsection{Shannon Entropy}
-
-The Shannon entropy of a discrete random variable $X$ with support $\mathcal{X}$ and probability mass function $p$ is given by
-$$
-\text{H}(X) := -\sum_{x \in \mathcal{X}} p(x) \log p(x),
-$${#eq-shannon-def}
-with the convention that $0 \log 0 = 0$. In general, $\text{H}(X) \geq 0$, with equality if and only if $p(x^*) = 1$ for some $x^* \in \mathcal{X}$ and $p(x) = 0$ for all $x \neq x^*$. If $\mathcal{X}$ is finite with cardinality $J = |\mathcal{X}|$, then $\text{H}(X) \leq J$, with equality if and only if $p(x) = 1/J$ for all $x \in \mathcal{X}$. Thus, the distribution's entropy is minimized when all its probability mass is concentrated on a single outcome and maximized when it is distributed uniformly across all possible outcomes. This property makes entropy a natural measure of the concentration or dispersion of probability mass over a finite set of categories. In applied settings, entropy is commonly used as an index of diversity, for example to quantify species heterogeneity in ecological communities. In the present setting, we are interested in the entropy associated with a multinomial model, or more precisely, the entropy of a single categorical trial underlying the multinomial construction in @eq-multinomial-construction.
-
-Let $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$ denote the outcome of one trial, with its distribution being as in @eq-categorical-distribution. Then the entropy of $\symbf{Y}$ is given by
-$$
-\begin{aligned} 
-\text{H}(\symbf{Y}) &= -\sum_{\symbf{y} \in \{e_1,\dots,e_J\}} \mathbbm{P}(\symbf{Y} = \symbf{y})\, \log \Big[\mathbbm{P}(\symbf{Y} = \symbf{y})\Big] \\ 
-                    &= - \sum_{j=1}^J \mathbbm{P}(\symbf{Y} = \symbf{e}_j)\, \log \Big[\mathbbm{P}(\symbf{Y} = \symbf{e}_j)\Big] \\
-                    &= - \sum_{j=1}^J \theta_j \log \theta_j. 
-\end{aligned}
-$${#eq-entropy-categorical}
-We therefore define our interest function for the entropy of a multinomial distribution with parameter $\symbf{\theta}$ as
-$$
-\varphi(\symbf{\theta}) := -\sum_{j=1}^J \theta_j \log \theta_j,
-$${#eq-entropy-multinomial}
-and take our parameter of interest to be
-$$
-\psi := \varphi(\symbf{\theta}).
-$${#eq-entropy-psi}
-Hence, while the data enter the model through the multinomial likelihood for $\symbf{\theta}$, inference is focused on the implict parameter $\psi$, the entropy of the corresponding categorical distribution.
-
-\subsection{Simpson's Diversity Index}
-
-The index of diversity introduced by @simpson1949 provides an alternative measure of the concentration of mass in a probability vector. For a vector $\symbf{\theta} \in \Delta_{J-1}$, its Simpson index is defined as 
-$$
-D(\symbf{\theta}) = \sum_{j=1}^J \theta_j^2.
-$${#eq-simpson-index-sum}
-Equivalently, $D(\symbf{\theta})$ is the squared Euclidean norm of $\symbf{\theta}$,
-$$
-D(\symbf{\theta}) = ||\symbf{\theta}||_2^2,
-$${#eq-simpson-index-norm}
-giving it a natural geometric interpretation. Because $D(\symbf{\theta})$ lies on the $(J-1)$-dimensional probability simplex, its value is constrained to the interval $1/J \leq D(\symbf{\theta}) \leq 1.$
-The minimum $D(\symbf{\theta}) = 1/J$ is attained when $\symbf{\theta}$ is uniform, so $\theta_j = 1/J$ for all $j$, corresponding to maximal dispersion of probability mass across categories. The maximum $D(\symbf{\theta})$ occurs when all mass is concentrated in a single component, meaning $\symbf{\theta}$ coincides with a vertex of the simplex. Thus, larger values of $D(\symbf{\theta})$ indicate greater concentration of probability mass, while smaller values reflect greater diversity.
-
-Unlike Shannon entropy, which depends logarithmically on the cell probabilities, the Simpson index is a quadratic function of $\symbf{\theta}$. As a result, it places greater relative weight on large components of the probability vector and is less sensitive to the presence of categories with very small probability. This property makes the Simpson index particularly stable in settings where rare categories are difficult to estimate reliably.
-
-From a statistical perspective, the Simpson index has a simple probabilistic interpretation: if two observations are drawn independently from a categorical distribution with probability vector $\symbf{\theta}$, then $D(\symbf{\theta})$ is the probability that the two observations fall in the same category, while $1 - D(\symbf{\theta})$ is the probability that they fall in different categories. Accordingly, we may take both 
-$$
-\psi := D(\symbf{\theta})
-$${#eq-simpson-index-PoI-1}
-and
-$$
-\tilde{\psi} := 1 - D(\symbf{\theta})
-$${#eq-simpson-index-PoI-2}
-as implicit scalar parameters of interest in a multinomial distribution.
-
-\subsection{Shared Effect}
+<!--
+============================================================
+Models
+============================================================ 
+-->
 
 \section{Models}
 
-\subsection{Baseline Logit Model}
+\subsection{Simple rates model}
 
-The simplest setting for entropy inference under a multinomial model treats the cell probabilities as free parameters estimated directly from count data, with maximum likelihood estimates given by @eq-multinomial-mle. This was the framework considered by @severini2022, who found that an integrated likelihood based on the ZSE nuisance parameterization yields point and interval estimators for entropy with improved frequency properties - such as reduced bias, lower root mean square error, and closer-to-nominal empirical coverage rates - over their profile likelihood counterparts, provided that the sample size is small relative to the number of categories.
+\subsection{Negative binomial regression model with fixed effects}
 
-We adopt this setting here as a baseline model but with a parameterization that better lends itself to both numerical optimization and extension to more complex models. All observations are assumed to be independently and identically distributed according to a common categorical distribution with probability vector $\symbf{\theta} = (\theta_1, \dots, \theta_J)$, which is unconstrained beyond membership in $\Delta_{J-1}$. This formulation provides a simple environment in which to assess likelihood-based inference for entropy before introducing additional structure through covariates.
+Suppose the conditional distribution of $Y_{ij}$ given $X_{ij}$ is $Y_{ij} | X_{ij} \sim \text{NB}(\mu_{ij}, r_j)$. We may continue to interpret $\mu_{ij}$ as the expected value of $Y_{ij}$ conditional on $X_{ij}$,  while $r_j$ is best interpreted as a dispersion parameter that measures the excess variation across counts within process $j$ that a Poisson random variable would fail to capture. Then the conditional probability mass function of $Y_{ij}$ can be expressed in canonical exponential-family form as
 
-Rather than optimizing directly over the simplex, we reparameterize the model using a multinomial logit transformation. Fixing category $J$ as a reference, we define the logit parameters
-$$
-\eta_j = \log\!\left(\frac{\theta_j}{\theta_J}\right), \quad j = 1, \dots, J-1,
-$${#eq-logit-parameterization}
-so that each $\eta_j$ represents the log--odds of category $j$ relative to the
-baseline category $J$. This transformation maps the interior of $\Delta_{J-1}$ bijectively onto $\mathbbm{R}^{J-1}$. Inverting it yields a normalized exponential mapping, closely related to the softmax function, with identifiability enforced through the use of a reference category. Letting $\symbf{\eta} = (\eta_1, \dots, \eta_{J-1}) \in \mathbbm{R}^{J-1}$, the cell probabilities can be written as
-$$
-\theta_j(\symbf{\eta}) =
-\frac{\exp(\eta_j)}{1 + \sum_{k=1}^{J-1} \exp(\eta_k)},
-\quad j = 1, \dots, J-1,
-\qquad
-\theta_J(\symbf{\eta}) =
-\frac{1}{1 + \sum_{k=1}^{J-1} \exp(\eta_k)}.
-$${#eq-softmax-parameterization}
-This parameterization improves numerical stability in the optimization steps required to approximate both the integrated and profile likelihoods for entropy by representing rare or unobserved categories through extremely negative yet still finite logit values, avoiding direct evaluation of $\log \theta_j$ for probabilities near zero.
-
-\subsection{Multinomial Logistic Regression Model}
-
-The multinomial logistic regression model extends the baseline logit parameterization by allowing the category probabilities to depend on observed covariates. Inference is based on independent observations $\{(\symbf{X}_i, \symbf{Y}_i)\}_{i=1}^n$, where $\symbf{X}_i \in \mathbbm{R}^p$ denotes the covariate vector associated with observation $i$ and $\symbf{Y}_i \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ denotes the corresponding categorical response. The logits defined in @eq-logit-parameterization are now modeled as a linear function of the covariates. Specifically, fixing category $J$ as a reference, the logit for the $i$-th observation of the $j$-th category is defined as the linear predictor
-$$
-\eta_{ij} = \symbf{X}_i^\top \symbf{\beta}_j, \quad j = 1, \dots, J-1,
-$${#eq-logit-parameterization-with-covariates}
-where $\symbf{\beta}_j \in \mathbbm{R}^p$ is a category-specific vector of regression coefficients.
-
-Let 
-$$
-\theta_j(\symbf{x}) := \mathbbm{P}(\symbf{Y} = \symbf{e}_j \mid \symbf{X} = \symbf{x}), \quad j = 1, ..., J,
-$${#eq-generic-conditional-category-probabilities}
-denote the conditional probability that a categorical response falls in category $j$ given an observed covariate value $\symbf{x} \in \mathbbm{R}^p$. For observation $i$, the corresponding cell probabilities are obtained by evaluation at the observed covariates,
-$$
-\theta_{ij} := \mathbbm{P}(\symbf{Y}_i = \symbf{e}_j \mid \symbf{X}_i), \quad j = 1, ..., J,
-$${#eq-indexed-conditional-category-probabilities}
-that is, the conditional probability that the value of the $i$th response falls in category $j$ given the covariate vector $\symbf{X}_i$. Under the multinomial logistic regression model, the conditional probability function $\theta_j(\symbf{x})$ is given by the mapping
-$$
-\theta_j(\symbf{x}) =
-\frac{\exp(\symbf{x}^\top \symbf{\beta}_j)}{1 + \sum_{k=1}^{J-1} \exp(\symbf{x}^\top \symbf{\beta}_k)},
-\quad j = 1, \dots, J-1,
-\qquad
-\theta_{J}(\symbf{x}) =
-\frac{1}{1 + \sum_{k=1}^{J-1} \exp(\symbf{x}^\top \symbf{\beta}_k)}.
-$${#eq-softmax-parameterization-with-covariates}
-which generalizes the softmax transformation in @eq-softmax-parameterization to incorporate covariate effects.
-
-Note that parameters of interest derived from the category probabilities must be defined with respect to the marginal distribution of the response, rather than the observation-specific conditional probabilities. In particular, we consider the marginal category probabilities 
 $$
 \begin{aligned}
-\bar{\theta}_j
-&= \mathbbm{P}(\symbf{Y} = \symbf{e}_j) \\
-&= \mathbbm{E}\left[\mathbbm{P}(\symbf{Y} = \symbf{e}_j \mid \symbf{X}) \right] \\
-&= \mathbbm{E}\left[ \theta_{j}(\symbf{X}) \right] \\
-&= \int_{\mathbbm{R}^p} \theta_{j}(\symbf{x})dF_{\symbf{X}}(\symbf{x}),
-\quad j = 1, \dots, J,
+\text{P}(Y_{ij} = y | X_{ij}) &= \frac{\Gamma(y + r_j)}{\Gamma(r_j)y!}\Bigg(\frac{r_j}{r_j + \mu_{ij}}\Bigg)^{r_j}\Bigg(\frac{\mu_{ij}}{r_j + \mu_{ij}}\Bigg)^y, \> \> y = 0, 1, 2, ...                               
 \end{aligned}
-$${#eq-marginal-category-probabilities}
-where $F_{\symbf{X}}$ denotes the joint distribution of all covariates included in the model.
-
-We may estimate each $\bar{\theta}_j$ by replacing the unknown distribution $F_{\symbf{X}}$ with its empirical counterpart, yielding the plug-in estimator 
 $$
-\hat{\bar{\theta}}_j = \frac{1}{n} \sum_{i=1}^n \theta_{ij}.
-$${#eq-marginal-probability-estimator}
-This allows us to direct our inference toward a population-level parameter of interest, rather than a value conditional on the realized covariate sample.
+
+where $\eta_{ij} = \log(\theta_{ij})$ is the natural parameter of the model. 
+
+As a transformation of the rate, $\eta_{ij}$ governs the mean of the distribution and thus captures how the expected count depends on the covariates. Following from the bedrock regression principle that systematic variation in the mean response should be explained linearly in terms of the predictors, we formalize this dependence by defining the *linear predictor* for observation $i$ from process $j$ as $X_{ij}^\top \beta_j,$ a linear combination of the covariates with a vector of unknown coefficients $\beta_j$. 
+
+In a GLM, the systematic component represented by $X_{ij}^\top \beta_j$ must be connected to its random component $\mu_{ij}$, the conditional mean of the response. This is done via a *link function* $g(\cdot)$, which specifies the relationship $$g(\mu_{ij}) =X_{ij}^\top \beta_j.$$ The *canonical link function* is the special choice of $g(\cdot)$ that sets the natural parameter equal to the linear predictor, i.e., $$\eta_{ij} = X_{ij}^\top \beta_j.$${#eq-7.1.2.6} 
+
+For the Poisson distribution, we have already shown that the natural parameter is related to the rate through $\eta_{ij} = \log(\theta_{ij})$. Because the conditional mean of each Poisson process includes the exposure time, $\mu_{ij} = t_{ij}\theta_{ij}$, the model can be equivalently written as 
+$$
+\begin{aligned}
+\log(\mu_{ij}) &= \log(t_{ij}\theta_{ij}) \\
+               &= \log(t_{ij}) + \log(\theta_{ij}) \\
+               &= \log(t_{ij}) + \eta_{ij} \\
+               &= \log(t_{ij}) + X_{ij}^\top \beta_j, &&(\text{using the canonical link})
+\end{aligned}
+$$ {#eq-7.1.2.7}
+where $\log(t_{ij})$ acts as a known offset. It follows that the canonical link for a Poisson GLM is the *log link* $g(\mu_{ij}) = \log(\mu_{ij}/t_{ij})$, under which additive effects of $X_{ij}$ correspond to multiplicative effects on $\mu_{ij}$.
+
+To simplify notation, we include a leading 1 in the process-specific covariate vector $X_{ij}^{(s)}$ that corresponds to the intercept term for process $j$. We then partition the coefficient vector $\beta_j$ as $$\beta_j = \begin{pmatrix}\beta_j^{(s)} \\ \beta^{(a)}\end{pmatrix} \in \mathbb{R}^{(p + q) \times 1},$${#eq-7.1.2.8} where $\beta_j^{(s)} \in \mathbb{R}^{p\times1}$ contains all the coefficients specific to process $j$ (including the intercept) and $\beta^{(a)} \in \mathbb{R}^{q\times1}$ contains the shared, process-agnostic slopes. The linear predictor for observation $i$ from process $j$ can then be written as $$\eta_{ij} = \big(X_{ij}^{(s)}\big)^\top \beta_j^{(s)} + \big(X_{ij}^{(a)}\big)^\top \beta^{(a)}.$${#eq-7.1.2.9}
+
+Stacking the observations for process $j$, we can express the model in matrix form as  
+$$
+\eta_j = X_j^{(s)} \beta_j^{(s)} + X_j^{(a)} \beta^{(a)},
+$${#eq-7.1.2.10}
+where $X_j^{(s)} \in \mathbb{R}^{n_j \times p}$ and $X_j^{(a)} \in \mathbb{R}^{n_j \times q}$ are the design matrices of process-specific and process-agnostic covariates, respectively, and $\eta_j = (\eta_{1j}, \ldots, \eta_{n_j j})^\top$ is the vector of linear predictors for process $j$. If we concatenate the design matrices so that $X_j = [X_j^{(s)} \> X_j^{(a)}] \in \mathbb{R}^{n_j \times (p + q)}$, we can further simplify @eq-7.1.2.10 as
+$$
+\eta_j = X_j \beta_j.
+$${#eq-7.1.2.11}
+Collecting all coefficients across all processes gives the global parameter vector
+$$
+\beta = \begin{pmatrix}\beta_1^{(s)} \\[3pt] \vdots \\[3pt] \beta_J^{(s)} \\[3pt] \beta^{(a)} \end{pmatrix}
+\in\mathbb{R}^{(pJ+q) \times 1},
+$$
+and we view $\beta_j= (\beta_j^{(s)\top}, \beta^{(a)\top})^\top$ as the subvector of $\beta$ relevant to process $j$.
+
+The log-likelihood for an individual observation $Y_{ij}$ follows directly from the exponential-family representation of the Poisson distribution:
+$$
+\ell_{ij}(\beta_j; Y_{ij}) = Y_{ij} X_{ij}^\top \beta_j - t_{ij} \exp(X_{ij}^\top \beta_j)),
+$${#eq-7.1.2.12}
+where we have discarded any additive terms not depending on the parameters. Summing over all observations within process $j$ gives the process-level log-likelihood,
+$$
+\begin{aligned}
+\ell_j(\beta_j; Y_j) &= \sum_{i=1}^{n_j} \ell_{ij}(\beta_j; Y_{ij}) \\
+                     &= \sum_{i=1}^{n_j} \Big[ Y_{ij} X_{ij}^\top \beta_j - t_{ij} \exp(X_{ij}^\top \beta_j)) \Big] \\
+                     &= Y_j^\top X_j \beta_j - t_j^\top \exp(X_j\beta_j),
+\end{aligned}
+$${#eq-7.1.2.13}
+where $Y_j \in \mathbb{R}^{n_j\times1}$ and $t_j\in \mathbb{R}^{n_j\times1}$ collect the observed counts and exposure times, respectively, for process $j$, and $\exp(X_j\beta_j)$ is understood to mean the exponential function applied component-wise to the vector $X_j\beta_j$.  
+
+Finally, aggregating across all processes yields the full log-likelihood,
+$$
+\begin{aligned}
+\ell(\beta; Y) &= \sum_{j=1}^J \ell_j(\beta_j; Y_j) \\
+               &= \sum_{j=1}^J \Big[ Y_j^\top X_j \beta_j - t_j^\top \exp(X_j\beta_j) \Big] \\
+               &= Y^\top X \beta - t^\top \exp(X \beta),
+\end{aligned}
+$${#eq-7.1.2.14}
+where $n = \sum_{j=1}^J n_j$, $Y = (Y_1^\top, ..., Y_J^\top)^\top \in \mathbb{R}^{n\times1}$ is the stacked response vector, $t = (t_1^\top, ..., t_J^\top)^\top \in \mathbb{R}^{n\times1}$ is the stacked vector of exposure times, and $X = \text{blockdiag}(X_1, ..., X_j) \in \mathbb{R}^{n \times (pJ+q)}$ is the block-diagonal design matrix with process-specific blocks, augmented with shared covariates $X_j^{(a)}$ repeated across processes as necessary.
+
+Let $\hat{\beta}_j$ denote the MLE of the coefficient vector $\beta_j$. Because the exponential term in the log-likelihood in @eq-7.1.2.14 makes it a nonlinear function of each $\beta_j$, the score equations for this model cannot be solved algebraically, and thus no closed-form expressions for $\hat{\beta}_j$ exists. Instead, $\hat{\beta}_j$ can be obtained numerically using the `glm()` function from the `stats` package in R, which implements the standard iteratively reweighted least squares (IRLS) algorithm for approximating the MLEs in the GLM framework.
+
+From @eq-7.1.2.6, the corresponding estimated linear predictors for process $j$ are given by
+$$
+\hat{\eta}_{ij} = X_{ij}^\top \hat{\beta}_j.
+$${#eq-7.1.2.15}
+Since $\eta_{ij} = \log(\theta_{ij})$, the estimated observation-level rate is 
+$$
+\hat{\theta}_{ij} = \exp(X_{ij}^\top \hat{\beta}_j).
+$${#eq-7.1.2.16}
+An estimate of the marginal rate $\bar{\theta}_j$ defined in @eq-7.1.2.4 can then be obtained by averaging these observation-level estimates over the index $i$:
+$$
+\hat{\theta}_{\bullet j} = \frac{1}{n_j} \sum_{i=1}^{n_j} \exp(X_{ij}^\top \hat{\beta}_j) = \frac{1}{n_j} \mathbf{1}_{n_j}^\top \exp(X_j \hat{\beta}_j).
+$${#eq-7.1.2.17}
+Finally, substituting these into @eq-7.1.2.5 yields the MLE for $\psi$:
+$$
+\hat{\psi} = \sum_{j=1}^J \alpha_j \hat{\theta}_{\bullet j} = \alpha^\top \hat{\theta}_\bullet,
+$${#eq-7.1.2.18}
+where 
+$$
+\alpha = \begin{pmatrix} \alpha_1 \\ \vdots \\ \alpha_J \end{pmatrix} \> \> \> \> \text{and} \> \> \> \> \hat{\theta}_\bullet = \begin{pmatrix} \hat{\theta}_{\bullet 1} \\ \vdots \\ \hat{\theta}_{\bullet J} \end{pmatrix}.
+$$
+If we let 
+$$
+\gamma = \begin{pmatrix} \frac{\alpha_1}{n_1} \mathbf{1}_{n_1} \\ \vdots \\ \frac{\alpha_J}{n_J} \mathbf{1}_{n_J} \end{pmatrix} \in \mathbb{R}^{n\times 1},
+$${#eq-7.1.2.19} 
+we can rewrite our expression for $\hat{\psi}$ directly in terms of the MLE for $\beta$: 
+$$
+\hat{\psi} = \gamma^\top \exp(X\hat{\beta}).
+$${#eq-7.1.2.20}
+This allows us to write our manifold of parameter vectors that produce the same estimate of $\psi$ with the compact notation
+$$
+\Omega_{\hat{\psi}} = \Big\{\omega \in \mathbb{R}^{(pJ + q) \times 1}: \gamma^\top \exp(X \omega) = \gamma^\top \exp(X\hat{\beta})\Big\}.
+$${#eq-7.1.2.21}
+
+To estimate the value of the ZSE-parameterized integrated likelihood at a specific value of $\psi$, say $\psi_1$, using the method in Chapter 5, we use the following procedure.
+
+\begin{tcolorbox}[title=7.1.2.1 Integrated Likelihood Calculation Procedure, algobox, label=alg:7.1.2.1-il-estimation]
+
+\begin{enumerate}[left=0pt, label=\arabic*.]  % outer list
+\item Draw a random variate $\hat{\omega} \in \Omega_{\hat{\psi}}$ according to a distribution not depending on $\psi$. The method we have chosen for our simulations is:
+
+    \begin{enumerate}[label=(\roman*), left=2em]  % inner list
+    \item Draw a random vector $u = (u_1, \ldots, u_m)$, where $m = pJ + q$ and each $u_k \overset{\text{i.i.d.}}{\sim} \text{N}(0, 1)$, $k = 1, \ldots, m$.
+    
+    \item Pass $u$ as the initial guess to an \texttt{auglag()} call from the \texttt{nloptr} R package that minimizes a dummy function $f(\hat{\omega}) = 0$ subject to the constraint
+       $$h(\hat{\omega}) = \gamma^\top \exp(X \hat{\omega}) - \hat{\psi} = 0.$$
+    \end{enumerate}
+
+\item Solve
+   $$\tilde{\beta} = \underset{\beta \in \mathbb{R}^m}{\arg\max} \> \> \big(t \odot \exp(X\hat{\omega})\big)^\top X \beta - t^\top \exp(X \beta) \> \> \> \> \text{subject to} \> \> \gamma^\top \exp(X \hat{\omega}) = \psi.$$
+
+\item Define the branch evaluated at $\psi_1$ as 
+   $$\ell_b^{(1)}(\psi_1) = Y^\top X \tilde{\beta} - t^\top \exp(X \tilde{\beta}).$$
+
+\item Repeat steps (1) - (3) $R-1$ times to obtain $\ell_b^{(1)}(\psi_1), \ldots, \ell_b^{(R)}(\psi_1)$, then calculate
+   $$\hat{\bar{L}}(\psi_1) = \frac{1}{R} \sum_{r=1}^R \exp\Big(\ell_b^{(r)}(\psi_1)\Big).$$
+
+\end{enumerate}
+\end{tcolorbox}
+
+\begin{tcolorbox}[title=7.1.2.1 Profile Likelihood Calculation Procedure, algobox, label=alg:7.1.2.1-il-estimation]
+\begin{enumerate}[left=0pt, label=\arabic*.]
+
+\item Solve
+   $$\tilde{\beta} = \underset{\beta \in \mathbb{R}^m}{\arg\max} \> \> \big(t \odot \exp(X\hat{\beta})\big)^\top X \beta - t^\top \exp(X \beta) \> \> \> \> \text{subject to} \> \> \gamma^\top \exp(X \hat{\beta}) = \psi.$$
+\item Obtain the profile likelihood evaluated at $\psi_1$ by calculating
+$$
+L_p(\psi_1) = \exp\Big(Y^\top X \tilde{\beta} - t^\top \exp(X \tilde{\beta}) \Big).
+$$
+
+\end{enumerate}
+\end{tcolorbox}
+
+\subsection{Negative binomial regression model with mixed effects}
+
+\subsubsection{Fixed intercepts and random slopes}
+
+\subsubsection{Random intercepts and fixed slopes}
+
+\subsection{Negative binomial regression model with random effects}
 
 <!--
 ============================================================
-Shannon Entropy
+Weighted Sums
 ============================================================ 
 -->
 
-\section{Inference for Shannon Entropy}
+\section{Estimating weighted sums of negative binomial rates}
 
-\subsection{Entropy Under the Baseline Logit Model}
+\subsection{Definition}
 
-\subsubsection{Simulation Design}
+\subsection{Simulation design}
 
-\subsubsection{Results}
-
-\subsubsection{Discussion}
-
-\subsection{Entropy Under the Multinomial Logistic Regression Model}
-
-\subsubsection{Model Setup}
-
-\subsubsection{Simulation Design}
-
-\subsubsection{Results}
-
-\subsubsection{Discussion}
-
-\subsection{Summary and Comparison Across Models}
-
-<!--
-============================================================
-Simpson's Diversity Index
-============================================================ 
--->
-
-\section{Inference for Simpson's Diversity Index}
-
-\subsection{Simpson's Index Under the Baseline Logit Model}
-
-\subsubsection{Model Setup}
-
-\subsubsection{Simulation Design}
-
-\subsubsection{Results}
-
-\subsubsection{Discussion}
-
-\subsection{Simpson's Index Under the Multinomial Logistic Regression Model}
-
-\subsubsection{Model Setup}
-
-\subsubsection{Simulation Design}
-
-\subsubsection{Results}
-
-\subsubsection{Discussion}
-
-\subsection{Summary and Comparison Across Models}
-
-<!--
-============================================================
-Shared Effect
-============================================================ 
--->
-
-\section{Inference for a Shared Effect in Multinomial Logistic Regression}
-
-\subsection{Model Formulation and Parameter of Interest}
-
-\subsection{Simulation Design}
-
-\subsection{Results}
+\subsection{Simulation results}
 
 \subsection{Discussion}
 
-\section{Overall Discussion}
+<!--
+============================================================
+Dispersion
+============================================================ 
+-->
 
+\section{Estimating dispersion in a negative binomial model}
 
+\subsection{Definition}
 
+\subsection{Simulation design}
 
+\subsection{Simulation results}
 
+\subsection{Discussion}
+
+<!--
+============================================================
+Zero-Inflation
+============================================================ 
+-->
+
+\section{Detecting zero-inflation in a negative binomial model}
+
+\subsection{Definition}
+
+\subsection{Simulation design}
+
+\subsection{Simulation results}
+
+\subsection{Discussion}
+
+<!--
+============================================================
+Summary and discussion
+============================================================ 
+-->
+
+\section{Summary and discussion}

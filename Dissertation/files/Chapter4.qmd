@@ -1,188 +1,262 @@
-\chapter{Properties of the Integrated Likelihood}
+\chapter{Multinomial Dyads}
 
-\section{Asymptotic Theory}
+\section{Introduction}
 
-\subsection{One-Index Asymptotics}
+This chapter concerns parameters of interest derived from a multinomial distribution under various model assumptions. The parameters of interest considered are Shannon entropy, Simpson's diversity index, and a shared effect coefficient in a multinomial logistic regression. We begin with a brief review of the multinomial distribution and its relevant properties.
 
-The one-index asymptotics framework describes the behavior of likelihood-based statistics as the sample size ($n$) grows to infinity. The aim of this section is to present an overview of some of the theory's classic results. This provides us with a readily available baseline against which to compare the results of the following section discussing the two-index asymptotics framework, in which the full model parameter is partitioned into a parameter of interest and a nuisance parameter, and the dimension of the nuisance parameter is allowed to increase with the sample size.
+Let $\symbf{Y}$ denote the outcome of a single categorical trial with parameter $\symbf{\theta} = (\theta_1, ..., \theta_J) \in \Delta^{J-1},$
+where
+$$
+\Delta^{J-1} = \Bigg\{\symbf{\theta} \in [0, 1]^J: \sum_{j=1}^J \theta_j = 1\Bigg\}
+$${#eq-simplex}
+is the $(J-1)$-dimensional probability simplex. We may represent $\symbf{Y}$ as a random vector taking values in the canonical basis of $\mathbbm{R}^J$, i.e.,
+$$
+\symbf{Y} \in \{\symbf{e}_1, ..., \symbf{e}_J\},
+$$
+where $\symbf{e}_j$ denotes the $j$th standard basis vector. The distribution of $\symbf{Y}$ is specified by 
+$$
+\mathbbm{P}(\symbf{Y} = \symbf{e}_j) = \theta_j, \quad j = 1, \dots, J,
+$${#eq-categorical-distribution}
+and we write $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$.
 
-Let $\symbf{\theta}$ be the parameter of a regular model with true value $\symbf{\theta}_0$. As a partial justification for our use of the MLE in estimating $\symbf{\theta}_0$, we will start by showing that with probability tending to $1$ as $n$ tends toward infinity, the likelihood for $\symbf{\theta}$ is strictly larger at $\symbf{\theta}_0$ than for any other $\symbf{\theta} \in \Theta$. **RC1** implies $$L(\symbf{\theta}; \mathbf{x}_n) = p(\mathbf{x}_n; \symbf{\theta}) = \prod_{i=1}^n p(x_i; \symbf{\theta})$${#eq-MLE1} and $$\ell(\symbf{\theta}; \mathbf{x}_n) = \log p(\mathbf{x}_n; \symbf{\theta}) = \sum_{i=1}^n \log p(x_i; \symbf{\theta}).$${#eq-MLE2}  It follows that 
+A multinomial random vector arises as the sum of $n$ $\text{i.i.d.}$ categorical random vectors:
+$$
+\sum_{i = 1}^n \textbf{Y}_i \sim \text{Multinomial}(n, \symbf{\theta}),
+\quad
+\textbf{Y}_i \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta}),
+\quad
+i = 1, ..., n.
+$${#eq-multinomial-construction}
+In particular, the categorical distribution is a special case of the multinomial distribution with $n = 1$, mirroring the relationship between the Bernoulli and binomial distributions.^[The categorical distribution is also known as the *multinoulli* distribution.]
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{files/Images/simplex.png}
+  \caption{%
+    \textsc{The Probability Simplex for a Multinomial Model With Three Categories.}
+    The simplex $\Delta^2$ is embedded in $\mathbbm{R}^3$ with vertices
+    $(1,0,0)$, $(0,1,0)$, and $(0,0,1)$.
+    Each point on the surface corresponds to a probability vector $\symbf{\theta}$
+    satisfying $\sum_j \theta_j = 1$.
+  }
+  \label{fig:multinomial-simplex}
+\end{figure}
+
+Let $(N_1, ..., N_J) \sim \text{Multinomial}(n, \symbf{\theta})$, where $N_j$ denotes the number of observations falling in category $j$ and $n = \sum_{j=1}^J N_j$. Each marginal count satisfies $N_j \sim \text{Binomial}(n, \theta_j)$, with $\mathbbm{E}_{\symbf{\theta}}(N_j) = n \theta_j$. Since $\symbf{\theta}$ represents category probabilities, the parameter space is $\Theta = \Delta^{J-1} \subset \mathbbm{R}^J.$ The likelihood and log-likelihood functions are given by 
+$$
+L(\symbf{\theta}) = \prod_{j=1}^J \theta_j^{N_j}
+$${#eq-multinomial-likelihood} 
+and 
+$$
+\ell(\symbf{\theta}) = \sum_{j=1}^J N_j \log \theta_j,
+$${#eq-multinomial-log-likelihood} 
+respectively. Maximization of @eq-multinomial-log-likelihood subject to $\symbf{\theta} \in \Delta^{J-1}$ yields the familiar maximum likelihood estimator
+$$
+\hat{\theta}_j = \frac{N_j}{n},
+\quad
+j = 1, ..., J.
+$${#eq-multinomial-mle}
+
+The multinomial likelihood is invariant under relabeling of the category indices: permuting the components of $\symbf{\theta}$ leaves the likelihood unchanged. This symmetry implies that, absent a sample size large enough to detect fractional differences between cell probabilities, multiple configurations of the probability vector are observationally equivalent.^[This invariance does not imply non-identifiability of the multinomial parameter, but rather reflects weak identification in directions that are immaterial for the likelihood yet consequential for certain parameters of interest.] This equivalence is most pronounced near the boundary of the probability simplex. When one or more categories are rare or unobserved, the likelihood provides little information about which specific components of $\symbf{\theta}$ are effectively zero, resulting in flat or weakly identified directions associated with different boundary faces.
+
+\section{Models}
+
+\subsection{Simple logit model}
+
+A natural starting point for entropy inference under a multinomial model is to treat the category probabilities as free parameters estimated directly from count data. This was the framework considered by @severini2022, who found that an integrated likelihood based on the ZSE nuisance parameterization yields point and interval estimators for the entropy of a multinomial distribution that have improved frequency properties (e.g. reduced bias, lower root mean square error, closer-to-nominal empirical coverage rates, etc.) relative to their profile likelihood counterparts, provided that the sample size is small relative to the number of categories. We adopt this setting here as a benchmark but employ a parameterization that is more amenable to numerical optimization and to extension in more complex models.
+
+Suppose we observe $\textbf{Y}_i \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta})$ for $i = 1, ..., n$ and $\symbf{\theta} \in \Delta^{J-1}$. Fixing category $J$ as a reference, we define the logit parameters
+$$
+\eta_j = \log\!\left(\frac{\theta_j}{\theta_J}\right), \quad j = 1, \dots, J-1,
+$${#eq-logit-parameterization}
+so that each $\eta_j$ represents the log--odds of category $j$ relative to the reference category $J$. Such a transformation maps the interior of $\Delta^{J-1}$ bijectively onto $\mathbbm{R}^{J-1}$, allowing optimization of an objective function with respect to the model parameter to be carried out in unconstrained Euclidean space. The simplex constraints therefore no longer need to be enforced explicitly, and we avoid any boundary-related degeneracies that arise when one or more category probabilities are close to zero. In particular, rare or unobserved categories may be represented by negative logit values that, while very large, are ultimately still finite. The likelihood surfaces expressed in the logit parameterization tend to be smoother as a result, with no sharp corners to interfere with differentiability near the boundaries of the parameter space. This leads to improved numerical stability when approximating both the integrated and profile likelihoods for $\psi$, especially in settings where the interest function depends on logarithms of the category probabilities.
+
+To recover the category probabilities from the logits, we invert @eq-logit-parameterization. Letting $\symbf{\eta} = (\eta_1, \dots, \eta_{J-1}) \in \mathbbm{R}^{J-1}$, we have
+$$
+\theta_j(\symbf{\eta}) =
+\frac{\exp(\eta_j)}{1 + \sum_{k=1}^{J-1} \exp(\eta_k)},
+\quad j = 1, \dots, J-1,
+\qquad
+\theta_J(\symbf{\eta}) =
+\frac{1}{1 + \sum_{k=1}^{J-1} \exp(\eta_k)}.
+$${#eq-softmax-parameterization}
+This normalized exponential mapping is closely related to the softmax function, with the use of a reference category in place to ensure the model identifiable. We refer to the multinomial model equipped with this parameterization as the simple logit model, reflecting the absence of covariate effects or additional regression structure.
+
+The log-likelihood for this model is given by
+$$
+\ell(\symbf{\eta}) = \sum_{j=1}^J N_j \log \theta_j(\symbf{\eta}),
+$$
+where $\theta_j(\symbf{\eta})$ is defined as in @eq-softmax-parameterization. 
+
+\subsection{Multinomial logistic regression model}
+
+The multinomial logistic regression model extends the simple logit model by allowing the category probabilities to depend on observed covariates. Inference is based on independent observations $\{(\symbf{X}_i, \symbf{Y}_i)\}_{i=1}^n$, where $\symbf{X}_i \in \mathbbm{R}^p$ denotes the covariate vector associated with observation $i$ and $\symbf{Y}_i \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ denotes the corresponding categorical response. The logits defined in @eq-logit-parameterization are now modeled as a linear function of the covariates. Specifically, fixing category $J$ as a reference, the logit for the $i$-th observation of the $j$-th category is defined as the linear predictor
+$$
+\eta_{ij} = \symbf{X}_i^\top \symbf{\beta}_j, \quad j = 1, \dots, J-1,
+$${#eq-logit-parameterization-with-covariates}
+where $\symbf{\beta}_j \in \mathbbm{R}^p$ is a category-specific vector of regression coefficients.
+
+Let 
+$$
+\theta_j(\symbf{x}) = \mathbbm{P}(\symbf{Y} = \symbf{e}_j \mid \symbf{X} = \symbf{x}), \quad j = 1, ..., J,
+$${#eq-generic-conditional-category-probabilities}
+denote the conditional probability that a categorical response falls in category $j$ given an observed covariate value $\symbf{x} \in \mathbbm{R}^p$. For observation $i$, the corresponding cell probabilities are obtained by evaluation at the observed covariates,
+$$
+\theta_{ij} = \mathbbm{P}(\symbf{Y}_i = \symbf{e}_j \mid \symbf{X}_i), \quad j = 1, ..., J,
+$${#eq-indexed-conditional-category-probabilities}
+that is, the conditional probability that the value of the $i$th response falls in category $j$ given the covariate vector $\symbf{X}_i$. Under the multinomial logistic regression model, the conditional probability function $\theta_j(\symbf{x})$ is given by the mapping
+$$
+\theta_j(\symbf{x}) =
+\frac{\exp(\symbf{x}^\top \symbf{\beta}_j)}{1 + \sum_{k=1}^{J-1} \exp(\symbf{x}^\top \symbf{\beta}_k)},
+\quad j = 1, \dots, J-1,
+\qquad
+\theta_{J}(\symbf{x}) =
+\frac{1}{1 + \sum_{k=1}^{J-1} \exp(\symbf{x}^\top \symbf{\beta}_k)}.
+$${#eq-softmax-parameterization-with-covariates}
+which generalizes the softmax transformation in @eq-softmax-parameterization to incorporate covariate effects.
+
+Note that parameters of interest derived from the category probabilities must be defined with respect to the marginal distribution of the response, rather than the observation-specific conditional probabilities. In particular, we consider the marginal category probabilities 
 $$
 \begin{aligned}
-L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n) &\iff \ell(\symbf{\theta}; \mathbf{x}_n) < \ell(\symbf{\theta}_0; \mathbf{x}_n) \\
-                                                    &\iff \sum_{i=1}^n \log p(x_i; \symbf{\theta}) - \sum_{i=1}^n \log p(x_i; \symbf{\theta}_0) < 0 \\
-                                                    &\iff \sum_{i=1}^n \big[\log p(x_i; \symbf{\theta}) - \log p(x_i; \symbf{\theta}_0)\big] < 0 \\
-                                                    &\iff \sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0 \\
-                                                    &\iff \frac{1}{n}\sum_{i=1}^n \log\frac{p(x_i; \symbf{\theta})}{p(x_i; \symbf{\theta}_0)} < 0.
+\bar{\theta}_j
+&= \mathbbm{P}(\symbf{Y} = \symbf{e}_j) \\
+&= \mathbbm{E}\left[\mathbbm{P}(\symbf{Y} = \symbf{e}_j \mid \symbf{X}) \right] \\
+&= \mathbbm{E}\left[ \theta_{j}(\symbf{X}) \right] \\
+&= \int_{\mathbbm{R}^p} \theta_{j}(\symbf{x})dF_{\symbf{X}}(\symbf{x}),
+\quad j = 1, \dots, J,
 \end{aligned}
-$${#eq-MLE3}
-**RC3** guarantees that the ratio $p(x; \symbf{\theta}) / p(x; \symbf{\theta}_0)$ is well-defined and finite for all $x \in \mathcal{X}$, the region of common support. Then by the Weak Law of Large Numbers, $$\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} \to \text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg]$${#eq-MLE4} in probability as $n \to \infty$. Furthermore, $$\text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \int_{\mathcal{X}}\Bigg[\frac{p(x; \symbf{\theta})}{p(x; \symbf{\theta}_0)} \Bigg] p(x; \symbf{\theta}_0)dx = \int_{\mathcal{X}}p(x; \symbf{\theta})dx = 1.$${#eq-MLE5}
-Since $\log(x)$ is a strictly concave function, it follows from Jensen's inequality (see Appendix \ref{appendix:A}) and @eq-MLE5 $$\text{E}_{\symbf{\theta}_0}\Bigg[ \log \frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] < \log \text{E}_{\symbf{\theta}_0} \Bigg[\frac{p(X; \symbf{\theta})}{p(X; \symbf{\theta}_0)} \Bigg] = \log 1 = 0.$${#eq-MLE6} Hence, the quantity on the left-hand side of @eq-MLE4 is converging in probability to a constant that is less than 0 as $n$ tends to infinity. From this and the equivalence we established in @eq-MLE3, it follows that $$\lim_{n \to \infty} P_{\symbf{\theta}_0} \big[L(\symbf{\theta}; \mathbf{x}_n) < L(\symbf{\theta}_0; \mathbf{x}_n)\big] = \lim_{n \to \infty} P_{\symbf{\theta}_0} \Bigg[\frac{1}{n}\sum_{i=1}^n \log\frac{p(X_i; \symbf{\theta})}{p(X_i; \symbf{\theta}_0)} < 0\Bigg] = 1,$${#eq-MLE7} which proves the claim. 
+$${#eq-marginal-category-probabilities}
+where $F_{\symbf{X}}$ denotes the joint distribution of the covariates.
 
-As a global maximizer of the log-likelihood function, the MLE $\hat{\symbf{\theta}}$ of a regular model must be a root of the log-likelihood function, i.e., it must satisfy the *likelihood equation*, $$\nabla_{\symbf{\theta}}\ell(\hat{\symbf{\theta}}) = \mathbf{0}.$${#eq-MLE9} whenever it exists. For an arbitrary model, there may be other roots as well, even when the MLE doesn't exist. Assuming **RC2** and **RC5-8**, it can be shown that there will always be at least one sequence of roots $\hat{\symbf{\theta}}_n$ of its log-likelihood such that $\hat{\symbf{\theta}}_n$ tends to $\symbf{\theta}_0$ in probability as $n \to \infty$ (Cf. Cramér 1945). The MLE will not necessarily be a part of this sequence though, even if it exists. Adding **RC9** is enough to ensure the MLE must be the unique solution to the likelihood equation, however, and therefore this sequence of roots will also be unique and for a given sample $\mathbf{x}_n$, the corresponding root $\hat{\symbf{\theta}}_n = \hat{\symbf{\theta}}(\mathbf{x}_n)$ will be the unique MLE of $\symbf{\theta}_0$. It follows that the MLE is a consistent estimator of $\symbf{\theta}_0$ for regular models. 
-
-We now turn our attention to the asymptotic distribution of the MLE. Similarly to the log-likelihood function, **RC1** implies the score function is equal to
+We may estimate each $\bar{\theta}_j$ by replacing the unknown distribution $F_{\symbf{X}}$ with its empirical counterpart, yielding the plug-in estimator 
 $$
-\begin{aligned}
-\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) &= \nabla_{\symbf{\theta}} \ell(\symbf{\theta}; \mathbf{x}_n) \\
-                                  &= \nabla_{\symbf{\theta}} \sum_{i=1}^n \ell(\symbf{\theta}; x_i) \\
-                                  &= \sum_{i=1}^n \nabla_{\symbf{\theta}} \ell(\symbf{\theta}; x_i) \\
-                                  &= \sum_{i=1}^n \mathcal{S}(\symbf{\theta}; x_i).
+\hat{\bar{\theta}}_j = \frac{1}{n} \sum_{i=1}^n \theta_{ij}.
+$${#eq-marginal-probability-estimator}
+This allows us to direct our inference toward a population-level parameter of interest, rather than a value conditional on the realized covariate sample.
+
+<!--
+============================================================
+Shannon Entropy
+============================================================ 
+-->
+
+\section{Inference for Shannon entropy}
+
+\subsection{Definition}
+
+The Shannon entropy of a discrete random variable $X$ with support $\mathcal{X}$ and probability mass function $p$ is given by
+$$
+\text{H}(X) = -\sum_{x \in \mathcal{X}} p(x) \log p(x),
+$${#eq-shannon-def}
+with the convention that $0 \log 0 = 0$. In general, $\text{H}(X) \geq 0$, with equality if and only if $p(x^*) = 1$ for some $x^* \in \mathcal{X}$ and $p(x) = 0$ for all $x \neq x^*$. If $\mathcal{X}$ is finite with cardinality $J = |\mathcal{X}|$, then $\text{H}(X) \leq J$, with equality if and only if $p(x) = 1/J$ for all $x \in \mathcal{X}$. Thus, the distribution's entropy is minimized when all its probability mass is concentrated on a single outcome and maximized when it is distributed uniformly across all possible outcomes. This property makes entropy a natural measure of the concentration or dispersion of probability mass over a finite set of categories. In applied settings, entropy is commonly used as an index of diversity, for example to quantify species heterogeneity in ecological communities. In the present setting, we are interested in the entropy associated with a multinomial model, or more precisely, the entropy of a single categorical trial underlying the multinomial construction in @eq-multinomial-construction.
+
+Let $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$ denote the outcome of one trial, with its distribution being as in @eq-categorical-distribution. Then the entropy of $\symbf{Y}$ is given by
+$$
+\begin{aligned} 
+\text{H}(\symbf{Y}) &= -\sum_{\symbf{y} \in \{e_1,\dots,e_J\}} \mathbbm{P}(\symbf{Y} = \symbf{y})\, \log \Big[\mathbbm{P}(\symbf{Y} = \symbf{y})\Big] \\ 
+                    &= - \sum_{j=1}^J \mathbbm{P}(\symbf{Y} = \symbf{e}_j)\, \log \Big[\mathbbm{P}(\symbf{Y} = \symbf{e}_j)\Big] \\
+                    &= - \sum_{j=1}^J \theta_j \log \theta_j. 
 \end{aligned}
-$${#eq-score_additive} where the last equality is true by . 
-In other words, the score function for the parameter $\symbf{\theta}$ based on data $x_1, ..., x_n$ can be written as the sum of independent contributions $\mathcal{S}(\symbf{\theta}; x_i)$ ($i = 1,..., n$) where each $\mathcal{S}(\symbf{\theta}; x_i)$ can be thought of as the score function for $\symbf{\theta}$ based only on observation $x_i$. This implies that a Taylor series expansion of $\mathcal{S}(\symbf{\theta}; \mathbf{x}_n)$ will be equal to the sum of the Taylor series expansions of its individual contributions, plus a remainder term that depends on $n$. Since the observations are identically distributed, it suffices to consider the expansion for an arbitrary contribution, $\mathcal{S}(\symbf{\theta}; x_i)$. 
-
-**RC4-5** guarantee the existence of a neighborhood of $\symbf{\theta}_0$ on which the first two partial derivatives of $\mathcal{S}(\symbf{\theta}; x_i)$ with respect to $\symbf{\theta}$ exist and are continuous. Without loss of generality, we may assume this neighborhood, call it $N_{\symbf{\theta}_0}$, is convex so that it contains all of the line segments connecting any two of its points. In particular, for any $\symbf{\theta} \in N_{\symbf{\theta}_0}$, $\text{LS}(\symbf{\theta}, \symbf{\theta}_0) \subset N_{\symbf{\theta}_0}$. Then by Taylor's theorem with the Lagrange form of the remainder, there exists $\tilde{\symbf{\theta}}_j \in \text{LS}(\symbf{\theta}, \symbf{\theta}_0)$ such that the $j$-th component of $\mathcal{S}(\symbf{\theta}; x_i)$ may be expanded as
+$${#eq-entropy-categorical}
+It follows that our interest function for the entropy of a multinomial distribution with parameter $\symbf{\theta}$ should be
 $$
-\begin{aligned}
-\mathcal{S}_j(\symbf{\theta}; x_i) &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + \frac{1}{2}(\symbf{\theta} - \symbf{\theta}_0)\textbf{H}_{\symbf{\theta}}\Big(\mathcal{S}_j(\tilde{\symbf{\theta}}_j; x_i)\Big)(\symbf{\theta} - \symbf{\theta}_0)^\top \\
-                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\Big[\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + \frac{1}{2}\textbf{H}_{\symbf{\theta}}\Big( \mathcal{S}_j(\tilde{\symbf{\theta}}_j; x_i)\Big)(\symbf{\theta} - \symbf{\theta}_0)^\top\Big] \\
-                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + (\symbf{\theta} - \symbf{\theta}_0)\Big[\nabla_{\symbf{\theta}} \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\Big] &&(\text{by } \textbf{RC6}) \\
-                                   &= \mathcal{S}_j(\symbf{\theta}_0; x_i) + \Big[\nabla_{\symbf{\theta}}^\top \mathcal{S}_j(\symbf{\theta}_0; x_i) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\Big](\symbf{\theta} - \symbf{\theta}_0)^\top.
-\end{aligned}
+\varphi(\symbf{\theta}) = -\sum_{j=1}^J \theta_j \log \theta_j,
+$${#eq-entropy-multinomial}
+and so we may take our parameter of interest to be
 $$
-When we stack each of these individual equations into a system of equations, we get 
+\psi = \varphi(\symbf{\theta}).
+$${#eq-entropy-psi}
+Note that while we may view the data as entering the model through the multinomial likelihood for $\symbf{\theta}$, it is more appropriate to conceive of the entropy as being a property of the corresponding categorical distribution.
+
+\subsection{Simple logit model}
+
+\subsubsection{Simulation design}
+
+\subsubsection{Simulation results}
+
+\subsubsection{Discussion}
+
+\subsection{Multinomial logistic regression model}
+
+\subsubsection{Simulation design}
+
+\subsubsection{Simulation results}
+
+\subsubsection{Discussion}
+
+<!--
+============================================================
+Simpson's Diversity Index
+============================================================ 
+-->
+
+\section{Inference for Simpson's diversity index}
+
+\subsection{Definition}
+
+The index of diversity introduced by @simpson1949 provides an alternative measure of the concentration of mass in a probability vector. For a vector $\symbf{\theta} \in \Delta^{J-1}$, Simpson's index is defined as 
 $$
-\begin{pmatrix} 
-\mathcal{S}_1(\symbf{\theta}; x_i) \\ 
-\vdots \\ 
-\mathcal{S}_d(\symbf{\theta}; x_i) 
-\end{pmatrix} = 
-\begin{pmatrix} 
-\mathcal{S}_1(\symbf{\theta}_0; x_i) \\ 
-\vdots \\ 
-\mathcal{S}_d(\symbf{\theta}_0; x_i) 
-\end{pmatrix} + \Bigg[
-\begin{pmatrix}
-\nabla^\top \mathcal{S}_1(\symbf{\theta}_0; x_i) \\
-\vdots \\
-\nabla^\top \mathcal{S}_d(\symbf{\theta}_0; x_i)
-\end{pmatrix} + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]
-(\symbf{\theta} - \symbf{\theta}_0)^\top.
-$${#eq-score_Taylor_matrix} 
-
-The matrix of gradient vectors in the second term on the right-hand side of the above equation is simply the Jacobian of the score function evaluated at $\symbf{\theta} = \symbf{\theta}_0$, i.e., $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big)$. However, by @eq-obs_information, this is just the negative transpose of the observed information matrix also evaluated at $\symbf{\theta} = \symbf{\theta}_0$, $\mathcal{I}(\symbf{\theta}_0)$. Furthermore, since we have assumed $\ell$ is continuous in $\symbf{\theta}$, we can freely swap the order of differentiation in all of its second partial derivatives with respect to $\symbf{\theta}$. This implies the Jacobian of the score will be a symmetric matrix, and so we simply have $\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) = -\mathcal{I}_i(\symbf{\theta}_0)$. Hence, using more compact notation, @eq-score_Taylor_matrix becomes 
+D(\symbf{\theta}) = \sum_{j=1}^J \theta_j^2.
+$${#eq-simpson-index-sum}
+Equivalently, $D(\symbf{\theta})$ is the squared Euclidean norm of $\symbf{\theta}$,
 $$
-\begin{aligned}
-\mathcal{S}(\symbf{\theta}; x_i) &= \mathcal{S}(\symbf{\theta}_0; x_i) + \Big[\textbf{J}_{\symbf{\theta}}\Big(\mathcal{S}(\symbf{\theta}_0; x_i)\Big) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Big]
-(\symbf{\theta} - \symbf{\theta}_0)^\top \\
-                                 &= \mathcal{S}(\symbf{\theta}_0; x_i) - \Big[\mathcal{I}_i(\symbf{\theta}_0) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Big]
-(\symbf{\theta} - \symbf{\theta}_0)^\top
-\end{aligned}
-$${#eq-score_Taylor_compact}
+D(\symbf{\theta}) = ||\symbf{\theta}||_2^2.
+$${#eq-simpson-index-norm}
+Note that $1/J \leq D(\symbf{\theta}) \leq 1.$ The minimum $D(\symbf{\theta}) = 1/J$ is attained when $\symbf{\theta}$ is uniform, so $\theta_j = 1/J$ for all $j$, corresponding to maximal dispersion of probability mass across categories. The maximum $D(\symbf{\theta})$ occurs when all mass is concentrated in a single component, meaning $\symbf{\theta}$ coincides with a vertex of the simplex. Thus, larger values of $D(\symbf{\theta})$ indicate greater concentration of probability mass, while smaller values reflect greater diversity.
 
-The above represents the second-order Taylor expansion around $\symbf{\theta}_0$ for an individual observation $x_i$'s contribution to the score function. Summing over all of these contributions yields
+Unlike Shannon entropy, which depends logarithmically on the cell probabilities, Simpson's index is a quadratic function of $\symbf{\theta}$. As a result, it places greater relative weight on large components of the probability vector and is less sensitive to the presence of categories with very small probability. This property makes Simpson's index particularly stable in settings where rare categories are difficult to estimate reliably.
+
+From a statistical perspective, $D(\symbf{\theta})$ has a simple probabilistic interpretation: if two observations are drawn independently from a categorical distribution with probability vector $\symbf{\theta}$, then $D(\symbf{\theta})$ is the probability that the two observations fall in the same category, while $1 - D(\symbf{\theta})$ is the probability that they fall in different categories. Accordingly, we may take both 
 $$
-\begin{aligned}
-\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) &= \sum_{i=1}^n \mathcal{S}(\symbf{\theta}; x_i) \\
-                                  &= \sum_{i=1}^n\Bigg[\mathcal{S}(\symbf{\theta}_0; x_i) - \bigg[\mathcal{I}_{X_i}(\symbf{\theta}_0) + M(x_i)O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\bigg]
-(\symbf{\theta} - \symbf{\theta}_0)^\top\Bigg] \\
-                                  &= \mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg](\symbf{\theta} - \symbf{\theta}_0)^\top \\
-                                  &= \mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]n(\symbf{\theta} - \symbf{\theta}_0)^\top.
-\end{aligned} 
-$${#eq-score_Taylor_summed_1}
-If we divide through by $\sqrt n$, we arrive at $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}; \mathbf{x}_n) = \frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\symbf{\theta} - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\symbf{\theta} - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_summed_2}
-
-We previously established that regular models will always have a sequence of MLEs $\hat{\symbf{\theta}}_n$ that converge in probability to $\symbf{\theta}_0$ as $n \to \infty$, and that each $\hat{\symbf{\theta}}_n$ in this sequence will satisfy $\mathcal{S}(\hat{\symbf{\theta}}_n; \mathbf{x}_n) = \mathbf{0}$. Plugging $\hat{\symbf{\theta}}_n$ in for $\symbf{\theta}$ in @eq-score_Taylor_summed_2 gives
-$$\frac{1}{\sqrt n}\mathcal{S}(\hat{\symbf{\theta}}_n; \mathbf{x}_n) = \frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O(||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top$$ and therefore, 
-$$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \Bigg[\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + \Bigg\{\frac{1}{n}\sum_{i=1}^nM(x_i) \Bigg\}O_p(||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||)\mathbf{1}_{d \times d}\Bigg]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_MLE1}
-
-For the terms in the square brackets in the line above, we have the following observations:
-\begin{enumerate}[label = \arabic*)]
-  \item By Equation 3.5.4, $\text{E}_{\symbf{\theta}_0}\big[\mathcal{I}_X(\symbf{\theta}_0)\big] = \mathscr{I}_X(\symbf{\theta}_0)$, and thus $\frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) = \frac{1}{n} \sum_{i=1}^n \mathcal{I}_{X_i}(\symbf{\theta}_0)$ is converging in probability to $\mathscr{I}_X(\symbf{\theta}_0)$ as $n \to \infty$ by the Weak Law of Large Numbers, i.e., $\mathscr{I}_X(\symbf{\theta}_0) = \frac{1}{n}\mathcal{I}_{\mathbf{X}_n}(\symbf{\theta}_0) + o_p(1)$.
-  \item $M(x_i)$ has finite expectation and does not depend on $\symbf{\theta}$ by \textbf{RC6}, which implies through Markov's inequality that it is bounded in probability as $n \to \infty$, i.e., $M(x_i) = O_p(1)$. It follows that $\frac{1}{n}\sum_{i=1}^nM(x_i) = O_p(1)$ as well.
-  \item The fact that $\hat{\symbf{\theta}}_n$ is converging in probability to $\symbf{\theta}_0$ as $n \to \infty$ implies that $||\hat{\symbf{\theta}}_n - \symbf{\theta}_0||$ is $o_p(1)$.
-\end{enumerate}
-From these three facts we can conclude that the entire term inside the square brackets is converging in probability to $\mathscr{I}_X(\symbf{\theta}_0)$ as $n \to \infty$. This allows us to rewrite @eq-score_Taylor_MLE1 as $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \Big[\mathscr{I}_X(\symbf{\theta}_0) + o_p(1)\Big]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top.$${#eq-score_Taylor_MLE2}
-This is useful because if we know the distribution to which the term on the left-hand side is converging as $n \to \infty$, we can deduce the asymptotic distribution of $\hat{\symbf{\theta}}_n$ using Slutsky's theorem. 
-
-By definition, $\text{Var}_{\symbf{\theta}_0}\big[\mathcal{S}(\symbf{\theta}_0; x_i)\big] = \mathscr{I}_X(\symbf{\theta}_0)$. From @eq-score_additive, we have that $\frac{1}{n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) = \frac{1}{n}\sum_{i=1}^n \mathcal{S}(\symbf{\theta}_0; x_i)$. It follows from the Central Limit Theorem that $$\sqrt{n} \bigg(\frac{1}{n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n) - \text{E}_{\symbf{\theta}_0}\Big[\mathcal{S}(\symbf{\theta}_0; x_i)\Big]\bigg) \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big) \> \> \text{as } n \to \infty.$${#eq-score_dist_1} But by the first Bartlett identity, $\text{E}_{\symbf{\theta}_0}\Big[\mathcal{S}(\symbf{\theta}_0; x_i)\Big] = \mathbf{0}$, and therefore $$\frac{1}{\sqrt n}\mathcal{S}(\symbf{\theta}_0; \mathbf{x}_n)  \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big)\> \> \text{as } n \to \infty.$${#eq-score_dist_2} Combining the results of @eq-score_Taylor_MLE2 and @eq-score_dist_2, we see that $$\Big[\mathscr{I}_X(\symbf{\theta}_0) + o_p(1)\Big]\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top \overset{d}{\to}\text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big) \> \> \text{as } n \to \infty.$${#eq-MLE_dist_1}
-
-Since the term in square brackets is converging in probability to $\mathscr{I}(\symbf{\theta}_0)$, which by **RC8** is a positive definite matrix, a minor extension of Slutsky's Theorem (see Appendix \ref{appendix:A}) allows us to deduce that the asymptotic distribution of the MLE for the true parameter value of a regular model is given by 
+\psi = D(\symbf{\theta})
+$${#eq-simpson-index-PoI-1}
+and
 $$
-\begin{aligned}\sqrt n(\hat{\symbf{\theta}}_n - \symbf{\theta}_0)^\top &\overset{d}{\to} \mathscr{I}_X(\symbf{\theta}_0)^{-1} \text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)\Big) \\
-                                                                       &\overset{d}{=} \text{N}\Big(\mathbf{0}, \mathscr{I}_X(\symbf{\theta}_0)^{-1}\Big)\> \> \text{as } n \to \infty.
-\end{aligned}
-$${#eq-MLE_dist_2}
+\tilde{\psi} = 1 - D(\symbf{\theta})
+$${#eq-simpson-index-PoI-2}
+as implicit scalar parameters of interest in a multinomial distribution.
 
-\subsection{Two-Index Asymptotics}
+\subsection{Simple logit model}
 
-Earlier we discussed the one-index asymptotics setting, in which the sample size ($n$) of the model diverged to infinity while the dimension of the nuisance parameter ($q$) remained fixed. Now we turn our attention to the two-index asymptotics setting which describes the behavior of likelihood and pseudolikelihood functions as $n$ and $q$ both tend to infinity, with $q$ growing at least as fast as $n$. Under such a framework, @DeBin2015 showed that estimates for $\psi$ based on a suitably constructed integrated likelihood function will outperform those coming from more traditional pseudolikelihoods, such as the profile likelihood. Such findings provide the motivation for our ensuing examination of two-index asymptotics theory, insofar as it relates to the performance of the integrated likelihood function as a method of inference regarding a parameter of interest.
+\subsubsection{Simulation design}
 
-To mirror the strategy used by @Sartori2003 and @DeBin2015, we will frame our discussion in terms of a stratified sample of data in which each stratum contributes one component to the overall nuisance parameter. Consider a model with parameter $\symbf{\theta} = (\psi, \lambda)$ where $\psi$ is the parameter of interest and $\lambda = (\lambda_1, ..., \lambda_q)$ is a $q$-dimensional nuisance parameter. For the sake of reducing complexity in our notation, we will only consider the case in which $\psi$ and the individual components of $\lambda$ are scalar parameters, though the results of this section should hold in the case where they are all vectors as well. Suppose that we have divided the model's population into $q$ strata and collected a sample of size $m_i$ from each stratum such that observation $j$ from stratum $i$ may be modeled as $$X_{ij} \sim p_{ij}(x_{ij}; \psi, \lambda_i),$${#eq-2idx_model} where $i = 1, ..., q$ and $j = 1, ..., m_i$, making the total sample size $n = \sum_{i = 1}^q m_i$.^[It will be convenient to work under the restriction that the stratum sample sizes are all identical, meaning there exists some positive integer $m$ such that $m_i = m$ for all $i$. However, as both @Sartori2003 and @DeBin2015 note, we could also assume a looser condition in which $m_i = K_i m$ where $0 < K_i < \infty$ without compromising our results.] Hence, there is a one-to-one correspondence between the strata and the components of $\lambda$; assume that each $\lambda_i \in \Lambda$, where the space $\Lambda$ is the same for all $i$, and they all have the same interpretation within their respective strata.
+\subsubsection{Simulation results}
 
-Assume that all the regularity conditions set forth in Section 3.4 apply, except possibly for **RC1** - it is not necessary to assume that the observations are i.i.d. here, and in fact it is perfectly acceptable for the $p_{ij}$'s in @eq-2idx_model to differ from one another. We will also allow for the possibility of dependence among observations within a stratum, though not between them. 
+\subsubsection{Discussion}
 
-Let $\mathbf{x}_i = (x_{i1}, ..., x_{im})$ denote the sample of observations from stratum $i$, so that their joint density may be written as $p_i(\mathbf{x}_i; \psi, \lambda_i)$. Therefore, the likelihood and log-likelihood for the $i$th stratum are $$L^{(i)}(\psi, \lambda_i) = p_i(\mathbf{x}_i; \psi, \lambda_i),$${#eq-2idx_L_i} and $$\ell^{(i)}(\psi, \lambda_i) = \log L^{(i)}(\psi, \lambda_i),$${#eq-2idx_l_i} respectively. For a particular choice of weight function $g(\lambda_i; \psi)$, the integrated likelihood for $\psi$ in stratum $i$ is given by $$\bar{L}^{(i)}(\psi) = \int_\Lambda L^{(i)}(\psi, \lambda_i) g(\lambda_i; \psi)d\lambda_i.$${#eq-2idx_Lbar_i} 
+\subsection{Multinomial logistic regression model}
 
-From here, we proceed by using Laplace's method as described by @Tierney1986 (see Appendix B for a brief review) to obtain an analytic approximation to $\bar{L}^{(i)}(\psi)$. Setting $h(\lambda_i) = -\frac{1}{m} \ell^{(i)}(\psi, \lambda_i)$ and $f(\lambda_i) = g(\lambda_i; \psi)$, we may rewrite the integral in @eq-2idx_Lbar_i as $$\bar{L}^{(i)}(\psi) = \int_{\Lambda} f(\lambda_i) \exp[-mh(\lambda_i)]d\lambda_i.$$ One consequence of the regularity conditions we have assumed is that $L^{(i)}(\psi, \lambda_i)$ is that an MLE for $\symbf{\theta}_0$, $\hat{\symbf{\theta}}$, exists and is unique. This further implies the existence and uniqueness of a conditional MLE for the true value of each stratum-specific nuisance parameter given $\psi$ - denote this value for the $i$th stratum by $\hat{\lambda}_{i\psi}$. By definition this value maximizes $\ell^{(i)}(\psi, \lambda_i)$ as a function of $\lambda_i$, and so it also maximizes $-h(\lambda_i)$ since the two functions differ only by a multiplicative constant $\frac{1}{m}$. 
+\subsubsection{Simulation design}
 
-The Laplace approximation to $\bar{L}^{(i)}(\psi)$ is then given by
+\subsubsection{Simulation results}
 
-$$\hat{\bar{L}}^{(i)}(\psi) = f(\hat{\lambda}_{i\psi})\sqrt{\frac{2 \pi}{m}}\sigma \exp[-mh(\hat{\lambda}_{i\psi})],$${#eq-Laplace1} where 
-$$
-\begin{aligned}
-\sigma &= \Bigg[\frac{\partial^2 h}{\partial \lambda_i^2} \Bigg|_{\lambda_i = \hat{\lambda}_{i\psi}} \Bigg]^{-1/2} \\
-       &= \Bigg[-\frac{1}{m}\frac{\partial^2 \ell^{(i)}(\psi, \lambda_i)}{\partial \lambda_i^2} \Bigg|_{\lambda_i = \hat{\lambda}_{i\psi}} \Bigg]^{-1/2} \\
-       &= \Bigg[\frac{1}{m} \mathcal{I}(\hat{\lambda}_{i\psi})\Bigg]^{-1/2}.
-\end{aligned}$$
-Here, $\mathcal{I}(\hat{\lambda}_{i\psi})$ denotes the observed information function for $\lambda_i$ only (i.e. the negative second partial derivative of the log-likelihood with respect to $\lambda_i$) evaluated at $\hat{\lambda}_{i\psi}$. Plugging in the appropriate quantities for $f$, $h$, and $\sigma$ into @eq-Laplace1, we arrive at 
-$$
-\begin{aligned}
-\hat{\bar{L}}^{(i)}(\psi) &= f(\hat{\lambda}_{i\psi})\sqrt{\frac{2 \pi}{m}}\sigma \exp[-mh(\hat{\lambda}_{i\psi})] \\
-                          &= g(\hat{\lambda}_{i\psi}; \psi)\sqrt{\frac{2 \pi}{m}} \Bigg[\frac{1}{m} \mathcal{I}(\hat{\lambda}_{i\psi})\Bigg]^{-1/2} \exp\Big\{-m \cdot -\frac{1}{m} \ell^{(i)}(\psi, \hat{\lambda}_{i\psi})\Big\} \\
-                          &= \frac{\sqrt{2 \pi}}{m} L^{(i)}(\psi, \hat{\lambda}_{i\psi})g(\hat{\lambda}_{i\psi}; \psi)\big[\mathcal{I}(\hat{\lambda}_{i\psi})\big]^{-1/2} \\
-                          &= \frac{\sqrt{2 \pi}}{m} L_P^{(i)}(\psi)g(\hat{\lambda}_{i\psi}; \psi)\big[\mathcal{I}(\hat{\lambda}_{i\psi})\big]^{-1/2},
-\end{aligned}
-$${#eq-Laplace2} where $L_P^{(i)}(\psi) = L^{(i)}(\psi, \hat{\lambda}_{i\psi})$ is the profile likelihood for $\psi$. The error in this approximation is $$\bar{L}^{(i)}(\psi) = \hat{\bar{L}}^{(i)}(\psi)\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\} \> \>\text{ as } \>  \> m \to \infty.$${#eq-Laplace3}
+\subsubsection{Discussion}
 
-Let $$\bar{\ell}^{(i)}(\psi) = \log \bar{L}^{(i)}(\psi)$${#eq-2idx_lbar_i} denote the integrated log-likelihood for $\psi$. Putting the results in @eq-Laplace2, @eq-Laplace3, and @eq-2idx_lbar_i together, we have
-$$
-\begin{aligned}
-\bar{\ell}^{(i)}(\psi) &= \log \bar{L}^{(i)}(\psi) &&(\text{by Equation 4.2.8})\\
-                       &= \log\Bigg(\hat{\bar{L}}^{(i)}(\psi)\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\}\Bigg) &&(\text{by Equation 4.2.7})\\
-                       &= \log \hat{\bar{L}}^{(i)}(\psi) + \log\Bigg\{1 + O\bigg(\frac{1}{m}\bigg)\Bigg\} &&(\text{by Equation 4.2.6})\\
-                       &= \log\Bigg\{\frac{\sqrt{2 \pi}}{m} L_P^{(i)}(\psi)g(\hat{\lambda}_{i\psi}; \psi)\big[\mathcal{I}(\hat{\lambda}_{i\psi})\big]^{-1/2} \Bigg\} + O\bigg(\frac{1}{m}\bigg) \\
-                       &= \frac{1}{2}\log(2\pi) - \log(m) + \log L_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{1}{m}\bigg) \\
-                       &= \ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}) + \frac{1}{2}\log(2\pi) - \log(m) + O\bigg(\frac{1}{m}\bigg) \> \>\text{ as } \>  \> m \to \infty,
-\end{aligned}
-$$
-where $\ell_P^{(i)}(\psi) = \ell^{(i)}(\psi, \hat{\lambda}_{i\psi})$ is the profile log-likelihood for $\psi$. Since log-likelihoods are equivalent up to additive constants, we can discard the $\frac{1}{2} \log(2\pi)$ and $\log(m)$ terms in the final line above to arrive at our final approximation for the integrated log-likelihood in stratum $i$: $$\hat{\bar{\ell}}^{(i)}(\psi) = \ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\log \mathcal{I}(\hat{\lambda}_{i\psi}).$${#eq-Laplace4} The error in this approximation is given by $$\bar{\ell}^{(i)}(\psi) = \hat{\bar{\ell}}^{(i)}(\psi) + O\bigg(\frac{1}{m}\bigg).$${#eq-Laplace5}
+<!--
+============================================================
+Shared Effect
+============================================================ 
+-->
 
-Since the observations between the strata are independent, we may write the likelihood and log-likelihood functions for the entire model as $$L(\psi, \lambda) = \prod_{i=1}^q L^{(i)}(\psi, \lambda_i)$${#eq-2idx_L} and $$\ell(\psi, \lambda) = \sum_{i=1}^q \ell^{(i)}(\psi, \lambda_i),$${#eq-2idx_l} respectively. If we define the weight function $$G(\lambda; \psi) \equiv \prod_{i=1}^qg(\lambda_i; \psi)$${#eq-2idx_weight} then the integrated likelihood function for $\psi$ becomes separable. That is,
-$$
-\begin{aligned}
-\bar{L}(\psi) &= \int_{\Lambda^q}L(\psi, \lambda) G(\lambda; \psi)d\lambda \\
-              &= \int_\Lambda\cdots\int_\Lambda \Bigg[\prod_{i=1}^q L^{(i)}(\psi, \lambda_i)\Bigg] \Bigg[\prod_{i=1}^q g(\lambda_i; \psi)\Bigg]d\lambda_1 \cdots d\lambda_q \\
-              &= \prod_{i=1}^q \int_\Lambda L^{(i)}(\psi, \lambda_i)g(\lambda_i; \psi)d\lambda_i \\
-              &= \prod_{i=1}^q \bar{L}^{(i)}(\psi).
-\end{aligned}
-$${#eq-2idx_Lbar}
+\section{Inference for a shared effect in a multinomial logistic regression}
 
-Let $\bar{\ell}(\psi) = \log \bar{L}(\psi)$ denote the integrated log-likelihood function for $\psi$. Taking the logarithm of both sides in @eq-2idx_Lbar, we have $$\bar{\ell}(\psi) = \sum_{i=1}^q \bar{\ell}^{(i)}(\psi).$${#eq-2idx_lbar} Plugging in our approximation to $\bar{\ell}^{(i)}(\psi)$ and its error term in @eq-Laplace4 and @eq-Laplace5, respectively, yields 
-$$
-\begin{aligned}
-\bar{\ell}(\psi) &= \sum_{i=1}^q\Bigg[\ell_P^{(i)}(\psi) + \log g(\hat{\lambda}_{i\psi}; \psi) - \log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{1}{m}\bigg) \Bigg] \\
-                 &= \ell_P(\psi) + \sum_{i=1}^q \log g(\hat{\lambda}_{i\psi}; \psi) - \frac{1}{2}\sum_{i=1}^q\log \mathcal{I}(\hat{\lambda}_{i\psi}) + O\bigg(\frac{q}{m}\bigg) \> \>\text{ as } \>  \> m \to \infty.
-\end{aligned}
-$${#eq-Laplace6}
+\subsection{Definition}
 
-\section{Frequentist Properties}
+\subsection{Simulation design}
 
-\section{Dependence on Nuisance Parameter Weight Function}
+\subsection{Simulation results}
 
-\section{Parameterization Invariance}
+\subsection{Discussion}
 
-\subsection{The Zero-Score Expectation Parameter}
+<!--
+============================================================
+Summary and discussion
+============================================================ 
+-->
 
-@severini2007 considered the problem of selecting a weight function $\pi(\lambda|\psi)$ such that when the likelihood function is integrated with respect to this density over the nuisance parameter space, the result is useful for non-Bayesian inference. To do this, he outlined four properties (see Appendix \ref{appendix:B}) that an integrated likelihood must satisfy if it is to be of any use and went on to show that such a function could be obtained by doing the following:
-\begin{enumerate}[label = \arabic*)]
-  \item Find a reparameterization $(\psi, \lambda) \mapsto (\psi, \phi)$ of the model such that the new nuisance parameter $\phi$ is unrelated to $\psi$ in the sense that $\hat{\phi}_{\psi} = \hat{\phi}$; that is, the conditional maximum likelihood estimate of $\phi$ given $\psi$ is simply equal to the unrestricted maximum likelihood estimate of $\phi$.
-  \item Select a prior density $\pi(\lambda|\psi)$ such that when the model undergoes the above reparameterization, the resulting prior density $\pi(\phi)$ does not depend on $\psi$.
-\end{enumerate}
-An integrated likelihood function for $\psi$ that possesses the desired properties will then be given by $$\bar{L}(\psi) = \int_{\Phi} \tilde{L}(\psi, \phi) \pi(\phi) d\phi,$${#eq-ZSE_IL1} where $\tilde{L}(\psi, \phi)$ is the likelihood function for the model after it has been reparameterized in terms of $\phi$. The exact choice of prior density for $\phi$ is not particularly important; the only restriction placed upon it is that it must not depend on $\psi$. Hence, the crux of the matter really lies in completing the first step. The approach taken by @severini2007 is to define a new nuisance parameter $\phi$ as the solution to the equation $$\text{E}_{(\psi_0, \lambda_0)}\Big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{X}_n)\Big]\Bigg|_{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = \mathbf{0},$${#eq-ZSE_IL2} where $\psi_0$ and $\lambda_0$ denote the true values of $\psi$ and $\lambda$, and $\hat{\psi}$ is the unrestricted MLE for $\psi_0$. The expectation here is being taken with respect to the data $\mathbf{X}_n = \mathbf{x}_n$ and not the parameters themselves. @eq-ZSE_IL2 can thus be rewritten as $$I(\psi, \lambda, \hat{\psi}, \phi) = \mathbf{0},$$ where $$I(\psi, \lambda, \psi_0, \lambda_0) = \int_{\mathbbm{R}^n} \big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{x}_n)\big] p(\mathbf{x}_n; \psi_0, \lambda_0))d\mathbf{x}_n.$$
+\section{Summary and discussion}
 
-Assuming $I$ is invertible, for a particular value of $(\psi, \lambda, \hat{\psi})$, there will be a unique value of $\phi$ that solves @eq-ZSE_IL2. $\phi$ is called the *zero-score expectation* (ZSE) parameter because it is defined as the value that makes the expectation of the score function (in terms of $\lambda$, not the full parameter) with respect to $p(\mathbf{x}_n; \psi_0, \lambda_0)$ evaluated at the point $(\psi_0, \lambda_0) = (\hat{\psi}, \phi)$ equal to zero. This means that $\phi$ is really a function of $(\psi, \lambda, \hat{\psi})$, i.e., $\phi = \phi(\psi, \lambda, \hat{\psi})$. This in turn implies that $\phi$ is a function of the data through $\hat{\psi}$. Normally we try to avoid creating such dependencies in our parameters as it renders them useless for the purpose of parameterizing a statistical model. However, from the perspective of the likelihood function, once the data have been collected they are considered fixed in place and there is no issue with using a quantity such as $\phi$ that depends on the data to parameterize it.
 
-For a given value of $\phi$, the corresponding value of $\lambda$ can be found by $$\lambda(\psi, \phi) = \underset{\lambda \in \Lambda}{\mathrm{argmax}} \> \text{E}_{(\hat{\psi}, \phi)}\big[\ell(\psi, \lambda; \mathbf{X}_n)\big].$${#eq-ZSE_IL3} For a certain choice of prior density $\pi(\phi)$, this allows us to write @eq-ZSE_IL1 in terms of $L(\psi, \lambda)$: $$\bar{L}(\psi) = \int_{\Phi} L(\psi, \lambda(\psi, \phi)) \pi(\phi) d\phi.$${#eq-ZSE_IL4} 
+
+
 
