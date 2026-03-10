@@ -370,7 +370,7 @@ Tim Ruel
 </ul></li>
 <li><strong>Parametric</strong>
 <ul>
-<li>The dimension of the parameter space is finite. That is, <span class="math inline">\(\Theta \subseteq \mathbb{R}^d\)</span> where <span class="math inline">\(d \in \mathbb{Z}^+\)</span>.</li>
+<li>The dimension of the parameter space is finite. That is, <span class="math inline">\(\Theta \subseteq \mathbbm{R}^d\)</span> where <span class="math inline">\(d \in \mathbb{Z}^+\)</span>.</li>
 </ul></li>
 <li><strong>Identifiable</strong>:
 <ul>
@@ -421,13 +421,13 @@ Tim Ruel
 <ul>
 <li>Any observations <span class="math inline">\(x_1, ..., x_n\)</span> belonging to a sample that has been drawn from the model’s sample space are independent and identically distributed (i.i.d.) realizations of a random variable <span class="math inline">\(X\)</span> with density function <span class="math inline">\(p_{\theta}(x)\)</span>.</li>
 <li><span class="math inline">\(P_{\theta_1} = P_{\theta_2} \implies \theta_1 = \theta_2\)</span> for all <span class="math inline">\(\theta_1, \theta_2 \in \Theta\)</span>.</li>
-<li>The distributions in <span class="math inline">\(\mathcal{P}\)</span> have a common support <span class="math inline">\(\mathcal{X} = \{x: p_{\theta}(x) &gt; 0 \}\subseteq \mathbb{R}\)</span> not depending on <span class="math inline">\(\theta\)</span>.</li>
+<li>The distributions in <span class="math inline">\(\mathcal{P}\)</span> have a common support <span class="math inline">\(\mathcal{X} = \{x: p_{\theta}(x) &gt; 0 \}\subseteq \mathbbm{R}\)</span> not depending on <span class="math inline">\(\theta\)</span>.</li>
 <li>There exists an open set <span class="math inline">\(\Theta^* \subseteq \Theta\)</span> of which <span class="math inline">\(\theta_0\)</span> is an interior point.</li>
 <li><span class="math inline">\(p(x; \theta)\)</span> is twice continuously differentiable with respect to <span class="math inline">\(\theta\)</span> for all <span class="math inline">\(\theta\)</span> in a neighborhood of <span class="math inline">\(\theta_0\)</span>.</li>
 <li>There exists a random function <span class="math inline">\(M(x)\)</span> (that does not depend on <span class="math inline">\(\theta\)</span>) satisfying <span class="math inline">\(\text{E}[M(X)] &lt; \infty\)</span> such that each third partial derivative of <span class="math inline">\(\ell(\theta; x)\)</span> is bounded in absolute value by <span class="math inline">\(M(x)\)</span> uniformly in some neighborhood of <span class="math inline">\(\theta_0\)</span>.</li>
 <li>The integral <span class="math inline">\(\int_{\mathcal{X}} p(x; \theta) dx\)</span> can be differentiated twice under the integral sign with respect to the components of <span class="math inline">\(\theta\in \Theta^*\)</span>.</li>
 <li><span class="math inline">\(\mathscr{I}(\theta)\)</span> is positive definite for all <span class="math inline">\(\theta \in \Theta\)</span>.</li>
-<li><span class="math inline">\(\Theta\)</span> is a compact and convex subset of <span class="math inline">\(\mathbb{R}^d\)</span>.</li>
+<li><span class="math inline">\(\Theta\)</span> is a compact and convex subset of <span class="math inline">\(\mathbbm{R}^d\)</span>.</li>
 </ul>
 </div>
 </section>
@@ -477,7 +477,7 @@ Tim Ruel
 <ul>
 <li>A likelihood satisfies the first Bartlett identity if <span class="math display">\[E_{\theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\bigg] = 0.\]</span></li>
 <li>Equivalently, <span class="math display">\[\mathscr{I}(\theta) =  \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].\]</span></li>
-<li>Sufficient condition: <span class="math display">\[\frac{d}{d \theta}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial}{\partial \theta}p(x; \theta) dx.\]</span></li>
+<li>Sufficient condition: <span class="math display">\[\frac{d}{d \theta}\int_{\mathbbm{R}} p(x; \theta) dx = \int_{\mathbbm{R}} \frac{\partial}{\partial \theta}p(x; \theta) dx.\]</span></li>
 <li>Likelihoods satisfying the first Bartlett identity are called <strong>score-unbiased</strong>.</li>
 </ul>
 </div>
@@ -488,7 +488,7 @@ Tim Ruel
 <ul>
 <li>A likelihood satisfies the second Bartlett identity if <span class="math display">\[\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2\Bigg] = 0.\]</span></li>
 <li>Equivalently, <span class="math display">\[\text{E}_{\theta}\big[\mathcal{I}(\theta)\big] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].\]</span></li>
-<li>Sufficient condition: <span class="math display">\[\frac{d^2}{d \theta^2}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2}p(x; \theta) dx.\]</span></li>
+<li>Sufficient condition: <span class="math display">\[\frac{d^2}{d \theta^2}\int_{\mathbbm{R}} p(x; \theta) dx = \int_{\mathbbm{R}} \frac{\partial^2}{\partial \theta^2}p(x; \theta) dx.\]</span></li>
 <li>Likelihoods satisfying the second Bartlett identity are called <strong>information-unbiased</strong>.</li>
 </ul>
 </div>
@@ -622,7 +622,7 @@ Tim Ruel
 <section id="the-il-for-an-implicit-parameter" class="slide level2">
 <h2>The IL for an Implicit Parameter</h2>
 <ul>
-<li>Suppose <span class="math inline">\(\psi\)</span> is an implicit parameter of interest so that <span class="math inline">\(\psi = \varphi(\theta)\)</span> for some function <span class="math inline">\(\varphi: \Theta \to \mathbb{R}\)</span>. Define <span class="math display">\[\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.\]</span></li>
+<li>Suppose <span class="math inline">\(\psi\)</span> is an implicit parameter of interest so that <span class="math inline">\(\psi = \varphi(\theta)\)</span> for some function <span class="math inline">\(\varphi: \Theta \to \mathbbm{R}\)</span>. Define <span class="math display">\[\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.\]</span></li>
 <li>For a model without an explicit nuisance parameter, an element of <span class="math inline">\(\Omega_{\hat{\psi}}\)</span>, where <span class="math inline">\(\hat{\psi} = \varphi(\hat{\theta})\)</span> is the MLE for <span class="math inline">\(\psi_0\)</span>, plays the same role as the parameter value <span class="math inline">\((\hat{\psi}, \phi)\)</span> for a model with an explicit nuisance parameter.</li>
 </ul>
 </section>
@@ -669,7 +669,7 @@ Tim Ruel
 <h2>Application to a Multinomial Model</h2>
 <ul>
 <li><p>Suppose that <span class="math inline">\((N_1, ..., N_m) \sim \text{Multinom}(\theta_1, ..., \theta_m)\)</span>.</p></li>
-<li><p>The full parameter is <span class="math inline">\(\theta = (\theta_1, ..., \theta_m)\)</span> and the parameter space <span class="math inline">\(\Theta\)</span> is the probability simplex in <span class="math inline">\(\mathbb{R}^m\)</span>.</p></li>
+<li><p>The full parameter is <span class="math inline">\(\theta = (\theta_1, ..., \theta_m)\)</span> and the parameter space <span class="math inline">\(\Theta\)</span> is the probability simplex in <span class="math inline">\(\mathbbm{R}^m\)</span>.</p></li>
 <li><p>We will take our parameter of interest <span class="math inline">\(\psi\)</span> to be the entropy of the distribution. That is, <span class="math display">\[\psi \equiv g(\theta) =  -\sum_{j=1}^m \theta_j \log(\theta_j).\]</span></p></li>
 <li><p>If <span class="math inline">\((n_1, ..., n_m)\)</span> are the observed values of <span class="math inline">\((N_1, ..., N_m)\)</span>, then the likelihood and log-likelihood are, respectively, <span class="math display">\[L(\theta) = \prod_{j=1}^m \theta_j^{n_j} \text{ and } \ell(\theta) = \log L(\theta).\]</span></p></li>
 </ul>
@@ -677,7 +677,7 @@ Tim Ruel
 <section id="application-to-a-multinomial-model-1" class="slide level2">
 <h2>Application to a Multinomial Model</h2>
 <ul>
-<li>Set <span class="math inline">\(\check{L}(u) := L(u)\)</span> and choose <span class="math inline">\(\check{\pi}(u)\)</span> to be the symmetric Dirichlet distribution on the probability simplex in <span class="math inline">\(\mathbb{R}^d\)</span> with <span class="math inline">\(\alpha_j = 1\)</span> for all <span class="math inline">\(j\)</span>.</li>
+<li>Set <span class="math inline">\(\check{L}(u) := L(u)\)</span> and choose <span class="math inline">\(\check{\pi}(u)\)</span> to be the symmetric Dirichlet distribution on the probability simplex in <span class="math inline">\(\mathbbm{R}^d\)</span> with <span class="math inline">\(\alpha_j = 1\)</span> for all <span class="math inline">\(j\)</span>.</li>
 <li>The Dirichlet distribution is a conjugate prior for the multinomial distribution, so that the posterior distribution for <span class="math inline">\(U\)</span> based on data <span class="math inline">\(n = (n_1, ..., n_d)\)</span> is given by <span class="math inline">\(L(u)\check{\pi}(u) \sim \text{Dir}(n + \mathbf{1})\)</span>.</li>
 <li>Modern statistical computing packages enable us to sample random variates of <span class="math inline">\(U\)</span> directly from this distribution.</li>
 </ul>

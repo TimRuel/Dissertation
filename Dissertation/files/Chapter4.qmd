@@ -7,9 +7,11 @@ This chapter concerns parameters of interest derived from a multinomial distribu
 Let $\symbf{Y}$ denote the outcome of a single categorical trial with parameter $\symbf{\theta} = (\theta_1, ..., \theta_J) \in \Delta^{J-1},$
 where
 $$
-\Delta^{J-1} = \Bigg\{\symbf{\theta} \in [0, 1]^J: \sum_{j=1}^J \theta_j = 1\Bigg\}
+\Delta^{J-1} = \Bigg\{\symbf{\theta} \in \mathbbm{R}^J: \theta_j > 0,\ \sum_{j=1}^J \theta_j = 1\Bigg\}
 $${#eq-simplex}
-is the $(J-1)$-dimensional probability simplex. We may represent $\symbf{Y}$ as a random vector taking values in the canonical basis of $\mathbbm{R}^J$, i.e.,
+is the open $(J-1)$-dimensional probability simplex. The strict positivity constraint $\theta_j > 0$ reflects the modeling assumption that every included category is theoretically observable; a category believed to have zero probability would simply be omitted from the model.
+
+ We may represent $\symbf{Y}$ as a random vector taking values in the canonical basis of $\mathbbm{R}^J$, i.e.,
 $$
 \symbf{Y} \in \{\symbf{e}_1, ..., \symbf{e}_J\},
 $$
@@ -192,7 +194,7 @@ Simpson's Diversity Index
 
 \section{Inference for Simpson's diversity index}
 
-\subsection{Definition}
+\subsection{Definition and properties}
 
 The index of diversity introduced by @simpson1949 provides an alternative measure of the concentration of mass in a probability vector. For a vector $\symbf{\theta} \in \Delta^{J-1}$, Simpson's index is defined as 
 $$
@@ -200,9 +202,9 @@ D(\symbf{\theta}) = \sum_{j=1}^J \theta_j^2.
 $${#eq-simpson-index-sum}
 Equivalently, $D(\symbf{\theta})$ is the squared Euclidean norm of $\symbf{\theta}$,
 $$
-D(\symbf{\theta}) = ||\symbf{\theta}||_2^2.
+D(\symbf{\theta}) = ||\symbf{\theta}||^2.
 $${#eq-simpson-index-norm}
-Note that $1/J \leq D(\symbf{\theta}) \leq 1.$ The minimum $D(\symbf{\theta}) = 1/J$ is attained when $\symbf{\theta}$ is uniform, so $\theta_j = 1/J$ for all $j$, corresponding to maximal dispersion of probability mass across categories. The maximum $D(\symbf{\theta})$ occurs when all mass is concentrated in a single component, meaning $\symbf{\theta}$ coincides with a vertex of the simplex. Thus, larger values of $D(\symbf{\theta})$ indicate greater concentration of probability mass, while smaller values reflect greater diversity.
+Note that $1/J \leq D(\symbf{\theta}) < 1$, with larger values indicating greater concentration of probability mass and smaller values reflecting greater diversity. The lower bound is attained at the uniform distribution $\theta_j = 1/J$ for all $j$, which is an interior point of $\Delta^{J-1}$. The upper bound of 1 is never attained because it would require all mass to concentrate on a single category, forcing $\symbf{\theta}$ to a vertex of the simplex, which is excluded by the open simplex assumption.
 
 Unlike Shannon entropy, which depends logarithmically on the cell probabilities, Simpson's index is a quadratic function of $\symbf{\theta}$. As a result, it places greater relative weight on large components of the probability vector and is less sensitive to the presence of categories with very small probability. This property makes Simpson's index particularly stable in settings where rare categories are difficult to estimate reliably.
 
@@ -216,7 +218,16 @@ $$
 $${#eq-simpson-index-PoI-2}
 as implicit scalar parameters of interest in a multinomial distribution.
 
+Another important property of $D(\symbf{\theta})$ is its invariance under permutations of the category labels. Let $S_J$ denote the symmetric group of all permutations of $\{1, \dots, J\}$. Then for any permutation $\pi \in S_J$,
+$$
+D(\theta_{\pi(1)}, \dots, \theta_{\pi(J)}) = D(\theta_1, \dots, \theta_J),
+$$
+since the sum of squares is unaffected by the ordering of its terms. This reflects the fact that Simpson's index is a measure of concentration of probability mass, without regard to which specific categories carry that mass. Consequently, $\Omega_{\hat{\psi}}$ is closed under any action of $S_J$: if $\symbf{\omega} \in \Omega_{\hat{\psi}}$, then so is every permutation of its components. This symmetry has direct implications for how elements must be sampled from $\Omega_{\hat{\psi}}$. See Section \ref{sec-simpson-sampling-strategy} for further details.
+
 \subsection{Simple logit model}
+
+\subsubsection{$\Omega_{\hat{\psi}}$ Sampling Strategy}
+\label{sec-simpson-sampling-strategy}
 
 \subsubsection{Simulation design}
 

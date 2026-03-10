@@ -40,7 +40,7 @@ include-in-header:
 - **Absolutely continuous**
   - Each distribution $P$ in $\mathcal{P}$ is absolutely continuous with respect to some dominating measure (usually Lebesgue or counting measure) and therefore admits a density function $p_\theta$. This allows us to write $\mathcal{P} = \{p_{\theta} | \> \theta \in \Theta\}$.
 - **Parametric**
-  - The dimension of the parameter space is finite. That is, $\Theta \subseteq \mathbb{R}^d$ where $d \in \mathbb{Z}^+$.
+  - The dimension of the parameter space is finite. That is, $\Theta \subseteq \mathbbm{R}^d$ where $d \in \mathbb{Z}^+$.
 - **Identifiable**: 
   - $P_{\theta_1} = P_{\theta_2} \implies \theta_1 = \theta_2 \> \> \forall \> \> \theta_1, \theta_2 \in \Theta.$
   
@@ -79,13 +79,13 @@ include-in-header:
 
 - Any observations $x_1, ..., x_n$ belonging to a sample that has been drawn from the model's sample space are independent and identically distributed (i.i.d.) realizations of a random variable $X$ with density function $p_{\theta}(x)$.
 - $P_{\theta_1} = P_{\theta_2} \implies \theta_1 = \theta_2$ for all $\theta_1, \theta_2 \in \Theta$.
-- The distributions in $\mathcal{P}$ have a common support $\mathcal{X} = \{x: p_{\theta}(x) > 0 \}\subseteq \mathbb{R}$ not depending on $\theta$.
+- The distributions in $\mathcal{P}$ have a common support $\mathcal{X} = \{x: p_{\theta}(x) > 0 \}\subseteq \mathbbm{R}$ not depending on $\theta$.
 - There exists an open set $\Theta^* \subseteq \Theta$ of which $\theta_0$ is an interior point.
 - $p(x; \theta)$ is twice continuously differentiable with respect to $\theta$ for all $\theta$ in a neighborhood of $\theta_0$.
 - There exists a random function $M(x)$ (that does not depend on $\theta$) satisfying $\text{E}[M(X)] < \infty$ such that each third partial derivative of $\ell(\theta; x)$ is bounded in absolute value by $M(x)$ uniformly in some neighborhood of $\theta_0$.
 - The integral $\int_{\mathcal{X}} p(x; \theta) dx$ can be differentiated twice under the integral sign with respect to the components of $\theta\in \Theta^*$.
 - $\mathscr{I}(\theta)$ is positive definite for all $\theta \in \Theta$.
-- $\Theta$ is a compact and convex subset of $\mathbb{R}^d$.
+- $\Theta$ is a compact and convex subset of $\mathbbm{R}^d$.
 
 :::
 
@@ -139,7 +139,7 @@ log-likelihood function to one another.
 
 - A likelihood satisfies the first Bartlett identity if  $$E_{\theta}\bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\bigg] = 0.$$
 - Equivalently, $$\mathscr{I}(\theta) =  \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].$$
-- Sufficient condition: $$\frac{d}{d \theta}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial}{\partial \theta}p(x; \theta) dx.$$
+- Sufficient condition: $$\frac{d}{d \theta}\int_{\mathbbm{R}} p(x; \theta) dx = \int_{\mathbbm{R}} \frac{\partial}{\partial \theta}p(x; \theta) dx.$$
 - Likelihoods satisfying the first Bartlett identity are called **score-unbiased**.
 
 :::
@@ -150,7 +150,7 @@ log-likelihood function to one another.
 
 - A likelihood satisfies the second Bartlett identity if $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2\Bigg] = 0.$$
 - Equivalently, $$\text{E}_{\theta}\big[\mathcal{I}(\theta)\big] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg].$$
-- Sufficient condition: $$\frac{d^2}{d \theta^2}\int_{\mathbb{R}} p(x; \theta) dx = \int_{\mathbb{R}} \frac{\partial^2}{\partial \theta^2}p(x; \theta) dx.$$
+- Sufficient condition: $$\frac{d^2}{d \theta^2}\int_{\mathbbm{R}} p(x; \theta) dx = \int_{\mathbbm{R}} \frac{\partial^2}{\partial \theta^2}p(x; \theta) dx.$$
 - Likelihoods satisfying the second Bartlett identity are called **information-unbiased**.
 
 :::
@@ -285,7 +285,7 @@ where
 
 ## The IL for an Implicit Parameter
 
-- Suppose $\psi$ is an implicit parameter of interest so that $\psi = \varphi(\theta)$ for some function $\varphi: \Theta \to \mathbb{R}$. Define $$\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.$$
+- Suppose $\psi$ is an implicit parameter of interest so that $\psi = \varphi(\theta)$ for some function $\varphi: \Theta \to \mathbbm{R}$. Define $$\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.$$
 - For a model without an explicit nuisance parameter, an element of $\Omega_{\hat{\psi}}$, where $\hat{\psi} = \varphi(\hat{\theta})$ is the MLE for $\psi_0$, plays the same role as the parameter value $(\hat{\psi}, \phi)$ for a model with an explicit nuisance parameter.
 
 ## The IL for an Implicit Parameter 
@@ -331,14 +331,14 @@ where
 
 - Suppose that $(N_1, ..., N_m) \sim \text{Multinom}(\theta_1, ..., \theta_m)$.
 
-- The full parameter is $\theta = (\theta_1, ..., \theta_m)$ and the parameter space $\Theta$ is the probability simplex in $\mathbb{R}^m$.
+- The full parameter is $\theta = (\theta_1, ..., \theta_m)$ and the parameter space $\Theta$ is the probability simplex in $\mathbbm{R}^m$.
 
 - We will take our parameter of interest $\psi$ to be the entropy of the distribution. That is, $$\psi \equiv g(\theta) =  -\sum_{j=1}^m \theta_j \log(\theta_j).$$
  - If $(n_1, ..., n_m)$ are the observed values of $(N_1, ..., N_m)$, then the likelihood and log-likelihood are, respectively, $$L(\theta) = \prod_{j=1}^m \theta_j^{n_j} \text{ and } \ell(\theta) = \log L(\theta).$$
 
 ## Application to a Multinomial Model
 
-- Set $\check{L}(u) := L(u)$ and choose $\check{\pi}(u)$ to be the symmetric Dirichlet distribution on the probability simplex in $\mathbb{R}^d$ with $\alpha_j = 1$ for all $j$.
+- Set $\check{L}(u) := L(u)$ and choose $\check{\pi}(u)$ to be the symmetric Dirichlet distribution on the probability simplex in $\mathbbm{R}^d$ with $\alpha_j = 1$ for all $j$.
 - The Dirichlet distribution is a conjugate prior for the multinomial distribution, so that the posterior distribution for $U$ based on data $n = (n_1, ..., n_d)$ is given by $L(u)\check{\pi}(u) \sim \text{Dir}(n + \mathbf{1})$. 
 - Modern statistical computing packages enable us to sample random variates of $U$ directly from this distribution.
 

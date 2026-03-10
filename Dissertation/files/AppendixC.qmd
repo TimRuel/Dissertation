@@ -1,38 +1,253 @@
-\chapter{Chapter 6}\label{appendix:C}
+\chapter{Chapter 4}\label{appendix:C}
 \index{Appendix@\emph{Appendix C}}
 
-**Proposition**: $\psi^*_{\omega} = \hat{\psi}$ for all $\omega \in \Omega_{\hat{\psi}}$.
+\section{Geometry of \texorpdfstring{$\Omega_{\hat{\psi}}$}{Omega\_psi-hat} for Simpson's index}
 
-**Proof**: It suffices to show that an arbitrary branch curve $b_{\omega}(\psi)$ has a stationary point at $\psi = \hat{\psi}$, i.e. $b'_{\omega}(\hat{\psi}) = 0$. Since $\ell(\theta; Y)$ is concave in $\theta$ and the mapping $\psi \mapsto \tilde{\theta}(\psi; \omega)$ is smooth, such a point will be the unique maximizer of $b_{\omega}(\psi)$. Differentiating the branch yields $$b'_{\omega}({\psi}) = \nabla_{\theta} \ell(\tilde{\theta}(\psi; \omega); Y)^\top\frac{\partial\tilde{\theta}(\psi; \omega)}{\partial \psi}.$${#eq-7.0} 
+Recall that for a model with full parameter $\symbf{\theta} \in \Theta$ and parameter of interest $\psi = \varphi(\symbf{\theta})$, the set
+$$
+\Omega_{\hat{\psi}} = \left\{\symbf{\omega} \in \Theta: \varphi(\symbf{\omega}) = \hat{\psi}\right\}
+$$
+contains all values of the parameter space that also get mapped to the MLE of $\psi$ under the interest function $\varphi$. In that sense, we can think of $\Omega_{\hat{\psi}}$ as being the level set of $\varphi$ for some value of $\hat{\psi}$, i.e. a set of vectors in $\Theta$ that $\varphi$ maps to the same $\hat{\psi}$.
 
-Thus, we need to be able to evaluate both the ZSE optimizer $\tilde{\theta}(\psi; \omega)$ and its partial derivative with respect to $\psi$ at $\psi = \hat{\psi}$. Recall that to evaluate $\tilde{\theta}(\psi; \omega)$ at a point $\psi$ for a given $\omega$ is to solve the constrained maximization problem $$\arg \max_{\substack{\theta}} \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) \> \text{ s.t. } \> \alpha^{\top} \theta = \psi.$$ We proceed by the method of Lagrange multipliers. For some multiplier $\lambda$ (which may depend on $\psi$ and $\omega$), define the Lagrangian function $$\mathcal{L}(\theta, \lambda) = \sum_{g=1}^G \big(t_g\omega_g \log \theta_g - t_g \theta_g\big) + \lambda\Bigg[\psi - \sum_{g=1}^G \alpha_g \theta_g\Bigg].$$ Per the Lagrange multiplier theorem, the solution to the maximization problem will satisfy $$\frac{\partial \mathcal{L}(\theta, \lambda)}{\theta_g}\Bigg|_{\theta_g = \tilde{\theta}_g} = 0, \> \> \text{for } g = 1, ..., G$${#eq-7.1} and $$\frac{\partial \mathcal{L}(\theta, \lambda)}{\lambda} = 0.$${#eq-7.2} From @eq-7.1, we have $$\frac{t_g\omega_g}{\tilde{\theta_g}} - t_g - \lambda\alpha_g = 0.$$ This implies that the optimal solution $\tilde{\theta}$, viewed here as a function of $\lambda$, satisfies $$\tilde{\theta}_g(\lambda) = \frac{t_g \omega_g}{t_g + \lambda\alpha_g}.$${#eq-7.3} Paired with the constraint condition enforced by @eq-7.2, this in turn implies that the optimal value of $\lambda$ will satisfy $$\sum_{g=1}^G \alpha_g \tilde{\theta}_g(\lambda) = \psi.$${#eq-7.4} Note that $\lambda = 0 \iff \tilde{\theta} = \omega \iff \psi = \hat{\psi}$. It follows that $\tilde{\theta}(\hat{\psi}; \omega) = \omega.$
+In the multinomial model with $J$ categories, the natural parameter space is the open probability simplex
+$$
+\Delta^{J-1} = \Bigg\{\symbf{\theta} \in \mathbbm{R}^J: \theta_j > 0,\ \sum_{j=1}^J \theta_j = 1\Bigg\}.
+$$
+The relevant level set for Simpson's index is therefore
+$$
+\Omega_{\hat{\psi}} = \left\{ \symbf{\theta} \in \Delta^{J-1} : \sum_{j=1}^J \theta_j^2 = \hat{\psi} \right\}.
+$$ We characterize the geometry of $\Omega_{\hat{\psi}}$ by first considering the cases $J = 2$ and $J = 3$ in detail before generalizing to arbitrary $J$. While these low-dimensional cases do not produce nuisance parameters of sufficient dimension for the integrated likelihood to outperform the profile likelihood in any meaningful way, they nevertheless provide useful geometric intuition that carries over cleanly to the general case.
 
-Turning our attention now to the derivative of the ZSE optimizer with respect to $\psi$, we have that $$\frac{\partial\tilde{\theta}_g}{\partial \psi} = \frac{\partial\tilde{\theta}_g}{\partial \lambda} \frac{d\lambda}{d \psi}.$$ From @eq-7.3, we can compute $$\frac{\partial\tilde{\theta}_g}{\partial \lambda} = -\frac{t_g\omega_g\alpha_g}{(t_g + \lambda\alpha_g)^2}.$$ At $\lambda = 0$, this evaluates to $$\frac{\partial\tilde{\theta}_g}{\partial \lambda}\Bigg|_{\lambda = 0} = -\frac{\omega_g\alpha_g}{t_g}.$$ Similarly, differentiating both sides of @eq-7.4 with respect to $\psi$ gives $$\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda} \frac{d \lambda}{d \psi} = 1 \implies \frac{d \lambda}{d \psi} = \frac{1}{\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda}}.$$ At $\psi = \hat{\psi}$, this evaluates to $$\frac{d \lambda}{d \psi}\Bigg|_{\psi = \hat{\psi}} = \frac{1}{\sum_{g=1}^G \alpha_g \frac{\partial\tilde{\theta}_g}{\partial \lambda}\Big|_{\lambda = 0}} = -\frac{1}{\sum_{g=1}^G \alpha_g^2 \omega_g / t_g}.$$ Thus 
+\subsection{The Case $J = 2$}
+
+When $J = 2$, the parameter space is the simplex $\Delta^1$, which is just the line
+$\{ (\theta_1, \theta_2) : \theta_1 + \theta_2 = 1,\ \theta_1, \theta_2 \in (0,1) \}$.
+Simpson's index reduces to
+$$
+D(\symbf{\theta}) = \theta_1^2 + (1-\theta_1)^2 = 2\theta_1^2 - 2\theta_1 + 1.
+$$
+Setting $D(\symbf{\theta}) = \hat{\psi}$ and solving the resulting quadratic gives
+$$
+\theta_1 = \frac{1 \pm \sqrt{2\hat{\psi} - 1}}{2}.
+$$
+When $\hat{\psi} = 1/2$, we have $\Omega_{\hat{\psi}} = \{(1/2, 1/2)\} = \{\hat{\symbf{\theta}}\}$, since the uniform distribution is simultaneously the unique element of $\Omega_{\hat{\psi}}$ and the MLE for $\symbf{\theta}$. The integrated likelihood function under the ZSE parameterization evaluated at $\psi$ is obtained by integrating $L(b(\symbf{\omega}, \psi;\, \hat{\psi}))$ with respect to $\symbf{\omega}$ over $\Omega_{\hat{\psi}}$, where $b(\symbf{\omega}, \psi;\, \hat{\psi})$ denotes the maximizer of $\mathbbm{E}(\ell(\symbf{\theta});\, \symbf{\omega})$ subject to $D(\symbf{\theta}) = \psi$. Since $\Omega_{\hat{\psi}}$ in this case contains only $\hat{\symbf{\theta}}$, this integral reduces to the single evaluation $L(b(\hat{\symbf{\theta}}, \psi;\, \hat{\psi}))$, where $b(\hat{\symbf{\theta}}, \psi;\, \hat{\psi})$ is the maximizer of $\sum_j \hat{\theta}_j \log \theta_j$ subject to $D(\symbf{\theta}) = \psi$. But this is precisely the profile likelihood maximizer as well. Thus, for the special case in which $J = 2$ and the observed counts in both categories are equal, the integrated likelihood under the ZSE parameterization reduces exactly to the profile likelihood. Consequently, any inferences drawn from the two will be identical in this
+case.
+
+When $\hat{\psi} > 1/2$, the discriminant is strictly positive and $\Omega_{\hat{\psi}}$ consists of exactly two distinct points:
+$$
+\symbf{\omega}^{(1)} = \left( \frac{1 + \sqrt{2\hat{\psi}-1}}{2},\ \frac{1 - \sqrt{2\hat{\psi}-1}}{2} \right),
+\qquad
+\symbf{\omega}^{(2)} = \left( \frac{1 - \sqrt{2\hat{\psi}-1}}{2},\ \frac{1 + \sqrt{2\hat{\psi}-1}}{2} \right).
+$$
+These two points are related by swapping the two category probabilities, and they migrate toward the corners $(1, 0)$ and $(0, 1)$ as $\hat{\psi} \to 1$. The integrated likelihood at $\psi$ is simply the sum
+$$
+\bar{L}(\psi) = L\bigl(b(\symbf{\omega}^{(1)}, \psi;\, \hat{\psi})\bigr) + L\bigl(b(\symbf{\omega}^{(2)}, \psi;\, \hat{\psi})\bigr),
+$$
+up to an arbitrary multiplicative constant.
+
+Since $\symbf{\omega}^{(1)} = \mathbf{1} - \symbf{\omega}^{(2)}$ and the constraint $D(\symbf{\theta}) = \psi$ is symmetric in $\theta_1$ and $\theta_2$, the maximizer $b(\symbf{\omega}^{(2)}, \psi;\, \hat{\psi})$ is simply $\mathbf{1} - b(\symbf{\omega}^{(1)}, \psi;\, \hat{\psi})$. Only one constrained optimization is therefore needed to obtain both maximizers. The likelihood must still be evaluated separately at each, however, since $\hat{\psi} > 1/2$ implies $\hat{\theta}_1 \neq \hat{\theta}_2$ and therefore
+$N_1 \neq N_2$, so $L(\symbf{\theta}) = \theta_1^{N_1}\theta_2^{N_2}$ is not
+invariant under permutation of $\symbf{\theta}$.
+
+While the integrated likelihood is not precisely identical to the profile likelihood in the case where $J=2$ and $\hat{\psi} > 1/2$, the two will tend to agree closely in practice. This is because $\Omega_{\hat{\psi}}$ contains only two points, leaving little room for the integrated likelihood to differ from the profile likelihood through averaging over meaningfully distinct nuisance parameters. It is well-established that inferences based on the integrated likelihood only begin to outperform those of the profile likelihood when the dimension of the nuisance parameter is large [@berger1999; @DeBin2015], so this result is unsurprising.
+
+\subsection{The Case $J = 3$}
+
+When $J = 3$, the simplex $\Delta^2$ is an equilateral triangle embedded in the affine
+plane $\Pi = \{ \symbf{x} \in \mathbbm{R}^3 : x_1 + x_2 + x_3 = 1 \}$. The constraint
+$D(\symbf{\theta}) = \hat{\psi}$ defines a sphere of radius $\sqrt{\hat{\psi}}$ centered
+at the origin in $\mathbbm{R}^3$. To characterize the geometry of $\Omega_{\hat{\psi}}$, it will be helpful to consider first the set of all points in $\Pi$ satisfying this constraint without yet
+imposing the positivity constraint $\symbf{\theta} > \mathbf{0}$:
+$$
+\mathcal{C}_{\hat{\psi}} = \left\{ \symbf{x} \in \Pi : D(\symbf{x}) = \hat{\psi} \right\},
+$$
+so that $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$. Any $\symbf{x} \in \Pi$ may be decomposed as 
+$$
+\symbf{x} = \mathbf{c} + \mathbf{v}, \qquad \mathbf{c} = \left(\tfrac{1}{3}, \tfrac{1}{3}, \tfrac{1}{3}\right),
+$$
+where $\mathbf{c}$ is the vector from the origin to the centroid of $\Delta^2$ and $\mathbf{v} = \symbf{x} - \mathbf{c}$ is the displacement from the centroid to $\symbf{x}$. Since $\mathbf{1} = (1,1,1)^\top$ is the normal vector of $\Pi$ and 
+$$
+\mathbf{1} \cdot \mathbf{v}
+= \sum_{j=1} v_j
+= \sum_{j=1}^3 (x_j - c_j)
+= \sum_{j=1}^3 x_j - \sum_{j=1}^3 c_j
+= 1 - 1 = 0,
+$$
+$\mathbf{v}$ is orthogonal to $\mathbf{1}$. Since $\mathbf{c}$ is parallel to $\mathbf{1}$, it follows that $\mathbf{c} \cdot \mathbf{v} = 0$ as well. For any $\symbf{x} \in \mathcal{C}_{\hat{\psi}}$, expanding $D(\symbf{x}) = \hat{\psi}$ using this decomposition gives
+$$
+\hat{\psi}
+= \symbf{x} \cdot \symbf{x}
+= (\mathbf{c} + \mathbf{v}) \cdot (\mathbf{c} + \mathbf{v})
+= \|\mathbf{c}\|^2 + 2(\mathbf{c} \cdot \mathbf{v}) + \|\mathbf{v}\|^2
+= \frac{1}{3} + \|\mathbf{v}\|^2,
+$$
+and so $\|\mathbf{v}\|^2 = \hat{\psi} - 1/3$. Every point in $\mathcal{C}_{\hat{\psi}}$ therefore lies at the same distance $r = \sqrt{\hat{\psi} - 1/3}$ from $\mathbf{c}$, so $\mathcal{C}_{\hat{\psi}}$ is a circle of radius $r$ centered at $\mathbf{c}$ embedded within $\Pi$.
+
+The geometry of $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ depends on how much of $\mathcal{C}_{\hat{\psi}}$ lies within $\Delta^2$, which is determined by whether $r$ exceeds the inradius of $\Delta^2$ --- the distance from $\mathbf{c}$ to the nearest edge. The simplex triangle has vertices at $\symbf{e}_1, \symbf{e}_2, \symbf{e}_3$, side length $\sqrt{2}$, and inradius
+$$
+r_{\mathrm{in}} = \frac{\sqrt{2}\sqrt{3}}{6} = \frac{1}{\sqrt{6}}.
+$$
+Setting $r = r_{\mathrm{in}}$ gives the clipping threshold
+$$
+\sqrt{\hat{\psi} - \tfrac{1}{3}} = \frac{1}{\sqrt{6}} \implies \hat{\psi} = \frac{1}{2}.
+$$
+When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges simultaneously, touching at $(1/2, 1/2, 0)$ and its permutations --- the uniform distributions over two of the three categories. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{files/Images/simplex-level-sets.png}
+  \caption{%
+    \textsc{Level Sets of Simpson's Index on the Probability Simplex $\Delta^2$.}
+    The circle $\mathcal{C}_{\hat{\psi}}$ of radius $r = \sqrt{\hat{\psi} - 1/3}$ centered at the centroid $\mathbf{c}$ and embedded in the affine plane $\Pi$ is shown for three values of $\hat{\psi}$. When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges of $\Delta^2$ simultaneously, touching at the open circles marking the uniform distributions over two categories. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex.
+  }
+  \label{fig:simplex-level-sets}
+\end{figure}
+
+Since $\mathcal{C}_{\hat{\psi}}$ is a circle centered at $\mathbf{c}$, the extent of each arc of $\Omega_{\hat{\psi}}$ can be measured as an angle subtended at $\mathbf{c}$. Each arc is symmetric about the axis from $\mathbf{c}$ toward its corresponding vertex --- this follows from the reflection symmetry of the simplex about that axis --- and so subtends a total angle of $2\alpha(\hat{\psi})$, where $\alpha$ is the angular distance from the axis to either boundary of the arc. The three arcs are geometrically identical because the equilateral triangle has three-fold rotational symmetry about $\mathbf{c}$: a rotation by $2\pi/3$ maps
+$\Delta^2$ onto itself and maps each arc to the next, so all three arcs have the same radius, the same angular extent, and the same shape.
+
+To derive $\alpha$ explicitly, introduce an orthonormal basis for $\Pi$:
+$$
+\mathbf{u} = \frac{(2, -1, -1)}{\sqrt{6}}, \qquad \mathbf{w} = \frac{(0, 1, -1)}{\sqrt{2}},
+$$
+where $\mathbf{u}$ points from $\mathbf{c}$ toward $\symbf{e}_1$. A point on $\mathcal{C}_{\hat{\psi}}$ at angle $\varphi$ from $\mathbf{u}$ is $\symbf{x}(\varphi) = \mathbf{c} + r(\cos\varphi\,\mathbf{u} + \sin\varphi\,\mathbf{w})$, with components
 $$
 \begin{aligned}
-\frac{\partial\tilde{\theta}_g}{\partial \psi}\Bigg|_{\psi = \hat{\psi}} &= \frac{\partial\tilde{\theta}_g}{\partial \lambda}\Bigg|_{\lambda = 0} \cdot \frac{d\lambda}{d \psi}\Bigg|_{\psi = \hat{\psi}} \\
-                                                                         &= \bigg(-\frac{\omega_g\alpha_g}{t_g}\bigg) \Bigg(-\frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
-                                                                         &= \frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h},
+x_1(\varphi) &= \tfrac{1}{3} + \tfrac{2r}{\sqrt{6}}\cos\varphi, \\
+x_2(\varphi) &= \tfrac{1}{3} + r\!\left(\tfrac{\sin\varphi}{\sqrt{2}} - \tfrac{\cos\varphi}{\sqrt{6}}\right), \\
+x_3(\varphi) &= \tfrac{1}{3} + r\!\left(-\tfrac{\sin\varphi}{\sqrt{2}} - \tfrac{\cos\varphi}{\sqrt{6}}\right).
 \end{aligned}
 $$
-where we have changed the index of summation from $g$ to $h$ in the denominator of the final two lines to avoid confusion with the particular index $g$ being considered in the numerator.
-
-Returning to @eq-7.0, we can now compute 
+The arc near $\symbf{e}_1$ runs from $\varphi = -\alpha$ to $\varphi = +\alpha$, where
+the boundaries occur where $x_2$ or $x_3$ first hits zero. Noting that $x_3(\varphi) =
+x_2(-\varphi)$, the two boundaries are symmetric about $\varphi = 0$, confirming that
+the arc is centered on the axis $\mathbf{u}$ and that both boundaries occur at the same
+angular distance $\alpha$ from it. Setting $x_2(\varphi) = 0$ and rearranging yields
 $$
-\begin{aligned}
-b'_{\omega}({\hat{\psi}}) &= \Bigg[\nabla_{\theta} \ell(\tilde{\theta}(\psi; \omega); Y)\Bigg|_{\psi = \hat{\psi}}\Bigg]^\top\Bigg[\frac{\partial\tilde{\theta}(\psi; \omega)}{\partial \psi} \Bigg|_{\psi = \hat{\psi}}\Bigg] \\
-                          &= \sum_{g=1}^G \Bigg(\frac{\partial \ell}{\partial \theta_g}\Bigg|_{\theta_g = \tilde{\theta}_g(\hat{\psi}; \omega)}\Bigg)\Bigg(\frac{\partial\tilde{\theta}_g}{\partial \psi}\Bigg|_{\psi = \hat{\psi}}\Bigg) \\
-                          &= \sum_{g=1}^G \Bigg(\frac{Y_g}{\tilde{\theta}_g(\hat{\psi}; \omega)} - t_g\Bigg)\Bigg(\frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
-                          &= \sum_{g=1}^G \Bigg(\frac{Y_g}{\omega_g} - t_g\Bigg)\Bigg(\frac{\alpha_g\omega_g/t_g}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg) \\
-                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\sum_{g=1}^G \alpha_g\Bigg(\frac{Y_g}{t_g} - \omega_g\Bigg) \\
-                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}\Bigg(\sum_{g=1}^G \alpha_g\hat{\theta}_g - \sum_{g=1}^G\alpha_g\omega_g\Bigg) \\
-                          &= \frac{1}{\sum_{h=1}^H \alpha_h^2 \omega_h / t_h}(\hat{\psi} - \hat{\psi}) \\
-                          &= 0.
-\end{aligned}
+\sin\!\left(\varphi - \tfrac{\pi}{6}\right) = -\frac{1}{r\sqrt{6}},
 $$
+and taking the relevant solution gives the angular half-width
+$$
+\alpha(\hat{\psi}) = \arcsin\!\left(\frac{1}{\sqrt{6\left(\hat{\psi} - 1/3\right)}}\right) - \frac{\pi}{6}.
+$$
+At $\hat{\psi} = 1/2$, the argument of arcsin equals 1 and $\alpha = \pi/3$, so the three arcs together tile the full circle, consistent with $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}}$ in this boundary case. As $\hat{\psi} \to 1$, $\alpha \to 0$ and each arc shrinks to a point at its vertex.
 
-$\therefore \> \> b'_{\omega}({\hat{\psi}}) = 0$.
+The six elements of $S_3$ act on $\Omega_{\hat{\psi}}$ by permuting the category labels, and decompose as three between-arc cyclic permutations, which map the arc near $\symbf{e}_j$ to the arc near $\symbf{e}_k$ for $j \neq k$, and three within-arc reflections, which map each arc onto itself by swapping the two non-dominant category labels. To sample from $\Omega_{\hat{\psi}}$, it therefore suffices to sample a single point from one arc and apply the three between-arc permutations to obtain one element of each arc, with the within-arc reflections providing an additional factor of two within each arc if desired.
 
-Since the choice of branch was arbitrary, this holds true for all $\omega \in \Omega_{\hat{\psi}}$.
+% -----------------------------------------------------------------------
+\subsection*{General $J$}
 
-$\therefore \> \psi^*_{\omega} = \hat{\psi}$ for all $\omega \in \Omega_{\hat{\psi}}. \hfill \blacksquare$ 
+\subsubsection*{The Level Set as a Sphere of Radius $\sqrt{\hat{\psi} - 1/J}$}
+
+The decomposition used in the $J = 3$ case extends immediately to arbitrary $J$. For
+any $\mathbf{p} \in \Delta^{J-1}$, write $\mathbf{p} = \mathbf{c} + \mathbf{v}$ where
+$\mathbf{c} = (1/J)\mathbf{1}$ and $\mathbf{v}$ lies in the $(J-1)$-dimensional
+subspace $\{\mathbf{v} : \sum_j v_j = 0\}$ orthogonal to $\mathbf{1}$. The sphere
+constraint $\|\mathbf{p}\|^2 = \hat{\psi}$ expands to
+$$
+\underbrace{\|\mathbf{c}\|^2}_{1/J} + \underbrace{2\mathbf{c}\cdot\mathbf{v}}_{0} + \|\mathbf{v}\|^2 = \hat{\psi},
+$$
+giving $\|\mathbf{v}\|^2 = \hat{\psi} - 1/J$. Every point on the level set lies at
+distance $r = \sqrt{\hat{\psi} - 1/J}$ from the centroid within the simplex hyperplane.
+The level set $\mathcal{L}(\hat{\psi})$ is therefore a \textbf{$(J-2)$-sphere of radius
+$r$} centered at $\mathbf{c}$, intersected with the positive orthant of the simplex
+hyperplane. In particular, $\hat{\psi} \geq 1/J$ is required for the level set to be
+non-empty, with equality only at the uniform distribution $\mathbf{c}$ itself.
+
+\subsubsection*{The Clipping Threshold}
+
+The inradius of the $(J-1)$-simplex --- the distance from the centroid to the nearest
+facet, measured within the simplex hyperplane --- is
+$$
+r_{\mathrm{in}} = \frac{1}{\sqrt{J(J-1)}}.
+$$
+Setting $r = r_{\mathrm{in}}$ gives the clipping threshold
+$$
+\sqrt{\hat{\psi} - \frac{1}{J}} = \frac{1}{\sqrt{J(J-1)}}
+\implies
+\hat{\psi} = \frac{1}{J} + \frac{1}{J(J-1)} = \frac{1}{J-1}.
+$$
+The three geometric regimes are therefore:
+\begin{itemize}
+  \item $\hat{\psi} \in (1/J,\ 1/(J-1))$: the sphere fits entirely within the simplex
+    interior and $\mathcal{L}(\hat{\psi})$ is a single connected $(J-2)$-sphere.
+
+  \item $\hat{\psi} = 1/(J-1)$: the sphere is simultaneously tangent to all $J$ facets.
+    The $J$ tangency points are the centroids of the facets, corresponding to the
+    uniform distributions over $J-1$ categories, $(1/(J-1), \ldots, 1/(J-1), 0)$ and
+    its permutations. This is a topological transition point where the level set is
+    connected but pinches at $J$ boundary points.
+
+  \item $\hat{\psi} \in (1/(J-1),\ 1)$: the sphere clips through all $J$ facets and
+    the level set breaks into $J$ \textbf{disconnected components} (spherical caps),
+    one near each vertex of the simplex. Each cap is a $(J-2)$-dimensional spherical
+    cap of angular radius $\alpha(\hat{\psi}, J)$ centered on the axis from $\mathbf{c}$
+    toward the corresponding vertex.
+\end{itemize}
+The threshold $\hat{\psi} = 1/(J-1)$ is a genuine \textbf{topological phase transition}:
+below it the level set is connected; above it, it is not.
+
+\subsubsection*{Angular Radius of the Caps}
+
+For $\hat{\psi} > 1/(J-1)$, the angular radius of each cap is found by locating the
+closest boundary point on each cap's edge. The boundary of the cap near vertex
+$\mathbf{e}_1$ closest to the cap center is the point where $p_2 = 0$ and
+$p_3 = \cdots = p_J$. Solving the resulting system gives the dominant category
+probability at this boundary point:
+$$
+x_{\max} = \frac{1 + \sqrt{(J-2)\bigl((J-1)\hat{\psi} - 1\bigr)}}{J-1},
+$$
+and the angular radius of the cap is
+$$
+\boxed{\alpha(\hat{\psi}, J) = \arccos\!\left( \frac{1 + J\sqrt{(J-2)\bigl((J-1)\hat{\psi}-1\bigr)}}{(J-1)\sqrt{(J-1)(J\hat{\psi}-1)}} \right).}
+$$
+The boundary cases verify correctly: at $\hat{\psi} = 1/(J-1)$, $\alpha$ equals
+$\arccos(1/(J-1))$ (for $J = 3$ this is $60°$); as $\hat{\psi} \to 1$, $\alpha \to 0$
+and each cap collapses to its vertex.
+
+\subsubsection*{Permutation Symmetry}
+
+The full symmetric group $S_J$ acts on $\mathcal{L}(\hat{\psi})$ by permuting category
+labels. The $J!$ elements decompose as:
+\begin{itemize}
+  \item \textit{Between-cap permutations}: the $J$ permutations that cycle which
+    category is dominant, mapping cap $j$ to cap $k$ for $j \neq k$.
+  \item \textit{Within-cap permutations}: for each cap, the $(J-1)!$ permutations of
+    the non-dominant categories, which map the cap onto itself.
+\end{itemize}
+This gives $J \times (J-1)! = J!$ total permutations, consistent with the size of
+$S_J$. The minimal fundamental domain for sampling from the full level set is therefore
+a region of angular extent $\alpha$ within a single cap, further reduced by a factor of
+$(J-1)!$ due to the internal symmetry, with the remaining $J - 1$ caps recovered by
+applying the $J$ between-cap permutations.
+
+% -----------------------------------------------------------------------
+\subsection*{Implications for Omega-Hat Sampling}
+
+The geometry above directly motivates the following sampling strategy.
+
+\medskip
+\noindent\textbf{Regime 1: $\hat{\psi} < 1/(J-1)$ (connected level set).}
+Sample a random direction $\mathbf{u}$ uniformly on the $(J-2)$-sphere within the
+simplex hyperplane by drawing $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, I_J)$,
+projecting out the $\mathbf{1}$ component, and normalizing. Set
+$\mathbf{p} = \mathbf{c} + r\mathbf{u}$ and accept if $p_j > 0$ for all $j$.
+Acceptance probability is high since the sphere lies within the simplex interior.
+
+\medskip
+\noindent\textbf{Regime 2: $\hat{\psi} > 1/(J-1)$ (disconnected caps).}
+Sample a direction $\mathbf{u}$ constrained to the cap near vertex $\mathbf{e}_1$,
+i.e.\ within angular distance $\alpha(\hat{\psi}, J)$ of the unit axis
+$\mathbf{n}_1 = (\mathbf{e}_1 - \mathbf{c}) / \|\mathbf{e}_1 - \mathbf{c}\|$.
+Set $\mathbf{p} = \mathbf{c} + r\mathbf{u}$. Then generate all $J$ between-cap
+permutations of $\mathbf{p}$ to obtain one omega-hat candidate in each of the $J$ caps
+simultaneously.
+
+\medskip
+In both regimes, each candidate $\mathbf{p}$ is mapped to logit space via
+$\omega_j = \log(p_j / p_J)$ for $j = 1, \ldots, J-1$ to produce the omega-hat in the
+parameterization used by \textit{likelyr}. This approach requires no numerical
+optimization or constraint projection, provides guaranteed coverage of all $J$ caps in
+the disconnected regime, and produces $J$ omega-hat candidates per sampled direction at
+no additional computational cost.
+
