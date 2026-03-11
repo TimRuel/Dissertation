@@ -89,6 +89,34 @@ pts_mid <- circle_points(psi_mid)
 pts_high <- circle_points(psi_high) |> tag_segments()
 
 # -----------------------------------------------------------------------
+# Arc angle annotations for e1 (bottom-left vertex = vertices_2d[2])
+# -----------------------------------------------------------------------
+
+# Axis direction toward the vertex labeled e1 in the plot
+phi_axis_e1 <- atan2(vertices_2d$t[2], vertices_2d$s[2]) # ≈ 7*pi/6
+
+# Find boundary angles numerically: arc boundaries where x1=0 or x3=0
+# x1(phi) = 1/3 + r_high*(cos(phi)/sqrt(2) - sin(phi)/sqrt(6))
+# x3(phi) = 1/3 + r_high*(sin(phi)*2/sqrt(6))
+# By symmetry about phi_axis_e1 one boundary has x1=0, the other x3=0
+
+# Component functions (general)
+x1_fn <- function(phi) {
+  1 / 3 + r_high * (cos(phi) / sqrt(2) - sin(phi) / sqrt(6))
+}
+x2_fn <- function(phi) {
+  1 / 3 + r_high * (-cos(phi) / sqrt(2) - sin(phi) / sqrt(6))
+}
+x3_fn <- function(phi) 1 / 3 + r_high * (2 * sin(phi) / sqrt(6))
+
+# Arc near the labeled e1 vertex (3D vertex e2 = (0,1,0)):
+# bounded by x1 = 0 and x3 = 0, axis at phi ≈ 7*pi/6
+# x1 = 0 boundary is just below phi_axis_e1 (search leftward from axis)
+# x3 = 0 boundary is just above phi_axis_e1 (search rightward from axis)
+phi_lo_e1 <- uniroot(x1_fn, c(phi_axis_e1 - pi / 3, phi_axis_e1))$root
+phi_hi_e1 <- uniroot(x3_fn, c(phi_axis_e1, phi_axis_e1 + pi / 2))$root
+
+# -----------------------------------------------------------------------
 # Tangency points
 # -----------------------------------------------------------------------
 
@@ -263,56 +291,12 @@ p <- ggplot() +
   geom_point(aes(x = 0, y = 0), colour = "#222222", size = 1.8) +
   annotate(
     "text",
-    x = -0.03,
+    x = 0.03,
     y = -0.05,
     label = "bold(c)",
     parse = TRUE,
     size = 4.5,
     colour = "#222222"
-  ) +
-
-  # Basis vector arrows
-  annotate(
-    "segment",
-    x = 0,
-    y = 0,
-    xend = arrow_len,
-    yend = 0,
-    arrow = arrow(length = unit(0.18, "cm"), type = "closed"),
-    colour = "#888888",
-    linewidth = 0.5
-  ) +
-  annotate(
-    "text",
-    x = arrow_len - 0.02,
-    y = -0.04,
-    label = "bold(u)",
-    parse = TRUE,
-    size = 3.8,
-    colour = "#888888",
-    hjust = 0,
-    vjust = 0.5
-  ) +
-  annotate(
-    "segment",
-    x = 0,
-    y = 0,
-    xend = 0,
-    yend = arrow_len,
-    arrow = arrow(length = unit(0.18, "cm"), type = "closed"),
-    colour = "#888888",
-    linewidth = 0.5
-  ) +
-  annotate(
-    "text",
-    x = -0.05,
-    y = arrow_len - 0.02,
-    label = "bold(w)",
-    parse = TRUE,
-    size = 3.8,
-    colour = "#888888",
-    hjust = 0,
-    vjust = 0
   ) +
 
   # psi_hat labels
@@ -345,6 +329,64 @@ p <- ggplot() +
     size = 4,
     colour = "#d6604d",
     hjust = 0
+  ) +
+
+  # Axis line from centroid to e1 vertex
+  annotate(
+    "segment",
+    x = 0,
+    y = 0,
+    xend = vertices_2d$s[2],
+    yend = vertices_2d$t[2],
+    colour = "#444444",
+    linewidth = 0.55,
+    linetype = "solid"
+  ) +
+
+  # Dotted radial lines to arc boundaries
+  annotate(
+    "segment",
+    x = 0,
+    y = 0,
+    xend = r_high * cos(phi_lo_e1),
+    yend = r_high * sin(phi_lo_e1),
+    colour = "#888888",
+    linewidth = 0.45,
+    linetype = "dotted"
+  ) +
+  annotate(
+    "segment",
+    x = 0,
+    y = 0,
+    xend = r_high * cos(phi_hi_e1),
+    yend = r_high * sin(phi_hi_e1),
+    colour = "#888888",
+    linewidth = 0.45,
+    linetype = "dotted"
+  ) +
+
+  # Alpha labels
+  annotate(
+    "text",
+    x = (r_high - 0.06) * cos((phi_lo_e1 + phi_axis_e1) / 2),
+    y = (r_high - 0.06) * sin((phi_lo_e1 + phi_axis_e1) / 2),
+    label = "alpha",
+    parse = TRUE,
+    size = 5,
+    colour = "#333333",
+    hjust = 0.5,
+    vjust = 0.5
+  ) +
+  annotate(
+    "text",
+    x = (r_high - 0.06) * cos((phi_axis_e1 + phi_hi_e1) / 2),
+    y = (r_high - 0.06) * sin((phi_axis_e1 + phi_hi_e1) / 2),
+    label = "alpha",
+    parse = TRUE,
+    size = 5,
+    colour = "#333333",
+    hjust = 0.5,
+    vjust = 0.5
   ) +
 
   coord_equal(

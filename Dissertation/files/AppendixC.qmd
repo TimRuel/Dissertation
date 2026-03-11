@@ -16,7 +16,8 @@ $$
 The relevant level set for Simpson's index is therefore
 $$
 \Omega_{\hat{\psi}} = \left\{ \symbf{\theta} \in \Delta^{J-1} : \sum_{j=1}^J \theta_j^2 = \hat{\psi} \right\}.
-$$ We characterize the geometry of $\Omega_{\hat{\psi}}$ by first considering the cases $J = 2$ and $J = 3$ in detail before generalizing to arbitrary $J$. While these low-dimensional cases do not produce nuisance parameters of sufficient dimension for the integrated likelihood to outperform the profile likelihood in any meaningful way, they nevertheless provide useful geometric intuition that carries over cleanly to the general case.
+$$ 
+We characterize the geometry of $\Omega_{\hat{\psi}}$ by first considering the cases $J = 2$ and $J = 3$ in detail before generalizing to arbitrary $J$. While these low-dimensional cases do not produce nuisance parameters of sufficient dimension for the integrated likelihood to outperform the profile likelihood in any meaningful way, they nevertheless provide useful geometric intuition that carries over cleanly to the general case.
 
 \subsection{The Case $J = 2$}
 
@@ -45,8 +46,7 @@ $$
 $$
 up to an arbitrary multiplicative constant.
 
-Since $\symbf{\omega}^{(1)} = \mathbf{1} - \symbf{\omega}^{(2)}$ and the constraint $D(\symbf{\theta}) = \psi$ is symmetric in $\theta_1$ and $\theta_2$, the maximizer $b(\symbf{\omega}^{(2)}, \psi;\, \hat{\psi})$ is simply $\mathbf{1} - b(\symbf{\omega}^{(1)}, \psi;\, \hat{\psi})$. Only one constrained optimization is therefore needed to obtain both maximizers. The likelihood must still be evaluated separately at each, however, since $\hat{\psi} > 1/2$ implies $\hat{\theta}_1 \neq \hat{\theta}_2$ and therefore
-$N_1 \neq N_2$, so $L(\symbf{\theta}) = \theta_1^{N_1}\theta_2^{N_2}$ is not
+Since $\symbf{\omega}^{(1)} = \mathbf{1} - \symbf{\omega}^{(2)}$ and the constraint $D(\symbf{\theta}) = \psi$ is symmetric in $\theta_1$ and $\theta_2$, the maximizer $b(\symbf{\omega}^{(2)}, \psi;\, \hat{\psi})$ is simply $\mathbf{1} - b(\symbf{\omega}^{(1)}, \psi;\, \hat{\psi})$. Only one constrained optimization is therefore needed to obtain both maximizers. The likelihood must still be evaluated separately at each, however, since $\hat{\psi} > 1/2$ implies $\hat{\theta}_1 \neq \hat{\theta}_2$ and therefore $N_1 \neq N_2$, so $L(\symbf{\theta}) = \theta_1^{N_1}\theta_2^{N_2}$ is not
 invariant under permutation of $\symbf{\theta}$.
 
 While the integrated likelihood is not precisely identical to the profile likelihood in the case where $J=2$ and $\hat{\psi} > 1/2$, the two will tend to agree closely in practice. This is because $\Omega_{\hat{\psi}}$ contains only two points, leaving little room for the integrated likelihood to differ from the profile likelihood through averaging over meaningfully distinct nuisance parameters. It is well-established that inferences based on the integrated likelihood only begin to outperform those of the profile likelihood when the dimension of the nuisance parameter is large [@berger1999; @DeBin2015], so this result is unsurprising.
@@ -55,9 +55,7 @@ While the integrated likelihood is not precisely identical to the profile likeli
 
 When $J = 3$, the simplex $\Delta^2$ is an equilateral triangle embedded in the affine
 plane $\Pi = \{ \symbf{x} \in \mathbbm{R}^3 : x_1 + x_2 + x_3 = 1 \}$. The constraint
-$D(\symbf{\theta}) = \hat{\psi}$ defines a sphere of radius $\sqrt{\hat{\psi}}$ centered
-at the origin in $\mathbbm{R}^3$. To characterize the geometry of $\Omega_{\hat{\psi}}$, it will be helpful to consider first the set of all points in $\Pi$ satisfying this constraint without yet
-imposing the positivity constraint $\symbf{\theta} > \mathbf{0}$:
+$D(\symbf{\theta}) = \hat{\psi}$ defines a sphere of radius $\sqrt{\hat{\psi}}$ centered at the origin in $\mathbbm{R}^3$. To characterize the geometry of $\Omega_{\hat{\psi}}$, it will be helpful to consider first the set of all points in $\Pi$ satisfying this constraint without yet imposing the positivity constraint $\symbf{\theta} > \mathbf{0}$:
 $$
 \mathcal{C}_{\hat{\psi}} = \left\{ \symbf{x} \in \Pi : D(\symbf{x}) = \hat{\psi} \right\},
 $$
@@ -91,48 +89,56 @@ Setting $r = r_{\mathrm{in}}$ gives the clipping threshold
 $$
 \sqrt{\hat{\psi} - \tfrac{1}{3}} = \frac{1}{\sqrt{6}} \implies \hat{\psi} = \frac{1}{2}.
 $$
-When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges simultaneously, touching at $(1/2, 1/2, 0)$ and its permutations --- the uniform distributions over two of the three categories. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex.
+When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges simultaneously, touching at $(1/2, 1/2, 0)$ and its permutations --- the uniform distributions over two of the three categories. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex. By the three-fold rotational symmetry of the equilateral triangle, all three arcs are geometrically identical. Each is symmetric about the axis from $\mathbf{c}$ toward its corresponding vertex, and so subtends a total angle of $2\alpha$ at $\mathbf{c}$, where $\alpha$ is the angle between the axis and either boundary of the arc.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.5\textwidth]{files/Images/simplex-level-sets.png}
   \caption{%
     \textsc{Level Sets of Simpson's Index on the Probability Simplex $\Delta^2$.}
-    The circle $\mathcal{C}_{\hat{\psi}}$ of radius $r = \sqrt{\hat{\psi} - 1/3}$ centered at the centroid $\mathbf{c}$ and embedded in the affine plane $\Pi$ is shown for three values of $\hat{\psi}$. When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges of $\Delta^2$ simultaneously, touching at the open circles marking the uniform distributions over two categories. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex.
+    The circle $\mathcal{C}_{\hat{\psi}}$ of radius $r = \sqrt{\hat{\psi} - 1/3}$ centered at the centroid $\mathbf{c}$ and embedded in the affine plane $\Pi$ is shown for three values of $\hat{\psi}$. When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges of $\Delta^2$ simultaneously, touching at the open circles marking the uniform distributions over two categories. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex. Each arc subtends an angle $2\alpha$ at $\mathbf{c}$, with the centroid-to-vertex line bisecting the arc symmetrically.
   }
   \label{fig:simplex-level-sets}
 \end{figure}
-
-Since $\mathcal{C}_{\hat{\psi}}$ is a circle centered at $\mathbf{c}$, the extent of each arc of $\Omega_{\hat{\psi}}$ can be measured as an angle subtended at $\mathbf{c}$. Each arc is symmetric about the axis from $\mathbf{c}$ toward its corresponding vertex --- this follows from the reflection symmetry of the simplex about that axis --- and so subtends a total angle of $2\alpha(\hat{\psi})$, where $\alpha$ is the angular distance from the axis to either boundary of the arc. The three arcs are geometrically identical because the equilateral triangle has three-fold rotational symmetry about $\mathbf{c}$: a rotation by $2\pi/3$ maps
-$\Delta^2$ onto itself and maps each arc to the next, so all three arcs have the same radius, the same angular extent, and the same shape.
 
 To derive $\alpha$ explicitly, introduce an orthonormal basis for $\Pi$:
 $$
 \mathbf{u} = \frac{(2, -1, -1)}{\sqrt{6}}, \qquad \mathbf{w} = \frac{(0, 1, -1)}{\sqrt{2}},
 $$
-where $\mathbf{u}$ points from $\mathbf{c}$ toward $\symbf{e}_1$. A point on $\mathcal{C}_{\hat{\psi}}$ at angle $\varphi$ from $\mathbf{u}$ is $\symbf{x}(\varphi) = \mathbf{c} + r(\cos\varphi\,\mathbf{u} + \sin\varphi\,\mathbf{w})$, with components
+where $\mathbf{u}$ points from $\mathbf{c}$ toward $\symbf{e}_1$. A point on $\mathcal{C}_{\hat{\psi}}$ at an angle $\gamma$ from $\mathbf{u}$ is given by
+$$
+\symbf{x}(\gamma) = \mathbf{c} + r(\cos\gamma\, \mathbf{u} + \sin\gamma\, \mathbf{w}),
+$$
+with components
 $$
 \begin{aligned}
-x_1(\varphi) &= \tfrac{1}{3} + \tfrac{2r}{\sqrt{6}}\cos\varphi, \\
-x_2(\varphi) &= \tfrac{1}{3} + r\!\left(\tfrac{\sin\varphi}{\sqrt{2}} - \tfrac{\cos\varphi}{\sqrt{6}}\right), \\
-x_3(\varphi) &= \tfrac{1}{3} + r\!\left(-\tfrac{\sin\varphi}{\sqrt{2}} - \tfrac{\cos\varphi}{\sqrt{6}}\right).
+x_1(\gamma) &= \tfrac{1}{3} + \tfrac{2r}{\sqrt{6}}\cos\gamma, \\
+x_2(\gamma) &= \tfrac{1}{3} + r\!\left(\tfrac{\sin\gamma}{\sqrt{2}} - \tfrac{\cos\gamma}{\sqrt{6}}\right), \\
+x_3(\gamma) &= \tfrac{1}{3} + r\!\left(-\tfrac{\sin\gamma}{\sqrt{2}} - \tfrac{\cos\gamma}{\sqrt{6}}\right).
 \end{aligned}
 $$
-The arc near $\symbf{e}_1$ runs from $\varphi = -\alpha$ to $\varphi = +\alpha$, where
-the boundaries occur where $x_2$ or $x_3$ first hits zero. Noting that $x_3(\varphi) =
-x_2(-\varphi)$, the two boundaries are symmetric about $\varphi = 0$, confirming that
-the arc is centered on the axis $\mathbf{u}$ and that both boundaries occur at the same
-angular distance $\alpha$ from it. Setting $x_2(\varphi) = 0$ and rearranging yields
+The arc near $\symbf{e}_1$ is bounded by the simplex edges $x_2 = 0$ and $x_3 = 0$, and runs from $\gamma = -\alpha$ to $\gamma = +\alpha$. Since $x_3(\gamma) = x_2(-\gamma)$, these two boundaries are symmetric about $\gamma = 0$, so it suffices to set $x_2(\alpha) = 0$. Rearranging gives
 $$
-\sin\!\left(\varphi - \tfrac{\pi}{6}\right) = -\frac{1}{r\sqrt{6}},
+\sin\!\left(\alpha - \tfrac{\pi}{6}\right) = -\frac{1}{r\sqrt{6}},
 $$
-and taking the relevant solution gives the angular half-width
+which has a solution only when $r \geq 1/\sqrt{6}$, i.e.\ when $\hat{\psi} \geq 1/2$. Substituting $r = \sqrt{\hat{\psi} - 1/3}$ yields
 $$
-\alpha(\hat{\psi}) = \arcsin\!\left(\frac{1}{\sqrt{6\left(\hat{\psi} - 1/3\right)}}\right) - \frac{\pi}{6}.
+\alpha(\hat{\psi}) = \arcsin\!\left(\frac{1}{\sqrt{6(\hat{\psi} - 1/3)}}\right) - \frac{\pi}{6},
+\qquad \hat{\psi} \in \left[\tfrac{1}{2}, 1\right).
 $$
-At $\hat{\psi} = 1/2$, the argument of arcsin equals 1 and $\alpha = \pi/3$, so the three arcs together tile the full circle, consistent with $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}}$ in this boundary case. As $\hat{\psi} \to 1$, $\alpha \to 0$ and each arc shrinks to a point at its vertex.
+At $\hat{\psi} = 1/2$, the argument of $\arcsin$ equals $1$ and $\alpha = \pi/3$, so the three arcs together tile the full circle, consistent with $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}}$ in this boundary case. As $\hat{\psi} \to 1$, $\alpha \to 0$ and each arc shrinks to a point at its vertex.
 
-The six elements of $S_3$ act on $\Omega_{\hat{\psi}}$ by permuting the category labels, and decompose as three between-arc cyclic permutations, which map the arc near $\symbf{e}_j$ to the arc near $\symbf{e}_k$ for $j \neq k$, and three within-arc reflections, which map each arc onto itself by swapping the two non-dominant category labels. To sample from $\Omega_{\hat{\psi}}$, it therefore suffices to sample a single point from one arc and apply the three between-arc permutations to obtain one element of each arc, with the within-arc reflections providing an additional factor of two within each arc if desired.
+The permutation group $S_3$ acts on $\Omega_{\hat{\psi}}$ by permuting category labels. Its six elements decompose into two types: three cyclic permutations that map the arc near $\symbf{e}_j$ to the arc near $\symbf{e}_k$ for $j \neq k$, and three reflections that map each arc onto itself by reflecting it across the axis from $\mathbf{c}$ to its corresponding vertex, which is equivalent to swapping its two non-dominant category labels. Each orbit under this action therefore contains exactly six elements, one pair from each arc.
+
+This structure can be exploited in the Monte Carlo approximation of the integrated likelihood. Rather than drawing $6R$ points independently from $\Omega_{\hat{\psi}}$, one instead draws $R$ independent base points from a single arc and expands each to its full orbit of six by applying all elements of $S_3$. The within-orbit expansion is deterministic, so the Monte Carlo variance is driven entirely by the $R$ independent base draws. At the same time, exact coverage of all three arcs is guaranteed for every orbit, which reduces variance relative to naive independent sampling by eliminating the possibility of draws clustering in one arc and undersampling another. 
+
+Importantly, this procedure applies in both regimes: when $\hat{\psi} \geq 1/2$ the three arcs are separated by the simplex boundary, but when $\hat{\psi} < 1/2$ the circle is complete
+and the three-fold symmetry of $S_3$ still partitions $\mathcal{C}_{\hat{\psi}}$ into three equal sectors of $2\pi/3$, one associated with each vertex. The sampling strategy is identical in both cases, with $\hat{\psi} = 1/2$ being the transition point where the sector boundaries coincide with the simplex edges. The resulting approximation is
+$$
+\bar{L}(\psi) \approx \frac{1}{6R} \sum_{i=1}^{R} \sum_{\sigma \in S_3}
+L\!\left(b\!\left(\sigma(\symbf{\omega}^{(i)}), \psi;\, \hat{\psi}\right)\right),
+$$
+where $\symbf{\omega}^{(1)}, \ldots, \symbf{\omega}^{(R)}$ are drawn independently from a single arc.
 
 % -----------------------------------------------------------------------
 \subsection*{General $J$}
