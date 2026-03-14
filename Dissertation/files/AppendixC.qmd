@@ -6,17 +6,17 @@
 Recall that for a model with full parameter $\symbf{\theta} \in \Theta$ and parameter of interest $\psi = \varphi(\symbf{\theta})$, the set
 $$
 \Omega_{\hat{\psi}} = \left\{\symbf{\omega} \in \Theta: \varphi(\symbf{\omega}) = \hat{\psi}\right\}
-$$
+$${#eq-omega-hat-psi-general}
 contains all values of the parameter space that also get mapped to the MLE of $\psi$ under the interest function $\varphi$. In that sense, we can think of $\Omega_{\hat{\psi}}$ as being the level set of $\varphi$ for some value of $\hat{\psi}$, i.e. a set of vectors in $\Theta$ that $\varphi$ maps to the same $\hat{\psi}$.
 
 In the multinomial model with $J$ categories, the natural parameter space is the open probability simplex
 $$
 \Delta^{J-1} = \Bigg\{\symbf{\theta} \in \mathbbm{R}^J: \theta_j > 0,\ \sum_{j=1}^J \theta_j = 1\Bigg\}.
-$$
+$${#eq-delta-J-minus-one}
 The relevant level set for Simpson's index is therefore
 $$
 \Omega_{\hat{\psi}} = \left\{ \symbf{\theta} \in \Delta^{J-1} : \sum_{j=1}^J \theta_j^2 = \hat{\psi} \right\}.
-$$ 
+$${#eq-omega-hat-psi-simpson}
 We characterize the geometry of $\Omega_{\hat{\psi}}$ by first considering the cases $J = 2$ and $J = 3$ in detail before generalizing to arbitrary $J$. While these low-dimensional cases do not produce nuisance parameters of sufficient dimension for the integrated likelihood to outperform the profile likelihood in any meaningful way, they nevertheless provide useful geometric intuition that carries over cleanly to the general case.
 
 \subsection{The Case $J = 2$}
@@ -26,7 +26,7 @@ $\{ (\theta_1, \theta_2) : \theta_1 + \theta_2 = 1,\ \theta_1, \theta_2 \in (0,1
 Simpson's index reduces to
 $$
 D(\symbf{\theta}) = \theta_1^2 + (1-\theta_1)^2 = 2\theta_1^2 - 2\theta_1 + 1.
-$$
+$${#eq-simpson-index-2d}
 Setting $D(\symbf{\theta}) = \hat{\psi}$ and solving the resulting quadratic gives
 $$
 \theta_1 = \frac{1 \pm \sqrt{2\hat{\psi} - 1}}{2}.
@@ -43,7 +43,7 @@ $$
 These two points are related by swapping the two category probabilities, and they migrate toward the corners $(1, 0)$ and $(0, 1)$ as $\hat{\psi} \to 1$. The integrated likelihood at $\psi$ is simply the sum
 $$
 \bar{L}(\psi) = L\bigl(b(\symbf{\omega}^{(1)}, \psi;\, \hat{\psi})\bigr) + L\bigl(b(\symbf{\omega}^{(2)}, \psi;\, \hat{\psi})\bigr),
-$$
+$${#eq-IL-simpson-2d}
 up to an arbitrary multiplicative constant.
 
 Since $\symbf{\omega}^{(1)} = \mathbf{1} - \symbf{\omega}^{(2)}$ and the constraint $D(\symbf{\theta}) = \psi$ is symmetric in $\theta_1$ and $\theta_2$, the maximizer $b(\symbf{\omega}^{(2)}, \psi;\, \hat{\psi})$ is simply $\mathbf{1} - b(\symbf{\omega}^{(1)}, \psi;\, \hat{\psi})$. Only one constrained optimization is therefore needed to obtain both maximizers. The likelihood must still be evaluated separately at each, however, since $\hat{\psi} > 1/2$ implies $\hat{\theta}_1 \neq \hat{\theta}_2$ and therefore $N_1 \neq N_2$, so $L(\symbf{\theta}) = \theta_1^{N_1}\theta_2^{N_2}$ is not
@@ -58,7 +58,7 @@ plane $\Pi = \{ \symbf{x} \in \mathbbm{R}^3 : x_1 + x_2 + x_3 = 1 \}$. The const
 $D(\symbf{\theta}) = \hat{\psi}$ defines a sphere of radius $\sqrt{\hat{\psi}}$ centered at the origin in $\mathbbm{R}^3$. To characterize the geometry of $\Omega_{\hat{\psi}}$, it will be helpful to consider first the set of all points in $\Pi$ satisfying this constraint without yet imposing the positivity constraint $\symbf{\theta} > \mathbf{0}$:
 $$
 \mathcal{C}_{\hat{\psi}} = \left\{ \symbf{x} \in \Pi : D(\symbf{x}) = \hat{\psi} \right\},
-$$
+$${#eq-C-psi-hat}
 so that $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$. Any $\symbf{x} \in \Pi$ may be decomposed as 
 $$
 \symbf{x} = \mathbf{c} + \mathbf{v}, \qquad \mathbf{c} = \left(\tfrac{1}{3}, \tfrac{1}{3}, \tfrac{1}{3}\right),
@@ -66,11 +66,11 @@ $$
 where $\mathbf{c}$ is the vector from the origin to the centroid of $\Delta^2$ and $\mathbf{v} = \symbf{x} - \mathbf{c}$ is the displacement from the centroid to $\symbf{x}$. Since $\mathbf{1} = (1,1,1)^\top$ is the normal vector of $\Pi$ and 
 $$
 \mathbf{1} \cdot \mathbf{v}
-= \sum_{j=1} v_j
+= \sum_{j=1}^3 v_j
 = \sum_{j=1}^3 (x_j - c_j)
 = \sum_{j=1}^3 x_j - \sum_{j=1}^3 c_j
 = 1 - 1 = 0,
-$$
+$${#eq-v-ortho-one}
 $\mathbf{v}$ is orthogonal to $\mathbf{1}$. Since $\mathbf{c}$ is parallel to $\mathbf{1}$, it follows that $\mathbf{c} \cdot \mathbf{v} = 0$ as well. For any $\symbf{x} \in \mathcal{C}_{\hat{\psi}}$, expanding $D(\symbf{x}) = \hat{\psi}$ using this decomposition gives
 $$
 \hat{\psi}
@@ -78,10 +78,10 @@ $$
 = (\mathbf{c} + \mathbf{v}) \cdot (\mathbf{c} + \mathbf{v})
 = \|\mathbf{c}\|^2 + 2(\mathbf{c} \cdot \mathbf{v}) + \|\mathbf{v}\|^2
 = \frac{1}{3} + \|\mathbf{v}\|^2,
-$$
+$${#eq-psi-hat-v}
 and so $\|\mathbf{v}\|^2 = \hat{\psi} - 1/3$. Every point in $\mathcal{C}_{\hat{\psi}}$ therefore lies at the same distance $r = \sqrt{\hat{\psi} - 1/3}$ from $\mathbf{c}$, so $\mathcal{C}_{\hat{\psi}}$ is a circle of radius $r$ centered at $\mathbf{c}$ embedded within $\Pi$.
 
-The geometry of $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ depends on how much of $\mathcal{C}_{\hat{\psi}}$ lies within $\Delta^2$, which is determined by whether $r$ exceeds the inradius of $\Delta^2$ --- the distance from $\mathbf{c}$ to the nearest edge. The simplex triangle has vertices at $\symbf{e}_1, \symbf{e}_2, \symbf{e}_3$, side length $\sqrt{2}$, and inradius
+The geometry of $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ depends on how much of $\mathcal{C}_{\hat{\psi}}$ lies within $\Delta^2$, which is determined by whether $r$ exceeds the minimal distance from $\mathbf{c}$ to one of the simplex edges, also known as the inradius. $\Delta^2$ has vertices at $\symbf{e}_1, \symbf{e}_2, \symbf{e}_3$, side length $\sqrt{2}$, and inradius
 $$
 r_{\mathrm{in}} = \frac{\sqrt{2}\sqrt{3}}{6} = \frac{1}{\sqrt{6}}.
 $$
@@ -89,7 +89,7 @@ Setting $r = r_{\mathrm{in}}$ gives the clipping threshold
 $$
 \sqrt{\hat{\psi} - \tfrac{1}{3}} = \frac{1}{\sqrt{6}} \implies \hat{\psi} = \frac{1}{2}.
 $$
-When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges simultaneously, touching at $(1/2, 1/2, 0)$ and its permutations --- the uniform distributions over two of the three categories. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex. By the three-fold rotational symmetry of the equilateral triangle, all three arcs are geometrically identical. Each is symmetric about the axis from $\mathbf{c}$ toward its corresponding vertex, and so subtends a total angle of $2\alpha$ at $\mathbf{c}$, where $\alpha$ is the angle between the axis and either boundary of the arc.
+When $\hat{\psi} < 1/2$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^2$ and $\Omega_{\hat{\psi}}$ is a complete circle. At $\hat{\psi} = 1/2$, $\mathcal{C}_{\hat{\psi}}$ is tangent to all three edges simultaneously, touching at $(1/2, 1/2, 0)$ and its permutations. When $\hat{\psi} > 1/2$, $\mathcal{C}_{\hat{\psi}}$ extends beyond $\Delta^2$ and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^2$ consists of three disjoint arcs, one near each vertex. By the three-fold rotational symmetry of the equilateral triangle, all three arcs are geometrically identical. Each is symmetric about the axis from $\mathbf{c}$ toward its corresponding vertex, and so subtends a total angle of $2\alpha$ at $\mathbf{c}$, where $\alpha$ is the angle between the axis and either boundary of the arc.
 
 \begin{figure}[t]
   \centering
@@ -125,7 +125,7 @@ which has a solution only when $r \geq 1/\sqrt{6}$, i.e.\ when $\hat{\psi} \geq 
 $$
 \alpha(\hat{\psi}) = \arcsin\!\left(\frac{1}{\sqrt{6(\hat{\psi} - 1/3)}}\right) - \frac{\pi}{6},
 \qquad \hat{\psi} \in \left[\tfrac{1}{2}, 1\right).
-$$
+$${#eq-alpha-psi-hat}
 At $\hat{\psi} = 1/2$, the argument of $\arcsin$ equals $1$ and $\alpha = \pi/3$, so the three arcs together tile the full circle, consistent with $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}}$ in this boundary case. As $\hat{\psi} \to 1$, $\alpha \to 0$ and each arc shrinks to a point at its vertex.
 
 The permutation group $S_3$ acts on $\Omega_{\hat{\psi}}$ by permuting category labels. Its six elements decompose into two types: three cyclic permutations that map the arc near $\symbf{e}_j$ to the arc near $\symbf{e}_k$ for $j \neq k$, and three reflections that map each arc onto itself by reflecting it across the axis from $\mathbf{c}$ to its corresponding vertex, which is equivalent to swapping its two non-dominant category labels. Each orbit under this action therefore contains exactly six elements, one pair from each arc.
@@ -137,123 +137,95 @@ and the three-fold symmetry of $S_3$ still partitions $\mathcal{C}_{\hat{\psi}}$
 $$
 \bar{L}(\psi) \approx \frac{1}{6R} \sum_{i=1}^{R} \sum_{\sigma \in S_3}
 L\!\left(b\!\left(\sigma(\symbf{\omega}^{(i)}), \psi;\, \hat{\psi}\right)\right),
-$$
+$${#eq-IL-simpson-3d}
 where $\symbf{\omega}^{(1)}, \ldots, \symbf{\omega}^{(R)}$ are drawn independently from a single arc.
 
-% -----------------------------------------------------------------------
-\subsection*{General $J$}
+\subsection{General $J$}
 
-\subsubsection*{The Level Set as a Sphere of Radius $\sqrt{\hat{\psi} - 1/J}$}
+\subsubsection{The Level Set as a $(J-2)$-Sphere}
 
-The decomposition used in the $J = 3$ case extends immediately to arbitrary $J$. For
-any $\mathbf{p} \in \Delta^{J-1}$, write $\mathbf{p} = \mathbf{c} + \mathbf{v}$ where
-$\mathbf{c} = (1/J)\mathbf{1}$ and $\mathbf{v}$ lies in the $(J-1)$-dimensional
-subspace $\{\mathbf{v} : \sum_j v_j = 0\}$ orthogonal to $\mathbf{1}$. The sphere
-constraint $\|\mathbf{p}\|^2 = \hat{\psi}$ expands to
+The $J = 3$ argument extends without modification to the probability simplex $\Delta^{J-1}$ embedded in the affine hyperplane $\Pi = \{\mathbf{x} \in \mathbbm{R}^J: \sum_j x_j = 1\}$. With $\mathcal{C}_{\hat{\psi}}$ defined as in @eq-C-psi-hat and $\Omega_{\hat{\psi}} = \mathcal{C}_{\hat{\psi}} \cap \Delta^{J-1}$, write any $\symbf{x} \in \Pi$ as $\symbf{x} = \mathbf{c} + \mathbf{v}$ where $\mathbf{c} = (1/J)\mathbf{1}$ is the centroid of $\Delta^{J-1}$. The same calculation as in @eq-v-ortho-one shows that $\mathbf{v}$ is orthogonal to $\mathbf{1}$ and hence to $\mathbf{c}$. Now let $\mathbf{x} \in {C}_{\hat{\psi}} \subset \Pi$ so it further satisfies $D(\symbf{x}) = \hat{\psi}$. Expanding as in @eq-psi-hat-v gives
 $$
-\underbrace{\|\mathbf{c}\|^2}_{1/J} + \underbrace{2\mathbf{c}\cdot\mathbf{v}}_{0} + \|\mathbf{v}\|^2 = \hat{\psi},
+\|x\|^2 = \|\mathbf{c} + \mathbf{v}\| = \underbrace{\|\mathbf{c}\|^2}_{1/J} + \underbrace{2\mathbf{c}\cdot\mathbf{v}}_{0} +
+\|\mathbf{v}\|^2 = \hat{\psi},
 $$
-giving $\|\mathbf{v}\|^2 = \hat{\psi} - 1/J$. Every point on the level set lies at
-distance $r = \sqrt{\hat{\psi} - 1/J}$ from the centroid within the simplex hyperplane.
-The level set $\mathcal{L}(\hat{\psi})$ is therefore a \textbf{$(J-2)$-sphere of radius
-$r$} centered at $\mathbf{c}$, intersected with the positive orthant of the simplex
-hyperplane. In particular, $\hat{\psi} \geq 1/J$ is required for the level set to be
-non-empty, with equality only at the uniform distribution $\mathbf{c}$ itself.
+and so $\|\mathbf{v}\|^2 = \hat{\psi} - 1/J$. Every point in $\mathcal{C}_{\hat{\psi}}$
+therefore lies at distance $r = \sqrt{\hat{\psi} - 1/J}$ from $\mathbf{c}$, so $\mathcal{C}_{\hat{\psi}}$ is a $(J-2)$-sphere of radius $r$ centered at $\mathbf{c}$ within $\Pi$, degenerating to the single point $\mathbf{c}$ only when $\hat{\psi} = 1/J$, i.e. when the observed counts are exactly equal across all categories.
 
-\subsubsection*{The Clipping Threshold}
+\subsubsection{The Clipping Threshold}
 
-The inradius of the $(J-1)$-simplex --- the distance from the centroid to the nearest
-facet, measured within the simplex hyperplane --- is
+The geometry of $\Omega_{\hat{\psi}}$ depends on whether $r$ exceeds the minimal distance from $\mathbf{c}$ to one of the facets of $\Delta_{J-1}$, also known as the inradius. By the symmetry of the regular simplex, this distance is the same for all $J$ facets, so it suffices to compute the distance from $\mathbf{c}$ to the facet opposite $\symbf{e}_1$. The closest point on this facet to $\mathbf{c}$ must itself be the centroid of the facet, again by symmetry, which is $\mathbf{p} = (0, 1/(J-1), \ldots, 1/(J-1))$. The inradius is therefore
 $$
-r_{\mathrm{in}} = \frac{1}{\sqrt{J(J-1)}}.
+r_{\mathrm{in}}
+= \|\mathbf{c} - \mathbf{p}\|
+= \left\|\left(\frac{1}{J},\, \frac{-1}{J(J-1)},\, \ldots,\, \frac{-1}{J(J-1)}\right)\right\|
+= \sqrt{\frac{1}{J^2} + \frac{J-1}{J^2(J-1)^2}}
+= \sqrt{\frac{1}{J(J-1)}}.
 $$
+
 Setting $r = r_{\mathrm{in}}$ gives the clipping threshold
 $$
 \sqrt{\hat{\psi} - \frac{1}{J}} = \frac{1}{\sqrt{J(J-1)}}
 \implies
-\hat{\psi} = \frac{1}{J} + \frac{1}{J(J-1)} = \frac{1}{J-1}.
+\hat{\psi} = \frac{1}{J-1}.
 $$
-The three geometric regimes are therefore:
-\begin{itemize}
-  \item $\hat{\psi} \in (1/J,\ 1/(J-1))$: the sphere fits entirely within the simplex
-    interior and $\mathcal{L}(\hat{\psi})$ is a single connected $(J-2)$-sphere.
+When $\hat{\psi} < 1/(J-1)$, $\mathcal{C}_{\hat{\psi}}$ lies entirely within $\Delta^{J-1}$ and $\Omega_{\hat{\psi}}$ is a complete $(J-2)$-sphere. At $\hat{\psi} = 1/(J-1)$, $\mathcal{C}_{\hat{\psi}}$ is simultaneously tangent to all $J$ facets, touching at $(1/(J-1), \ldots, 1/(J-1), 0)$ and its permutations --- the uniform distributions over $J-1$ of the $J$ categories. This is a topological
+transition point: when $\hat{\psi} > 1/(J-1)$, $\mathcal{C}_{\hat{\psi}}$ clips
+through all $J$ facets and $\Omega_{\hat{\psi}}$ breaks into $J$ disconnected
+spherical caps, one near each vertex. By the $J$-fold symmetry of the regular
+simplex, all $J$ caps are geometrically identical.
 
-  \item $\hat{\psi} = 1/(J-1)$: the sphere is simultaneously tangent to all $J$ facets.
-    The $J$ tangency points are the centroids of the facets, corresponding to the
-    uniform distributions over $J-1$ categories, $(1/(J-1), \ldots, 1/(J-1), 0)$ and
-    its permutations. This is a topological transition point where the level set is
-    connected but pinches at $J$ boundary points.
-
-  \item $\hat{\psi} \in (1/(J-1),\ 1)$: the sphere clips through all $J$ facets and
-    the level set breaks into $J$ \textbf{disconnected components} (spherical caps),
-    one near each vertex of the simplex. Each cap is a $(J-2)$-dimensional spherical
-    cap of angular radius $\alpha(\hat{\psi}, J)$ centered on the axis from $\mathbf{c}$
-    toward the corresponding vertex.
-\end{itemize}
-The threshold $\hat{\psi} = 1/(J-1)$ is a genuine \textbf{topological phase transition}:
-below it the level set is connected; above it, it is not.
-
-\subsubsection*{Angular Radius of the Caps}
+\subsubsection{Angular Radius of the Caps}
 
 For $\hat{\psi} > 1/(J-1)$, the angular radius of each cap is found by locating the
-closest boundary point on each cap's edge. The boundary of the cap near vertex
-$\mathbf{e}_1$ closest to the cap center is the point where $p_2 = 0$ and
-$p_3 = \cdots = p_J$. Solving the resulting system gives the dominant category
-probability at this boundary point:
+boundary point of the cap near $\symbf{e}_1$ that is closest to the cap center, which
+occurs where $p_2 = 0$ and $p_3 = \cdots = p_J$. Solving the resulting system gives
+the dominant category probability at this boundary point:
 $$
 x_{\max} = \frac{1 + \sqrt{(J-2)\bigl((J-1)\hat{\psi} - 1\bigr)}}{J-1},
 $$
 and the angular radius of the cap is
 $$
-\boxed{\alpha(\hat{\psi}, J) = \arccos\!\left( \frac{1 + J\sqrt{(J-2)\bigl((J-1)\hat{\psi}-1\bigr)}}{(J-1)\sqrt{(J-1)(J\hat{\psi}-1)}} \right).}
+\alpha(\hat{\psi}, J) = \arccos\!\left(
+  \frac{1 + J\sqrt{(J-2)\bigl((J-1)\hat{\psi}-1\bigr)}}{(J-1)\sqrt{(J-1)(J\hat{\psi}-1)}}
+\right), \qquad \hat{\psi} \in \left[\frac{1}{J-1}, 1\right).
 $$
-The boundary cases verify correctly: at $\hat{\psi} = 1/(J-1)$, $\alpha$ equals
-$\arccos(1/(J-1))$ (for $J = 3$ this is $60°$); as $\hat{\psi} \to 1$, $\alpha \to 0$
-and each cap collapses to its vertex.
+At $\hat{\psi} = 1/(J-1)$, $\alpha = \arccos(1/(J-1))$; as $\hat{\psi} \to 1$,
+$\alpha \to 0$ and each cap collapses to its vertex.
 
-\subsubsection*{Permutation Symmetry}
+\subsubsection{Permutation Symmetry and Monte Carlo Sampling}
 
-The full symmetric group $S_J$ acts on $\mathcal{L}(\hat{\psi})$ by permuting category
-labels. The $J!$ elements decompose as:
-\begin{itemize}
-  \item \textit{Between-cap permutations}: the $J$ permutations that cycle which
-    category is dominant, mapping cap $j$ to cap $k$ for $j \neq k$.
-  \item \textit{Within-cap permutations}: for each cap, the $(J-1)!$ permutations of
-    the non-dominant categories, which map the cap onto itself.
-\end{itemize}
-This gives $J \times (J-1)! = J!$ total permutations, consistent with the size of
-$S_J$. The minimal fundamental domain for sampling from the full level set is therefore
-a region of angular extent $\alpha$ within a single cap, further reduced by a factor of
-$(J-1)!$ due to the internal symmetry, with the remaining $J - 1$ caps recovered by
-applying the $J$ between-cap permutations.
+The symmetric group $S_J$ acts on $\Omega_{\hat{\psi}}$ by permuting category labels.
+Its $J!$ elements decompose into two types: the $J$ cyclic permutations that map the
+cap near $\symbf{e}_j$ to the cap near $\symbf{e}_k$ for $j \neq k$, and for each
+cap, the $(J-1)!$ permutations of the non-dominant categories that map the cap onto
+itself by reflecting it about the axis from $\mathbf{c}$ to its corresponding vertex.
+This gives $J \times (J-1)! = J!$ total permutations, consistent with $|S_J|$. Each
+orbit under this action contains exactly $J!$ elements, with $(J-1)!$ points in each
+of the $J$ caps.
 
-% -----------------------------------------------------------------------
-\subsection*{Implications for Omega-Hat Sampling}
-
-The geometry above directly motivates the following sampling strategy.
-
-\medskip
-\noindent\textbf{Regime 1: $\hat{\psi} < 1/(J-1)$ (connected level set).}
-Sample a random direction $\mathbf{u}$ uniformly on the $(J-2)$-sphere within the
-simplex hyperplane by drawing $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, I_J)$,
-projecting out the $\mathbf{1}$ component, and normalizing. Set
-$\mathbf{p} = \mathbf{c} + r\mathbf{u}$ and accept if $p_j > 0$ for all $j$.
-Acceptance probability is high since the sphere lies within the simplex interior.
-
-\medskip
-\noindent\textbf{Regime 2: $\hat{\psi} > 1/(J-1)$ (disconnected caps).}
-Sample a direction $\mathbf{u}$ constrained to the cap near vertex $\mathbf{e}_1$,
-i.e.\ within angular distance $\alpha(\hat{\psi}, J)$ of the unit axis
-$\mathbf{n}_1 = (\mathbf{e}_1 - \mathbf{c}) / \|\mathbf{e}_1 - \mathbf{c}\|$.
-Set $\mathbf{p} = \mathbf{c} + r\mathbf{u}$. Then generate all $J$ between-cap
-permutations of $\mathbf{p}$ to obtain one omega-hat candidate in each of the $J$ caps
-simultaneously.
-
-\medskip
-In both regimes, each candidate $\mathbf{p}$ is mapped to logit space via
-$\omega_j = \log(p_j / p_J)$ for $j = 1, \ldots, J-1$ to produce the omega-hat in the
-parameterization used by \textit{likelyr}. This approach requires no numerical
-optimization or constraint projection, provides guaranteed coverage of all $J$ caps in
-the disconnected regime, and produces $J$ omega-hat candidates per sampled direction at
-no additional computational cost.
+This structure can be exploited in the Monte Carlo approximation of the integrated
+likelihood. Rather than drawing $J! \cdot R$ points independently from
+$\Omega_{\hat{\psi}}$, one instead draws $R$ independent base points from a single cap
+and expands each to its full orbit of $J!$ by applying all elements of $S_J$. The
+within-orbit expansion is deterministic, so the Monte Carlo variance is driven entirely
+by the $R$ independent base draws. At the same time, exact coverage of all $J$ caps is
+guaranteed for every orbit, reducing variance relative to naive independent sampling.
+As in the $J = 3$ case, this procedure applies in both regimes: when
+$\hat{\psi} \geq 1/(J-1)$ the caps are separated by the simplex boundary, but when
+$\hat{\psi} < 1/(J-1)$ the $J$-fold symmetry of $S_J$ still partitions
+$\mathcal{C}_{\hat{\psi}}$ into $J$ equal sectors, one associated with each vertex, and
+the sampling strategy is identical. The resulting approximation is
+$$
+\bar{L}(\psi) \approx \frac{1}{J!\, R} \sum_{i=1}^{R} \sum_{\sigma \in S_J}
+L\!\left(b\!\left(\sigma(\symbf{\omega}^{(i)}), \psi;\, \hat{\psi}\right)\right),
+$$
+where $\symbf{\omega}^{(1)}, \ldots, \symbf{\omega}^{(R)}$ are drawn independently
+from a single cap. In practice, drawing $R$ base points from one cap requires sampling
+a direction $\mathbf{u}$ on the $(J-2)$-sphere within $\Pi$ that lies within angular
+distance $\alpha(\hat{\psi}, J)$ of the axis $\mathbf{n}_1 = (\symbf{e}_1 -
+\mathbf{c})\,/\,\|\symbf{e}_1 - \mathbf{c}\|$ in the disconnected regime, or
+uniformly on the full $(J-2)$-sphere in the connected regime, and setting $\mathbf{p}
+= \mathbf{c} + r\mathbf{u}$. Each candidate is then mapped to logit space via
+$\omega_j = \log(p_j / p_J)$ for $j = 1, \ldots, J-1$.
 
