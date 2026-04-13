@@ -28,11 +28,11 @@ Since the level sets of $D$ are intersections of the simplex with hyperspheres, 
 
 Define the affine hyperplane 
 $$
-\Pi = \left\{\mathbf{x} \in \mathbbm{R}^J: \sum_{j=1}^J x_j = 1\right\},
+\Pi = \left\{\mathbf{v} \in \mathbbm{R}^J: \sum_{j=1}^J v_j = 1\right\},
 $${#eq-Pi-definition}
 the $(J-1)$-sphere of radius $\sqrt{\hat{\psi}}$ centered at the origin,
 $$
-\mathcal{S}_{\hat{\psi}} = \left\{ \symbf{x} \in \mathbbm{R}^J: \|\symbf{x}\|^2 = \hat{\psi} \right\},
+\mathcal{S}_{\hat{\psi}} = \left\{ \symbf{v} \in \mathbbm{R}^J: \|\symbf{v}\|^2 = \hat{\psi} \right\},
 $${#eq-S-psi-hat-definition}
 and their intersection
 $$
@@ -54,21 +54,20 @@ To build intuition for the general case, consider $J = 3$. Here $\Pi$ is the pla
 $\sqrt{\hat{\psi}}$ centered at the origin, and $\mathcal{L}_{\hat{\psi}}$ is the circle formed by its intersection with $\Pi$. As $\hat{\psi}$ grows the circle expands, remaining entirely inside $\Delta^2$ for small values of $\hat{\psi}$ and
 eventually clipping through its edges. When clipping occurs, $\Omega_{\hat{\psi}}$ is no longer the full circle but the arcs of $\mathcal{L}_{\hat{\psi}}$ that remain inside $\Delta^2$ (see \autoref{fig:simplex-level-sets} in Section \ref{sec-J=3}). Whether and when clipping occurs depends on $\hat{\psi}$ and $J$, as derived in Section \ref{sec-clipping-threshold}.
 
-We may write any $\symbf{x} \in \Pi$ as $\symbf{x} = \mathbf{c} + \mathbf{v}$, where $\mathbf{c} = (1/J)\mathbf{1}$ is the vector extending from the origin to the centroid of $\Delta^{J-1}$, and $\mathbf{v} = \symbf{x} - \mathbf{c}$ is the
-displacement vector extending from the centroid to $\symbf{x}$. Since
+We may write any $\symbf{v} \in \Pi$ as $\symbf{v} = \mathbf{c} + \mathbf{d}$, where $\mathbf{c} = (1/J)\mathbf{1}$ is the vector extending from the origin to the centroid of $\Delta^{J-1}$, and $\mathbf{d} = \symbf{v} - \mathbf{c}$ is the
+displacement vector extending from the centroid to $\symbf{v}$. Since
 $$
-\mathbf{1} \cdot \mathbf{v} = \sum_{j=1}^J v_j = \sum_{j=1}^J (x_j - c_j) =
-\sum_{j=1}^J x_j - \sum_{j=1}^J c_j = 1 - 1 = 0,
+\mathbf{1} \cdot \mathbf{d} = \sum_{j=1}^J d_j = \sum_{j=1}^J (v_j - c_j) =
+\sum_{j=1}^J v_j - \sum_{j=1}^J c_j = 1 - 1 = 0,
 $$
-$\mathbf{v}$ is orthogonal to $\mathbf{1}$ and hence to $\mathbf{c}$. Now suppose $\mathbf{x} \in \mathcal{L}_{\hat{\psi}}$, so it further satisfies $\|\symbf{x}\|^2 = \hat{\psi}$. Expanding,
+$\mathbf{d}$ is orthogonal to $\mathbf{1}$ and so orthogonal to $\mathbf{c}$ as well. Now suppose $\mathbf{v} \in \mathcal{L}_{\hat{\psi}}$, so it further satisfies $\|\symbf{v}\|^2 = \hat{\psi}$. Expanding, we have
 $$
-\|\symbf{x}\|^2 = \|\mathbf{c} + \mathbf{v}\|^2
-= \underbrace{\|\mathbf{c}\|^2}_{1/J} + \underbrace{2\mathbf{c}\cdot\mathbf{v}}_{0} +
-\|\mathbf{v}\|^2
-= \frac{1}{J} + \|\mathbf{v}\|^2
-= \hat{\psi},
+\hat{\psi} = \|\symbf{v}\|^2 = \|\mathbf{c} + \mathbf{d}\|^2
+= \underbrace{\|\mathbf{c}\|^2}_{1/J} + \underbrace{2\mathbf{c}\cdot\mathbf{d}}_{0} +
+\|\mathbf{d}\|^2
+= \frac{1}{J} + \|\mathbf{d}\|^2,
 $$
-so $\|\mathbf{v}\|^2 = \hat{\psi} - 1/J$. Every point in $\mathcal{L}_{\hat{\psi}}$ therefore lies at a distance
+so $\|\mathbf{d}\|^2 = \hat{\psi} - 1/J$. Thus, every point in $\mathcal{L}_{\hat{\psi}}$ lies at a distance
 $$
 r(\hat{\psi}, J) = \sqrt{\hat{\psi} - \frac{1}{J}}
 $${#eq-r-definition}
@@ -78,7 +77,7 @@ from $\mathbf{c}$, so $\mathcal{L}_{\hat{\psi}}$ is a $(J-2)$-sphere of radius $
 
 The facets of $\Delta^{J-1}$ are its $(J-2)$-dimensional faces, each consisting of all points with one coordinate equal to zero. Each facet is uniquely identified by the vertex opposite to it, so there are exactly $J$ facets in total. Since swapping two vertices also swaps the corresponding two facets while leaving all others unchanged, and any such swap can be achieved by a permutation of coordinates that leaves $\mathbf{c} = (1/J)\mathbf{1}$ unchanged, the distance from $\mathbf{c}$ to any one facet equals the distance to any other. This common distance is called the inradius of $\Delta^{J-1}$, and the shape of $\Omega_{\hat{\psi}}$ depends on whether $r(\hat{\psi}, J)$ exceeds it.
 
-To compute the inradius, we need the closest point on a facet to $\mathbf{c}$. By the same  coordinate-swap argument, any two points within a given facet that are related by a permutation of the non-zero coordinates must be equidistant from $\mathbf{c}$, so the closest point must be invariant under all such permutations. Consequently, all of its non-zero coordinates must be equal. For the facet opposite $\symbf{e}_1$, consisting of all points in $\Delta^{J-1}$ with first coordinate equal to zero, this closest point is the facet centroid $\mathbf{p} = (0, 1/(J-1), \ldots, 1/(J-1))$.
+To determine the inradius, we need to know the coordinates of the closest point on a facet to $\mathbf{c}$. Since $\Delta^{J-1}$ is a convex set and the distance function is strictly convex, this closest point is unique. Any permutation of the non-zero coordinates maps the facet to itself and fixes $\mathbf{c}$, so by uniqueness of the closest point it must fix that point too, meaning all its non-zero coordinates are equal. For the facet opposite $\symbf{e}_1$, consisting of all points with first coordinate equal to zero, the simplex constraint $\sum_j \omega_j = 1$ then uniquely determines the closest point as the facet centroid $\mathbf{p} = (0, 1/(J-1), \ldots, 1/(J-1))$.
 
 The inradius is therefore
 $$
@@ -100,13 +99,13 @@ The cap axis of $\mathcal{C}_j$ is the line segment from $\mathbf{c}$ to $\symbf
 $$
 \mathbf{n}_j = \frac{\symbf{e}_j - \mathbf{c}}{\|\symbf{e}_j - \mathbf{c}\|}.
 $${#eq-cap-axis-vector}
-The cap center is the point where the cap axis intersects $\mathcal{C}_j$. A boundary point of $\mathcal{C}_j$ is any point in $\mathcal{C}_j$ that lies on a facet of $\Delta^{J-1}$, i.e. where one of the non-dominant coordinates equals zero. The angular radius $\alpha$ of $\mathcal{C}_j$ is the angle at $\mathbf{c}$ between the cap axis and the direction to any boundary point $\mathbf{b}$ of $\mathcal{C}_j$. 
+The cap center is the point where the cap axis intersects $\mathcal{C}_j$. A boundary point of $\mathcal{C}_j$ is any point in $\mathcal{C}_j$ that lies on a facet of $\Delta^{J-1}$, i.e. where one of the non-dominant coordinates equals zero. The angular radius $\alpha$ of $\mathcal{C}_j$ is the angle with vertex at $\mathbf{c}$ between the cap axis and the direction to any boundary point $\mathbf{b}$ of $\mathcal{C}_j$. 
 
 Since $\mathbf{n}_j$ is a unit vector and $\mathbf{b} \in \mathcal{L}_{\hat{\psi}}$ lies at a distance $r(\hat{\psi}, J)$ from $\mathbf{c}$ (see @eq-r-definition), $\alpha$ satisfies
 $$
 \mathbf{n}_j \cdot (\mathbf{b} - \mathbf{c}) = r\cos\alpha,
 $$
-and therefore
+and thus
 $$
 \alpha = \arccos\!\left(\frac{\mathbf{n}_j \cdot (\mathbf{b} -
 \mathbf{c})}{r}\right).
@@ -117,30 +116,16 @@ Of the $J$ facets of $\Delta^{J-1}$, $\mathcal{C}_1$ is bounded by the $J-1$ on 
 
 Set $\omega_2 = 0$ and $\omega_3 = \cdots = \omega_J = a$. Since $\symbf{\omega} \in \mathcal{L}_{\hat{\psi}}$, the two constraints defining $\mathcal{L}_{\hat{\psi}}$ give
 $$
-\omega_1 + (J-2)a = 1
-$${#eq-omega_1-constraint-1}
-and
-$$
+\omega_1 + (J-2)a = 1 \quad \text{and} \quad
 \omega_1^2 + (J-2)a^2 = \hat{\psi}.
-$${#eq-omega_1-constraint-2}
-Since $\omega_1$ is the dominant coordinate, $a < \omega_1$. Substituting into @eq-omega_1-constraint-1 gives
 $$
-1 = \omega_1 + (J-2)a > a + (J-2)a = (J-1)a,
-$$
-and hence
-$$
-a < \frac{1}{J-1}.
-$${#eq-a-upper-bound}
-substituting $\omega_1 = 1 - (J-2)a$ from @eq-omega_1-constraint-1 into @eq-omega_1-constraint-2 and rearranging yields the quadratic
-$$
-(J-2)(J-1)a^2 - 2(J-2)a + (1-\hat{\psi}) = 0,
-$$
-whose roots are
+Substituting $\omega_1 = 1 - (J-2)a$ from the first equation into the second and rearranging yields the quadratic $(J-2)(J-1)a^2 - 2(J-2)a + (1-\hat{\psi}) = 0$,
+with roots
 $$
 \frac{1 - \sqrt{\frac{(J-1)\hat{\psi} - 1}{J-2}}}{J-1} \quad \text{and} \quad
 \frac{1 + \sqrt{\frac{(J-1)\hat{\psi} - 1}{J-2}}}{J-1}.
 $$
-Both roots are real for $\hat{\psi} \geq 1/(J-1)$, confirming the existence of the symmetric boundary point. Only the smaller root satisfies @eq-a-upper-bound, so
+Both roots are real for $\hat{\psi} \geq 1/(J-1)$, confirming the existence of the symmetric boundary point. Since $\omega_1$ is the dominant coordinate, $a < \omega_1$. This implies $1 = \omega_1 + (J-2)a > a + (J-2)a = (J-1)a,$ and so $a < 1/(J-1)$. Only the smaller root satisfies this upper bound for $a$, so we must have
 $$
 a = \frac{1 - \sqrt{\frac{(J-1)\hat{\psi} - 1}{J-2}}}{J-1}.
 $${#eq-quadratic-solution}
@@ -201,10 +186,10 @@ $$
 \right] \\
 &= \frac{(J-1)^2 - J(J-2)}{J-1} + \frac{J\sqrt{(J-2) \left( (J-1)\hat{\psi} - 1
 \right)}}{J-1} \\
-&= \frac{1 + J\sqrt{(J-2)\bigl((J-1)\hat{\psi}-1\bigr)}}{J-1},
+&= \frac{1 + J\sqrt{(J-2)\bigl((J-1)\hat{\psi}-1\bigr)}}{J-1}.
 \end{aligned}
 $$
-where we used $(J-1)^2 - J(J-2) = 1$. Dividing by $r(\hat{\psi}, J)$ and using $\sqrt{J(J-1)} \cdot \sqrt{\hat{\psi} - 1/J} = \sqrt{(J-1)(J\hat{\psi}-1)}$, we have
+Dividing by $r(\hat{\psi}, J)$, we have
 $$
 \frac{1}{r(\hat{\psi}, J)}\,\mathbf{n}_1 \cdot (\mathbf{b} - \mathbf{c})
 = \frac{1}{\sqrt{\hat{\psi} - \frac{1}{J}}} \cdot
@@ -222,17 +207,18 @@ At $\hat{\psi} = 1/(J-1)$, $\alpha = \arccos(1/(J-1))$; as $\hat{\psi} \to 1$, $
 
 \subsubsection{Permutation Symmetry and Monte Carlo Sampling} \label{sec-permutation-symmetry}
 
-The symmetric group $S_J$ acts on $\Omega_{\hat{\psi}}$ by permuting category labels. The orbit of a point $\symbf{\omega} \in \Omega_{\hat{\psi}}$ under this action is the set $\{\sigma(\symbf{\omega}) : \sigma \in S_J\}$ of all points reachable by permuting the coordinates of $\symbf{\omega}$. The $J!$ elements of $S_J$ decompose into two types: those that change the dominant coordinate, mapping the cap near $\symbf{e}_j$ to the cap near $\symbf{e}_k$ for $j \neq k$, and for each cap, the $(J-1)!$ permutations of the non-dominant coordinates that fix the dominant coordinate and map the cap onto itself by reflecting it about the axis from $\mathbf{c}$ to its corresponding vertex. This gives $J \times (J-1)! = J!$ total permutations, consistent with $|S_J|$. 
+The symmetric group $S_J$ acts on $\Omega_{\hat{\psi}}$ by permuting category labels. The orbit of a point $\symbf{\omega} \in \Omega_{\hat{\psi}}$ under this action is the set $\{\sigma(\symbf{\omega}) : \sigma \in S_J\}$ of all points reachable by permuting the coordinates of $\symbf{\omega}$. In both regimes, $S_J$ partitions $\Omega_{\hat{\psi}}$ into $J$ geometrically identical components, one associated with each vertex of $\Delta^{J-1}$: in the disconnected regime these are the $J$ spherical caps, and in the connected regime they are $J$ equal sectors of $\mathcal{L}_{\hat{\psi}}$. The $J!$ elements of $S_J$ decompose into two types: those that map one component to another, and for each component, the $(J-1)!$ permutations that fix the dominant coordinate and map the component
+onto itself. This gives $J \times (J-1)! = J!$ total permutations, consistent with $|S_J|$.
 
-The orbit size depends on how many within-cap permutations fix $\symbf{\omega}$. For a generic point with all non-dominant coordinates distinct, none do, and the orbit has $J!$ elements with $(J-1)!$ in each cap. Partially degenerate points, where some but not all non-dominant coordinates coincide, have smaller orbits. Fully degenerate points with all non-dominant coordinates equal are fixed by all $(J-1)!$ within-cap permutations, giving orbits of size $J$. These degenerate cases form a set of measure zero in $\Omega_{\hat{\psi}}$ and do not affect the Monte Carlo approximation in practice.
+The orbit size depends on how many within-component permutations fix $\symbf{\omega}$. For a generic point with all non-dominant coordinates distinct, none do, and the orbit has $J!$ elements with $(J-1)!$ in each component. Partially degenerate points, where some but not all non-dominant coordinates coincide, have smaller orbits. Fully degenerate points with all non-dominant coordinates equal are fixed by all $(J-1)!$ within-component permutations, giving orbits of size $J$. These degenerate cases form a set of measure zero in $\Omega_{\hat{\psi}}$ and do not
+affect the Monte Carlo approximation in practice. 
 
-We can exploit the orbit structure of $S_J$ to obtain equivalent coverage of $\Omega_{\hat{\psi}}$ at a fraction of the cost. Rather than drawing $J! \cdot R$ points independently from $\Omega_{\hat{\psi}}$, we instead sample $R$ independent base points from a single cap and expand each to its full orbit of $J!$ by applying all elements of $S_J$. The within-orbit expansion is deterministic, so the Monte Carlo variance is driven entirely by the $R$ independent base draws. Exact coverage of all $J$ caps is guaranteed for every orbit, reducing variance relative to naive independent sampling. This procedure applies in both regimes: when $\hat{\psi} \geq 1/(J-1)$ the caps are geometrically separated by the simplex boundary, and when $\hat{\psi} < 1/(J-1)$ the $J$-fold symmetry of $S_J$ still partitions $\mathcal{L}_{\hat{\psi}}$ into $J$ equal sectors, one associated with each vertex, and the sampling strategy is identical. The resulting approximation is
+We can exploit the orbit structure of $S_J$ to obtain equivalent coverage of $\Omega_{\hat{\psi}}$ at a fraction of the cost. Rather than drawing $R$ elements independently from $\Omega_{\hat{\psi}}$, we draw base points one at a time from a single component, expand each to its full orbit of $J!$ by applying all elements of $S_J$, and screen the resulting candidates for acceptance. Accepted $\symbf{\omega}$ candidates are accumulated across orbits until a total of $R$ have been collected; the number of base $\symbf{\omega}$ draws required is not fixed in advance but determined by how many candidates are accepted from each orbit. The within-orbit expansion is deterministic, and since with probability $1$ each candidate in an orbit corresponds to a distinct permutation of the base $\symbf{\omega}$ draw, the $R$ accepted candidates contribute independently to the sum regardless of which orbits they came from. Since each orbit spans all $J$ components by construction, partial acceptance of orbit elements still provides more balanced coverage than naive independent sampling, which offers no such guarantee. The precise procedures for sampling base points from a single component in each regime are developed in Sections \ref{sec-connected-regime-sampling} and \ref{sec-disconnected-regime-sampling}. The resulting approximation is
 $$
-\bar{L}(\psi) \approx \frac{1}{J!\, R} \sum_{i=1}^{R} \sum_{\sigma \in S_J}
-L\!\left(b\!\left(\sigma(\symbf{\omega}^{(i)}), \psi;\, \hat{\psi}\right)\right),
+\bar{L}(\psi) \approx \frac{1}{R} \sum_{k=1}^{R}
+L\!\left(b\!\left(\symbf{\omega}^{(k)}, \psi;\, \hat{\psi}\right)\right),
 $${#eq-IL-simpson-general}
-where $\symbf{\omega}^{(1)}, \ldots, \symbf{\omega}^{(R)}$ are drawn independently from a single cap, and $b(\symbf{\omega}, \psi;\, \hat{\psi})$ denotes the maximizer of $\sum_j \omega_j \log \theta_j$ with respect to $\symbf{\theta} \in \Delta^{J-1}$ subject to $D(\symbf{\theta}) = \psi$.  In the connected regime, $\mathbf{u}$ is drawn uniformly on the
-$(J-2)$-sphere of radius $r(\hat{\psi}, J)$. In the disconnected regime, each base point is obtained by uniformly sampling a direction within angular distance $\alpha(\hat{\psi}, J)$ of the cap axis $\mathbf{n}_1$ (see @eq-cap-axis-vector and @eq-alpha-psi-hat-general) and setting $\mathbf{u} = \mathbf{c} + r(\hat{\psi}, J)\mathbf{u}$ for the sampled unit direction $\mathbf{v}$.
+where $\symbf{\omega}^{(1)}, \ldots, \symbf{\omega}^{(R)}$ are the $R$ accepted candidates, each of the form $\sigma(\symbf{\omega})$ for some base draw $\symbf{\omega}$ from a single component and some $\sigma \in S_J$, and $b(\symbf{\omega}, \psi;\, \hat{\psi})$ denotes the maximizer of $\sum_j \omega_j \log \theta_j$ with respect to $\symbf{\theta} \in \Delta^{J-1}$ subject to $D(\symbf{\theta}) = \psi$.
 
 \subsubsection{Sampling in the Connected Regime} \label{sec-connected-regime-sampling}
 
@@ -245,21 +231,20 @@ so that $\mathbf{1} \cdot \mathbf{z}' = 0$. Since $\mathbf{z}'$ lies in $\mathbf
 
 Let $\mathbf{Q}$ be a rotation matrix — an orthogonal matrix with determinant $+1$ — that maps $\mathbf{1}^\perp$ to itself. The orthogonality of $\mathbf{Q}$ implies that it preserves inner products, 
 $$
-\langle \mathbf{Q}\mathbf{u}, \mathbf{Q}\mathbf{v}\rangle = \mathbf{u}^\top
-\mathbf{Q}^\top \mathbf{Q}\mathbf{v} = \mathbf{u}^\top\mathbf{v} =
-\langle \mathbf{u}, \mathbf{v} \rangle,
+\langle \mathbf{Q}\mathbf{v}, \mathbf{Q}\mathbf{w}\rangle = \mathbf{v}^\top
+\mathbf{Q}^\top \mathbf{Q}\mathbf{w} = \mathbf{v}^\top\mathbf{w} =
+\langle \mathbf{v}, \mathbf{w} \rangle,
 $$
-for any $\mathbf{u}, \mathbf{v} \in \mathbbm{R}^J$. Therefore, if $\mathbf{1}$ is orthogonal to some $\mathbf{v} \in \mathbf{1}^\perp$, then
+for any $\mathbf{v}, \mathbf{w} \in \mathbbm{R}^J$. Therefore, if $\mathbf{1}$ is orthogonal to some $\mathbf{v} \in \mathbf{1}^\perp$, then
 $$
 \langle\mathbf{1}, \mathbf{v} \rangle = 0 \implies \langle \mathbf{Q}\mathbf{1},
 \mathbf{Q}\mathbf{v} \rangle = 0,
 $$
 so $\mathbf{Q}\mathbf{1}$ is orthogonal to $\mathbf{Q}\mathbf{v}$. Since $\mathbf{Q}$ maps $\mathbf{1}^\perp$ to itself, $\mathbf{Q}\mathbf{v} \in \mathbf{1}^\perp$ for any $\mathbf{v} \in \mathbf{1}^\perp$. As $\mathbf{v}$ was arbitrary, $\mathbf{Q}\mathbf{1}$ must be orthogonal to every vector in $\mathbf{1}^\perp$, so $\mathbf{Q}\mathbf{1} \in \mathrm{span}(\mathbf{1})$, i.e. $\mathbf{Q}\mathbf{1} = k \mathbf{1}$ for some scalar $k$. Rotation matrices preserve norms, so
-$\|\mathbf{Q}\mathbf{1}\| = \|\mathbf{1}\|$, implying $|k| = 1$. The determinant $+1$ condition then forces $k = 1$, so $\mathbf{Q}\mathbf{1} = \mathbf{1}$. Applying $\mathbf{Q}^{-1}$ to both sides gives $\mathbf{Q}^{-1} \mathbf{1} = \mathbf{1}$, and since $\mathbf{Q}^\top = \mathbf{Q}^{-1}$ by orthogonality, we have $\mathbf{Q}^\top\mathbf{1} = \mathbf{1}$.
-The sample mean of $\mathbf{Q}\mathbf{z}$ therefore satisfies $\overline{\mathbf{Q}\mathbf{z}} = \frac{1}{J}\mathbf{1}^\top \mathbf{Q}\mathbf{z} = \frac{1}{J}(\mathbf{Q}^\top\mathbf{1})^\top\mathbf{z} = \frac{1}{J}\mathbf{1}^\top\mathbf{z}= \bar{z}$,
+$\|\mathbf{Q}\mathbf{1}\| = \|\mathbf{1}\|$, implying $|k| = 1$. The determinant $+1$ condition then forces $k = 1$, so $\mathbf{Q}\mathbf{1} = \mathbf{1}$. Applying $\mathbf{Q}^{-1}$ to both sides gives $\mathbf{Q}^{-1} \mathbf{1} = \mathbf{1}$, and since $\mathbf{Q}^\top = \mathbf{Q}^{-1}$ by orthogonality, we have $\mathbf{Q}^\top\mathbf{1} = \mathbf{1}$. The sample mean of $\mathbf{Q}\mathbf{z}$ therefore satisfies $\overline{\mathbf{Q}\mathbf{z}} = \frac{1}{J}\mathbf{1}^\top \mathbf{Q}\mathbf{z} = \frac{1}{J}(\mathbf{Q}^\top\mathbf{1})^\top\mathbf{z} = \frac{1}{J}\mathbf{1}^\top\mathbf{z}= \bar{z}$,
 so
 $$
-\mathrm{proj}_{\mathbf{1}^\perp}(\mathbf{Q}\mathbf{z}) = \mathbf{Q}\mathbf{z} - \bar{z}\mathbf{1} = \mathbf{Q}\mathbf{z} - \bar{z}\mathbf{Q}\mathbf{1} = \mathbf{Q}(\mathbf{z} - \bar{z}\mathbf{1}) = \mathbf{Q}\mathbf{z}' = \mathbf{Q}\mathrm{proj}_{\mathbf{1}^\perp}(\mathbf{z})
+\mathrm{proj}_{\mathbf{1}^\perp}(\mathbf{Q}\mathbf{z}) = \mathbf{Q}\mathbf{z} - \bar{z}\mathbf{1} = \mathbf{Q}\mathbf{z} - \bar{z}\mathbf{Q}\mathbf{1} = \mathbf{Q}(\mathbf{z} - \bar{z}\mathbf{1}) = \mathbf{Q}\mathbf{z}' = \mathbf{Q}\mathrm{proj}_{\mathbf{1}^\perp}(\mathbf{z}).
 $$
 That is, projection onto $\mathbf{1}^\perp$ and rotation within it commute. Note that $\mathbf{Q}\mathbf{z} \overset{d}{=} \mathbf{z}$ since $\mathbf{Q}\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{Q}\mathbf{Q}^\top) = \mathcal{N}(\mathbf{0}, \mathbf{I}_J)$. Therefore, we have
 $$
@@ -267,13 +252,13 @@ $$
 $$
 so $\mathbf{Q}\mathbf{z}' \overset{d}{=} \mathbf{z}'$.
 
-Thus, the distribution of $\mathbf{z}'$ is invariant under any rotation that maps $\mathbf{1}^\perp$ to itself. A random vector with this property must assign equal probability to all directions within $\mathbf{1}^\perp$, since any two directions can be mapped to one another by such a rotation. It follows that $\mathbf{z}' / \|\mathbf{z}'\|$ is distributed uniformly on the unit $(J-2)$-sphere within $\mathbf{1}^\perp$. Rescaling by $r$ gives a vector $\mathbf{v} = r \cdot \mathbf{z}' / \|\mathbf{z}'\|$ that is uniform on the $(J-2)$-sphere of radius $r$ within $\mathbf{1}^\perp$, meaning all points at distance $r$ from the origin in $\mathbf{1}^\perp$ are equally likely. Translating by $\mathbf{c}$ shifts the center of this $(J-2)$-sphere from the origin to $\mathbf{c}$, giving a point $\mathbf{x} = \mathbf{c} + \mathbf{v}$ that is uniform on the $(J-2)$-sphere of radius $r$ centered at $\mathbf{c}$ within the affine subspace $\mathbf{c} + \mathbf{1}^\perp = \Pi$. This is precisely $\mathcal{L}_{\hat{\psi}}$ (see @eq-L-psi-hat-definition and @eq-r-definition). Hence, to sample a point uniformly at random from $\Omega_{\hat{\psi}}$ in the connected regime, we need merely to draw $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}_J)$, project onto $\mathbf{1}^\perp$ by setting $\mathbf{z}' = \mathbf{z} - \bar{z}\mathbf{1}$, and calculate $\mathbf{u} = \mathbf{c} + r \cdot \mathbf{z}' / \|\mathbf{z}'\|$.
+Thus, the distribution of $\mathbf{z}'$ is invariant under any rotation that maps $\mathbf{1}^\perp$ to itself. A random vector with this property must assign equal probability to all directions within $\mathbf{1}^\perp$, since any two directions can be mapped to one another by such a rotation. It follows that $\mathbf{z}' / \|\mathbf{z}'\|$ is distributed uniformly on the unit $(J-2)$-sphere within $\mathbf{1}^\perp$. Rescaling by $r$ gives a vector $\mathbf{d} = r \cdot \mathbf{z}' / \|\mathbf{z}'\|$ that is uniform on the $(J-2)$-sphere of radius $r$ within $\mathbf{1}^\perp$, meaning all points at distance $r$ from the origin in $\mathbf{1}^\perp$ are equally likely. Translating by $\mathbf{c}$ shifts the center of this $(J-2)$-sphere from the origin to $\mathbf{c}$, giving a vector $\mathbf{v} = \mathbf{c} + \mathbf{d}$ that is distributed uniformly on the $(J-2)$-sphere of radius $r$ centered at $\mathbf{c}$ within the affine subspace $\mathbf{c} + \mathbf{1}^\perp = \Pi$. This is precisely $\mathcal{L}_{\hat{\psi}}$ (see @eq-L-psi-hat-definition and @eq-r-definition). Hence, to sample a point uniformly at random from $\Omega_{\hat{\psi}}$ in the connected regime, we need merely to draw $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}_J)$, project onto $\mathbf{1}^\perp$ by setting $\mathbf{z}' = \mathbf{z} - \bar{z}\mathbf{1}$, and calculate $\mathbf{u} = \mathbf{c} + r \cdot \mathbf{z}' / \|\mathbf{z}'\|$.
 
 \subsubsection{Sampling in the Disconnected Regime} \label{sec-disconnected-regime-sampling}
 
 For $J \geq 3$, the disconnected regime arises when $\hat{\psi} \geq 1/(J-1)$, and $\Omega_{\hat{\psi}}$ consists of $J$ disjoint spherical caps, one near each vertex of $\Delta^{J-1}$. We need not consider $J=2$ here since, as shown in Section \ref{sec-J=2}, it is impossible for the disconnected regime to arise in such a case. By the permutation symmetry of $\Omega_{\hat{\psi}}$ under $S_J$, all $J$ caps are geometrically identical, so without loss of generality we may describe how to sample only from $\mathcal{C}_1$, the cap near $\symbf{e}_1$.
 
-Any point $\mathbf{p} \in \mathcal{C}_1$ lies in $\Pi$ and can be written as $\mathbf{p} = \mathbf{c} + \mathbf{d}$, where $\mathbf{d}$ is the displacement from the centroid to $\mathbf{p}$. Since $\Pi = \mathbf{c} + \mathbf{1}^\perp$ is an affine subspace with $\sum_j p_j = 1$ for all $\mathbf{p} \in \Pi$, the difference between any two points in $\Pi$ sums to zero and therefore lies in $\mathbf{1}^\perp$. So $\mathbf{d} = \mathbf{p} - \mathbf{c}$ lies in $\mathbf{1}^\perp$ and has length $r = r(\hat{\psi}, J)$ (see @eq-r-definition).
+Any vector $\mathbf{v} \in \mathcal{C}_1$ lies in $\Pi$ and can be written as $\mathbf{v} = \mathbf{c} + \mathbf{d}$, where $\mathbf{d}$ is the displacement from the centroid to $\mathbf{v}$. Since $\Pi = \mathbf{c} + \mathbf{1}^\perp$ is an affine subspace with $\sum_j p_j = 1$ for all $\mathbf{v} \in \Pi$, the difference between any two vectors in $\Pi$ sums to zero and therefore lies in $\mathbf{1}^\perp$. So $\mathbf{d} = \mathbf{v} - \mathbf{c}$ lies in $\mathbf{1}^\perp$ and has length $r = r(\hat{\psi}, J)$ (see @eq-r-definition).
 
 Any vector in $\mathbf{1}^\perp$ can be decomposed into the sum of two components, one pointing along a chosen reference direction and one that is orthogonal to it. The natural reference direction here is $\mathbf{n}_1$, the unit vector from $\mathbf{c}$ toward $\symbf{e}_1$. Like $\mathbf{d}$, this vector lies in $\mathbf{1}^\perp$, since it is proportional to $\symbf{e}_1 - \mathbf{c}$, the difference between two points in $\Pi$. Writing $\gamma$ for the angle between $\mathbf{d}$ and $\mathbf{n}_1$ and $h = \cos\gamma$, the component of $\mathbf{d}$ pointing along $\mathbf{n}_1$ has length $rh$, and the component orthogonal to $\mathbf{n}_1$ has length $r\sqrt{1-h^2}$. When $J = 3$ the subspace of $\mathbf{1}^\perp$ orthogonal to $\mathbf{n}_1$ is zero-dimensional, so the orthogonal component has a fixed direction and the displacement $\mathbf{d}$ is fully determined by $h$ alone. For $J \geq 4$ this subspace has dimension $J - 3 \geq 1$; letting $\mathbf{u}$ denote a unit vector within it, the decomposition is
 $$
@@ -281,18 +266,18 @@ $$
 r\!\left(h\,\mathbf{n}_1 + \sqrt{1-h^2}\,\mathbf{u}\right).
 $${#eq-cap-decomposition}
 
-The scalar $h$ controls how far along the cap axis the point $\mathbf{p}$ lies. When $h = 1$ the displacement points directly along the cap axis, placing $\mathbf{p}$ at the tip of the cap, the point nearest to $\symbf{e_1}$. When $h = \cos\alpha$ the displacement makes the maximum angle $\alpha$ with the axis, placing $\mathbf{p}$ at one of the boundaries of the cap. For $J \geq 4$, a point on $\mathcal{C}_1$ is fully specified by the pair $(h, \mathbf{u})$, which separately control how far the point is from the tip of the cap and in which direction around the cap axis it lies.
+The scalar $h$ controls how far along the cap axis the vector $\mathbf{v}$ lies. When $h = 1$ the displacement points directly along the cap axis, placing $\mathbf{v}$ at the tip of the cap, the point nearest to $\symbf{e}_1$. When $h = \cos\alpha$ the displacement makes the maximum angle $\alpha$ with the axis, placing $\mathbf{v}$ at one of the boundaries of the cap. For $J \geq 4$, a point on $\mathcal{C}_1$ is fully specified by the pair $(h, \mathbf{u})$, which separately control how far the point is from the tip of the cap and in which direction around the cap axis it lies.
 
-To sample $\symbf{p}$ uniformly from $\mathcal{C}_1$ when $J \geq 4$, it suffices to draw $h$ and $\mathbf{u}$ independently from their respective marginal distributions, since the decomposition in @eq-cap-decomposition separates the two degrees of freedom. The component $\mathbf{u}$ is sampled by the same Gaussian projection used in the connected regime, extended to project out both the $\mathbf{1}$ direction and the $\mathbf{n}_1$ direction before normalizing: draw $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}_J)$, subtract its mean to project onto $\mathbf{1}^\perp$, then subtract the component along $\mathbf{n}_1$, and normalize. By the same rotational symmetry argument as in the connected regime, the result is uniform on the unit $(J-3)$-sphere within the orthogonal subspace. When $J = 3$, the orthogonal subspace is one-dimensional, so the unit $(J-3)$-sphere within it is zero-dimensional, consisting of just two points $\pm\mathbf{u}_0$ for a fixed unit vector $\mathbf{u}_0$, and all randomness in the draw comes from $h$.
+To sample $\symbf{v}$ uniformly from $\mathcal{C}_1$ when $J \geq 4$, it suffices to draw $h$ and $\mathbf{u}$ independently from their respective marginal distributions. The decomposition in @eq-cap-decomposition separates $\mathbf{d}$ into a component along $\mathbf{n}_1$ and a component orthogonal to it, and under a uniform distribution on the sphere these two components are independent, so the joint distribution of $(h, \mathbf{u})$ factors into the product of the marginals. The component $\mathbf{u}$ is sampled by the same Gaussian projection used in the connected regime, extended to project out both the $\mathbf{1}$ direction and the $\mathbf{n}_1$ direction before normalizing: draw $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}_J)$, subtract its mean to project onto $\mathbf{1}^\perp$, then subtract the component along $\mathbf{n}_1$, and normalize. By the same rotational symmetry argument as in the connected regime, the result is uniform on the unit $(J-3)$-sphere within the orthogonal subspace. When $J = 3$, the orthogonal subspace is one-dimensional, so the unit $(J-3)$-sphere within it is zero-dimensional, consisting of just two points $\pm\mathbf{u}_0$ for a fixed unit vector $\mathbf{u}_0$, and all randomness in the draw comes from $h$.
 
-Sampling $h$ requires the marginal density of $\gamma$. Consider the latitude ring at angle $\gamma$ from the cap axis, defined as the set of all points on $\mathcal{C}_1$ at angle $\gamma$ relative to $\mathbf{n}_1$. From the decomposition @eq-cap-decomposition, fixing $\gamma$ fixes the component of $\mathbf{d}$ along $\mathbf{n}_1$ to $r\cos\gamma$, while the orthogonal component is free to point in any direction $\mathbf{u}$ within the $(J-3)$-dimensional subspace orthogonal to $\mathbf{n}_1$, at a fixed distance $r\sin\gamma$ from the axis. The latitude ring is therefore a $(J-3)$-sphere of radius $r\sin\gamma$. Since the surface area of a $k$-sphere of radius $\rho$ scales as $\rho^k$, the surface area of this ring is proportional to $(r\sin\gamma)^{J-3}$. The surface element of $\mathcal{L}_{\hat{\psi}}$ at angle $\gamma$ therefore decomposes as the product of the area of the latitude ring and the arc length width of an infinitesimal band around it,
+Sampling $h$ requires the marginal density of $\gamma$. Consider the set of all points on $\mathcal{C}_1$ at angle $\gamma$ relative to $\mathbf{n}_1$. Call this set the latitude ring at angle $\gamma$ from the cap axis. From the decomposition @eq-cap-decomposition, fixing $\gamma$ fixes the component of $\mathbf{d}$ along $\mathbf{n}_1$ to $r\cos\gamma$, while the orthogonal component is free to point in any direction $\mathbf{u}$ within the $(J-3)$-dimensional subspace orthogonal to $\mathbf{n}_1$, at a fixed distance $r\sin\gamma$ from the axis. It follows that the latitude ring is a $(J-3)$-sphere of radius $r\sin\gamma$. Since the surface area of a $k$-sphere of radius $\rho$ scales as $\rho^k$, the surface area of this ring is proportional to $(r\sin\gamma)^{J-3}$. The surface element of $\mathcal{L}_{\hat{\psi}}$ at angle $\gamma$ then decomposes as the product of the area of the latitude ring and the arc length width of an infinitesimal band around it,
 $$
 dA \propto (r\sin\gamma)^{J-3} \cdot r d\gamma.
 $$
 
-Under a uniform distribution on $\mathcal{C}_1$, the probability of landing in an infinitesimal band between $\gamma$ and $\gamma + d\gamma$ is proportional to the surface area of that band. Since the uniform density is constant across the band, integrating it over all directions $\mathbf{u}$ within the latitude ring simply yields the surface area of the ring, which is proportional to $(r\sin\gamma)^{J-3}$. The probability of landing in the band is therefore
+Under a uniform distribution on $\mathcal{C}_1$, the probability of landing in an infinitesimal band between $\gamma$ and $\gamma + d\gamma$ is proportional to the band's surface area, which is the surface area of the latitude ring times the arc length width $r d\gamma$. Thus, the probability of landing in the band is
 $$
-f(\gamma) d\gamma \propto (r\sin\gamma)^{J-3} \cdot r d\gamma.
+f(\gamma)\,d\gamma \propto (r\sin\gamma)^{J-3} \cdot r\,d\gamma.
 $$
 Dividing through by $d\gamma$ and absorbing the constant factors of $r$ into the proportionality gives the marginal density of $\gamma$,
 $$
@@ -321,11 +306,11 @@ s = I^{-1}_{q}\!\left(\tfrac{J-2}{2},\, \tfrac{1}{2}\right).
 $${#eq-beta-inversion}
 Scaling $U$ by $I_{\sin^2\!\alpha}((J-2)/2, 1/2)$ before inversion restricts the draw to $[0, \sin^2\!\alpha]$, enforcing the truncation. The height coordinate is then recovered as $h = \sqrt{1 - s}$. This approach is exact and numerically stable for any cap width, including the narrow caps that arise when $\hat{\psi}$ is large and $\alpha$ is small.
 
-In summary, to sample a point uniformly at random from $\mathcal{C}_1$, start by drawing $U \sim \mathrm{Uniform}(0, 1)$ and then proceeding according to the value of $J$. For $J = 3$, set $h = \cos(U\alpha)$, draw $\epsilon \in \{-1, +1\}$ with equal probability, and calculate $\mathbf{p} = \mathbf{c} + r(h\,\mathbf{n}_1 + \sqrt{1-h^2}\,\epsilon\mathbf{u}_0)$, where $\mathbf{u}_0$ is either unit vector orthogonal to $\mathbf{n}_1$ in $\mathbf{1}^\perp$. For $J \geq 4$, compute $q = U \cdot I_{\sin^2\!\alpha}((J-2)/2, 1/2)$, set $s = I^{-1}_q((J-2)/2, 1/2)$, and recover $h = \sqrt{1 - s}$. Then sample $\mathbf{u}$ independently by drawing $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}_J)$, subtracting its mean, subtracting the component along $\mathbf{n}_1$, normalizing, and finally calculating $\mathbf{p} = \mathbf{c} + r(h\,\mathbf{n}_1 + \sqrt{1-h^2}\,\mathbf{u})$.
+Hence, to draw a vector uniformly at random from $\mathcal{C}_1$, draw $U \sim \mathrm{Uniform}(0, 1)$ and sample $h$ as follows: for $J = 3$ set $h = \cos(U\alpha)$, and for $J \geq 4$ compute $q = U \cdot I_{\sin^2\!\alpha}((J-2)/2, 1/2)$, set $s = I^{-1}_q((J-2)/2, 1/2)$, and recover $h = \sqrt{1-s}$. In both cases, sample $\mathbf{u}$ by drawing $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}_J)$, subtracting its mean, subtracting the component along $\mathbf{n}_1$, and normalizing. The desired vector is then $\mathbf{v} = \mathbf{c} + r(h\,\mathbf{n}_1 + \sqrt{1-h^2}\,\mathbf{u})$.
 
 \subsection{The Case $J = 2$} \label{sec-J=2}
 
-When $J = 2$, the simplex $\Delta^1$ is a line segment and $D(\symbf{\theta}) = \theta_1^2 + \theta_2^2 < 1$ for all interior points, so the clipping threshold $1/(J-1) = 1/(2-1) = 1$ is never reached. The disconnected regime therefore never arises, and $\mathcal{L}_{\hat{\psi}}$ degenerates to a $0$-sphere — a pair of points — so $\Omega_{\hat{\psi}}$ consists of exactly two points for any $\hat{\psi} > 1/2$.
+When $J = 2$, the simplex $\Delta^1$ is a line segment and $D(\symbf{\theta}) = \theta_1^2 + \theta_2^2 < 1$ for all interior points, so the clipping threshold $1/(J-1) = 1/(2-1) = 1$ is never reached. Consequently, the disconnected regime never arises, and $\Omega_{\hat{\psi}} = \mathcal{L}_{\hat{\psi}}$ degenerates to a $0$-sphere, consisting of a single pair of points for any $\hat{\psi} > 1/2$.
 
 The parameter space is $\Delta^1 = \{(\theta_1, \theta_2) : \theta_1 + \theta_2 = 1,\ \theta_1, \theta_2 \in (0,1)\}$, and Simpson's index reduces to 
 $$
@@ -348,7 +333,7 @@ When $\hat{\psi} = 1/2$, the two points coincide at the centroid $\mathbf{c} = (
 
 \subsection{The Case $J = 3$} \label{sec-J=3}
 
-When $J = 3$, $\mathcal{L}_{\hat{\psi}}$ is a circle of radius $r(\hat{\psi}, 3) = \sqrt{\hat{\psi} - 1/3}$ centered at $\mathbf{c}$ within $\Pi$ (see @eq-r-definition). The parameter space $\Delta^2$ is an equilateral triangle, with the facets reducing to three one-dimensional edges. Each edge has length $\sqrt{2}$ and the inradius is $r_{\mathrm{in}} = 1/\sqrt{6}$. The clipping threshold is $1/(J-1) = 1/2$, and the three regimes of the general case become: $\Omega_{\hat{\psi}}$ is a complete circle when $\hat{\psi} < 1/2$, tangent to all three edges at $(1/2, 1/2, 0)$ and its permutations when $\hat{\psi} = 1/2$, and three disjoint arcs when $\hat{\psi} > 1/2$. These are illustrated in \autoref{fig:simplex-level-sets}.
+When $J = 3$, $\mathcal{L}_{\hat{\psi}}$ is a circle of radius $r(\hat{\psi}, 3) = \sqrt{\hat{\psi} - 1/3}$ centered at $\mathbf{c}$ within $\Pi$ (see @eq-r-definition). The parameter space $\Delta^2$ is an equilateral triangle, with the facets reducing to three one-dimensional edges. Each edge has length $\sqrt{2}$ and the inradius is $r_{\mathrm{in}} = 1/\sqrt{6}$. The clipping threshold is $1/(J-1) = 1/2$, and $\Omega_{\hat{\psi}}$ is a complete circle when $\hat{\psi} < 1/2$ and three disjoint arcs when $\hat{\psi} \geq 1/2$, corresponding to the connected and disconnected regimes of the general case. These are illustrated in \autoref{fig:simplex-level-sets}.
 
 \begin{figure}[H]
   \vspace{-0.8cm}
@@ -382,9 +367,9 @@ $$
 $${#eq-alpha-psi-hat}
 At $\hat{\psi} = 1/2$, $\alpha = \pi/3$, so the three arcs tile the full circle, consistent with $\Omega_{\hat{\psi}} = \mathcal{L}_{\hat{\psi}}$ at the threshold. As $\hat{\psi} \to 1$, $\alpha \to 0$ and each arc shrinks to a point at its vertex, consistent with @eq-alpha-psi-hat-general.
 
-Evaluating @eq-IL-simpson-general at $J = 3$ gives $J! = 6$, and the Monte Carlo approximation becomes
+Evaluating @eq-IL-simpson-general at $J = 3$ gives
 $$
-\bar{L}(\psi) \approx \frac{1}{6R} \sum_{i=1}^{R} \sum_{\sigma \in S_3}
-L\!\left(b\!\left(\sigma(\symbf{\omega}^{(i)}), \psi;\, \hat{\psi}\right)\right),
+\bar{L}(\psi) \approx \frac{1}{R} \sum_{k=1}^{R}
+L\!\left(b\!\left(\symbf{\omega}^{(k)}, \psi;\, \hat{\psi}\right)\right),
 $${#eq-IL-simpson-3d}
-where $\symbf{\omega}^{(1)}, \ldots, \symbf{\omega}^{(R)}$ are drawn independently from a single arc. The six elements of $S_3$ decompose into three cyclic permutations mapping each arc to another, and three reflections mapping each arc onto itself across the axis from $\mathbf{c}$ to its vertex. The transition point $\hat{\psi} = 1/2$ marks the spot where the sector boundaries coincide exactly with the simplex edges.
+where $\symbf{\omega}^{(1)}, \ldots, \symbf{\omega}^{(R)}$ are the $R$ accepted candidates, each of the form $\sigma(\symbf{\omega})$ for some base draw $\symbf{\omega}$ from a single arc and some $\sigma \in S_3$. The six elements of $S_3$ decompose into three cyclic permutations mapping each arc to another, and three reflections mapping each arc onto itself across the axis from $\mathbf{c}$ to its vertex. The transition point $\hat{\psi} = 1/2$ marks the spot where the sector boundaries coincide exactly with the simplex edges.
