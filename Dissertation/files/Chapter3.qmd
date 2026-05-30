@@ -35,141 +35,289 @@ In either case, once random variates $u_1, ..., u_R$ have been sampled from $\ch
 
 \section{Monte Carlo Approximation of the Integrated Likelihood}
 
-## Omega-Hat Sampling and Branch-Mode Construction
+\subsection{Omega-Hat Sampling and Branch-Mode Construction}
 
-### Overview
+\subsubsection{Overview}
 
-Integrated likelihood inference in this work proceeds by marginalizing over nuisance configurations that are compatible with a fixed value of the parameter of interest. In models where the nuisance parameter is high-dimensional and subject to nonlinear constraints, direct integration is infeasible. Instead, the *likelyr* framework approximates the integrated likelihood using a Monte Carlo–style construction based on a collection of constrained profile likelihood branches.
+Integrated likelihood inference in this work proceeds by marginalizing
+over nuisance configurations that are compatible with a fixed value of
+the parameter of interest. In models where the nuisance parameter is
+high-dimensional and subject to nonlinear constraints, direct
+integration is infeasible. Instead, the \textit{likelyr} framework
+approximates the integrated likelihood using a Monte Carlo--style
+construction based on a collection of constrained profile likelihood
+branches.
 
-Each branch corresponds to a particular realization of an auxiliary nuisance configuration, denoted $\hat{\omega}$, which satisfies a defining constraint on the parameter of interest. The quality of the integrated likelihood approximation therefore depends critically on (i) how these $\hat{\omega}$ values are generated and (ii) how the corresponding profile likelihood branches are constructed.
+Each branch corresponds to a particular realization of an auxiliary
+nuisance configuration, denoted $\hat{\omega}$, which satisfies a
+defining constraint on the parameter of interest. The quality of the
+integrated likelihood approximation therefore depends critically on (i)
+how these $\hat{\omega}$ values are generated and (ii) how the
+corresponding profile likelihood branches are constructed.
 
-This section describes the logic underlying the sampling of $\hat{\omega}$ values and the subsequent identification of branch modes.
+\subsubsection{Definition of $\hat{\omega}$}
 
----
+Let $\theta \in \Theta \subset \mathbb{R}^d$ denote the full parameter
+vector of the model, and let $\psi = g(\theta)$ be the scalar parameter
+of interest. The maximum likelihood estimate of $\psi$ is denoted
+$\hat{\psi}$.
 
-### Definition of $\hat{\omega}$
+An \textit{omega-hat} value, $\hat{\omega}$, is defined as a point in
+the parameter space $\Theta$ satisfying
+\begin{equation}
+    g(\hat{\omega}) = \hat{\psi},
+\end{equation}
+along with any equality, inequality, or bound constraints imposed by the
+model specification. Importantly, $\hat{\omega}$ is \textbf{not}
+required to maximize the likelihood. Instead, it represents a feasible
+nuisance configuration consistent with the observed estimate of the
+parameter of interest.
 
-Let $\theta \in \Theta \subset \mathbbm{R}^d$ denote the full parameter vector of the model, and let
-$$
-\psi = g(\theta)
-$$
-be the scalar parameter of interest. The maximum likelihood estimate of $\psi$ is denoted $\hat{\psi}$.
+The collection of all such $\hat{\omega}$ values forms a constrained
+manifold in parameter space. Integrated likelihood inference proceeds by
+averaging, in an approximate sense, over likelihood contributions
+associated with different points on this manifold.
 
-An *omega-hat* value, $\hat{\omega}$, is defined as a point in the parameter space $\Theta$ that satisfies
-$$
-g(\hat{\omega}) = \hat{\psi},
-$$
-along with any equality, inequality, or bound constraints imposed by the model specification. Importantly, $\hat{\omega}$ is **not** required to maximize the likelihood. Instead, it represents a feasible nuisance configuration consistent with the observed estimate of the parameter of interest.
+\subsubsection{The Role of the Parameter Space: Two Structural Cases}
 
-The collection of all such $\hat{\omega}$ values forms a constrained manifold in parameter space. Integrated likelihood inference proceeds by averaging, in an approximate sense, over likelihood contributions associated with different points on this manifold.
+A key distinction in the implementation of this framework concerns
+whether $\hat{\omega}$ and the model parameter $\theta$ inhabit the
+same space. This distinction has substantial consequences for both the
+computational structure and the statistical interpretation of the
+resulting integrated likelihood.
 
----
+\paragraph{Case 1: $\hat{\omega}$ and $\theta$ share the same space.}
+In the simplest setting---exemplified by the baseline multinomial model
+with parameter $\theta \in \Delta^{J-1}$---the model parameter is
+itself a probability vector, and the constraint set $\{g(\theta) =
+\hat{\psi}\}$ is a manifold within the same ambient space. In this
+case, $\hat{\omega}$ is drawn directly from $\Omega_{\hat{\psi}} =
+\{\omega \in \Delta^{J-1} : g(\omega) = \hat{\psi}\}$, and the expected
+log-likelihood is
+\begin{equation}
+    \mathbb{E}_{\hat{\omega}}[\ell(\theta)] =
+    n \sum_{j=1}^J \hat{\omega}_j \log \theta_j,
+\end{equation}
+which is straightforwardly maximized subject to $g(\theta) = \psi$ by a
+constrained optimization over $\theta \in \Delta^{J-1}$.
 
-### Rationale for Sampling $\hat{\omega}$
+Because $\hat{\omega}$ and $\theta$ are the same type of object, the
+unconstrained maximizer of $\mathbb{E}_{\hat{\omega}}[\ell(\theta)]$
+over $\theta$ is precisely $\hat{\omega}$ itself, by the information
+inequality. It follows that at $\psi = \hat{\psi}$, the constrained
+maximizer of the expected log-likelihood is $\hat{\omega}$, and when
+$\hat{\omega} = \hat{\theta}$ (the MLE), the branch evaluated at
+$\hat{\psi}$ returns $\ell(\hat{\theta})$---the unconstrained maximum
+of the observed log-likelihood. The profile likelihood therefore
+achieves its maximum exactly at $\hat{\psi}$, and the surrogate
+objective is fully aligned with the true log-likelihood at the reference
+point.
 
-In many applications, the constraint $g(\theta) = \hat{\psi}$ does not uniquely determine $\theta$. The set of feasible $\hat{\omega}$ values may be high-dimensional, nonconvex, and possess nontrivial symmetries. As a result, no single $\hat{\omega}$ can be regarded as representative of the nuisance uncertainty.
+\paragraph{Case 2: $\hat{\omega}$ and $\theta$ inhabit different spaces.}
+In regression settings---such as the multinomial logistic regression
+model considered in this work---the model parameter is a matrix of
+regression coefficients $B \in \mathbb{R}^{p \times (J-1)}$, while the
+parameter of interest is the Simpson's index of the conditional
+probability vector at a reference covariate value $\mathbf{x}_0$:
+\begin{equation}
+    \psi(B) = D\!\left(\boldsymbol{\theta}(\mathbf{x}_0; B)\right)
+    = \sum_{j=1}^J \theta_j(\mathbf{x}_0; B)^2.
+\end{equation}
+Here $\boldsymbol{\theta}(\mathbf{x}_0; B) = \mathrm{softmax}(B^\top
+\mathbf{x}_0) \in \Delta^{J-1}$, so the level set
+$\Omega_{\hat{\psi}}$ is a manifold in $\Delta^{J-1}$, whereas the
+model parameter lives in $\mathbb{R}^{p(J-1)}$. These two spaces have
+different dimension and different geometric structure.
 
-Rather than attempting to enumerate or integrate over this constraint set directly, *likelyr* samples a finite collection of $\hat{\omega}$ values and constructs a corresponding collection of profile likelihood branches. These branches are later combined to form an approximation to the integrated likelihood.
+To bridge this gap, $\hat{\omega}$ is sampled as a probability vector
+from the sphere $\Omega_{\hat{\psi}} \subset \Delta^{J-1}$, and the
+corresponding model parameter is recovered via a rank-1 adjustment of
+the MLE. Specifically, given $\hat{\omega} \in \Omega_{\hat{\psi}}$,
+define
+\begin{equation}
+    \hat{B}(\hat{\omega}) = \hat{B}_{\mathrm{MLE}} +
+    \frac{\mathbf{x}_0
+    \bigl(\boldsymbol{\eta}_0 - \hat{B}_{\mathrm{MLE}}^\top
+    \mathbf{x}_0\bigr)^\top}{\|\mathbf{x}_0\|^2},
+\end{equation}
+where $\boldsymbol{\eta}_0 = \log(\hat{\omega}_{-J}) -
+\log(\hat{\omega}_J)$ is the logit vector corresponding to $\hat{\omega}$
+at the reference point. This construction satisfies
+$\boldsymbol{\theta}(\mathbf{x}_0; \hat{B}(\hat{\omega})) = \hat{\omega}$
+exactly, while leaving the regression coefficients unchanged in all
+directions orthogonal to $\mathbf{x}_0$. The expected log-likelihood
+used as the branch objective is then
+\begin{equation}
+    \mathbb{E}_{\hat{\omega}}[\ell(B)] = \sum_{i=1}^n
+    \boldsymbol{\theta}(\mathbf{x}_i; \hat{B}(\hat{\omega}))^\top
+    \boldsymbol{\eta}(\mathbf{x}_i; B) -
+    \sum_{i=1}^n \log Z(\mathbf{x}_i; B),
+\end{equation}
+where $\boldsymbol{\theta}(\mathbf{x}_i; \hat{B}(\hat{\omega}))$ are
+the observation-specific reference probabilities induced by
+$\hat{\omega}$ through $\hat{B}$, and $Z(\mathbf{x}_i; B)$ is the
+partition function at covariate $\mathbf{x}_i$.
 
-The role of the $\hat{\omega}$ sampling scheme is therefore twofold:
+This dimension mismatch has an important statistical consequence. In
+Case 1, the surrogate objective $\mathbb{E}_{\hat{\omega}}[\ell(\theta)]$
+and the observed log-likelihood $\ell(\theta)$ are globally aligned: the
+unconstrained maximizer of the surrogate is $\hat{\omega}$, which at
+$\hat{\omega} = \hat{\theta}$ is also the unconstrained MLE. In Case 2,
+this alignment breaks down. The unconstrained maximizer of
+$\mathbb{E}_{\hat{\omega}}[\ell(B)]$ is $\hat{B}(\hat{\omega})$---not
+$\hat{B}_{\mathrm{MLE}}$---because $\hat{B}(\hat{\omega})$ is
+constructed to satisfy $\boldsymbol{\theta}(\mathbf{x}_0; \cdot) =
+\hat{\omega}$, which generally differs from the MLE in directions other
+than $\mathbf{x}_0$. As a result, $\ell(\hat{B}(\hat{\omega}_{\mathrm{MLE}}))
+\neq \ell(\hat{B}_{\mathrm{MLE}})$ in general, and the approximate
+profile likelihood---defined as $\ell(\hat{\theta}(\psi;
+\hat{\omega}_{\mathrm{MLE}}))$ where $\hat{\omega}_{\mathrm{MLE}} =
+\boldsymbol{\theta}(\mathbf{x}_0; \hat{B}_{\mathrm{MLE}})$---need not
+achieve its maximum exactly at $\hat{\psi}$.
 
-1. **Exploration**: to explore different regions of the constraint set $g(\theta)=\hat{\psi}$, including symmetry-related configurations.
-2. **Stability**: to preferentially select nuisance configurations that lead to well-behaved profile likelihood branches.
+This drift is a direct consequence of working with a conditional
+parameter of interest in a regression model: the natural sampling space
+for $\hat{\omega}$ (probability vectors in $\Delta^{J-1}$) differs from
+the model parameter space ($\mathbb{R}^{p(J-1)}$), and the rank-1
+construction that bridges them introduces a gap between the surrogate
+and true objectives. In well-specified models with moderate sample
+sizes, this gap is small and the resulting shift in the profile maximum
+is negligible. It is, however, a structural feature of the framework in
+this setting and not a numerical artifact.
 
-These objectives are in tension: overly aggressive exploration can lead to nuisance configurations that induce unstable or degenerate branches, while overly conservative sampling can fail to capture important variation.
+\subsubsection{Rationale for Sampling $\hat{\omega}$}
 
----
+In many applications, the constraint $g(\theta) = \hat{\psi}$ does not
+uniquely determine $\theta$. The set of feasible $\hat{\omega}$ values
+may be high-dimensional, nonconvex, and possess nontrivial symmetries.
+No single $\hat{\omega}$ can therefore be regarded as representative of
+the nuisance uncertainty.
 
-### Generating Candidate $\hat{\omega}$ Values
+Rather than attempting to enumerate or integrate over this constraint
+set directly, \textit{likelyr} samples a finite collection of
+$\hat{\omega}$ values and constructs a corresponding collection of
+profile likelihood branches, which are later combined to approximate the
+integrated likelihood. The role of the $\hat{\omega}$ sampling scheme is
+twofold:
+\begin{enumerate}
+    \item \textbf{Exploration}: to cover different regions of the
+    constraint set $\{g(\theta) = \hat{\psi}\}$, including
+    symmetry-related configurations.
+    \item \textbf{Stability}: to preferentially select nuisance
+    configurations that lead to well-behaved profile likelihood branches.
+\end{enumerate}
+These objectives are in tension: overly aggressive exploration can lead
+to nuisance configurations that induce unstable or degenerate branches,
+while overly conservative sampling can fail to capture important
+variation in the nuisance structure.
 
-The sampling of $\hat{\omega}$ proceeds in two stages:
+\subsubsection{Generating Candidate $\hat{\omega}$ Values}
 
-1. Generation of an initial guess  
-2. Projection onto the constraint set
+The sampling of $\hat{\omega}$ proceeds in two stages: generation of an
+initial guess, followed by projection onto the constraint set.
 
-#### Initial Guess Generation
+\paragraph{Initial Guess Generation.}
+The initial guess generator produces candidate parameter vectors in the
+ambient space $\Theta$. These candidates are not required to satisfy the
+constraint $g(\theta) = \hat{\psi}$, but are intended to lie in regions
+of parameter space plausibly relevant for integrated likelihood
+inference. The generator typically combines recentering around the
+full-model MLE $\hat{\theta}$, perturbations within the tangent space of
+the constraint manifold at $\hat{\theta}$, and occasional global or
+symmetry-driven moves. The specific form is treated as a
+user-configurable component of the nuisance specification, allowing
+problem-specific structure to be encoded where available.
 
-The initial guess generator produces candidate parameter vectors in the ambient parameter space $\Theta$. These candidates are not required to satisfy the constraint $g(\theta)=\hat{\psi}$, but they are intended to lie in regions of parameter space that are plausibly relevant for integrated likelihood inference.
+\paragraph{Projection to a Feasible $\hat{\omega}$.}
+Given an initial guess, the algorithm computes a corresponding
+$\hat{\omega}$ by solving a constrained feasibility problem:
+\begin{equation}
+    \text{find } \hat{\omega} \quad \text{such that} \quad
+    g(\hat{\omega}) = \hat{\psi},
+\end{equation}
+along with any additional model constraints. This step does not optimize
+the likelihood; it projects the initial guess onto the constraint set
+using an augmented Lagrangian solver. Repeating this procedure yields a
+collection $\{\hat{\omega}^{(1)}, \ldots, \hat{\omega}^{(R)}\}$ of
+feasible nuisance configurations.
 
-The generator typically combines several mechanisms:
+In Case 1, this projection step directly produces a draw from
+$\Omega_{\hat{\psi}} \subset \Theta$. In Case 2, it produces a draw
+from the corresponding sphere in $\Delta^{J-1}$, from which a
+coefficient matrix is recovered via the rank-1 construction described
+above.
 
-- Recentering around the full-model MLE $\hat{\theta}$, which provides a natural reference point.
-- Perturbations within the tangent space of the constraint manifold at $\hat{\theta}$, when the gradient of $g$ is available. This encourages movement along directions that preserve $g(\theta)$ to first order.
-- Occasional global or symmetry-driven moves, which allow the algorithm to explore distinct but equivalent regions of the constraint set.
+\subsubsection{From $\hat{\omega}$ to Branch Modes}
 
-The specific form of the initial generator is treated as a user-configurable component of the nuisance specification, allowing different applications to encode problem-specific structure or invariances.
+Each $\hat{\omega}$ induces a distinct constrained optimization problem
+for the full parameter $\theta$. For fixed $\hat{\omega}$ and a given
+value of $\psi$, the branch is defined by
+\begin{equation} \label{eq:branch_evaluator}
+    \hat{\theta}(\psi; \hat{\omega}) = \underset{g(\theta) = \psi}
+    {\arg\max} \; \mathbb{E}_{\hat{\omega}}\bigl[\ell(\theta)\bigr],
+\end{equation}
+together with any additional constraints. The expected log-likelihood
+$\mathbb{E}_{\hat{\omega}}[\ell(\theta)]$ plays the role of the
+surrogate objective: rather than maximizing the observed log-likelihood
+directly---which would collapse all branches onto the profile
+likelihood---the algorithm maximizes the expectation of the
+log-likelihood under the nuisance configuration encoded by $\hat{\omega}$.
+This is precisely the construction of @severini2018, generalized
+to the implicit-parameter setting via \eqref{eq-ZSE_IL7}.
 
-#### Projection to a Feasible $\hat{\omega}$
+A critical implementation detail concerns the optimization variable in
+\eqref{eq:branch_evaluator}. In both cases, the quantity being
+optimized is $\theta$---the full model parameter---not $\hat{\omega}$.
+The role of $\hat{\omega}$ is solely to parametrize the surrogate
+objective: it enters through $\mathbb{E}_{\hat{\omega}}[\cdot]$ and is
+held fixed while the optimizer searches over $\theta$. In Case 1, where
+$\hat{\omega}$ and $\theta$ share the same space, $\hat{\omega}$ itself
+serves as a natural warm start for the optimizer. In Case 2, however,
+$\hat{\omega}$ is a probability vector of dimension $J$ while $\theta =
+\mathrm{vec}(B)$ has dimension $p(J-1)$; supplying $\hat{\omega}$ as a
+warm start would produce a dimension mismatch. Instead, the algorithm
+uses $\hat{\theta}_{\mathrm{MLE}}$ as the initial value for the
+optimizer in Case 2, since it is always a valid element of the model
+parameter space.
 
-Given an initial guess, the algorithm computes a corresponding $\hat{\omega}$ by solving a constrained optimization problem whose sole purpose is to enforce feasibility:
-$$
-\text{find } \hat{\omega} \quad \text{such that} \quad g(\hat{\omega}) = \hat{\psi},
-$$
-along with any additional constraints.
+Before tracing an entire branch, the algorithm first locates the
+\textbf{branch mode}, defined as
+\begin{equation}
+    \psi^{\ast}(\hat{\omega}) = \underset{\psi}{\arg\max} \;
+    \ell\!\bigl(\hat{\theta}(\psi; \hat{\omega})\bigr).
+\end{equation}
+In practice, this is found via a golden section search over the
+parameter of interest domain: a sequence of candidate $\psi$ values is
+evaluated by solving \eqref{eq:branch_evaluator} at each, and the
+$\psi$ that yields the highest observed log-likelihood is identified as
+the mode. The branch mode serves as the anchor point for constructing
+left and right profile likelihood branches and provides a natural
+reference for assessing local curvature and branch regularity. Only
+after a branch mode has been successfully located does the algorithm
+proceed to trace the profile likelihood curve outward in both directions
+from $\psi^{\ast}$.
 
-This step does not optimize the likelihood. Instead, it projects the initial guess onto the constraint set using an augmented Lagrangian solver. The resulting $\hat{\omega}$ is therefore a feasible nuisance configuration, not a likelihood maximizer.
+Throughout the outward traversal, solutions are chained: the optimizer
+at each grid point $\psi_k$ is initialized from $\hat{\theta}(\psi_{k-1};
+\hat{\omega})$, the solution at the previous step. This warm-start
+strategy exploits the continuity of $\hat{\theta}(\psi; \hat{\omega})$
+in $\psi$ and reduces the risk of the optimizer converging to a
+disconnected local optimum. As in the branch evaluation step, warm
+starts must lie in the model parameter space $\Theta$, not in the
+$\hat{\omega}$ space.
 
-Repeating this procedure yields a collection $\{\hat{\omega}^{(1)},\ldots,\hat{\omega}^{(R)}\}$ of nuisance configurations.
+\subsubsection{Branch Aggregation and Regularization}
 
----
-
-### From $\hat{\omega}$ to Branch Modes
-
-Each $\hat{\omega}$ induces a distinct constrained optimization problem for the full parameter $\theta$. Specifically, for fixed $\hat{\omega}$, the algorithm considers the expected log-likelihood
-$$
-Q(\theta;\hat{\omega}) = \mathbb{E}_{\hat{\omega}}\bigl[\ell(\theta)\bigr],
-$$
-where the expectation reflects the nuisance structure encoded by $\hat{\omega}$.
-
-For a given value of $\psi$, the branch is defined by solving
-$$
-\hat{\theta}(\psi;\hat{\omega})
-= \arg\max_{\theta}
-\; Q(\theta;\hat{\omega})
-\quad \text{subject to} \quad
-g(\theta) = \psi,
-$$
-together with any additional constraints.
-
----
-
-### Locating the Branch Mode
-
-Before constructing an entire profile likelihood branch, the algorithm first identifies the **branch mode**, defined as the value $\psi^{\ast}(\hat{\omega})$ at which the constrained expected log-likelihood is maximized:
-$$
-\psi^{\ast}(\hat{\omega})
-= \arg\max_{\psi}
-\; \ell\!\left(\hat{\theta}(\psi;\hat{\omega})\right).
-$$
-
-In practice, this step is implemented via a specialized *branch mode locator* that, for a fixed $\hat{\omega}$, simultaneously identifies:
-
-- the branch-mode value $\psi^{\ast}$,
-- the corresponding constrained maximizer $\hat{\theta}(\psi^{\ast};\hat{\omega})$,
-- and the observed log-likelihood evaluated at that point.
-
-The branch mode plays a central role in subsequent computations. It serves as the anchor point for constructing left and right profile likelihood branches and provides a natural reference for assessing local curvature and branch regularity.
-
-Only after a branch mode has been successfully located does the algorithm proceed to trace the profile likelihood curve away from $\psi^{\ast}$.
-
----
-
-### Remarks
-
-Several features of this construction are worth emphasizing:
-
-1. **Decoupling of feasibility and likelihood optimization**  
-   The sampling of $\hat{\omega}$ enforces only the defining constraint $g(\theta)=\hat{\psi}$. Likelihood maximization occurs later, conditional on $\hat{\omega}$.
-
-2. **Dependence of branch geometry on $\hat{\omega}$**  
-   Different nuisance configurations can induce substantially different branch shapes, even when they satisfy the same constraint on $\psi$.
-
-3. **Algorithmic modularity**  
-   The initial guess generator, the feasibility projection, and the branch-mode locator are treated as modular components. This design allows the algorithm to be adapted to a wide range of models while preserving a consistent conceptual structure.
-
-
-The integrated likelihood estimator implemented in likelyr implicitly relies on local quadratic approximations to the constrained likelihood. Nuisance configurations that fail to induce a unimodal, locally quadratic profile likelihood branch violate these assumptions and are therefore excluded from the Monte Carlo approximation. This truncation can be interpreted as a regularization of the nuisance integration measure, restricting attention to configurations for which the estimator is well-defined and numerically stable. Empirically, such configurations contribute negligibly in well-identified models and their exclusion substantially improves estimator stability.
-
+The integrated likelihood estimator implemented in \textit{likelyr}
+implicitly relies on local quadratic approximations to the constrained
+likelihood. Nuisance configurations that fail to induce a unimodal,
+locally quadratic profile likelihood branch violate these assumptions
+and are excluded from the Monte Carlo approximation. This truncation can
+be interpreted as a regularization of the nuisance integration measure,
+restricting attention to configurations for which the estimator is
+well-defined and numerically stable. Empirically, such configurations
+contribute negligibly in well-identified models, and their exclusion
+substantially improves estimator stability.
 
 
 
