@@ -165,11 +165,68 @@ $$
 $$
 Therefore, $$\text{E}_{\theta}\Bigg[\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] + \text{E}_{\theta}\Bigg[\Bigg(\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg)^2 \Bigg] = 0.$${#eq-BI3}
 
-@eq-BI2 is called the second Bartlett identity. Any function that satisfies it is said to be *information-unbiased*. Regular models as we have defined them will automatically satisfy both the first and second Bartlett identities. Hence, for any regular model, the statements in @eq-exp_information1, @eq-BI2, and @eq-BI3 imply that the following definitions for its expected information regarding its parameter $\theta$ are all equivalent: $$\mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\big[\mathcal{I}_X(\theta)\big].$${#eq-BI4} 
+@eq-BI2 is called the second Bartlett identity. Any function that satisfies it is said to be *information-unbiased*. Regular models as we have defined them will automatically satisfy both the first and second Bartlett identities. Hence, for any regular model, the statements in @eq-exp_information1, @eq-BI2, and @eq-BI3 imply that the following definitions for its expected information regarding its parameter $\theta$ are all equivalent: 
+$$\mathscr{I}_{X}(\theta) = \text{Var}_{\theta}\Bigg[\frac{\partial}{\partial \theta} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\Bigg[\bigg (\frac{\partial}{\partial \theta}\ell(\theta; X) \bigg)^2\Bigg] = \text{E}_{\theta}\Bigg[-\frac{\partial^2}{\partial \theta^2} \ell(\theta; X)\Bigg] = \text{E}_{\theta}\big[\mathcal{I}_X(\theta)\big].
+$${#eq-BI4} 
 
 It is possible to derive further Bartlett identities by continuing in this manner for an arbitrary number of partial $\theta$-derivatives of the log-likelihood function, provided that they exist. However, the first two are sufficient for our purposes of evaluating the validity of approximations to genuine likelihoods so we will not go further here. While the above derivations were performed under the assumption that $\theta$ is a scalar, the Bartlett identities also hold in the case where $\symbf{\theta}$ is a $d \times 1$ vector.
 
-\section{Laplace's Method}
+\section{Laplace's Method}\label{appendix:laplace}
+
+Laplace's method approximates integrals of the form
+$$
+I = \int_{\mathbbm{R}^d} \exp\{f(\mathbf{u})\}\, d\mathbf{u}
+$$
+where $f : \mathbbm{R}^d \to \mathbbm{R}$ is smooth and has a unique global maximum at $\hat{\mathbf{u}}$. Expanding $f$ to second order around $\hat{\mathbf{u}}$, we have
+$$
+\begin{aligned}
+f(\mathbf{u}) &\approx f(\hat{\mathbf{u}}) + (\mathbf{u} - \hat{\mathbf{u}})^\top\nabla f(\hat{\mathbf{u}}) + \tfrac{1}{2}(\mathbf{u} - \hat{\mathbf{u}})^\top \nabla^2 f(\hat{\mathbf{u}}) (\mathbf{u} - \hat{\mathbf{u}}) \\ &= f(\hat{\mathbf{u}}) + \tfrac{1}{2}(\mathbf{u} - \hat{\mathbf{u}})^\top \nabla^2 f(\hat{\mathbf{u}}) (\mathbf{u} - \hat{\mathbf{u}}),
+\end{aligned}
+$$
+where the linear term vanishes because $\hat{\mathbf{u}}$ maximizes $f$, so $\nabla f(\hat{\mathbf{u}}) = \mathbf{0}$ by first-order optimality. Substituting and integrating the resulting Gaussian yields
+$$
+I \approx (2\pi)^{d/2} \lvert {-\nabla^2 f(\hat{\mathbf{u}})} \rvert^{-1/2} \exp\{f(\hat{\mathbf{u}})\},
+$$
+so that
+$$
+\log I \approx f(\hat{\mathbf{u}}) + \tfrac{d}{2}\log(2\pi) - \tfrac{1}{2}\log\lvert {-\nabla^2 f(\hat{\mathbf{u}})} \rvert.
+$${#eq-laplace-general}
+The approximation is exact when $f$ is quadratic, and has relative error $O(n^{-1})$ in general, where $n$ is the effective sample size driving the concentration of $\exp\{f\}$ around $\hat{\mathbf{u}}$. @Tierney1986 showed that for integrals arising in Bayesian computation --- specifically, ratios of the form
+$$
+\frac{\int g(\mathbf{u}) \exp\{n\,\ell(\mathbf{u})\}\,d\mathbf{u}}{\int \exp\{n\,\ell(\mathbf{u})\}\,d\mathbf{u}}
+$$
+--- the relative error improves to $O(n^{-2})$ under mild regularity conditions, because certain odd-order error terms cancel in the ratio.
+
+\subsection{Application to the Random Effects Multinomial Model}\label{appendix:laplace-re}
+
+For notational compactness, let $\textbf{C} = [\textbf{A} \mid \textbf{B}] \in \mathbbm{R}^{p \times (J-1)}$ denote the full coefficient matrix and let $\tilde{\symbf{x}}_{it} = (1, \symbf{x}_{it}^\top)^\top$ denote the design vector with intercept prepended, so that the linear predictor for observation $(i,t)$ is $\textbf{C}^\top \tilde{\symbf{x}}_{it} + \symbf{u}_i$. The cluster-level integral from @eq-cluster-likelihood has the form $\int \exp\{g_i(\mathbf{u})\}\,d\mathbf{u}$, where
+$$
+g_i(\mathbf{u}) = \sum_{t=1}^{m_i} \sum_{j=1}^{J} y_{itj} \log \theta_j(\tilde{\symbf{x}}_{it}; \textbf{C}, \mathbf{u}) - \tfrac{1}{2} \mathbf{u}^\top \symbf{\Sigma}^{-1} \mathbf{u},
+$${#eq-laplace-gi}
+obtained by writing $\phi(\mathbf{u}_i; \mathbf{0}, \symbf{\Sigma}) = (2\pi)^{-(J-1)/2} |\symbf{\Sigma}|^{-1/2} \exp\{-\tfrac{1}{2}\mathbf{u}_i^\top \symbf{\Sigma}^{-1} \mathbf{u}_i\}$ and absorbing the normalizing constants. Note that $g_i(\mathbf{u})$ is precisely the complete-data log-likelihood $\ell_{\mathrm{c}}$ from @eq-complete-data-loglik evaluated at cluster $i$, minus the log-prior on $\mathbf{u}_i$. The Laplace approximation therefore approximates the log of the marginal likelihood — the log-outside-the-integral quantity from @eq-random-effects-loglikelihood — by evaluating the log-inside-the-integral quantity $g_i$ at its mode and correcting for curvature. The mode $\hat{\mathbf{u}}_i = \operatorname{argmax}_{\mathbf{u}}\, g_i(\mathbf{u})$ is the posterior mode of $\mathbf{u}_i$ given cluster $i$'s observations and $\textbf{C}$. Differentiating @eq-laplace-gi twice with respect to $\mathbf{u}$ and evaluating at $\hat{\mathbf{u}}_i$ gives the negative Hessian
+$$
+-\nabla^2 g_i(\hat{\mathbf{u}}_i) = \sum_{t=1}^{m_i} \mathbf{W}_t(\hat{\mathbf{u}}_i) + \symbf{\Sigma}^{-1},
+$${#eq-laplace-hessian}
+where
+$$
+\mathbf{W}_t = \operatorname{diag}(\symbf{\pi}_t) - \symbf{\pi}_t \symbf{\pi}_t^\top, \quad \symbf{\pi}_t = \bigl(\theta_2(\tilde{\symbf{x}}_{it}; \textbf{C}, \hat{\mathbf{u}}_i), \dots, \theta_J(\tilde{\symbf{x}}_{it}; \textbf{C}, \hat{\mathbf{u}}_i)\bigr)^\top
+$$
+is the multinomial covariance matrix of the non-baseline fitted probabilities at the posterior mode. The term $\symbf{\Sigma}^{-1}$ reflects the curvature of the random effects prior and $\sum_t \mathbf{W}_t$ reflects the curvature of the data likelihood; together they determine the sharpness of the posterior around $\hat{\mathbf{u}}_i$. Applying @eq-laplace-general with $d = J - 1$ and canceling the $(2\pi)^{(J-1)/2}$ factors from the normalizing constant of $\phi$ yields
+$$
+\log L_i(\textbf{C}, \symbf{\Sigma}) \approx g_i(\hat{\mathbf{u}}_i) - \tfrac{1}{2}\log|\symbf{\Sigma}| - \tfrac{1}{2}\log\Bigl\lvert \textstyle\sum_{t} \mathbf{W}_t(\hat{\mathbf{u}}_i) + \symbf{\Sigma}^{-1} \Bigr\rvert.
+$${#eq-laplace-approx}
+
+When $\textbf{C}$ is treated as variable rather than fixed, the gradient of $\log I$ with respect to $\textbf{C}$ requires accounting for the dependence of $\hat{\mathbf{u}}_i(\textbf{C})$ on $\textbf{C}$ through the implicit equation $\nabla_{\mathbf{u}} g_i(\hat{\mathbf{u}}_i; \textbf{C}) = \mathbf{0}$. By the implicit function theorem,
+$$
+\frac{d\hat{\mathbf{u}}_i}{d\textbf{C}} = -\bigl[\nabla^2_{\mathbf{u}} g_i(\hat{\mathbf{u}}_i)\bigr]^{-1} \nabla_{\textbf{C}} \nabla_{\mathbf{u}} g_i(\hat{\mathbf{u}}_i).
+$$
+The standard approximation from @breslow1993 sets $d\hat{\mathbf{u}}_i / d\textbf{C} = 0$, treating the posterior mode as fixed when differentiating with respect to $\textbf{C}$. Under this approximation the gradient of $\ell^{\mathrm{LA}}$ with respect to $\textbf{C}$ reduces to
+$$
+\nabla_{\textbf{C}} \ell^{\mathrm{LA}}(\textbf{C}, \symbf{\Sigma}) \approx \sum_{i=1}^n \sum_{t=1}^{m_i} \tilde{\symbf{x}}_{it} \bigl(\mathbf{Y}_{it} - \symbf{\pi}_{it}\bigr)^\top,
+$${#eq-laplace-grad}
+where $\mathbf{Y}_{it} \in \{0,1\}^{J-1}$ is the response indicator vector with the baseline category dropped and $\symbf{\pi}_{it} = \symbf{\pi}_t(\hat{\mathbf{u}}_i)$ is the corresponding vector of non-baseline fitted probabilities at the posterior mode. Gradients with respect to $\textbf{A}$ and $\textbf{B}$ are the corresponding row submatrices of $\nabla_{\textbf{C}} \ell^{\mathrm{LA}}$. The expression in @eq-laplace-grad has the same form as the score of an ordinary multinomial logistic regression, with $\hat{\mathbf{u}}_i$ acting as a cluster-level offset in the linear predictor. The approximation error is $O(m_i^{-1})$ per cluster, matching the order of the Laplace approximation itself.
+
+In the context of this paper, @eq-laplace-grad is used in two places: in estimation of $\textbf{C}$, where it drives the optimization of $\ell^{\mathrm{LA}}$ with respect to the fixed effects, and in the computation of profile and integrated likelihoods, where it is supplied to the constrained optimizer at each point of the $\psi$ grid. In the former case an inexact gradient affects the path to convergence but not the solution itself, since convergence is assessed by the log-likelihood value. In both cases the approximation is unlikely to be consequential for the designs considered in the simulation study.
 
 \section{Properties of the Integrated Likelihood}
 

@@ -1,327 +1,237 @@
-\chapter{Methodology}
+\chapter{Integrated Likelihood Inference}\label{ch:methodology}
 
-\section{The Zero-Score Expectation Parameter}
+\section{Overview}
 
-@severini2007 considered the problem of selecting a weight function $\pi(\lambda|\psi)$ such that when the likelihood function is integrated with respect to this density over the nuisance parameter space, the result is useful for non-Bayesian inference. To do this, he outlined four properties (see Appendix \ref{appendix:B}) that an integrated likelihood must satisfy if it is to be of any use and went on to show that such a function could be obtained by doing the following:
-\begin{enumerate}[label = \arabic*)]
-  \item Find a reparameterization $(\psi, \lambda) \mapsto (\psi, \phi)$ of the model such that the new nuisance parameter $\phi$ is unrelated to $\psi$ in the sense that $\hat{\phi}_{\psi} = \hat{\phi}$; that is, the conditional maximum likelihood estimate of $\phi$ given $\psi$ is simply equal to the unrestricted maximum likelihood estimate of $\phi$.
-  \item Select a prior density $\pi(\lambda|\psi)$ such that when the model undergoes the above reparameterization, the resulting prior density $\pi(\phi)$ does not depend on $\psi$.
-\end{enumerate}
-An integrated likelihood function for $\psi$ that possesses the desired properties will then be given by $$\bar{L}(\psi) = \int_{\Phi} \tilde{L}(\psi, \phi) \pi(\phi) d\phi,$${#eq-ZSE_IL1} where $\tilde{L}(\psi, \phi)$ is the likelihood function for the model after it has been reparameterized in terms of $\phi$. The exact choice of prior density for $\phi$ is not particularly important; the only restriction placed upon it is that it must not depend on $\psi$. Hence, the crux of the matter really lies in completing the first step. The approach taken by @severini2007 is to define a new nuisance parameter $\phi$ as the solution to the equation $$\text{E}_{(\psi_0, \lambda_0)}\Big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{X}_n)\Big]\Bigg|_{(\psi_0, \lambda_0) = (\hat{\psi}, \phi)} = \mathbf{0},$${#eq-ZSE_IL2} where $\psi_0$ and $\lambda_0$ denote the true values of $\psi$ and $\lambda$, and $\hat{\psi}$ is the unrestricted MLE for $\psi_0$. The expectation here is being taken with respect to the data $\mathbf{X}_n = \mathbf{x}_n$ and not the parameters themselves. @eq-ZSE_IL2 can thus be rewritten as $$I(\psi, \lambda, \hat{\psi}, \phi) = \mathbf{0},$$ where $$I(\psi, \lambda, \psi_0, \lambda_0) = \int_{\mathbbm{R}^n} \big[\nabla_{\lambda}\ell(\psi, \lambda; \mathbf{x}_n)\big] p(\mathbf{x}_n; \psi_0, \lambda_0))d\mathbf{x}_n.$$
+The preceding chapter established the integrated likelihood as a
+principled approach to eliminating nuisance parameters from inference,
+provided an appropriate weight function can be identified. This chapter
+develops a general computational procedure for approximating the
+integrated likelihood in models where the nuisance parameter is
+high-dimensional and the integration cannot be carried out in closed
+form. The procedure is built on the zero-score-expectation (ZSE)
+parameterization of @severini2007 and @severini2018, which provides a
+canonical choice of weight function with favorable frequentist
+properties. Subsequent chapters specialize this general procedure to
+specific models and parameters of interest.
 
-Assuming $I$ is invertible, for a particular value of $(\psi, \lambda, \hat{\psi})$, there will be a unique value of $\phi$ that solves @eq-ZSE_IL2. $\phi$ is called the *zero-score expectation* (ZSE) parameter because it is defined as the value that makes the expectation of the score function (in terms of $\lambda$, not the full parameter) with respect to $p(\mathbf{x}_n; \psi_0, \lambda_0)$ evaluated at the point $(\psi_0, \lambda_0) = (\hat{\psi}, \phi)$ equal to zero. This means that $\phi$ is really a function of $(\psi, \lambda, \hat{\psi})$, i.e., $\phi = \phi(\psi, \lambda, \hat{\psi})$. This in turn implies that $\phi$ is a function of the data through $\hat{\psi}$. Normally we try to avoid creating such dependencies in our parameters as it renders them useless for the purpose of parameterizing a statistical model. However, from the perspective of the likelihood function, once the data have been collected they are considered fixed in place and there is no issue with using a quantity such as $\phi$ that depends on the data to parameterize it.
+Throughout this chapter we work with a generic model parameterized by
+$\theta \in \Theta$ and a scalar parameter of interest
+$\psi = \varphi(\theta)$ for some function $\varphi: \Theta \to
+\mathbbm{R}$. We denote the unrestricted MLE by $\hat{\theta}$, the
+induced MLE for $\psi$ by $\hat{\psi} = \varphi(\hat{\theta})$, and the
+constrained parameter space at a fixed value of $\psi$ by
+$\Theta(\psi) = \{\theta \in \Theta : \varphi(\theta) = \psi\}$.
 
-For a given value of $\phi$, the corresponding value of $\lambda$ can be found by $$\lambda(\psi, \phi) = \underset{\lambda \in \Lambda}{\mathrm{argmax}} \> \text{E}_{(\hat{\psi}, \phi)}\big[\ell(\psi, \lambda; \mathbf{X}_n)\big].$${#eq-ZSE_IL3} For a certain choice of prior density $\pi(\phi)$, this allows us to write @eq-ZSE_IL1 in terms of $L(\psi, \lambda)$: $$\bar{L}(\psi) = \int_{\Phi} L(\psi, \lambda(\psi, \phi)) \pi(\phi) d\phi.$${#eq-ZSE_IL4} 
+\section{The Zero-Score Expectation Parameterization}
 
-\section{Explicit Parameters of Interest}
+\subsection{Explicit nuisance parameters}
 
-\section{Implicit Parameters of Interest}
+@severini2007 considered the problem of selecting a weight function
+$\pi(\lambda \mid \psi)$ for the integrated likelihood
+$$
+\bar{L}(\psi) = \int_\Lambda L(\psi, \lambda)\, \pi(\lambda \mid \psi)\, d\lambda
+$$
+such that the resulting integrated likelihood possesses well-defined
+frequentist properties. He showed that a suitable weight function can be
+constructed by identifying a reparameterization $(\psi, \lambda)
+\mapsto (\psi, \phi)$ of the nuisance parameter with the property that
+$\hat{\phi}_\psi = \hat{\phi}$ --- that is, the conditional MLE of
+$\phi$ given $\psi$ equals its unrestricted MLE --- and then choosing a
+prior $\pi(\phi)$ that does not depend on $\psi$. An integrated
+likelihood with the desired properties is then
+$$
+\bar{L}(\psi) = \int_\Phi \tilde{L}(\psi, \phi)\, \pi(\phi)\, d\phi,
+$${#eq-ZSE-IL-explicit}
+where $\tilde{L}(\psi, \phi)$ is the likelihood after reparameterization.
+The specific choice of $\pi(\phi)$ is secondary; the key requirement is
+that it not depend on $\psi$.
 
-The procedure described in the previous section is based on the assumption that $\lambda$ is an explicit nuisance parameter so that taking partial derivatives of $\ell$ with respect to its components is a well-defined operation. However, @severini2018 proved that reparameterizing the model in terms of the ZSE parameter yields the same nice properties in the subsequent integrated likelihood when $\psi$ and $\lambda$ are implicit as well. In this section, we consider an approach to approximating the integrated likelihood function that has been adapted from this method.
+The reparameterization is achieved by defining $\phi$ as the solution to
+$$
+\mathrm{E}_{(\psi_0, \lambda_0)}\!\left[\nabla_\lambda\,
+\ell(\psi, \lambda;\, \mathbf{X}_n)\right]
+\Bigg|_{(\psi_0,\, \lambda_0)\,=\,(\hat{\psi},\, \phi)} = \mathbf{0},
+$${#eq-ZSE-condition}
+where the expectation is taken with respect to the data distribution
+evaluated at the true parameter values $(\psi_0, \lambda_0) =
+(\hat{\psi}, \phi)$. The quantity $\phi$ is called the
+\emph{zero-score-expectation parameter} because it is defined as the
+nuisance value at which the expected score for $\lambda$ vanishes. Since
+$\phi$ satisfies @eq-ZSE-condition for a given $(\psi, \lambda,
+\hat{\psi})$, it is implicitly a function of the data through $\hat{\psi}$.
+Once $\phi$ is determined, the corresponding nuisance parameter value
+is recovered as
+$$
+\lambda(\psi, \phi) = \underset{\lambda \in \Lambda}{\mathrm{argmax}}\;
+\mathrm{E}_{(\hat{\psi},\, \phi)}\!\left[\ell(\psi, \lambda;\,
+\mathbf{X}_n)\right],
+$${#eq-ZSE-lambda}
+and @eq-ZSE-IL-explicit can be written entirely in terms of the
+original parameterization:
+$$
+\bar{L}(\psi) = \int_\Phi L\!\left(\psi,\, \lambda(\psi, \phi)\right)
+\pi(\phi)\, d\phi.
+$${#eq-ZSE-IL-explicit2}
 
-Consider a model with parameter $\theta \in \Theta$ and implicit parameter of interest $\psi = \varphi(\theta)$ for some function $\varphi: \Theta \to \mathbbm{R}$. @eq-ZSE_IL4 tells us that we can calculate the integrated likelihood for $\psi$ if we know the value of $\theta$ corresponding to a given value of the ZSE parameter, and this will be true for models with both explicit and implict parameters. Let $\hat{\psi} = \varphi(\hat{\theta})$ denote the unrestricted MLE for $\psi$ and define the set $$\Omega_{\psi} = \Big\{\omega \in \Theta: \varphi(\omega) = \psi\Big\}.$${#eq-ZSE_IL6} Then an element of $\Omega_{\hat{\psi}}$ for a model without an explicit nuisance parameter is functionally equivalent to a value $(\hat{\psi}, \phi)$ for a model with an explicit nuisance parameter.
+\subsection{Implicit nuisance parameters}
 
-Generalizing the result in @eq-ZSE_IL3, for a given element $\omega \in \Omega_{\hat{\psi}}$, the corresponding value of $\theta$ is that which maximizes $\text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big]$ subject to the restriction that $\varphi(\theta) = \psi$. This allows us to define a function $T_{\psi}: \Omega_{\hat{\psi}} \to \Theta(\psi)$ such that $T_{\psi}(\omega) = \underset{\theta \in \Theta(\psi)}{\mathrm{argmax}} \> \text{E}_{\omega}\big[\ell(\theta; \mathbf{X}_n)\big]$. The integrated likelihood for $\psi$ is then given by $$\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L\big(T_{\psi}(\omega)\big)\pi(\omega)d\omega,$${#eq-ZSE_IL7} where $\pi(\omega)$ is a density defined on $\Omega_{\hat{\psi}}$.
+@severini2018 extended the ZSE construction to settings where $\psi$ is
+an implicit function of a single model parameter $\theta$, with no
+explicit separation into interest and nuisance components. In this
+setting, the role of the ZSE nuisance value $\phi$ is played by a point
+$\omega$ on the level set
+$$
+\Omega_{\hat{\psi}} = \left\{\omega \in \Theta : \varphi(\omega) =
+\hat{\psi}\right\},
+$${#eq-level-set}
+and @eq-ZSE-lambda generalizes to
+$$
+\theta^*(\psi, \omega) = \underset{\varphi(\theta)\,=\,\psi}{\mathrm{argmax}}\;
+\mathrm{E}_\omega\!\left[\ell(\theta;\, \mathbf{X}_n)\right].
+$${#eq-ZSE-theta}
+The integrated likelihood for $\psi$ is then
+$$
+\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} L\!\left(\theta^*(\psi, \omega)
+\right) \pi(\omega)\, d\omega,
+$${#eq-ZSE-IL-implicit}
+where $\pi(\omega)$ is a density on $\Omega_{\hat{\psi}}$ that does not
+depend on $\psi$. The expression in @eq-ZSE-IL-implicit is the
+central object of interest in this paper.
 
-@eq-ZSE_IL7 can also be written as $$\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(W)\big)\Big],$${#eq-ZSE_IL8} where $W$ represents a random variable with density $\pi(\omega)$. We can further define a function $Q: \mathcal{U} \to \Omega_{\hat{\psi}}$ for some set $\mathcal{U}$ such that if $U$ is a random variable taking values in $\mathcal{U}$, then $Q(U)$ will be a random variable in $\Omega_{\hat{\psi}}$ with a distribution that is completely determined by our choice of $U$. Therefore, $$\bar{L}(\psi) = \text{E}_{\omega}\Big[L\big(T_{\psi}(Q(U))\big)\Big]$${#eq-ZSE_IL8} is an integrated likelihood for $\psi$ with a weight function corresponding to the density of $Q(U)$. 
+\section{Branches and the Profile Likelihood}
 
-Define $$\tilde{L}(u; \psi) = L(T_{\psi}(Q(u)), \> u \in \mathcal{U}.$${#eq-ZSE_IL9} Then we simply have $\overset{\sim}{L}(u; \psi) = L(\symbf{\theta})$, with $\symbf{\theta}$ taken to be $T_{\psi}(Q(u))$. $\overset{\sim}{L}(u; \psi)$ will be a genuine likelihood for the parameter $(u, \psi)$ provided that there always exists a value $(u, \psi)$ such that $T_{\psi}(Q(u)) = \symbf{\theta}_0$ for any possible value of $\symbf{\theta}_0$. A sufficient condition for this to occur is that for any $\psi \in \Psi$, $T_{\psi}(Q(\mathcal{U})) = \Omega_{\psi}$.
+\subsection{Branch functions}
 
-We can then write the integrated likelihood for $\psi$ in terms of $\overset{\sim}{L}(u; \psi)$ as follows: $$\bar{L}(\psi) = \int_{\mathcal{U}} \tilde{L}(u; \psi)\check{\pi}(u)du,$${#eq-ZSE_IL10} where $\check{\pi}(u)$ is a density on $\mathcal{U}$ of our choosing. If $\check{\pi}(u)$ doesn't depend on $\psi$, the integrated likelihood given by @eq-ZSE_IL10 will have the properties we desire.
+The integrand in @eq-ZSE-IL-implicit assigns to each $\omega \in
+\Omega_{\hat{\psi}}$ a likelihood value $L(\theta^*(\psi, \omega))$,
+obtained by evaluating the likelihood at the parameter value
+$\theta^*(\psi, \omega)$ that maximizes the expected log-likelihood
+subject to $\varphi(\theta) = \psi$. We refer to the function
+$$
+b(\psi;\, \omega) = L\!\left(\theta^*(\psi, \omega)\right),
+\quad \psi \in \Psi,
+$${#eq-branch-fn}
+as the \emph{branch function} associated with $\omega$. Each $\omega
+\in \Omega_{\hat{\psi}}$ induces a distinct branch function, and the
+integrated likelihood is the average of these branch functions over the
+level set:
+$$
+\bar{L}(\psi) = \int_{\Omega_{\hat{\psi}}} b(\psi;\, \omega)\,
+\pi(\omega)\, d\omega.
+$${#eq-IL-branches}
+The profile likelihood is the special case in which $\omega =
+\hat{\omega}_{\mathrm{MLE}}$ --- the point on $\Omega_{\hat{\psi}}$
+induced by the unrestricted MLE --- and the expected log-likelihood
+reduces to the observed log-likelihood. In this case $\theta^*(\psi,
+\hat{\omega}_{\mathrm{MLE}}) = \hat{\theta}(\psi)$, the constrained
+MLE at $\psi$, and $b(\psi;\, \hat{\omega}_{\mathrm{MLE}}) =
+L_P(\psi)$ is the profile likelihood. The integrated likelihood can
+therefore be interpreted as a weighted average of profile-like
+likelihood curves, each anchored at a different point on the level set.
 
-We can further rewrite @eq-ZSE_IL10 as $$\bar{L}(\psi) = \int_{\Theta} \frac{\tilde{L}(u; \psi)}{\check{L}(u)} \check{L}(u)\check{\pi}(u)du,$${#eq-ZSE_IL11} where $\check{L}(u)$ represents an arbitrary likelihood function for the "parameter" $u$. From a Bayesian point of view, the quantity $\check{L}(u)\check{\pi}(u)$ can then be thought of as a posterior density for $u$ up to some proportionality constant. If $\check{\pi}(u)$ is chosen to be a conjugate prior for $\check{L}(u)$ such that the posterior density $\check{L}(u)\check{\pi}(u)$ has the same form as $\check{L}$ itself, and $\check{L}$ is chosen to be a known distribution, then random samples can be drawn directly from this posterior density using modern statistical computing packages. Alternatively, it may also be possible to obtain random samples from the posterior density through Monte Carlo methods such as importance sampling or MCMC.  
+\subsection{The branch mode}
 
-In either case, once random variates $u_1, ..., u_R$ have been sampled from $\check{L}(u)\check{\pi}(u)$, a simple empirical estimate to $\bar{L}(\psi)$ at a particular value of $\psi$ is given by $$\hat{\bar{L}}(\psi) = \frac{1}{R} \sum_{i = 1}^R \frac{\tilde{L}(u_i; \psi)}{\check{L}(u_i)}.$${#eq-ZSE_IL12} Repeating this procedure for every value of $\psi \in \Psi$ will give an overall shape for $\hat{\bar{L}}(\psi)$, which can be used to conduct inference for $\psi_0$ without interference from a nuisance parameter.
+For a given $\omega$, the branch function $b(\psi;\, \omega)$ has a
+maximum over $\psi \in \Psi$, which we call the \emph{branch mode}:
+$$
+\psi^*(\omega) = \underset{\psi \in \Psi}{\mathrm{argmax}}\;
+b(\psi;\, \omega).
+$${#eq-branch-mode}
+The branch mode is the value of $\psi$ at which the likelihood is
+highest along the constrained path parametrized by $\omega$. For the
+profile likelihood branch, $\psi^*(\hat{\omega}_{\mathrm{MLE}}) =
+\hat{\psi}$ by construction. For other branches the mode may differ from
+$\hat{\psi}$, reflecting the fact that different nuisance configurations
+are compatible with different values of the parameter of interest.
 
-\section{Monte Carlo Approximation of the Integrated Likelihood}
+\section{Monte Carlo Approximation}
 
-\subsection{Omega-Hat Sampling and Branch-Mode Construction}
+\subsection{The approximation problem}
 
-\subsubsection{Overview}
+Direct evaluation of @eq-IL-branches requires integration over
+$\Omega_{\hat{\psi}}$, which is a manifold of dimension $\dim(\Theta) -
+1$ in general. In high-dimensional models this integration is
+intractable, and we instead approximate it by a Monte Carlo average over
+a finite collection of $\omega$ values sampled from $\Omega_{\hat{\psi}}$:
+$$
+\bar{L}(\psi) \approx \frac{1}{R} \sum_{r=1}^R b(\psi;\, \omega^{(r)}),
+$${#eq-IL-MC}
+where $\omega^{(1)}, \dots, \omega^{(R)}$ are draws from a distribution
+supported on $\Omega_{\hat{\psi}}$. The quality of the approximation
+depends on (i) how densely and representatively the draws cover the
+level set and (ii) whether the branch functions associated with the
+drawn $\omega$ values are well-behaved.
 
-Integrated likelihood inference in this work proceeds by marginalizing
-over nuisance configurations that are compatible with a fixed value of
-the parameter of interest. In models where the nuisance parameter is
-high-dimensional and subject to nonlinear constraints, direct
-integration is infeasible. Instead, the \textit{likelyr} framework
-approximates the integrated likelihood using a Monte Carlo--style
-construction based on a collection of constrained profile likelihood
-branches.
+\subsection{Sampling omega-hat values}
 
-Each branch corresponds to a particular realization of an auxiliary
-nuisance configuration, denoted $\hat{\omega}$, which satisfies a
-defining constraint on the parameter of interest. The quality of the
-integrated likelihood approximation therefore depends critically on (i)
-how these $\hat{\omega}$ values are generated and (ii) how the
-corresponding profile likelihood branches are constructed.
+Sampling from $\Omega_{\hat{\psi}}$ proceeds in two stages. First, an
+initial candidate in the ambient parameter space $\Theta$ is generated
+by perturbing the MLE $\hat{\theta}$ in directions tangent to the level
+set. Second, the candidate is projected onto $\Omega_{\hat{\psi}}$ by
+solving a constrained feasibility problem with respect to $\psi$. The
+projection does not optimize the likelihood; it simply finds a feasible
+point consistent with the observed $\hat{\psi}$. The design of the
+initial generator is problem-specific and is discussed in detail for
+each model in the chapters that follow.
 
-\subsubsection{Definition of $\hat{\omega}$}
+\subsection{Evaluating branch functions}
 
-Let $\theta \in \Theta \subset \mathbb{R}^d$ denote the full parameter
-vector of the model, and let $\psi = g(\theta)$ be the scalar parameter
-of interest. The maximum likelihood estimate of $\psi$ is denoted
-$\hat{\psi}$.
+For each sampled $\omega^{(r)}$, the branch function $b(\psi;\,
+\omega^{(r)})$ is evaluated over a grid of $\psi$ values. At each grid
+point $\psi_k$, the branch value is computed by solving
+@eq-ZSE-theta --- maximizing the expected log-likelihood subject to the
+constraint $\varphi(\theta) = \psi_k$ --- and evaluating the likelihood
+at the resulting $\theta^*(\psi_k, \omega^{(r)})$. Solutions are chained
+across the grid: the optimizer at $\psi_k$ is initialized from the
+solution at $\psi_{k-1}$, exploiting the continuity of $\theta^*(\psi;\,
+\omega)$ in $\psi$.
 
-An \textit{omega-hat} value, $\hat{\omega}$, is defined as a point in
-the parameter space $\Theta$ satisfying
-\begin{equation}
-    g(\hat{\omega}) = \hat{\psi},
-\end{equation}
-along with any equality, inequality, or bound constraints imposed by the
-model specification. Importantly, $\hat{\omega}$ is \textbf{not}
-required to maximize the likelihood. Instead, it represents a feasible
-nuisance configuration consistent with the observed estimate of the
-parameter of interest.
+Before tracing a branch across the full grid, the algorithm first
+locates the branch mode $\psi^*(\omega^{(r)})$ via a one-dimensional
+search. The branch is then traced outward in both directions from the
+mode until the branch value falls below a threshold determined by the
+confidence levels of interest.
 
-The collection of all such $\hat{\omega}$ values forms a constrained
-manifold in parameter space. Integrated likelihood inference proceeds by
-averaging, in an approximate sense, over likelihood contributions
-associated with different points on this manifold.
+\subsection{Branch screening}
 
-\subsubsection{The Role of the Parameter Space: Two Structural Cases}
+Not all sampled $\omega$ values yield well-behaved branch functions. A
+branch is considered valid if it has a unique interior mode, decreases
+monotonically on each side of the mode, and does not exhibit
+discontinuities or anomalous curvature. Draws that fail these criteria
+are discarded before the integrated likelihood is assembled. This
+screening step can be interpreted as a regularization of the integration
+measure: by restricting attention to well-behaved nuisance
+configurations, the approximation is made more stable at the cost of a
+slight bias in the weight function. The specific screening criteria are
+discussed in the context of each model in the chapters that follow.
 
-A key distinction in the implementation of this framework concerns
-whether $\hat{\omega}$ and the model parameter $\theta$ inhabit the
-same space. This distinction has substantial consequences for both the
-computational structure and the statistical interpretation of the
-resulting integrated likelihood.
+\subsection{Assembling the integrated likelihood}
 
-\paragraph{Case 1: $\hat{\omega}$ and $\theta$ share the same space.}
-In the simplest setting---exemplified by the baseline multinomial model
-with parameter $\theta \in \Delta^{J-1}$---the model parameter is
-itself a probability vector, and the constraint set $\{g(\theta) =
-\hat{\psi}\}$ is a manifold within the same ambient space. In this
-case, $\hat{\omega}$ is drawn directly from $\Omega_{\hat{\psi}} =
-\{\omega \in \Delta^{J-1} : g(\omega) = \hat{\psi}\}$, and the expected
-log-likelihood is
-\begin{equation}
-    \mathbb{E}_{\hat{\omega}}[\ell(\theta)] =
-    n \sum_{j=1}^J \hat{\omega}_j \log \theta_j,
-\end{equation}
-which is straightforwardly maximized subject to $g(\theta) = \psi$ by a
-constrained optimization over $\theta \in \Delta^{J-1}$.
+Valid branch functions are evaluated on a common $\psi$ grid and
+averaged pointwise to form the integrated likelihood approximation
+@eq-IL-MC. The profile likelihood is constructed from the single branch
+corresponding to $\hat{\omega}_{\mathrm{MLE}}$ and provides a baseline
+for comparison. Confidence intervals for $\psi$ are obtained by
+inverting the likelihood ratio statistic against both the integrated and
+profile likelihoods, using the standard $\chi^2_1$ reference
+distribution.
 
-Because $\hat{\omega}$ and $\theta$ are the same type of object, the
-unconstrained maximizer of $\mathbb{E}_{\hat{\omega}}[\ell(\theta)]$
-over $\theta$ is precisely $\hat{\omega}$ itself, by the information
-inequality. It follows that at $\psi = \hat{\psi}$, the constrained
-maximizer of the expected log-likelihood is $\hat{\omega}$, and when
-$\hat{\omega} = \hat{\theta}$ (the MLE), the branch evaluated at
-$\hat{\psi}$ returns $\ell(\hat{\theta})$---the unconstrained maximum
-of the observed log-likelihood. The profile likelihood therefore
-achieves its maximum exactly at $\hat{\psi}$, and the surrogate
-objective is fully aligned with the true log-likelihood at the reference
-point.
+\section{The Two-Space Problem}\label{sec:two-space}
 
-\paragraph{Case 2: $\hat{\omega}$ and $\theta$ inhabit different spaces.}
-In regression settings---such as the multinomial logistic regression
-model considered in this work---the model parameter is a matrix of
-regression coefficients $B \in \mathbb{R}^{p \times (J-1)}$, while the
-parameter of interest is the Simpson's index of the conditional
-probability vector at a reference covariate value $\mathbf{x}_0$:
-\begin{equation}
-    \psi(B) = D\!\left(\boldsymbol{\theta}(\mathbf{x}_0; B)\right)
-    = \sum_{j=1}^J \theta_j(\mathbf{x}_0; B)^2.
-\end{equation}
-Here $\boldsymbol{\theta}(\mathbf{x}_0; B) = \mathrm{softmax}(B^\top
-\mathbf{x}_0) \in \Delta^{J-1}$, so the level set
-$\Omega_{\hat{\psi}}$ is a manifold in $\Delta^{J-1}$, whereas the
-model parameter lives in $\mathbb{R}^{p(J-1)}$. These two spaces have
-different dimension and different geometric structure.
+A structural subtlety arises in regression models where the level set
+$\Omega_{\hat{\psi}}$ lives in a different space from the model
+parameter $\theta$. In the no-effects model, $\theta = \symbf{\theta}
+\in \Delta^{J-1}$ and $\Omega_{\hat{\psi}} \subset \Delta^{J-1}$, so
+$\omega$ and $\theta$ inhabit the same space and the branch construction
+is straightforward. In regression models, $\theta$ is a matrix of
+regression coefficients while $\Omega_{\hat{\psi}}$ is a manifold of
+probability vectors at a reference covariate value $\symbf{x}_0$.
 
-To bridge this gap, $\hat{\omega}$ is sampled as a probability vector
-from the sphere $\Omega_{\hat{\psi}} \subset \Delta^{J-1}$, and the
-corresponding model parameter is recovered via a rank-1 adjustment of
-the MLE. Specifically, given $\hat{\omega} \in \Omega_{\hat{\psi}}$,
-define
-\begin{equation}
-    \hat{B}(\hat{\omega}) = \hat{B}_{\mathrm{MLE}} +
-    \frac{\mathbf{x}_0
-    \bigl(\boldsymbol{\eta}_0 - \hat{B}_{\mathrm{MLE}}^\top
-    \mathbf{x}_0\bigr)^\top}{\|\mathbf{x}_0\|^2},
-\end{equation}
-where $\boldsymbol{\eta}_0 = \log(\hat{\omega}_{-J}) -
-\log(\hat{\omega}_J)$ is the logit vector corresponding to $\hat{\omega}$
-at the reference point. This construction satisfies
-$\boldsymbol{\theta}(\mathbf{x}_0; \hat{B}(\hat{\omega})) = \hat{\omega}$
-exactly, while leaving the regression coefficients unchanged in all
-directions orthogonal to $\mathbf{x}_0$. The expected log-likelihood
-used as the branch objective is then
-\begin{equation}
-    \mathbb{E}_{\hat{\omega}}[\ell(B)] = \sum_{i=1}^n
-    \boldsymbol{\theta}(\mathbf{x}_i; \hat{B}(\hat{\omega}))^\top
-    \boldsymbol{\eta}(\mathbf{x}_i; B) -
-    \sum_{i=1}^n \log Z(\mathbf{x}_i; B),
-\end{equation}
-where $\boldsymbol{\theta}(\mathbf{x}_i; \hat{B}(\hat{\omega}))$ are
-the observation-specific reference probabilities induced by
-$\hat{\omega}$ through $\hat{B}$, and $Z(\mathbf{x}_i; B)$ is the
-partition function at covariate $\mathbf{x}_i$.
-
-This dimension mismatch has an important statistical consequence. In
-Case 1, the surrogate objective $\mathbb{E}_{\hat{\omega}}[\ell(\theta)]$
-and the observed log-likelihood $\ell(\theta)$ are globally aligned: the
-unconstrained maximizer of the surrogate is $\hat{\omega}$, which at
-$\hat{\omega} = \hat{\theta}$ is also the unconstrained MLE. In Case 2,
-this alignment breaks down. The unconstrained maximizer of
-$\mathbb{E}_{\hat{\omega}}[\ell(B)]$ is $\hat{B}(\hat{\omega})$---not
-$\hat{B}_{\mathrm{MLE}}$---because $\hat{B}(\hat{\omega})$ is
-constructed to satisfy $\boldsymbol{\theta}(\mathbf{x}_0; \cdot) =
-\hat{\omega}$, which generally differs from the MLE in directions other
-than $\mathbf{x}_0$. As a result, $\ell(\hat{B}(\hat{\omega}_{\mathrm{MLE}}))
-\neq \ell(\hat{B}_{\mathrm{MLE}})$ in general, and the approximate
-profile likelihood---defined as $\ell(\hat{\theta}(\psi;
-\hat{\omega}_{\mathrm{MLE}}))$ where $\hat{\omega}_{\mathrm{MLE}} =
-\boldsymbol{\theta}(\mathbf{x}_0; \hat{B}_{\mathrm{MLE}})$---need not
-achieve its maximum exactly at $\hat{\psi}$.
-
-This drift is a direct consequence of working with a conditional
-parameter of interest in a regression model: the natural sampling space
-for $\hat{\omega}$ (probability vectors in $\Delta^{J-1}$) differs from
-the model parameter space ($\mathbb{R}^{p(J-1)}$), and the rank-1
-construction that bridges them introduces a gap between the surrogate
-and true objectives. In well-specified models with moderate sample
-sizes, this gap is small and the resulting shift in the profile maximum
-is negligible. It is, however, a structural feature of the framework in
-this setting and not a numerical artifact.
-
-\subsubsection{Rationale for Sampling $\hat{\omega}$}
-
-In many applications, the constraint $g(\theta) = \hat{\psi}$ does not
-uniquely determine $\theta$. The set of feasible $\hat{\omega}$ values
-may be high-dimensional, nonconvex, and possess nontrivial symmetries.
-No single $\hat{\omega}$ can therefore be regarded as representative of
-the nuisance uncertainty.
-
-Rather than attempting to enumerate or integrate over this constraint
-set directly, \textit{likelyr} samples a finite collection of
-$\hat{\omega}$ values and constructs a corresponding collection of
-profile likelihood branches, which are later combined to approximate the
-integrated likelihood. The role of the $\hat{\omega}$ sampling scheme is
-twofold:
-\begin{enumerate}
-    \item \textbf{Exploration}: to cover different regions of the
-    constraint set $\{g(\theta) = \hat{\psi}\}$, including
-    symmetry-related configurations.
-    \item \textbf{Stability}: to preferentially select nuisance
-    configurations that lead to well-behaved profile likelihood branches.
-\end{enumerate}
-These objectives are in tension: overly aggressive exploration can lead
-to nuisance configurations that induce unstable or degenerate branches,
-while overly conservative sampling can fail to capture important
-variation in the nuisance structure.
-
-\subsubsection{Generating Candidate $\hat{\omega}$ Values}
-
-The sampling of $\hat{\omega}$ proceeds in two stages: generation of an
-initial guess, followed by projection onto the constraint set.
-
-\paragraph{Initial Guess Generation.}
-The initial guess generator produces candidate parameter vectors in the
-ambient space $\Theta$. These candidates are not required to satisfy the
-constraint $g(\theta) = \hat{\psi}$, but are intended to lie in regions
-of parameter space plausibly relevant for integrated likelihood
-inference. The generator typically combines recentering around the
-full-model MLE $\hat{\theta}$, perturbations within the tangent space of
-the constraint manifold at $\hat{\theta}$, and occasional global or
-symmetry-driven moves. The specific form is treated as a
-user-configurable component of the nuisance specification, allowing
-problem-specific structure to be encoded where available.
-
-\paragraph{Projection to a Feasible $\hat{\omega}$.}
-Given an initial guess, the algorithm computes a corresponding
-$\hat{\omega}$ by solving a constrained feasibility problem:
-\begin{equation}
-    \text{find } \hat{\omega} \quad \text{such that} \quad
-    g(\hat{\omega}) = \hat{\psi},
-\end{equation}
-along with any additional model constraints. This step does not optimize
-the likelihood; it projects the initial guess onto the constraint set
-using an augmented Lagrangian solver. Repeating this procedure yields a
-collection $\{\hat{\omega}^{(1)}, \ldots, \hat{\omega}^{(R)}\}$ of
-feasible nuisance configurations.
-
-In Case 1, this projection step directly produces a draw from
-$\Omega_{\hat{\psi}} \subset \Theta$. In Case 2, it produces a draw
-from the corresponding sphere in $\Delta^{J-1}$, from which a
-coefficient matrix is recovered via the rank-1 construction described
-above.
-
-\subsubsection{From $\hat{\omega}$ to Branch Modes}
-
-Each $\hat{\omega}$ induces a distinct constrained optimization problem
-for the full parameter $\theta$. For fixed $\hat{\omega}$ and a given
-value of $\psi$, the branch is defined by
-\begin{equation} \label{eq:branch_evaluator}
-    \hat{\theta}(\psi; \hat{\omega}) = \underset{g(\theta) = \psi}
-    {\arg\max} \; \mathbb{E}_{\hat{\omega}}\bigl[\ell(\theta)\bigr],
-\end{equation}
-together with any additional constraints. The expected log-likelihood
-$\mathbb{E}_{\hat{\omega}}[\ell(\theta)]$ plays the role of the
-surrogate objective: rather than maximizing the observed log-likelihood
-directly---which would collapse all branches onto the profile
-likelihood---the algorithm maximizes the expectation of the
-log-likelihood under the nuisance configuration encoded by $\hat{\omega}$.
-This is precisely the construction of @severini2018, generalized
-to the implicit-parameter setting via \eqref{eq-ZSE_IL7}.
-
-A critical implementation detail concerns the optimization variable in
-\eqref{eq:branch_evaluator}. In both cases, the quantity being
-optimized is $\theta$---the full model parameter---not $\hat{\omega}$.
-The role of $\hat{\omega}$ is solely to parametrize the surrogate
-objective: it enters through $\mathbb{E}_{\hat{\omega}}[\cdot]$ and is
-held fixed while the optimizer searches over $\theta$. In Case 1, where
-$\hat{\omega}$ and $\theta$ share the same space, $\hat{\omega}$ itself
-serves as a natural warm start for the optimizer. In Case 2, however,
-$\hat{\omega}$ is a probability vector of dimension $J$ while $\theta =
-\mathrm{vec}(B)$ has dimension $p(J-1)$; supplying $\hat{\omega}$ as a
-warm start would produce a dimension mismatch. Instead, the algorithm
-uses $\hat{\theta}_{\mathrm{MLE}}$ as the initial value for the
-optimizer in Case 2, since it is always a valid element of the model
-parameter space.
-
-Before tracing an entire branch, the algorithm first locates the
-\textbf{branch mode}, defined as
-\begin{equation}
-    \psi^{\ast}(\hat{\omega}) = \underset{\psi}{\arg\max} \;
-    \ell\!\bigl(\hat{\theta}(\psi; \hat{\omega})\bigr).
-\end{equation}
-In practice, this is found via a golden section search over the
-parameter of interest domain: a sequence of candidate $\psi$ values is
-evaluated by solving \eqref{eq:branch_evaluator} at each, and the
-$\psi$ that yields the highest observed log-likelihood is identified as
-the mode. The branch mode serves as the anchor point for constructing
-left and right profile likelihood branches and provides a natural
-reference for assessing local curvature and branch regularity. Only
-after a branch mode has been successfully located does the algorithm
-proceed to trace the profile likelihood curve outward in both directions
-from $\psi^{\ast}$.
-
-Throughout the outward traversal, solutions are chained: the optimizer
-at each grid point $\psi_k$ is initialized from $\hat{\theta}(\psi_{k-1};
-\hat{\omega})$, the solution at the previous step. This warm-start
-strategy exploits the continuity of $\hat{\theta}(\psi; \hat{\omega})$
-in $\psi$ and reduces the risk of the optimizer converging to a
-disconnected local optimum. As in the branch evaluation step, warm
-starts must lie in the model parameter space $\Theta$, not in the
-$\hat{\omega}$ space.
-
-\subsubsection{Branch Aggregation and Regularization}
-
-The integrated likelihood estimator implemented in \textit{likelyr}
-implicitly relies on local quadratic approximations to the constrained
-likelihood. Nuisance configurations that fail to induce a unimodal,
-locally quadratic profile likelihood branch violate these assumptions
-and are excluded from the Monte Carlo approximation. This truncation can
-be interpreted as a regularization of the nuisance integration measure,
-restricting attention to configurations for which the estimator is
-well-defined and numerically stable. Empirically, such configurations
-contribute negligibly in well-identified models, and their exclusion
-substantially improves estimator stability.
-
-
-
-
-
-
-
+Bridging this gap requires a map from $\Omega_{\hat{\psi}} \subset
+\Delta^{J-1}$ to $\Theta$. The construction used throughout this paper
+is a rank-one adjustment of the MLE that matches the linear predictor at
+$\symbf{x}_0$ to the logit vector implied by $\omega$, while leaving the
+regression coefficients unchanged in all directions orthogonal to
+$\symbf{x}_0$. The specific form of this adjustment and its consequences
+for the alignment between the surrogate and true log-likelihoods are
+discussed in the context of each model.
