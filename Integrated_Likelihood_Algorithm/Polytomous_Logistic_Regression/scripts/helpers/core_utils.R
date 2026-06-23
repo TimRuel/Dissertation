@@ -10,15 +10,14 @@
 #' @return A list with `max_cores` and `num_workers`
 #' @export
 get_core_config <- function(requested_cores = NULL) {
-  
   mc_cores_env <- Sys.getenv("MC_CORES", unset = NA)
-  
+
   max_cores <- if (!is.na(mc_cores_env)) {
     as.integer(mc_cores_env)
   } else {
     parallel::detectCores()
   }
-  
+
   if (!is.null(requested_cores)) {
     if (is.na(requested_cores) || requested_cores <= 0) {
       stop("Invalid requested_cores value. Must be a positive integer.")
@@ -27,9 +26,9 @@ get_core_config <- function(requested_cores = NULL) {
       warning("Requested more cores than available; using max instead")
     }
   }
-  
+
   num_workers <- min(requested_cores %||% max_cores, max_cores)
-  
+
   list(
     max_cores = max_cores,
     num_workers = num_workers

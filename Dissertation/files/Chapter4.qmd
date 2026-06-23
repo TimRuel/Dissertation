@@ -22,7 +22,7 @@ and we write $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$.
 
 A multinomial random vector arises as the sum of $n$ $\text{i.i.d.}$ categorical random vectors:
 $$
-\sum_{i = 1}^n \textbf{Y}_i \sim \text{Multinomial}(n, \symbf{\theta}), \quad \textbf{Y}_i \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta}), \quad i = 1, ..., n.
+\sum_{t = 1}^n \textbf{Y}_t \sim \text{Multinomial}(n, \symbf{\theta}), \quad \textbf{Y}_t \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta}), \quad t = 1, ..., n.
 $${#eq-multinomial-construction}
 In particular, the categorical distribution is a special case of the multinomial distribution with $n = 1$, mirroring the relationship between the Bernoulli and binomial distributions.^[The categorical distribution is also known as the *multinoulli* distribution.]
 
@@ -38,28 +38,28 @@ In particular, the categorical distribution is a special case of the multinomial
   \label{fig:multinomial-simplex}
 \end{figure}
 
-Let $(N_1, ..., N_J) \sim \text{Multinomial}(n, \symbf{\theta})$, where $N_j$ denotes the number of observations falling in category $j$ and $n = \sum_{j=1}^J N_j$. Each marginal count satisfies $N_j \sim \text{Binomial}(n, \theta_j)$, with $\mathbbm{E}_{\symbf{\theta}}(N_j) = n \theta_j$. Since $\symbf{\theta}$ represents category probabilities, the parameter space is $\Theta = \Delta^{J-1} \subset \mathbbm{R}^J.$ The likelihood and log-likelihood functions are given by
+Let $(n_1, ..., n_J) \sim \text{Multinomial}(n, \symbf{\theta})$, where $n_j$ denotes the number of observations falling in category $j$ and $n = \sum_{j=1}^J n_j$ is the total number of trials. Each marginal count satisfies $n_j \sim \text{Binomial}(n, \theta_j)$, with $\mathbbm{E}_{\symbf{\theta}}(n_j) = n \theta_j$. Since $\symbf{\theta}$ represents category probabilities, the parameter space is $\Theta = \Delta^{J-1} \subset \mathbbm{R}^J.$ The likelihood and log-likelihood functions are given by
 $$
-L(\symbf{\theta}) = \prod_{j=1}^J \theta_j^{N_j}
+L(\symbf{\theta}) = \prod_{j=1}^J \theta_j^{n_j}
 $${#eq-multinomial-likelihood}
 and
 $$
-\ell(\symbf{\theta}) = \sum_{j=1}^J N_j \log \theta_j,
+\ell(\symbf{\theta}) = \sum_{j=1}^J n_j \log \theta_j,
 $${#eq-multinomial-log-likelihood}
 respectively. Maximization of @eq-multinomial-log-likelihood subject to $\symbf{\theta} \in \Delta^{J-1}$ yields the familiar maximum likelihood estimator
 $$
-\hat{\theta}_j = \frac{N_j}{n}, \quad j = 1, ..., J.
+\hat{\theta}_j = \frac{n_j}{n}, \quad j = 1, ..., J.
 $${#eq-multinomial-mle}
 
 The multinomial likelihood is invariant under relabeling of the category indices: permuting the components of $\symbf{\theta}$ leaves the likelihood unchanged. This symmetry implies that, absent a sample size large enough to detect fractional differences between cell probabilities, multiple configurations of the probability vector are observationally equivalent.^[This invariance does not imply non-identifiability of the multinomial parameter, but rather reflects weak identification in directions that are immaterial for the likelihood yet consequential for certain parameters of interest.] This equivalence is most pronounced near the boundary of the probability simplex. When one or more categories are rare or unobserved, the likelihood provides little information about which specific components of $\symbf{\theta}$ are effectively zero, resulting in flat or weakly identified directions associated with different boundary faces.
 
-\section{Models}
+\section{Models}\label{sec:models}
 
 \subsection{Baseline-category logit model with no effects}
 
 A natural starting point for entropy inference under a multinomial model is to treat the category probabilities as free parameters estimated directly from count data. This was the framework considered by @severini2022, who found that an integrated likelihood based on the ZSE nuisance parameterization yields point and interval estimators for the entropy of a multinomial distribution that have improved frequency properties (e.g. reduced bias, lower root mean square error, closer-to-nominal empirical coverage rates, etc.) relative to their profile likelihood counterparts, provided that the sample size is small relative to the number of categories. We adopt this setting here for use as a benchmark but with a parameterization that is better suited to both numerical optimization and extension to more sophisticated models.
 
-Suppose we observe $\textbf{Y}_i \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta})$ for $i = 1, \dots, n$, where the model parameter $\symbf{\theta} = (\theta_1, \dots, \theta_J)^\top \in \Delta^{J-1}$ is a probability vector with $J - 1$ free components, with the remaining degree of freedom having been absorbed by the constraint $\sum_j \theta_j = 1$. Fixing category $1$ as a reference, we define the logit parameters
+Suppose we observe a single multinomial outcome $(n_1, \dots, n_J) \sim \text{Multinomial}(n, \symbf{\theta})$, where the model parameter $\symbf{\theta} = (\theta_1, \dots, \theta_J)^\top \in \Delta^{J-1}$ is a probability vector with $J - 1$ free components, with the remaining degree of freedom having been absorbed by the constraint $\sum_j \theta_j = 1$. Fixing category $1$ as a reference, we define the logit parameters
 $$
 \eta_j = \log\!\left(\frac{\theta_j}{\theta_1}\right), \quad j = 2, \dots, J,
 $${#eq-logit-parameterization}
@@ -73,17 +73,17 @@ This normalized exponential mapping is closely related to the softmax function, 
 
 The log-likelihood for this model is given by
 $$
-\ell(\symbf{\eta}) = \sum_{j=1}^J N_j \log \theta_j(\symbf{\eta}),
+\ell(\symbf{\eta}) = \sum_{j=1}^J n_j \log \theta_j(\symbf{\eta}),
 $${#eq-no-effects-loglik}
-where $N_j = \sum_{i=1}^n \mathbbm{1}(y_i = j)$ is the observed count for category $j$ and $\theta_j(\symbf{\eta})$ is defined as in @eq-softmax-parameterization. Since the log-likelihood depends on the data only through the category counts $N_1, \dots, N_J$, these form a sufficient statistic for $\symbf{\theta}$. The MLE $\hat{\symbf{\theta}}$ has the closed form $\hat{\theta}_j = N_j / n$, or equivalently $\hat{\eta}_j = \log(N_j / N_1)$ for $j = 2, \dots, J$, provided all categories are observed.
+where $n_j$ is the observed count for category $j$ and $\theta_j(\symbf{\eta})$ is defined as in @eq-softmax-parameterization. Since the log-likelihood depends on the data only through the category counts $n_1, \dots, n_J$, these form a sufficient statistic for $\symbf{\theta}$. The MLE $\hat{\symbf{\theta}}$ has the closed form $\hat{\theta}_j = n_j / n$, or equivalently $\hat{\eta}_j = \log(n_j / n_1)$ for $j = 2, \dots, J$, provided all categories are observed.
 
 \subsection{Baseline-category logit model with fixed effects}
 
-The baseline-category logit model with fixed effects extends the no-effects model by allowing the category probabilities to depend on observed covariates through a set of fixed regression coefficients. Inference is based on independent observations $\{(\symbf{x}_i, \symbf{y}_i)\}_{i=1}^n$, where $\symbf{x}_i \in \mathbbm{R}^p$ denotes the covariate vector associated with observation $i$ and $\symbf{y}_i \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ denotes the corresponding categorical response. Fixing category $1$ as a reference, the log-odds of category $j$ relative to category $1$ for observation $i$ are modeled as
+The baseline-category logit model with fixed effects extends the no-effects model by allowing the category probabilities to depend on observed covariates through a set of fixed regression coefficients. Inference is based on $n$ independent observations $\{(\symbf{x}_i, \symbf{y}_i)\}_{i=1}^n$, where $\symbf{x}_i \in \mathbbm{R}^p$ denotes the covariate vector associated with observation $i$ and $\symbf{y}_i \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ denotes the observed realization of the categorical response $\symbf{Y}_i \sim \text{Categorical}(\symbf{\theta}_i)$, with components $y_{ij} = \mathbbm{1}(Y_i = j)$ for $j = 1, \dots, J$. Fixing category $1$ as a reference, the log-odds of category $j$ relative to category $1$ for observation $i$ are modeled as
 $$
-\log \frac{P(Y_i = j \mid \symbf{x}_i)}{P(Y_i = 1 \mid \symbf{x}_i)} = \alpha_j + \symbf{x}_i^\top \symbf{\beta}_j, \quad j = 2, \dots, J,
+\log \frac{\mathbbm{P}(Y_i = j \mid \symbf{x}_i)}{\mathbbm{P}(Y_i = 1 \mid \symbf{x}_i)} = \alpha_j + \symbf{x}_i^\top \symbf{\beta}_j, \quad j = 2, \dots, J,
 $${#eq-logit-parameterization-with-covariates}
-where $\alpha_j \in \mathbbm{R}$ is a category-specific intercept and $\symbf{\beta}_j \in \mathbbm{R}^p$ is a category-specific vector of regression coefficients. The full model parameter is $(\textbf{A}, \textbf{B})$, where $\textbf{A} = (\alpha_2, \dots, \alpha_J)^\top \in \mathbbm{R}^{J-1}$ collects the intercepts and $\textbf{B} = [\symbf{\beta}_2 \mid \cdots \mid \symbf{\beta}_J] \in \mathbbm{R}^{p \times (J-1)}$ collects the regression coefficients, giving $(p + 1)(J - 1)$ free parameters in total --- one intercept and $p$ slopes for each of the $J - 1$ non-baseline categories. The conditional category probabilities are obtained from @eq-logit-parameterization-with-covariates via the softmax mappings
+where $\alpha_j \in \mathbbm{R}$ is a category-specific intercept and $\symbf{\beta}_j \in \mathbbm{R}^p$ is a category-specific vector of regression coefficients. The full model parameter is $(\textbf{A}, \textbf{B})$, where $\textbf{A} = (\alpha_2, \dots, \alpha_J)^\top \in \mathbbm{R}^{J-1}$ collects the intercepts and $\textbf{B} = [\symbf{\beta}_2 \mid \cdots \mid \symbf{\beta}_J] \in \mathbbm{R}^{p \times (J-1)}$ collects the regression coefficients, giving $(p + 1)(J - 1)$ free parameters in total --- one intercept and $p$ slopes for each of the $J - 1$ non-baseline categories. The conditional probability vector $\symbf{\theta}_i = \symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B})$ is obtained from @eq-logit-parameterization-with-covariates via the softmax mappings
 $$
 \theta_1(\symbf{x}_i; \textbf{A}, \textbf{B}) = \frac{1}{1 + \sum_{k=2}^{J} \exp(\alpha_k + \symbf{x}_i^\top \symbf{\beta}_k)}
 $${#eq-softmax-parameterization-with-covariates-baseline}
@@ -92,17 +92,16 @@ $$
 $${#eq-softmax-parameterization-with-covariates}
 which generalize @eq-softmax-parameterization to incorporate covariate effects. Since observations are independent, the log-likelihood decomposes as a sum over observations,
 $$
-\ell(\textbf{A}, \textbf{B}) = \sum_{i=1}^n \sum_{j=1}^J y_{ij} \log \theta_j(\symbf{x}_i; \textbf{A}, \textbf{B}),
+\ell(\textbf{A}, \textbf{B}) = \sum_{i=1}^n \sum_{j=1}^J y_{ij} \log \theta_j(\symbf{x}_i; \textbf{A}, \textbf{B}).
 $${#eq-fixed-effects-loglik}
-where $y_{ij} = \mathbbm{1}(Y_i = j)$.
 
 \subsection{Baseline-category logit model with random effects}
 
 The baseline-category logit model with random effects extends the fixed effects model to settings where observations are clustered, with multiple categorical responses observed per cluster. Clustering induces within-cluster correlation that violates the independence assumption of the fixed effects model: responses from the same cluster tend to resemble one another more than responses from different clusters, even after conditioning on observed covariates. We adopt the multinomial logit random effects framework of @hartzel2001, who present a general approach for logit random effects modeling of clustered nominal and ordinal responses within a unified multivariate generalized linear mixed model formulation.
 
-The data consist of $n$ independent clusters, with cluster $i$ contributing $m_i$ observations. Let $\symbf{x}_{it} \in \mathbbm{R}^p$ denote the covariate vector and $\symbf{y}_{it} \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ the categorical response for observation $t$ within cluster $i$, for $i = 1, \dots, n$ and $t = 1, \dots, m_i$. Fixing category $1$ as the reference, the conditional log-odds of category $j$ relative to category $1$ for observation $(i, t)$ are modeled as
+The data consist of $n$ independent clusters, with cluster $i$ contributing $m_i$ observations. Let $\symbf{x}_{it} \in \mathbbm{R}^p$ denote the covariate vector and $\symbf{y}_{it} \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ the categorical response for observation $t$ within cluster $i$, with components $y_{itj} = \mathbbm{1}(Y_{it} = j)$, for $i = 1, \dots, n$ and $t = 1, \dots, m_i$. Fixing category $1$ as the reference, the conditional log-odds of category $j$ relative to category $1$ for observation $(i, t)$ are modeled as
 $$
-\log \frac{P(Y_{it} = j \mid \symbf{x}_{it}, \symbf{u}_i)}{P(Y_{it} = 1 \mid \symbf{x}_{it}, \symbf{u}_i)} = \alpha_j + \symbf{x}_{it}^\top \symbf{\beta}_j + u_{ij}, \quad j = 2, \dots, J,
+\log \frac{\mathbbm{P}(Y_{it} = j \mid \symbf{x}_{it}, \symbf{u}_i)}{\mathbbm{P}(Y_{it} = 1 \mid \symbf{x}_{it}, \symbf{u}_i)} = \alpha_j + \symbf{x}_{it}^\top \symbf{\beta}_j + u_{ij}, \quad j = 2, \dots, J,
 $${#eq-random-effects-logit}
 where $\alpha_j \in \mathbbm{R}$ is a category-specific intercept, $\symbf{\beta}_j \in \mathbbm{R}^p$ is a category-specific vector of regression coefficients, and $u_{ij}$ is a cluster- and category-specific random intercept. Comparing @eq-random-effects-logit with @eq-logit-parameterization-with-covariates, the random effects model augments each fixed log-odds by a cluster-specific shift $u_{ij}$, inducing within-cluster correlation among responses that share the same $\symbf{u}_i$.^[A more general version of the model would allow the random effects to enter the linear predictor through $\symbf{w}_{it}^\top \symbf{u}_i$ for a cluster- and observation-specific coefficient vector $\symbf{w}_{it}$. We restrict attention to the random intercept case $\symbf{w}_{it} = \symbf{1}$, so that the random effect for category $j$ in cluster $i$ contributes a common shift $u_{ij}$ to the log-odds of every observation in that cluster.]
 
@@ -167,9 +166,9 @@ The conditional probability vector $\symbf{\theta}(\symbf{x}_0; \textbf{B})$, by
 
 Conditioning is not without theoretical cost. The branch objective, when computing the integrated likelihood at a given $\psi$, enforces the constraint $\varphi(\symbf{\theta}(\symbf{x}_0; \textbf{B})) = \psi$, which is defined conditionally at $\symbf{x}_0$. The true parameter value $\psi_0$, however, is defined as $\varphi(\bar{\symbf{\theta}}(\textbf{B}_0))$, a function of the marginal probability vector at the data-generating parameter $\textbf{B}_0$. Since in general $\varphi(\symbf{\theta}(\symbf{x}_0; \textbf{B}_0)) \neq \varphi(\bar{\symbf{\theta}}(\textbf{B}_0))$, the integrated likelihood is evaluated on a scale that does not coincide with the scale on which $\psi_0$ is defined. The resulting estimator therefore targets a quantity that differs from the true parameter of interest, introducing a form of misspecification bias. Two observations temper this concern. First, the bias affects the profile and integrated likelihoods equally, since both evaluate the likelihood at the same covariate value $\symbf{x}_0$; any systematic discrepancy between conditional and marginal quantities does not favor one method over the other. Second, the magnitude of the bias depends on how much the conditional probabilities at $\symbf{x}_0$ deviate from their marginal averages, which in turn depends on the strength of the covariate effects and the variability of $\symbf{X}$. When effects are modest or the covariate distribution is concentrated, the two quantities will be close. Ultimately, frequency properties --- coverage rates, bias, mean squared error --- are the appropriate criteria for evaluating estimators, and the simulation evidence presented in Section \ref{sec-simulation-evidence} provides the empirical verdict. A method that is theoretically misspecified but delivers superior frequency properties in finite samples is preferable to an unbiased but computationally intractable alternative.
 
-In the random effects model, the probability vector $\symbf{\theta}(\symbf{x}_{it}; \textbf{A}, \textbf{B}, \symbf{u}_i)$ carries a further dependence on the unobserved cluster-specific random effects $\symbf{u}_i$, in addition to the covariate dependence already present in the fixed effects model. Eliminating both dependencies is necessary before a scalar parameter of interest can be defined. The same two strategies apply. Marginalizing over the joint distribution of $\symbf{X}$ and $\symbf{u}$ yields a population-average probability vector that inherits the intractability of the marginal estimand in the fixed effects case, now compounded by the additional integration over $\mathcal{N}(\symbf{0}, \symbf{\Sigma})$: the level set of any interest function of the resulting average has no exploitable geometric structure in $(\textbf{A}, \textbf{B}, \symbf{\Sigma})$-space. Conditioning on $\symbf{u}_i = \symbf{0}$ --- evaluating at the median cluster --- eliminates the random effects dependence while preserving the sphere geometry of the level set, since the resulting probability vector $\symbf{\theta}(\symbf{x}_0; \textbf{A}, \textbf{B}, \symbf{0})$ depends on $(\textbf{A}, \textbf{B})$ only through the single linear combination $\textbf{A} + \textbf{B}^\top \symbf{x}_0 \in \mathbbm{R}^{J-1}$, by the same argument as in the fixed effects case. The same sampling machinery therefore applies without modification.
+In the random effects model, the probability vector $\symbf{\theta}(\symbf{x}_{it}; \textbf{A}, \textbf{B}, \symbf{u}_i)$ carries a further dependence on the unobserved cluster-specific random effects $\symbf{u}_i$, in addition to the covariate dependence already present in the fixed effects model. Eliminating both dependencies is necessary before a scalar parameter of interest can be defined. The same two strategies apply. Marginalizing over the joint distribution of $\symbf{X}$ and $\symbf{u}$ yields a population-average probability vector that inherits the intractability of the marginal estimand in the fixed effects case, now compounded by the additional integration over $\mathcal{N}(\symbf{0}, \symbf{\Sigma})$: the level set of any interest function of the resulting average has no exploitable geometric structure in $(\textbf{A}, \textbf{B}, \symbf{\Sigma})$-space. Conditioning on $\symbf{u}_i = \symbf{0}$ --- evaluating at the mean cluster --- eliminates the random effects dependence while preserving the sphere geometry of the level set, since the resulting probability vector $\symbf{\theta}(\symbf{x}_0; \textbf{A}, \textbf{B}, \symbf{0})$ depends on $(\textbf{A}, \textbf{B})$ only through the single linear combination $\textbf{A} + \textbf{B}^\top \symbf{x}_0 \in \mathbbm{R}^{J-1}$, by the same argument as in the fixed effects case. The same sampling machinery therefore applies without modification.
 
-For these reasons, all parameters of interest in the fixed effects and random effects settings are defined with respect to the conditional probability vector at the observed covariate mean $\symbf{x}_0 = \bar{\symbf{x}} = \frac{1}{n}\sum_{i=1}^n \symbf{x}_i$ and, in the random effects setting, at $\symbf{u}_i = \symbf{0}$. The definitions given below are stated in terms of a generic probability vector $\symbf{\theta}$; in no-effects settings this is taken directly as the model parameter, in fixed effects settings it is understood to mean $\symbf{\theta}(\bar{\symbf{x}}; \textbf{B})$, and in random effects settings it is understood to mean $\symbf{\theta}(\bar{\symbf{x}}; \textbf{A}, \textbf{B}, \symbf{0})$.
+For these reasons, all parameters of interest in the fixed effects and random effects settings are defined with respect to the conditional probability vector at a fixed reference covariate value $\symbf{x}_0 \in \mathbbm{R}^p$ and, in the random effects setting, at $\symbf{u}_i = \symbf{0}$. The definitions given below are stated in terms of a generic probability vector $\symbf{\theta}$; in no-effects settings this is taken directly as the model parameter, in fixed effects settings it is understood to mean $\symbf{\theta}(\symbf{x}_0; \textbf{B})$, and in random effects settings it is understood to mean $\symbf{\theta}(\symbf{x}_0; \textbf{A}, \textbf{B}, \symbf{0})$.
 
 \subsection{Shannon entropy}
 
@@ -177,7 +176,7 @@ The Shannon entropy of a discrete random variable $X$ with support $\mathcal{X}$
 $$
 \text{H}(X) = -\sum_{x \in \mathcal{X}} p(x) \log p(x),
 $${#eq-shannon-def}
-with the convention that $0 \log 0 = 0$. In general, $\text{H}(X) \geq 0$, with equality if and only if $p(x^*) = 1$ for some $x^* \in \mathcal{X}$ and $p(x) = 0$ for all $x \neq x^*$. If $\mathcal{X}$ is finite with cardinality $J = |\mathcal{X}|$, then $\text{H}(X) \leq J$, with equality if and only if $p(x) = 1/J$ for all $x \in \mathcal{X}$. Thus, the distribution's entropy is minimized when all its probability mass is concentrated on a single outcome and maximized when it is distributed uniformly across all possible outcomes. This property makes entropy a natural measure of the concentration or dispersion of probability mass over a finite set of categories. In applied settings, entropy is commonly used as an index of diversity, for example to quantify species heterogeneity in ecological communities. In the present setting, we are interested in the entropy associated with a multinomial model, or more precisely, the entropy of a single categorical trial underlying the multinomial construction in @eq-multinomial-construction.
+with the convention that $0 \log 0 = 0$. In general, $\text{H}(X) \geq 0$, with equality if and only if $p(x^*) = 1$ for some $x^* \in \mathcal{X}$ and $p(x) = 0$ for all $x \neq x^*$. If $\mathcal{X}$ is finite with cardinality $J = |\mathcal{X}|$, then $\text{H}(X) \leq \log J$, with equality if and only if $p(x) = 1/J$ for all $x \in \mathcal{X}$. Thus, the distribution's entropy is minimized when all its probability mass is concentrated on a single outcome and maximized when it is distributed uniformly across all possible outcomes. This property makes entropy a natural measure of the concentration or dispersion of probability mass over a finite set of categories. In applied settings, entropy is commonly used as an index of diversity, for example to quantify species heterogeneity in ecological communities. In the present setting, we are interested in the entropy associated with a multinomial model, or more precisely, the entropy of a single categorical trial underlying the multinomial construction in @eq-multinomial-construction.
 
 Let $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$ denote the outcome of one trial, with its distribution being as in @eq-categorical-distribution. Then the entropy of $\symbf{Y}$ is given by
 $$
@@ -191,8 +190,7 @@ It follows that our interest function for the entropy of a multinomial distribut
 $$
 \varphi(\symbf{\theta}) = -\sum_{j=1}^J \theta_j \log \theta_j,
 $${#eq-entropy-multinomial}
-and so we may take our parameter of interest to be $\psi = \varphi(\symbf{\theta}).$
-Note that while we may view the data as entering the model through the multinomial likelihood for $\symbf{\theta}$, it is more appropriate to conceive of the entropy as being a property of the corresponding categorical distribution.
+and so we may take our parameter of interest to be $\psi = \varphi(\symbf{\theta}).$ Note that while we may view the data as entering the model through the multinomial likelihood for $\symbf{\theta}$, it is more appropriate to conceive of the entropy as being a property of the corresponding categorical distribution.
 
 \subsection{Simpson's diversity index}
 
@@ -212,7 +210,7 @@ constitutes a sensible quantity for us to take as a parameter of interest. Note 
 
 $D(\symbf{\theta})$ is also invariant under permutations of the category labels. That is, if $S_J$ denotes the symmetric group of permutations of the set $\{1, ..., J \}$, then for any $\pi \in S_J$,
 $$
-D(\theta_{\pi(1)}, \dots, \theta_{\pi(J)}) = \sum_{i=1}^J \theta_{\pi(i)}^2 = \sum_{i=1}^J \theta_i^2 = D(\theta_1, \dots, \theta_J).
+D(\theta_{\pi(1)}, \dots, \theta_{\pi(J)}) = \sum_{j=1}^J \theta_{\pi(j)}^2 = \sum_{j=1}^J \theta_j^2 = D(\theta_1, \dots, \theta_J).
 $$
 Hence, like Shannon entropy, Simpson's index measures the concentration of probability mass without regard to which specific categories carry that mass. The same symmetry carries over to the level set $\Omega_{\hat{\psi}}$: if $\symbf{\omega} \in \Omega_{\hat{\psi}}$, then so is every permutation of its coordinates. This leads to a rich geometric interpretation and has direct implications for how elements of $\Omega_{\hat{\psi}}$ should be sampled. We summarize the key results here --- see Appendix \ref{appendix:C} for the full derivation.
 
@@ -230,7 +228,7 @@ and setting $\mathbf{v} = \mathbf{c} + r \cdot \mathbf{z}' / \|\mathbf{z}'\|$. T
 
 When $\hat{\psi} \geq 1/(J-1)$, each cap $\mathcal{C}_j$ is parametrized by a height coordinate $h \in [\cos\alpha, 1]$ along its axis and a directional component $\mathbf{u}$ within the subspace of $\mathbf{1}^\perp$ orthogonal to the cap axis $\mathbf{n}_j$, where $\alpha = \alpha(\hat{\psi}, J)$ is the angular radius of each cap (see @eq-alpha-psi-hat-general in Appendix \ref{appendix:C}). A uniform draw from $\mathcal{C}_j$ is obtained by drawing $h$ via truncated Beta inversion and $\mathbf{u}$ via Gaussian projection, then forming $\mathbf{v} = \mathbf{c} + r(h\,\mathbf{n}_j + \sqrt{1-h^2}\,\mathbf{u})$.
 
-Rather than restricting draws to the dominant cap, we select cap $j$ on each draw with probability proportional to the empirical category frequency $\hat{p}_j = N_j / n$, restricting to categories with above-average frequency $\hat{p}_j > 1/J$. This concentrates sampling on the caps whose dominant coordinates are most consistent with the observed data while preserving coverage of secondary caps and recovering uniform selection when the counts are approximately balanced.
+Rather than restricting draws to the dominant cap, we select cap $j$ on each draw with probability proportional to the empirical category frequency $\hat{p}_j = n_j / n$, restricting to categories with above-average frequency $\hat{p}_j > 1/J$. This concentrates sampling on the caps whose dominant coordinates are most consistent with the observed data while preserving coverage of secondary caps and recovering uniform selection when the counts are approximately balanced.
 
 \subsection{Category-invariant effect}
 
@@ -252,13 +250,13 @@ The random effects model inherits the two-space structure of the fixed effects m
 
 \subsubsection{Estimand and level set geometry}
 
-The estimand is defined at the reference covariate value $\symbf{x}_0 = \bar{\symbf{x}}$ and at $\symbf{u}_i = \symbf{0}$, so the relevant probability vector is $\symbf{\theta}(\symbf{x}_0; \textbf{A}, \textbf{B}, \symbf{0})$, which depends on $(\textbf{A}, \textbf{B})$ only through the linear combination $\textbf{A} + \textbf{B}^\top\symbf{x}_0$. The level set $\Omega_{\hat{\psi}}$ is therefore a subset of $\Delta^{J-1}$ with the same geometry as in the no-effects and fixed effects models, and the same sampling procedure applies. The rank-one adjustment maps each $\omega \in \Omega_{\hat{\psi}}$ to a unique $(\hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega)$ satisfying $\symbf{\theta}(\symbf{x}_0; \hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega, \symbf{0}) = \omega$ exactly.
+The estimand is defined at the reference covariate value $\symbf{x}_0$ and at $\symbf{u}_i = \symbf{0}$, so the relevant probability vector is $\symbf{\theta}(\symbf{x}_0; \textbf{A}, \textbf{B}, \symbf{0})$, which depends on $(\textbf{A}, \textbf{B})$ only through the linear combination $\textbf{A} + \textbf{B}^\top\symbf{x}_0$. The level set $\Omega_{\hat{\psi}}$ is therefore a subset of $\Delta^{J-1}$ with the same geometry as in the no-effects and fixed effects models, and the same sampling procedure applies. The rank-one adjustment maps each $\omega \in \Omega_{\hat{\psi}}$ to a unique $(\hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega)$ satisfying $\symbf{\theta}(\symbf{x}_0; \hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega, \symbf{0}) = \omega$ exactly.
 
 \subsubsection{Branch objective}
 
 As discussed in Section \ref{sec:parameters-of-interest}, the branch objective in the random effects model is the expected complete-data log-likelihood $E_\omega[\ell_{\mathrm{c}}(\textbf{A}, \textbf{B}, \symbf{\Sigma})]$ rather than the marginal log-likelihood $\ell$. The reason is algebraic: $\ell_{\mathrm{c}}$ is linear in $y_{itj}$, which allows soft responses to substitute cleanly for observed responses and gives rise to the zero-score-expectation property the integrated likelihood requires. The marginal log-likelihood does not share this linearity since the log sits outside the integral over $\symbf{u}_i$.
 
-The covariance matrix $\symbf{\Sigma}$ may either be held fixed at its estimated value $\hat{\symbf{\Sigma}}$ --- treating it as a hyperparameter rather than a nuisance parameter in the IL sense --- or jointly optimized alongside $(\textbf{A}, \textbf{B})$ subject to the same constraint. The former approach is computationally cheaper and treats $\symbf{\Sigma}$ as profiled out by substitution; the latter treats it as a genuine nuisance parameter profiled out by optimization at each $\omega$, consistent with the general framework of @eq-ZSE-theta. 
+The covariance matrix $\symbf{\Sigma}$ may either be held fixed at its estimated value $\hat{\symbf{\Sigma}}$ --- treating it as a hyperparameter rather than a nuisance parameter in the IL sense --- or jointly optimized alongside $(\textbf{A}, \textbf{B})$ subject to the same constraint. The former approach is computationally cheaper and treats $\symbf{\Sigma}$ as profiled out by substitution; the latter treats it as a genuine nuisance parameter profiled out by optimization at each $\omega$, consistent with the general framework of @eq-ZSE-theta.
 
 Once the branch mode $(\textbf{A}^*(\omega), \textbf{B}^*(\omega))$ has been located by maximizing $E_\omega[\ell_{\mathrm{c}}^{\mathrm{LA}}(\textbf{A}, \textbf{B}, \symbf{\Sigma})]$ subject to the constraint $\varphi(\textbf{A}, \textbf{B}) = \psi$, the Laplace log-likelihood $\ell^{\mathrm{LA}}$ is evaluated at $(\textbf{A}^*(\omega), \textbf{B}^*(\omega), \symbf{\Sigma})$ to form the branch value that enters the integrated likelihood.
 
@@ -313,14 +311,15 @@ Applying the Laplace gradient approximation (Appendix \ref{appendix:laplace-re})
 $$
 \nabla_{\textbf{B}}\, E_\omega[\ell_{\mathrm{c}}^{\mathrm{LA}}(\textbf{A}, \textbf{B}, \symbf{\Sigma})] \approx \sum_{i=1}^n \sum_{t=1}^{m_i} \tilde{\symbf{x}}_{it} \bigl(\symbf{q}_{it}(\hat{\symbf{u}}_i^*) - \symbf{p}_{it}(\hat{\symbf{u}}_i^*)\bigr)^\top,
 $${#eq-eloglik-grad}
-where 
+where
 $$
 \symbf{q}_{it} = (\theta_2(\symbf{x}_{it}; \hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega, \hat{\symbf{u}}_i^*), \dots, \theta_J(\symbf{x}_{it}; \hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega, \hat{\symbf{u}}_i^*))^\top
 $$
-are soft responses and 
+are soft responses and
 $$
 \symbf{p}_{it} = (\theta_2(\symbf{x}_{it}; \textbf{A}, \textbf{B}, \hat{\symbf{u}}_i^*), \dots, \theta_J(\symbf{x}_{it}; \textbf{A}, \textbf{B}, \hat{\symbf{u}}_i^*))^\top
-$$ are fitted probabilities, both evaluated at $\hat{\symbf{u}}_i^*$. The ZSE property is immediate from @eq-eloglik-grad: when $(\textbf{A}, \textbf{B}) = (\hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega)$, we have $\symbf{p}_{it} = \symbf{q}_{it}$ at every observation and every $\symbf{u}$, so the gradient vanishes identically. The branch mode $(\textbf{A}^*(\omega), \textbf{B}^*(\omega))$ therefore satisfies
+$$
+are fitted probabilities, both evaluated at $\hat{\symbf{u}}_i^*$. The ZSE property is immediate from @eq-eloglik-grad: when $(\textbf{A}, \textbf{B}) = (\hat{\textbf{A}}_\omega, \hat{\textbf{B}}_\omega)$, we have $\symbf{p}_{it} = \symbf{q}_{it}$ at every observation and every $\symbf{u}$, so the gradient vanishes identically. The branch mode $(\textbf{A}^*(\omega), \textbf{B}^*(\omega))$ therefore satisfies
 $$
 E_\omega\!\left[\nabla_{\textbf{B}}\, \ell_{\mathrm{c}}\bigl(\textbf{A}^*(\omega), \textbf{B}^*(\omega), \symbf{\Sigma}\bigr)\right] = \symbf{0},
 $${#eq-zse}
@@ -334,7 +333,7 @@ The simulation evidence presented in this section evaluates the frequency proper
 
 Each study employs a fully crossed factorial design, with factors chosen to span dimensions of the inferential problem along which the integrated and profile likelihoods are expected to differ. The specific factors and their levels vary across studies and are described in the corresponding subsections below. We simulate each design point $1{,}000$ times, generating a fresh dataset from the true parameter value in each iteration, and approximate the integrated likelihood within each iteration using a Monte Carlo scheme with $R$ replications, with $R$ specified for each study below.
 
-A consideration shared across all designs concerns categories that are modeled but absent from the generated data. In the baseline-category logit model with no effects, where the sufficient statistics are the category counts $(N_1, \dots, N_J)$, we correct for such absences by adding $1/2$ to each count following @agresti2002. In the baseline-category logit model with fixed effects, where the likelihood is expressed in terms of individual observations rather than aggregated counts, we instead add a single pseudo-observation to each absent category, setting the response to that category and all covariates to their observed column means for quantitative predictors and their observed modal values for categorical predictors. This places each pseudo-observation at the centroid of the observed covariate distribution, minimizing its leverage on the estimated regression coefficients while ensuring that all modeled categories are represented in the likelihood.
+A consideration shared across all designs concerns categories that are modeled but absent from the generated data. In the baseline-category logit model with no effects, where the sufficient statistics are the category counts $(n_1, \dots, n_J)$, we correct for such absences by adding $1/2$ to each count following @agresti2002. In the baseline-category logit model with fixed effects, where the likelihood is expressed in terms of individual observations rather than aggregated counts, we instead add a single pseudo-observation to each absent category, setting the response to that category and all covariates to their observed column means for quantitative predictors and their observed modal values for categorical predictors. This places each pseudo-observation at the centroid of the observed covariate distribution, minimizing its leverage on the estimated regression coefficients while ensuring that all modeled categories are represented in the likelihood.
 
 We also note the following concern regarding the quality of the Monte Carlo approximation to the integrated likelihood in settings where $\psi$ has a natural boundary. In such settings, draws from $\Omega_{\hat\psi}$ near that boundary consistently failed to produce interior optima during the constrained optimization, instead converging to the boundary of the parameter space. Such boundary solutions indicate optimizer failure rather than genuine modes of the branch function, and including them in the Monte Carlo average would introduce approximation error not present in settings where sampling from $\Omega_{\hat\psi}$ is exact. To avoid this, we require that any draw from $\Omega_{\hat\psi}$ which results in a branch mode being located directly on a boundary of the $\psi$ domain be excluded from the Monte Carlo approximation. We enforce this restriction at the time of the draw, using a quick optimizer to locate the position of the branch mode.
 
@@ -368,7 +367,45 @@ The simulation study for Simpson's index employs the common factorial structure 
 
 \subsubsection{Category-invariant effect}
 
-\section{Application}
+\section{Application to a study on dune meadow vegetation}
+
+We illustrate the profile and integrated likelihood methods on the dune meadow vegetation dataset of @jongman1987, which records the cover-class scores of $J = 30$ plant species across $S = 20$ sites in the Dutch island of Terschelling.^[Cover-class scores are discrete ordinal measurements of the proportion of a plot's area covered by a given species, recorded as integers from 1 to 9 on the scale of @vandermaarel1979 rather than counts of individual organisms. Treating these scores as counts is a standard approximation in community ecology analyses of this dataset.] We index sites by $i = 1, \dots, S$ and denote the cover-class score of species $j$ at site $i$ by $n_{ij}$, with site-level total $n_{i\cdot} = \sum_{j=1}^J n_{ij}$ and site-level covariate vector $\symbf{x}_i$ comprising five environmental measurements: soil horizon thickness (A1), moisture level, management type, land use, and manure application level.
+
+The dataset has served as a standard benchmark in community ecology and was analyzed by @tiffeaumayer2024, who computed point and interval estimates of Simpson's index at each site using both the unbiased estimator
+$$
+\hat{D}_{\mathrm{ub},i} = \frac{\sum_{j=1}^J n_{ij}(n_{ij}-1)}{n_{i\cdot}(n_{i\cdot}-1)}
+$$
+and the estimator from @chao2014. We apply the baseline-category logit models with no effects and fixed effects to each of the two parameters of interest considered in this chapter: Shannon entropy and Simpson's diversity index. The two models differ fundamentally in how they are fit and what quantity they target.
+
+Under the no-effects model, each site $i$ is treated as an independent multinomial experiment. Writing $n_j = n_{ij}$ and $n = n_{i\cdot}$ in the notation of Section \ref{sec:models}, the model is fit separately at each site using only its own count vector $(n_{i1}, \dots, n_{iJ})$, yielding a site-specific parameter vector $\hat{\symbf{\theta}}_i$ and a site-specific likelihood curve for $\varphi(\symbf{\theta}_i)$. This produces $S = 20$ independent analyses, directly comparable to the site-level estimates of @tiffeaumayer2024.
+
+Under the fixed effects model, the $S = 20$ sites play the role of the $n$ independent observations of Section \ref{sec:models}, with $\symbf{x}_i$ and $\symbf{y}_i$ denoting the covariate vector and species count vector at site $i$. A single coefficient matrix $\textbf{B}$ is estimated jointly from all sites via @eq-fixed-effects-loglik, yielding a single MLE $(\hat{\textbf{A}}, \hat{\textbf{B}})$. To obtain a site-specific estimate of the parameter of interest, we evaluate $\varphi(\symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B}))$ at $\symbf{x}_0 = \symbf{x}_i$ for each $i = 1, \dots, S$ in turn, constructing a separate profile or integrated likelihood curve for each site. Each curve is a function of $\psi$ obtained by constraining $\varphi(\symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B})) = \psi$ and optimizing or averaging the joint likelihood --- which is always the same likelihood over all $S$ sites --- with respect to $(\textbf{A}, \textbf{B})$. The value of $\psi$ that maximizes each curve is the site-specific point estimate. This produces $S = 20$ likelihood curves that share the same underlying data and unconstrained MLE but target distinct site-specific quantities, enabling direct comparison with the no-effects results and with the estimates of @tiffeaumayer2024.
+
+\subsection{Results: no-effects model}
+
+\subsubsection{Shannon entropy}
+
+[Figure: IL and PL curves and CIs for all 20 sites. Discussion of interval widths, asymmetry, and how IL and PL compare across sites.]
+
+\subsubsection{Simpson's diversity index}
+
+[Figure: IL and PL curves and CIs for all 20 sites.]
+
+We compare our likelihood-based intervals to the estimates of @tiffeaumayer2024, who report $\hat{D}_{\mathrm{ub},s}$ and the Chao estimator at each site. The unbiased estimator applies a degrees-of-freedom correction to the plug-in estimate $\hat{D}_s = \sum_j (n_{sj}/n_{s\cdot})^2$; the Chao estimator additionally inflates the index to account for species present in the community but unobserved in the sample. Both target the same population quantity $D(\symbf{\theta}_s) = \sum_j \theta_{sj}^2$ asymptotically, as do our likelihood-based intervals, though $\hat{D}_s$ and $\hat{D}_{\mathrm{ub},s}$ differ at sites with small $n_{s\cdot}$, where the finite-sample correction is most pronounced. Neither our profile likelihood nor our integrated likelihood makes any correction for unseen species, so differences relative to the Chao estimator at sparse sites are expected.
+
+\subsection{Results: fixed effects model}
+
+\subsubsection{Shannon entropy}
+
+[Figure: IL and PL curves and CIs for all 20 sites under the fixed effects model. Discussion of how borrowing strength across sites affects interval width and shape relative to the no-effects model.]
+
+\subsubsection{Simpson's diversity index}
+
+[Figure: IL and PL curves and CIs for all 20 sites under the fixed effects model.]
+
+\subsection{Summary}
+
+[Brief synthesis: what the no-effects and fixed effects results reveal about the role of covariate information in shaping the likelihood curves; how IL and PL compare across models and parameters; and what the comparison with @tiffeaumayer2024 suggests about the relationship between likelihood-based and direct estimator approaches to diversity inference.]
 
 \section{Summary and discussion}
 

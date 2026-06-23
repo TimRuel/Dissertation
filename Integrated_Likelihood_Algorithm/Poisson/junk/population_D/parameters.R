@@ -9,4 +9,3 @@ theta_0_sum <- 60
 weights_range <- 0:1
 
 weights_mean <- 1
-

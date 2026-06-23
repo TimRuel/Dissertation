@@ -15,4 +15,3 @@ x <- rnorm(n, 0, 10)
 eps <- rnorm(n, 0, sqrt(sigma_squared_0))
 
 y <- alpha_0 + beta_0 * x + eps
-
