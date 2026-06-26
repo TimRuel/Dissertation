@@ -4,25 +4,18 @@
 
 This chapter concerns parameters of interest derived from a multinomial distribution under a variety of model assumptions. The parameters of interest considered are Shannon entropy, Simpson's diversity index, and a shared effect coefficient in a multinomial logistic regression. We begin with a brief review of the multinomial distribution and its relevant properties.
 
-Let $\symbf{Y}$ denote the outcome of a single categorical trial with parameter $\symbf{\theta} = (\theta_1, ..., \theta_J) \in \Delta^{J-1},$ where
+Let $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$ denote the outcome of a single trial with $J$ mutually exclusive categories, represented as a vector in $\mathbbm{R}^J$ with a $1$ in the position of the realized category and zeros elsewhere. The probability that the outcome is category $j$ is $\theta_j$, and $\symbf{\theta} = (\theta_1, \dots, \theta_J)^\top$ is a point in the open $(J-1)$-dimensional probability simplex
 $$
-\Delta^{J-1} = \Bigg\{\symbf{\theta} \in \mathbbm{R}^J: \theta_j > 0,\ \sum_{j=1}^J \theta_j = 1\Bigg\}
+\Delta^{J-1} = \Bigg\{\symbf{\theta} \in \mathbbm{R}^J: \theta_j > 0,\ \sum_{j=1}^J \theta_j = 1\Bigg\}.
 $${#eq-simplex}
-is the open $(J-1)$-dimensional probability simplex. The strict positivity constraint $\theta_j > 0$ reflects the modeling assumption that every included category is theoretically observable; a category believed to have zero probability would simply be omitted from the model.
-
-We may represent $\symbf{Y}$ as a random vector taking values in the canonical basis of $\mathbbm{R}^J$, i.e.,
+The strict positivity constraint $\theta_j > 0$ reflects the modeling assumption that every included category is theoretically observable; a category believed to have zero probability would simply be omitted from the model. Denoting the $j$th standard basis vector of $\mathbbm{R}^J$ by $\symbf{e}_j$, the distribution of $\symbf{Y}$ is specified by
 $$
-\symbf{Y} \in \{\symbf{e}_1, ..., \symbf{e}_J\},
-$$
-where $\symbf{e}_j$ denotes the $j$th standard basis vector. The distribution of $\symbf{Y}$ is specified by
-$$
-\mathbbm{P}(\symbf{Y} = \symbf{e}_j) = \theta_j, \quad j = 1, \dots, J,
+\mathbbm{P}(\symbf{Y} = \symbf{e}_j) = \theta_j, \quad j = 1, \dots, J.
 $${#eq-categorical-distribution}
-and we write $\symbf{Y} \sim \text{Categorical}(\symbf{\theta})$.
 
-A multinomial random vector arises as the sum of $n$ $\text{i.i.d.}$ categorical random vectors:
+A multinomial random vector arises as the sum of $n$ i.i.d.\ categorical random vectors $\symbf{Y}_1, \dots, \symbf{Y}_n \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta})$:
 $$
-\sum_{t = 1}^n \textbf{Y}_t \sim \text{Multinomial}(n, \symbf{\theta}), \quad \textbf{Y}_t \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta}), \quad t = 1, ..., n.
+\sum_{i = 1}^n \textbf{Y}_i \sim \text{Multinomial}(n, \symbf{\theta}).
 $${#eq-multinomial-construction}
 In particular, the categorical distribution is a special case of the multinomial distribution with $n = 1$, mirroring the relationship between the Bernoulli and binomial distributions.^[The categorical distribution is also known as the *multinoulli* distribution.]
 
@@ -38,15 +31,15 @@ In particular, the categorical distribution is a special case of the multinomial
   \label{fig:multinomial-simplex}
 \end{figure}
 
-Let $(n_1, ..., n_J) \sim \text{Multinomial}(n, \symbf{\theta})$, where $n_j$ denotes the number of observations falling in category $j$ and $n = \sum_{j=1}^J n_j$ is the total number of trials. Each marginal count satisfies $n_j \sim \text{Binomial}(n, \theta_j)$, with $\mathbbm{E}_{\symbf{\theta}}(n_j) = n \theta_j$. Since $\symbf{\theta}$ represents category probabilities, the parameter space is $\Theta = \Delta^{J-1} \subset \mathbbm{R}^J.$ The likelihood and log-likelihood functions are given by
+Letting $n_j = \sum_{i=1}^n \mathbbm{1}(\symbf{Y}_i = \symbf{e}_j)$ denote the number of outcomes falling in category $j$, the count vector $(n_1, \dots, n_J)$ follows a $\text{Multinomial}(n, \symbf{\theta})$ distribution with $\sum_{j=1}^J n_j = n$ by construction. Each marginal count satisfies $n_j \sim \text{Binomial}(n, \theta_j)$, with $\mathbbm{E}_{\symbf{\theta}}(n_j) = n\theta_j$. The log-likelihood function may be written in terms of the individual observations as
 $$
-L(\symbf{\theta}) = \prod_{j=1}^J \theta_j^{n_j}
-$${#eq-multinomial-likelihood}
-and
+\ell(\symbf{\theta}) = \sum_{j=1}^J \sum_{i=1}^n \mathbbm{1}(\symbf{Y}_i = \symbf{e}_j) \log \theta_j,
+$${#eq-multinomial-log-likelihood-individual}
+or equivalently in terms of the aggregated counts as
 $$
-\ell(\symbf{\theta}) = \sum_{j=1}^J n_j \log \theta_j,
+\ell(\symbf{\theta}) = \sum_{j=1}^J n_j \log \theta_j.
 $${#eq-multinomial-log-likelihood}
-respectively. Maximization of @eq-multinomial-log-likelihood subject to $\symbf{\theta} \in \Delta^{J-1}$ yields the familiar maximum likelihood estimator
+Maximization of @eq-multinomial-log-likelihood subject to $\symbf{\theta} \in \Delta^{J-1}$ yields the familiar maximum likelihood estimator
 $$
 \hat{\theta}_j = \frac{n_j}{n}, \quad j = 1, ..., J.
 $${#eq-multinomial-mle}
@@ -59,41 +52,59 @@ The multinomial likelihood is invariant under relabeling of the category indices
 
 A natural starting point for entropy inference under a multinomial model is to treat the category probabilities as free parameters estimated directly from count data. This was the framework considered by @severini2022, who found that an integrated likelihood based on the ZSE nuisance parameterization yields point and interval estimators for the entropy of a multinomial distribution that have improved frequency properties (e.g. reduced bias, lower root mean square error, closer-to-nominal empirical coverage rates, etc.) relative to their profile likelihood counterparts, provided that the sample size is small relative to the number of categories. We adopt this setting here for use as a benchmark but with a parameterization that is better suited to both numerical optimization and extension to more sophisticated models.
 
-Suppose we observe a single multinomial outcome $(n_1, \dots, n_J) \sim \text{Multinomial}(n, \symbf{\theta})$, where the model parameter $\symbf{\theta} = (\theta_1, \dots, \theta_J)^\top \in \Delta^{J-1}$ is a probability vector with $J - 1$ free components, with the remaining degree of freedom having been absorbed by the constraint $\sum_j \theta_j = 1$. Fixing category $1$ as a reference, we define the logit parameters
+Suppose we observe $\symbf{Y}_1, \dots, \symbf{Y}_n \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta})$, where the model parameter $\symbf{\theta} = (\theta_1, \dots, \theta_J)^\top \in \Delta^{J-1}$ is to be estimated from the data. Fixing category $J$ as a reference, we define the logit parameters
 $$
-\eta_j = \log\!\left(\frac{\theta_j}{\theta_1}\right), \quad j = 2, \dots, J,
+\eta_j = \log\!\left(\frac{\theta_j}{\theta_J}\right), \quad j = 1, \dots, J-1,
 $${#eq-logit-parameterization}
-so that each $\eta_j$ represents the log-odds of category $j$ relative to the reference category $1$. Such a transformation maps the interior of $\Delta^{J-1}$ bijectively onto $\mathbbm{R}^{J-1}$, allowing optimization of an objective function with respect to the model parameter to be carried out in unconstrained Euclidean space. The simplex constraints therefore no longer need to be enforced explicitly, and we avoid any boundary-related degeneracies that arise when one or more category probabilities are close to zero. In particular, rare or unobserved categories may be represented by negative logit values that, while very large, are ultimately still finite. The likelihood surfaces expressed in the logit parameterization tend to be smoother as a result, with no sharp corners to interfere with differentiability near the boundaries of the parameter space. This leads to improved numerical stability when approximating both the integrated and profile likelihoods for $\psi$, especially in settings where the interest function depends on logarithms of the category probabilities.
+so that each $\eta_j$ represents the log-odds of category $j$ relative to the reference category $J$. Such a transformation maps the interior of $\Delta^{J-1}$ bijectively onto $\mathbbm{R}^{J-1}$, allowing optimization of an objective function with respect to the model parameter to be carried out in unconstrained Euclidean space. The simplex constraints therefore no longer need to be enforced explicitly, and we avoid any boundary-related degeneracies that arise when one or more category probabilities are close to zero. In particular, rare or unobserved categories may be represented by negative logit values that, while very large, are ultimately still finite. The likelihood surfaces expressed in the logit parameterization tend to be smoother as a result, with no sharp corners to interfere with differentiability near the boundaries of the parameter space. This leads to improved numerical stability when approximating both the integrated and profile likelihoods for $\psi$, especially in settings where the interest function depends on logarithms of the category probabilities.
 
-To recover the category probabilities from the logits, we invert @eq-logit-parameterization. Letting $\symbf{\eta} = (\eta_2, \dots, \eta_{J})^\top \in \mathbbm{R}^{J-1}$, we have
+To recover the category probabilities from the logits, we invert @eq-logit-parameterization. Letting $\symbf{\eta} = (\eta_1, \dots, \eta_{J-1})^\top \in \mathbbm{R}^{J-1}$, we have
 $$
-\theta_1(\symbf{\eta}) = \frac{1}{1 + \sum_{k=2}^{J} \exp(\eta_k)}, \qquad \theta_j(\symbf{\eta}) = \frac{\exp(\eta_j)}{1 + \sum_{k=2}^{J} \exp(\eta_k)}, \quad j = 2, \dots, J.
+\theta_J(\symbf{\eta}) = \frac{1}{1 + \sum_{k=1}^{J-1} \exp(\eta_k)}, \qquad \theta_j(\symbf{\eta}) = \frac{\exp(\eta_j)}{1 + \sum_{k=1}^{J-1} \exp(\eta_k)}, \quad j = 1, \dots, J-1.
 $${#eq-softmax-parameterization}
 This normalized exponential mapping is closely related to the softmax function, with the use of a reference category in place to ensure the model remains identifiable. Since $\symbf{\eta}$ and $\symbf{\theta}$ are related bijectively via @eq-logit-parameterization and @eq-softmax-parameterization, any statement about one is equivalent to a statement about the other; we work with $\symbf{\eta} \in \mathbbm{R}^{J-1}$ throughout for the computational reasons described above. We refer to the multinomial model equipped with this parameterization as the baseline-category logit model with no effects, reflecting the absence of covariate effects or additional regression structure.
 
-The log-likelihood for this model is given by
+The log-likelihood for this model may be written in terms of the individual observations as
+$$
+\ell(\symbf{\eta}) = \sum_{j=1}^J \sum_{i=1}^n \mathbbm{1}(\symbf{Y}_i = \symbf{e}_j) \log \theta_j(\symbf{\eta}),
+$${#eq-no-effects-loglik-individual}
+or equivalently in terms of the aggregated counts $n_j = \sum_{i=1}^n \mathbbm{1}(\symbf{Y}_i = \symbf{e}_j)$ as
 $$
 \ell(\symbf{\eta}) = \sum_{j=1}^J n_j \log \theta_j(\symbf{\eta}),
 $${#eq-no-effects-loglik}
-where $n_j$ is the observed count for category $j$ and $\theta_j(\symbf{\eta})$ is defined as in @eq-softmax-parameterization. Since the log-likelihood depends on the data only through the category counts $n_1, \dots, n_J$, these form a sufficient statistic for $\symbf{\theta}$. The MLE $\hat{\symbf{\theta}}$ has the closed form $\hat{\theta}_j = n_j / n$, or equivalently $\hat{\eta}_j = \log(n_j / n_1)$ for $j = 2, \dots, J$, provided all categories are observed.
+where $\theta_j(\symbf{\eta})$ is defined as in @eq-softmax-parameterization. Since the log-likelihood depends on the data only through the category counts $n_1, \dots, n_J$, these form a sufficient statistic for $\symbf{\theta}$. The MLE $\hat{\symbf{\theta}}$ has the closed form $\hat{\theta}_j = n_j / n$, or equivalently $\hat{\eta}_j = \log(n_j / n_J)$ for $j = 1, \dots, J-1$, provided all categories are observed.
 
 \subsection{Baseline-category logit model with fixed effects}
 
-The baseline-category logit model with fixed effects extends the no-effects model by allowing the category probabilities to depend on observed covariates through a set of fixed regression coefficients. Inference is based on $n$ independent observations $\{(\symbf{x}_i, \symbf{y}_i)\}_{i=1}^n$, where $\symbf{x}_i \in \mathbbm{R}^p$ denotes the covariate vector associated with observation $i$ and $\symbf{y}_i \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ denotes the observed realization of the categorical response $\symbf{Y}_i \sim \text{Categorical}(\symbf{\theta}_i)$, with components $y_{ij} = \mathbbm{1}(Y_i = j)$ for $j = 1, \dots, J$. Fixing category $1$ as a reference, the log-odds of category $j$ relative to category $1$ for observation $i$ are modeled as
+The baseline-category logit model with fixed effects extends the no-effects model by allowing the category probabilities to depend on observed covariates through a set of fixed regression coefficients. In the no-effects model, every observation shares the same probability vector $\symbf{\theta}$. The fixed effects model relaxes this by associating each observation $i$ with a covariate vector $\symbf{x}_i \in \mathbbm{R}^p$ and modeling the category probabilities as a function of $\symbf{x}_i$, so that observations with different covariate values have different probability vectors.
+
+Inference is based on $n$ independent observations $\{(\symbf{x}_i, \symbf{y}_i)\}_{i=1}^n$, where each observation is a single categorical trial. Here $\symbf{y}_i \in \{\symbf{e}_1, \dots, \symbf{e}_J\}$ is the observed realization of $\symbf{Y}_i \sim \text{Categorical}(\symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B}))$, and the dependence of the probability vector on the covariates is specified through a set of baseline-category logits. The conditional probability that observation $i$ falls in category $j$ is given by the $j$th component of $\symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B})$:
 $$
-\log \frac{\mathbbm{P}(Y_i = j \mid \symbf{x}_i)}{\mathbbm{P}(Y_i = 1 \mid \symbf{x}_i)} = \alpha_j + \symbf{x}_i^\top \symbf{\beta}_j, \quad j = 2, \dots, J,
+\mathbbm{P}(\symbf{Y}_i = \symbf{e}_j \mid \symbf{x}_i) = \theta_j(\symbf{x}_i; \textbf{A}, \textbf{B}), \quad j = 1, \dots, J.
+$${#eq-conditional-probability}
+Fixing category $J$ as a reference and letting $\symbf{\eta}_i = (\eta_{i1}, \dots, \eta_{i,J-1})^\top \in \mathbbm{R}^{J-1}$ denote the logit vector for observation $i$, we define
+$$
+\eta_{ij} = \log \frac{\theta_j(\symbf{x}_i; \textbf{A}, \textbf{B})}{\theta_J(\symbf{x}_i; \textbf{A}, \textbf{B})}, \quad j = 1, \dots, J-1.
+$${#eq-logit-definition-with-covariates}
+The fixed effects model constrains these logits to vary linearly with the covariates, i.e.,
+$$
+\eta_{ij} = \alpha_j + \symbf{x}_i^\top \symbf{\beta}_j, \quad j = 1, \dots, J-1,
 $${#eq-logit-parameterization-with-covariates}
-where $\alpha_j \in \mathbbm{R}$ is a category-specific intercept and $\symbf{\beta}_j \in \mathbbm{R}^p$ is a category-specific vector of regression coefficients. The full model parameter is $(\textbf{A}, \textbf{B})$, where $\textbf{A} = (\alpha_2, \dots, \alpha_J)^\top \in \mathbbm{R}^{J-1}$ collects the intercepts and $\textbf{B} = [\symbf{\beta}_2 \mid \cdots \mid \symbf{\beta}_J] \in \mathbbm{R}^{p \times (J-1)}$ collects the regression coefficients, giving $(p + 1)(J - 1)$ free parameters in total --- one intercept and $p$ slopes for each of the $J - 1$ non-baseline categories. The conditional probability vector $\symbf{\theta}_i = \symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B})$ is obtained from @eq-logit-parameterization-with-covariates via the softmax mappings
+where $\alpha_j \in \mathbbm{R}$ is a category-specific intercept and $\symbf{\beta}_j \in \mathbbm{R}^p$ is a category-specific vector of regression coefficients. The full model parameter is $(\textbf{A}, \textbf{B})$, where $\textbf{A} = (\alpha_1, \dots, \alpha_{J-1})^\top \in \mathbbm{R}^{J-1}$ collects the intercepts and $\textbf{B} = [\symbf{\beta}_1 \mid \cdots \mid \symbf{\beta}_{J-1}] \in \mathbbm{R}^{p \times (J-1)}$ collects the regression coefficients, giving $(p + 1)(J - 1)$ free parameters in total --- one intercept and $p$ slopes for each of the $J - 1$ non-baseline categories. Setting $\eta_{iJ} = 0$ for the reference category, the conditional probability vector $\symbf{\theta}_i = \symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B})$ is recovered from @eq-logit-parameterization-with-covariates via the softmax mapping
 $$
-\theta_1(\symbf{x}_i; \textbf{A}, \textbf{B}) = \frac{1}{1 + \sum_{k=2}^{J} \exp(\alpha_k + \symbf{x}_i^\top \symbf{\beta}_k)}
-$${#eq-softmax-parameterization-with-covariates-baseline}
-$$
-\theta_j(\symbf{x}_i; \textbf{A}, \textbf{B}) = \frac{\exp(\alpha_j + \symbf{x}_i^\top \symbf{\beta}_j)}{1 + \sum_{k=2}^{J} \exp(\alpha_k + \symbf{x}_i^\top \symbf{\beta}_k)}, \quad j = 2, \dots, J,
+\theta_j(\symbf{\eta}_i) = \frac{\exp(\eta_{ij})}{1 + \sum_{k=1}^{J-1} \exp(\eta_{ik})}, \quad j = 1, \dots, J,
 $${#eq-softmax-parameterization-with-covariates}
-which generalize @eq-softmax-parameterization to incorporate covariate effects. Since observations are independent, the log-likelihood decomposes as a sum over observations,
+where $\theta_j(\symbf{\eta}_i) = \theta_j(\symbf{x}_i; \textbf{A}, \textbf{B})$ since $\eta_{ij} = \alpha_j + \symbf{x}_i^\top \symbf{\beta}_j$. This generalizes @eq-softmax-parameterization to the regression setting.
+
+In the applications and simulation studies considered in this chapter, the covariate vector $\symbf{x}_i$ is measured once per unit $i$ and shared by all categorical trials conducted at that unit. Unit $i$ therefore contributes $n_{i\cdot}$ independent trials $\symbf{Y}_{i1}, \dots, \symbf{Y}_{i n_{i\cdot}} \overset{\text{i.i.d.}}{\sim} \text{Categorical}(\symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B}))$, all sharing the same probability vector because they share the same covariate vector $\symbf{x}_i$. Writing $n_{ij} = \sum_{t=1}^{n_{i\cdot}} \mathbbm{1}(\symbf{Y}_{it} = \symbf{e}_j)$ for the count of trials falling in category $j$ at unit $i$, with $n_{i\cdot} = \sum_{j=1}^J n_{ij}$ by construction, the contribution of unit $i$ to the log-likelihood is
 $$
-\ell(\textbf{A}, \textbf{B}) = \sum_{i=1}^n \sum_{j=1}^J y_{ij} \log \theta_j(\symbf{x}_i; \textbf{A}, \textbf{B}).
+\sum_{t=1}^{n_{i\cdot}} \sum_{j=1}^J \mathbbm{1}(\symbf{Y}_{it} = \symbf{e}_j) \log \theta_j(\symbf{\eta}_i) = \sum_{j=1}^J n_{ij} \log \theta_j(\symbf{\eta}_i),
+$$
+where the equality follows by collecting terms over $t$. Summing over units gives
+$$
+\ell(\textbf{A}, \textbf{B}) = \sum_{i=1}^n \sum_{j=1}^J n_{ij} \log \theta_j(\symbf{\eta}_i),
 $${#eq-fixed-effects-loglik}
+which generalizes @eq-no-effects-loglik to the regression setting.
 
 \subsection{Baseline-category logit model with random effects}
 
@@ -367,7 +378,7 @@ The simulation study for Simpson's index employs the common factorial structure 
 
 \subsubsection{Category-invariant effect}
 
-\section{Application to a study on dune meadow vegetation}
+\section{Application to a study on dune meadow vegetation}\label{sec:application}
 
 We illustrate the profile and integrated likelihood methods on the dune meadow vegetation dataset of @jongman1987, which records the cover-class scores of $J = 30$ plant species across $S = 20$ sites in the Dutch island of Terschelling.^[Cover-class scores are discrete ordinal measurements of the proportion of a plot's area covered by a given species, recorded as integers from 1 to 9 on the scale of @vandermaarel1979 rather than counts of individual organisms. Treating these scores as counts is a standard approximation in community ecology analyses of this dataset.] We index sites by $i = 1, \dots, S$ and denote the cover-class score of species $j$ at site $i$ by $n_{ij}$, with site-level total $n_{i\cdot} = \sum_{j=1}^J n_{ij}$ and site-level covariate vector $\symbf{x}_i$ comprising five environmental measurements: soil horizon thickness (A1), moisture level, management type, land use, and manure application level.
 
