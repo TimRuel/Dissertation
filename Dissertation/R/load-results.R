@@ -300,3 +300,181 @@ load_applications <- function(registry, what = c("intervals", "curves")) {
 
   bind_rows(parts)
 }
+
+# =========================================================================
+# INTERACTIVE EXPLORATION
+#
+# The functions above are what the figure scripts use: they take explicit
+# estimand/model labels, because a published figure's legend should not
+# depend on a string parsed out of a spec file.
+#
+# The functions below are for poking around at the console. They discover
+# whatever has been downloaded and derive labels automatically, so there is
+# no registry to maintain while exploring.
+# =========================================================================
+
+# -------------------------------------------------------------------------
+# What has been downloaded?
+#
+# Scans <LIKELYR_SIMS_DIR>/experiments for bundles and summarises each.
+# Returns one row per bundle, or an empty tibble if none are present.
+# -------------------------------------------------------------------------
+list_bundles <- function(quiet = FALSE) {
+  root <- path(LIKELYR_SIMS_DIR, "experiments")
+
+  empty <- tibble(
+    family = character(), app = character(), version = character(),
+    kind = character(), n_analyzed = integer(), n_total = integer(),
+    tables = character(), size_kb = numeric(), bundled_at = character()
+  )
+
+  if (!dir_exists(root)) {
+    if (!quiet) message("No experiments directory at: ", root)
+    return(empty)
+  }
+
+  paths <- dir_ls(
+    root,
+    recurse = TRUE,
+    type = "file",
+    glob = "*/analysis/bundle.rds",
+    fail = FALSE
+  )
+
+  if (length(paths) == 0L) {
+    if (!quiet) {
+      message(
+        "No bundles downloaded yet under ", root, "\n",
+        "  From the likelyr-simulations repo, with VPN active:\n",
+        "    make download EXP=<family>/<app>/<exp_vX>"
+      )
+    }
+    return(empty)
+  }
+
+  rows <- lapply(paths, function(p) {
+    # .../experiments/<family>/<app>/<version>/analysis/bundle.rds
+    parts <- path_split(path_rel(p, root))[[1]]
+
+    b <- readRDS(p)
+    meta <- b$meta
+
+    tibble(
+      family = parts[1],
+      app = parts[2],
+      version = parts[3],
+      kind = paste(meta$kind %||% NA_character_, collapse = "+"),
+      n_analyzed = as.integer(meta$n_sims_analyzed %||% NA_integer_),
+      n_total = as.integer(meta$n_sims_total %||% NA_integer_),
+      tables = paste(meta$tables %||% setdiff(names(b), "meta"), collapse = ", "),
+      size_kb = round(as.numeric(file_info(p)$size) / 1024, 1),
+      bundled_at = as.character(meta$bundled_at %||% NA)
+    )
+  })
+
+  bind_rows(rows) |>
+    arrange(family, app, version)
+}
+
+# -------------------------------------------------------------------------
+# Derive estimand and model labels from a bundle
+#
+# estimand comes from context$estimand_name, which analyze_app.R records
+# from the spec (values seen so far: "Shannon entropy",
+# "Shannon entropy at x_0", "Simpson's index (psi)") — matched on keyword
+# rather than parsed, so decorations don't matter.
+#
+# model comes from the application directory prefix, which is the only
+# place it is encoded: ne_ / fe_ / re_.
+# -------------------------------------------------------------------------
+derive_labels <- function(bundle, app) {
+  nm <- bundle$context$estimand_name[1] %||% NA_character_
+
+  estimand <- if (!is.na(nm) && grepl("Shannon|entropy", nm, ignore.case = TRUE)) {
+    "Shannon"
+  } else if (!is.na(nm) && grepl("Simpson", nm, ignore.case = TRUE)) {
+    "Simpson"
+  } else if (!is.na(nm)) {
+    sub("[^A-Za-z].*$", "", nm)
+  } else {
+    app
+  }
+
+  prefix <- sub("_.*$", "", app)
+
+  model <- switch(
+    prefix,
+    ne = "No effects",
+    fe = "Fixed effects",
+    re = "Random effects",
+    prefix
+  )
+
+  list(estimand = estimand, model = model)
+}
+
+# -------------------------------------------------------------------------
+# Load every downloaded application bundle into one tidy frame
+#
+# No registry: discovers what is present, derives labels, and binds.
+# Simulation bundles are skipped (they have no $estimates / $curves).
+#
+# Returns NULL if nothing usable is available.
+# -------------------------------------------------------------------------
+load_all_applications <- function(what = c("intervals", "curves"), quiet = FALSE) {
+  what <- match.arg(what)
+  reshape <- if (what == "intervals") as_interval_df else as_curve_df
+
+  # Discovery messages belong to the caller, not to each reshape pass —
+  # otherwise loading intervals and curves reports the same skips twice.
+  available <- list_bundles(quiet = TRUE)
+
+  if (nrow(available) == 0L) {
+    return(NULL)
+  }
+
+  parts <- list()
+
+  for (i in seq_len(nrow(available))) {
+    r <- available[i, ]
+
+    bundle <- load_bundle(r$family, r$app, r$version)
+
+    # Simulation bundles carry point_metrics / interval_metrics instead.
+    if (is.null(bundle$estimates)) {
+      if (!quiet) {
+        message(
+          "⏭  ", r$family, "/", r$app, "/", r$version,
+          " — kind '", r$kind, "', no application tables; skipping"
+        )
+      }
+      next
+    }
+
+    labs <- derive_labels(bundle, r$app)
+
+    part <- tryCatch(
+      reshape(bundle, labs$estimand, labs$model),
+      error = function(e) {
+        message(
+          "⏭  ", r$family, "/", r$app, "/", r$version,
+          " — could not reshape: ", conditionMessage(e)
+        )
+        NULL
+      }
+    )
+
+    if (is.null(part)) {
+      next
+    }
+
+    parts[[length(parts) + 1]] <- part |>
+      mutate(version = r$version, app = r$app, .before = 1)
+  }
+
+  if (length(parts) == 0L) {
+    return(NULL)
+  }
+
+  bind_rows(parts)
+}

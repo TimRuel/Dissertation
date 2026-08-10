@@ -146,6 +146,21 @@ yet is skipped (leaving any committed PNG intact) rather than overwritten with a
 axis-only panel. **No placeholder data is ever substituted** — the old
 `generate_dummy_pl_il()` is gone, so a PNG on disk always reflects real output.
 
+### Interactive exploration
+
+`Dissertation/explore-results.R` is the console scratchpad — `source()` it to get
+`available` / `intervals` / `curves` / `context` into your session, plus every plot helper
+and the dune benchmarks. It writes nothing and is not a render dependency.
+
+It needs no registry: `list_bundles()` discovers whatever has been downloaded, and
+`derive_labels()` recovers the estimand from `context$estimand_name` (recorded by
+`analyze_app.R`) and the model from the application directory prefix (`ne_` / `fe_` / `re_`).
+Simulation bundles are listed but skipped for reshaping — they hold per-iteration metrics
+and want the summarisers in `likelyr-simulations/R/data_viz_utils.R` instead.
+
+The figure scripts still pass estimand/model labels explicitly, because a published
+figure's legend shouldn't depend on a string parsed out of a spec file.
+
 Results are read via `LIKELYR_SIMS_DIR` (default `C:/Northwestern/likelyr-simulations`).
 Override it when regenerating figures somewhere the Windows path doesn't exist.
 
