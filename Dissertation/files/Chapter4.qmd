@@ -380,120 +380,165 @@ The simulation study for Simpson's index employs the common factorial structure 
 
 \section{Application to a study on dune meadow vegetation}\label{sec:application}
 
-We illustrate the profile and integrated likelihood methods on the dune meadow vegetation dataset of @jongman1987, which records the cover-class scores of $J = 30$ plant species across $n = 20$ sites in the Dutch island of Terschelling.^[Cover-class scores are discrete ordinal measurements of the proportion of a plot's area covered by a given species, recorded as integers from 1 to 9 on the scale of @vandermaarel1979 rather than counts of individual organisms. Treating these scores as counts is a standard approximation in community ecology analyses of this dataset.] We index sites by $i = 1, \dots, n$ and denote the cover-class score of species $j$ at site $i$ by $n_{ij}$, with site-level total $n_{i\cdot} = \sum_{j=1}^J n_{ij}$ and site-level covariate vector $\symbf{x}_i$ comprising five environmental measurements: soil horizon thickness (A1), moisture level, management type, land use, and manure application level.
+We illustrate the profile and integrated likelihood methods on the dune meadow vegetation dataset from @jongman1987, which records the cover-class scores of $J = 30$ plant species across $n = 20$ sites in the Dutch island of Terschelling.^[Cover-class scores are discrete ordinal measurements of the proportion of a plot's area covered by a given species, recorded as integers from 1 to 9 on the scale of @vandermaarel1979 rather than counts of individual organisms. Treating these scores as counts is a standard approximation in community ecology analyses of this dataset.] We index sites by $i = 1, \dots, n$ and denote the cover-class score of species $j$ at site $i$ by $n_{ij}$, with site-level total $n_{i\cdot} = \sum_{j=1}^J n_{ij}$ and site-level covariate vector $\symbf{x}_i$ comprising five environmental measurements: soil horizon thickness (A1), moisture level, management type, land use, and manure application level.
 
 The dataset has served as a standard benchmark in community ecology and was analyzed by @tiffeaumayer2024, who computed point and interval estimates of Simpson's index at each site using both the unbiased estimator
 $$
 \hat{D}_{\mathrm{ub},i} = \frac{\sum_{j=1}^J n_{ij}(n_{ij}-1)}{n_{i\cdot}(n_{i\cdot}-1)}
 $$
-and the estimator from @chao2014. We apply the baseline-category logit models with no effects and fixed effects to both Shannon entropy and Simpson's diversity index.
+and the estimator from @chao2014. We apply the baseline-category logit model with no effects to both Shannon entropy and Simpson's diversity index.
 
 Under the no-effects model, each site is treated as an independent multinomial experiment. The model is fit separately at each site using only its own count vector $(n_{i1}, \dots, n_{iJ})$, yielding a site-specific probability vector $\hat{\symbf{\theta}}_i$ and a site-specific likelihood curve for $\varphi(\symbf{\theta}_i)$. This produces 20 independent analyses, directly comparable to the site-level estimates of @tiffeaumayer2024.
 
-Under the fixed effects model, the 20 sites are treated as units each contributing $n_{i\cdot}$ trials under covariate vector $\symbf{x}_i$, and a single coefficient matrix $(\hat{\textbf{A}}, \hat{\textbf{B}})$ is estimated jointly from all sites. To obtain a site-specific estimate, we evaluate $\varphi(\symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B}))$ at $\symbf{x}_0 = \symbf{x}_i$ for each $i = 1, \dots, n$ in turn, yielding a separate profile and integrated likelihood curve for each site. The resulting 20 curves share the same underlying data but target distinct site-specific quantities, enabling direct comparison with the no-effects results and with the estimates of @tiffeaumayer2024.
+The fixed effects model would instead treat the 20 sites as units each contributing $n_{i\cdot}$ trials under covariate vector $\symbf{x}_i$, with a single coefficient matrix $(\hat{\textbf{A}}, \hat{\textbf{B}})$ estimated jointly from all sites and site-specific estimates obtained by evaluating $\varphi(\symbf{\theta}(\symbf{x}_i; \textbf{A}, \textbf{B}))$ at $\symbf{x}_0 = \symbf{x}_i$ for each $i$ in turn. Comparing the two models would isolate the effect of borrowing strength across sites on the shape of the pseudolikelihood; we leave that comparison to future work and confine the present application to the no-effects model, where each site's analysis is self-contained and the comparison with @tiffeaumayer2024 is direct.
 
-\subsection{Results: no-effects model}
+Throughout, we report intervals at the 90\%, 95\%, and 99\% levels. Because the no-effects analyses are independent across sites, we present results one estimand at a time and organize them around three questions: where each pseudolikelihood places its point estimate, what shape the resulting intervals take, and how the intervals compare to the direct estimators of @tiffeaumayer2024.
 
-\subsubsection{Shannon entropy}
+A remark on the role of the benchmarks. Both $\hat{D}_{\mathrm{ub},i}$ and the Miller--Madow corrected entropy used below are bias corrections to a plug-in estimator, not gold standards: with real data the true $\varphi(\symbf{\theta}_i)$ is unknown, so nothing in this section measures coverage. The benchmarks serve as fixed, analytically understood reference points against which the two pseudolikelihoods can be located. Coverage is established separately in Section \ref{sec-simulation-evidence}, and the width comparisons below should be read against it.
 
-\begin{figure}[t]
+\subsection{Where the pseudolikelihoods place the point estimate}
+
+The two pseudolikelihoods differ first in location, and the difference is not incidental: the profile likelihood is maximized at the maximum likelihood estimate by construction, so its point estimate is the plug-in estimator $\varphi(\hat{\symbf{\theta}}_i)$ and it inherits that estimator's bias exactly. For Simpson's index the plug-in estimator $\hat{D}_i = \sum_j (n_{ij}/n_{i\cdot})^2$ has bias $(1 - D_i)/n_{i\cdot}$ and is biased \emph{upward}; for Shannon entropy the plug-in estimator is biased \emph{downward}, with leading term $-(S_i - 1)/2n_{i\cdot}$ where $S_i$ is the number of species observed at site $i$ (here between 5 and 14 of the $J = 30$). The two estimands therefore provide a built-in sign check on any claim about where the integrated likelihood moves.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.75\textwidth]{files/Images/ne-shannon-intervals.png}
+  \includegraphics[width=0.75\textwidth]{files/Images/ne-shannon-bias-anatomy.png}
   \caption{%
     \small
-    \textsc{Profile and Integrated Likelihood Intervals for Shannon Entropy, No-Effects Model.}
-    Point estimates and confidence intervals at the 90\%, 95\%, and 99\% levels for each of the 20 dune meadow sites, ordered by increasing site-level total $n_{i\cdot}$.
+    \textsc{Location of the Point Estimates, Shannon Entropy, No-Effects Model.}
+    Each estimate expressed as a difference from the Miller--Madow corrected entropy, against site-level total $n_{i\cdot}$. Gray diamonds mark the predicted plug-in bias $-(S_i-1)/2n_{i\cdot}$.
   }
-  \label{fig:ne-shannon-intervals}
+  \label{fig:ne-shannon-bias}
 \end{figure}
 
-[Discussion of interval widths, asymmetry, and how IL and PL compare across sites, referencing Figure \ref{fig:ne-shannon-intervals}.]
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.75\textwidth]{files/Images/ne-simpson-bias-anatomy.png}
+  \caption{%
+    \small
+    \textsc{Location of the Point Estimates, Simpson's Index, No-Effects Model.}
+    Each estimate expressed as a difference from the unbiased estimator $\hat{D}_{\mathrm{ub},i}$, against site-level total $n_{i\cdot}$. Gray diamonds mark the predicted plug-in bias $(1-D_i)/n_{i\cdot}$.
+  }
+  \label{fig:ne-simpson-bias}
+\end{figure}
 
-\subsubsection{Simpson's diversity index}
+Figures \ref{fig:ne-shannon-bias} and \ref{fig:ne-simpson-bias} confirm this for both estimands, and to a degree worth stating precisely. Dividing the observed offset of the profile estimate from the bias-corrected benchmark by the predicted bias gives a ratio of $0.996$--$1.021$ across sites for Shannon entropy (median $1.006$) and $0.978$--$1.055$ for Simpson's index (median $1.000$). The profile likelihood is not approximately at the plug-in estimator's bias; it is at it.
 
-\begin{figure}[t]
+The integrated likelihood moves off that point, and in both cases it moves in the direction that corrects the plug-in bias --- downward for Simpson's index, upward for Shannon entropy. It does not, however, arrive at the benchmark. For Simpson's index it crosses past: the median integrated estimate sits $0.032$ \emph{below} $\hat{D}_{\mathrm{ub},i}$, having started $0.059$ above it at the profile estimate. For Shannon entropy it stops short, closing roughly half the gap (median offset $-0.078$ against the profile likelihood's $-0.132$). Whether the overshoot under Simpson's index reflects the estimand's level-set geometry or the nuisance parameterization is not resolved by this dataset.
+
+[Interpretation: what the direction and magnitude of the IL shift imply about integrating over the nuisance parameter, and how this relates to the bias arguments in Section \ref{sec:re-pil}.]
+
+\subsection{The shape of the intervals}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{files/Images/ne-shannon-interval-shape.png}
+  \caption{%
+    \small
+    \textsc{Interval Shape, Shannon Entropy, No-Effects Model.}
+    Lower arm $\hat{\varphi} - \text{lower}$ against upper arm $\text{upper} - \hat{\varphi}$ on log--log axes with equal decades, so the identity line is a true $45^\circ$. Points on the line denote exactly symmetric intervals.
+  }
+  \label{fig:ne-shannon-shape}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{files/Images/ne-simpson-interval-shape.png}
+  \caption{%
+    \small
+    \textsc{Interval Shape, Simpson's Index, No-Effects Model.}
+    As in Figure \ref{fig:ne-shannon-shape}. Boxed points mark intervals whose lower endpoint falls below the parameter-space floor $D_i \geq 1/J$.
+  }
+  \label{fig:ne-simpson-shape}
+\end{figure}
+
+Because the Chao and unbiased intervals are Wald intervals of the form $\hat{\varphi} \pm z_{1-\alpha/2}\,\widehat{\mathrm{se}}$, their two arms are equal by construction, and in Figures \ref{fig:ne-shannon-shape} and \ref{fig:ne-simpson-shape} every one of their points falls exactly on the identity line. The pseudolikelihood intervals invert a likelihood ratio and are not constrained this way: at the 90\% level the median ratio of upper arm to lower arm is $1.55$ for the profile likelihood and $1.84$ for the integrated likelihood under Shannon entropy, and $2.23$ and $2.49$ respectively under Simpson's index. In both cases the integrated likelihood is the more asymmetric of the two.
+
+This is not a cosmetic difference. Simpson's index is bounded below by $1/J$, and a symmetric interval centered on a small estimate can run out of parameter space: nine Chao intervals and one unbiased interval fall below $1/J$, and the 99\% Chao interval at site 17 --- the sparsest, with $n_{i\cdot} = 15$ --- has a negative lower endpoint. No profile or integrated interval leaves the parameter space for either estimand.
+
+[Interpretation: whether the asymmetry is desirable here, i.e.\ whether the sampling distribution of $\hat{\varphi}$ near the boundary is skewed in the direction the likelihood intervals accommodate.]
+
+\subsection{Site-level interval estimates}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{files/Images/ne-shannon-forest.png}
+  \caption{%
+    \small
+    \textsc{Site-Level 90\% Intervals, Shannon Entropy, No-Effects Model.}
+    Profile and integrated likelihood intervals at each site, ordered by increasing $n_{i\cdot}$. Gray ticks mark the Miller--Madow corrected estimate.
+  }
+  \label{fig:ne-shannon-forest}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{files/Images/ne-simpson-forest.png}
+  \caption{%
+    \small
+    \textsc{Site-Level 90\% Intervals, Simpson's Index, No-Effects Model.}
+    As in Figure \ref{fig:ne-shannon-forest}, with gray ticks marking $\hat{D}_{\mathrm{ub},i}$ and the dashed line the parameter-space floor $D_i = 1/J$.
+  }
+  \label{fig:ne-simpson-forest}
+\end{figure}
+
+Figures \ref{fig:ne-shannon-forest} and \ref{fig:ne-simpson-forest} give the site-level picture, and here the two estimands diverge sharply. For Shannon entropy both pseudolikelihood intervals contain the Miller--Madow estimate at every site analyzed. For Simpson's index the integrated interval contains $\hat{D}_{\mathrm{ub},i}$ at 19 of the 20 sites but the profile interval does so at only 3: the profile interval is centered on an estimate biased upward by $(1-D_i)/n_{i\cdot}$ and is too narrow to reach back down to the corrected value.
+
+The width comparison qualifies this, and does not go the same way for both estimands. Under Simpson's index the integrated intervals are wider than the profile intervals --- median ratio $1.37$ at the 90\% level, falling to $1.21$ at 99\% --- so the improved agreement with $\hat{D}_{\mathrm{ub},i}$ is partly bought with length. Under Shannon entropy no such price is paid: the median width ratio is $0.97$ at every level, so the integrated intervals are if anything marginally shorter while still covering the benchmark. Section \ref{sec-simulation-evidence} supplies the coverage figures these widths must be weighed against.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{files/Images/ne-shannon-curves.png}
+  \caption{%
+    \small
+    \textsc{Profile and Integrated Log-Pseudolikelihoods, Shannon Entropy.}
+    Curves normalized to a maximum of zero and trimmed to the widest likelihood ratio cutoff. Dashed lines mark the maximum likelihood estimate.
+  }
+  \label{fig:ne-shannon-curves}
+\end{figure}
+
+Figure \ref{fig:ne-shannon-curves} shows the underlying pseudolikelihood curves and makes the mechanism visible directly: the profile curve peaks on the maximum likelihood estimate at every site, while the integrated curve's mode is displaced to its right, which is the upward shift reported above.
+
+\subsection{Comparison with existing diversity estimators}
+
+\begin{figure}[tbp]
   \centering
   \includegraphics[width=0.75\textwidth]{files/Images/ne-simpson-intervals.png}
   \caption{%
     \small
-    \textsc{Profile, Integrated Likelihood, Unbiased, and Chao Intervals for Simpson's Index, No-Effects Model.}
-    Point estimates and confidence intervals at the 90\%, 95\%, and 99\% levels for each of the 20 dune meadow sites, ordered by increasing site-level total $n_{i\cdot}$.
+    \textsc{All Methods, Simpson's Index, No-Effects Model.}
+    Profile, integrated, unbiased, and Chao point estimates and intervals at the 90\%, 95\%, and 99\% levels for each site, ordered by increasing $n_{i\cdot}$.
   }
   \label{fig:ne-simpson-intervals}
 \end{figure}
 
-We compare our likelihood-based intervals to the estimates of @tiffeaumayer2024, who report $\hat{D}_{\mathrm{ub},s}$ and the Chao estimator at each site. The unbiased estimator applies a degrees-of-freedom correction to the plug-in estimate $\hat{D}_s = \sum_j (n_{sj}/n_{s\cdot})^2$; the Chao estimator additionally inflates the index to account for species present in the community but unobserved in the sample. Both target the same population quantity $D(\symbf{\theta}_s) = \sum_j \theta_{sj}^2$ asymptotically, as do our likelihood-based intervals, though $\hat{D}_s$ and $\hat{D}_{\mathrm{ub},s}$ differ at sites with small $n_{s\cdot}$, where the finite-sample correction is most pronounced. Neither our profile likelihood nor our integrated likelihood makes any correction for unseen species, so differences relative to the Chao estimator at sparse sites are expected, and Figure \ref{fig:ne-simpson-intervals} shows these differences concentrated among the sparsest sites toward the left of the plot.
-
-\begin{figure}[t]
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.75\textwidth]{files/Images/ne-simpson-width.png}
+  \includegraphics[width=0.75\textwidth]{files/Images/ne-shannon-intervals.png}
   \caption{%
     \small
-    \textsc{Interval Width Comparison for Simpson's Index, No-Effects Model.}
-    Width of the 90\%, 95\%, and 99\% intervals for each method at each site, ordered by increasing site-level total $n_{i\cdot}$.
+    \textsc{All Methods, Shannon Entropy, No-Effects Model.}
+    Profile, integrated, and Chao point estimates and intervals at the 90\%, 95\%, and 99\% levels for each site, ordered by increasing $n_{i\cdot}$. Chao estimates are shown at all 20 sites, profile and integrated estimates at the 17 analyzed.
   }
-  \label{fig:ne-simpson-width}
+  \label{fig:ne-shannon-intervals}
 \end{figure}
 
-[Discussion of relative interval widths across methods, referencing Figure \ref{fig:ne-simpson-width}.]
+The unbiased estimator applies a degrees-of-freedom correction to the plug-in estimate $\hat{D}_i$; the Chao estimator additionally inflates the index to account for species present in the community but unobserved in the sample. Neither the profile nor the integrated likelihood makes any correction for unseen species.
 
-\subsection{Results: fixed effects model}
+The size of that unseen-species correction differs greatly between the two estimands, and this governs how much the comparison can reveal. For Simpson's index the Chao and unbiased point estimates agree to within $4.4 \times 10^{-4}$ at every site --- a median relative difference of $0.28\%$ --- because $\sum_j \theta_{ij}^2$ is dominated by abundant species, and unseen species, having small $\theta_{ij}$, contribute almost nothing to it. For Shannon entropy the correction is substantial, a median of $0.14$ nats or $6.2\%$, and is largest at the sparsest sites; Figure \ref{fig:ne-shannon-intervals} shows the Chao estimates sitting visibly above both pseudolikelihood estimates as a result. Any discrepancy between our intervals and Chao's on Simpson's index is therefore \emph{not} attributable to unseen species; on Shannon entropy it partly is.
 
-\subsubsection{Shannon entropy}
+What does differ markedly for Simpson's index is the Chao \emph{interval}. Its standard error is much larger than the unbiased estimator's at sparse sites, and Figure \ref{fig:ne-simpson-intervals} shows the resulting intervals widening sharply toward the left of the plot --- it is this, rather than any shift in the point estimate, that separates Chao from the other methods here.
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.75\textwidth]{files/Images/fe-shannon-intervals.png}
-  \caption{%
-    \small
-    \textsc{Profile and Integrated Likelihood Intervals for Shannon Entropy, Fixed Effects Model.}
-    Point estimates and confidence intervals at the 90\%, 95\%, and 99\% levels for each of the 20 dune meadow sites, ordered by increasing site-level total $n_{i\cdot}$.
-  }
-  \label{fig:fe-shannon-intervals}
-\end{figure}
-
-[Discussion of how borrowing strength across sites affects interval width and shape relative to the no-effects model, referencing Figure \ref{fig:fe-shannon-intervals} and Figure \ref{fig:model-comparison-width-shannon}.]
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.75\textwidth]{files/Images/model-comparison-width-shannon.png}
-  \caption{%
-    \small
-    \textsc{No-Effects vs.\ Fixed-Effects Interval Width, Shannon Entropy.}
-    Width of the profile and integrated likelihood intervals under each model, at each site, ordered by increasing site-level total $n_{i\cdot}$.
-  }
-  \label{fig:model-comparison-width-shannon}
-\end{figure}
-
-\subsubsection{Simpson's diversity index}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.75\textwidth]{files/Images/fe-simpson-intervals.png}
-  \caption{%
-    \small
-    \textsc{Profile and Integrated Likelihood Intervals for Simpson's Index, Fixed Effects Model.}
-    Point estimates and confidence intervals at the 90\%, 95\%, and 99\% levels for each of the 20 dune meadow sites, ordered by increasing site-level total $n_{i\cdot}$.
-  }
-  \label{fig:fe-simpson-intervals}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.75\textwidth]{files/Images/model-comparison-width-simpson.png}
-  \caption{%
-    \small
-    \textsc{No-Effects vs.\ Fixed-Effects Interval Width, Simpson's Index.}
-    Width of the profile and integrated likelihood intervals under each model, at each site, ordered by increasing site-level total $n_{i\cdot}$.
-  }
-  \label{fig:model-comparison-width-simpson}
-\end{figure}
-
-[Discussion referencing Figure \ref{fig:fe-simpson-intervals} and Figure \ref{fig:model-comparison-width-simpson}.]
+[Interpretation: what agreement with $\hat{D}_{\mathrm{ub},i}$ at 19 of 20 sites suggests about the integrated likelihood as a general-purpose alternative to estimand-specific bias corrections, given that it requires no closed-form bias expression.]
 
 \subsection{Summary}
 
-[Brief synthesis: what the no-effects and fixed effects results reveal about the role of covariate information in shaping the likelihood curves; how IL and PL compare across models and parameters; and what the comparison with @tiffeaumayer2024 suggests about the relationship between likelihood-based and direct estimator approaches to diversity inference.]
+[Brief synthesis: the mirror-image behavior across the two estimands as evidence that the integrated likelihood's movement is a systematic bias correction rather than an artifact; the asymmetry and parameter-space respect as structural advantages over Wald intervals; and what the comparison with @tiffeaumayer2024 suggests about the relationship between likelihood-based and direct estimator approaches to diversity inference.]
+
+\subsubsection*{Scope of the reported results}
+
+The Shannon entropy analyses cover 17 of the 20 sites; sites 3, 4, and 13 are omitted because those fits did not complete. All Simpson's index analyses cover all 20 sites. Chao and unbiased estimates, computed in closed form, are available at all 20 sites throughout.
+
 
 \section{Summary and discussion}
 

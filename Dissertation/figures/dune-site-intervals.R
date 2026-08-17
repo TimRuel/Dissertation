@@ -31,14 +31,20 @@
 # are not written — no placeholder data is substituted, so a figure on
 # disk always reflects real output.
 #
-# Pending: fixed-effects entropy (applications/multinom/fe_entropy) and
-# no-effects Simpson (applications/multinom/ne_simpson) have spec files
-# but no experiment configs under config/multinom/ yet.
+# `app` is the directory under experiments/<family>/, which is NOT always
+# the spec directory name: the no-effects Simpson experiment uses the
+# ne_simpson specs but lives under config/ and experiments/ as
+# `logit_simpson`. bundle_path() only knows the experiments/ layout, so
+# `app` must be the latter.
+#
+# Pending: fixed-effects entropy (applications/multinom/fe_entropy) has
+# spec files but no experiment config under config/multinom/ yet.
 # -------------------------------------------------------------------------
 
 dune_applications <- tribble(
-  ~estimand, ~model,       ~family,    ~app,         ~version,
-  "Shannon", "No effects", "multinom", "ne_entropy", "exp_v13"
+  ~estimand, ~model,       ~family,    ~app,            ~version,
+  "Shannon", "No effects", "multinom", "ne_entropy",    "exp_v13",
+  "Simpson", "No effects", "multinom", "logit_simpson", "exp_v6"
 )
 
 pl_il_intervals <- load_applications(dune_applications, what = "intervals")
@@ -92,28 +98,28 @@ entropy_interval_df <- bind_rows(
 p_ne_shannon <- save_figure(
   "ne-shannon-intervals.png",
   entropy_interval_df |> filter(model == "No effects"),
-  \(df) plot_interval_comparison(df, "Shannon entropy")
+  \(df) plot_interval_comparison(df, "Shannon entropy", METHOD_COLORS)
 )
 
 # ---- No-effects: Simpson's index, all available methods ----
 p_ne_simpson <- save_figure(
   "ne-simpson-intervals.png",
   simpson_interval_df |> filter(model == "No effects"),
-  \(df) plot_interval_comparison(df, "Simpson's index")
+  \(df) plot_interval_comparison(df, "Simpson's index", METHOD_COLORS)
 )
 
 # ---- No-effects: Simpson's index, interval width supplement ----
 p_ne_simpson_width <- save_figure(
   "ne-simpson-width.png",
   simpson_interval_df |> filter(model == "No effects"),
-  \(df) plot_interval_width(df, "Simpson's index")
+  \(df) plot_interval_width(df, "Simpson's index", method_colors = METHOD_COLORS)
 )
 
 # ---- Fixed-effects: Shannon entropy (PL/IL only) ----
 p_fe_shannon <- save_figure(
   "fe-shannon-intervals.png",
   entropy_interval_df |> filter(model == "Fixed effects"),
-  \(df) plot_interval_comparison(df, "Shannon entropy")
+  \(df) plot_interval_comparison(df, "Shannon entropy", METHOD_COLORS)
 )
 
 # ---- Fixed-effects: Simpson's index (PL/IL only) ----
@@ -121,7 +127,7 @@ p_fe_simpson <- save_figure(
   "fe-simpson-intervals.png",
   simpson_interval_df |>
     filter(model == "Fixed effects", method %in% c("PL", "IL")),
-  \(df) plot_interval_comparison(df, "Simpson's index")
+  \(df) plot_interval_comparison(df, "Simpson's index", METHOD_COLORS)
 )
 
 # ---- Model comparison: no-effects vs. fixed-effects width, Shannon ----
